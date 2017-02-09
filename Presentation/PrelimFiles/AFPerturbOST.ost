@@ -1,0 +1,19 @@
+# Online status tracking (OST) configuration file
+rmsSlopeWin = 0.030000
+ 
+# Main section: Heuristic rules for tracking
+n = 12
+0 INTENSITY_RISE_HOLD 0.01 0.05 {} # Detect voicing onset
+2 ELAPSED_TIME 2.0201 NaN {} #The amount of time pre-perturbation
+3 ELAPSED_TIME 0.035 NaN {} #Shift 1 of 8
+4 ELAPSED_TIME 0.035 NaN {} #Shift 2 of 8
+5 ELAPSED_TIME 0.035 NaN {} #Shift 3 of 8
+6 ELAPSED_TIME 0.035 NaN {} #Shift 4 of 8
+7 ELAPSED_TIME 0.035 NaN {} #Shift 5 of 8
+8 ELAPSED_TIME 0.035 NaN {} #Shift 6 of 8
+9 ELAPSED_TIME 0.035 NaN {} #Shift 7 of 8
+10 ELAPSED_TIME 0.035 NaN {} #Shift 8 of 8
+11 ELAPSED_TIME 0.42 NaN {} #Hold for the rest of the perturbation
+12 OST_END NaN NaN {} #End the dang thing
+
+n = 0
