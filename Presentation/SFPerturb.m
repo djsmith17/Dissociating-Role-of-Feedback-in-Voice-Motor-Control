@@ -17,6 +17,8 @@ defaultGender = 'male';
 bVis          = 0;
 masking       = 1;
 
+dirs = sfDirs;
+
 datadir       = 'C:\Users\djsmith\Documents';
 expType       = 'Pilot Data\Somatosensory Perturbation_Perceptual';
 savedFiledir  = [datadir '\' expType '\' subject '\' run '\'];
