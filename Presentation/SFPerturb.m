@@ -130,6 +130,7 @@ end
 end
 
 function s = initPerturb
+%Create the parameters for the NIDAQ
 
 s = daq.createSession('ni');
 addAnalogOutputChannel(s,'Dev3',0,'Voltage'); %Output to Perturbatron
