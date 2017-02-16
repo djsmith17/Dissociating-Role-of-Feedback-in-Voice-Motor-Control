@@ -4,12 +4,15 @@ close all;
 pltFolder = 'C:\Users\djsmith\Documents\Pilot Data\Force Sensor Calibration\';
 method = 'Pilot1';
 
-s = initPerturb;
+s = initNIDAQ;
 
 numTrial    = n;
 trialLen    = 4; %Seconds
 trialLenPts = trialLen*s.Rate;
 pauseLen    = 0;
+
+sig = zeros(s.Rate*trialLen,1) - 1;
+sig(1) = 0; sig(end) = 0;
 
 trialType = zeros(numTrial,1) + 1; %orderTrialsLaced(numTrial, 0.25); %numTrials, percentCatch
 
@@ -17,7 +20,7 @@ trialType = zeros(numTrial,1) + 1; %orderTrialsLaced(numTrial, 0.25); %numTrials
 
 svData = [];
 for ii = 1:numTrial
-    queueOutputData(s, sigs(:,ii));
+    queueOutputData(s, [sigs(:,ii) sig]);
     fprintf('Running Trial %d\n', ii)
     [data_DAQ, time] = s.startForeground;
     
