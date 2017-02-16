@@ -31,7 +31,7 @@ for i = 1:numTrial
 
     sig  = zeros(trialLen,1);
     if trialType(i) == 1
-        sig(span) = 3; %For SFPerturb =3. For AFPerturb =0
+        sig(span) = 3; %For SFPerturb  (sometimes) =3. For AFPerturb always =0
     end
     
     sigs(:,i)  = sig;
