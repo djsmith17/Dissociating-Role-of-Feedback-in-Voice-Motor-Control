@@ -13,7 +13,7 @@ pauseLen    = 0;
 
 trialType = zeros(numTrial,1) + 1; %orderTrialsLaced(numTrial, 0.25); %numTrials, percentCatch
 
-[sigs, spans] = createPerturbs(s, numTrial, trialLenPts, trialType);
+[sigs, spans] = createPerturbSignal(s, numTrial, trialLenPts, trialType);
 
 svData = [];
 for ii = 1:numTrial
@@ -52,60 +52,6 @@ addAnalogInputChannel(s,'Dev3',0,'Voltage'); %Input from Force Sensor 1
 addAnalogInputChannel(s,'Dev3',1,'Voltage'); %Input from Force Sensor 1
 
 s.Rate = 8000;
-end
-
-function trialType = orderTrialsLaced(numTrial, per)
-%This function organizes trials in sets based on variable 'per'. 
-%For example if per = 0.25, then a set of four trials will have 
-%three control trials, and one catch trial. The catch trial will always be 
-%the second or third trial in the set. This will generate enough sets for
-%all trials in 'numTrial'.
-
-trialType = [];
-for ii = 1:(numTrial*per)
-    place = round(rand) + 2; %This will break if per!= 0.25 **Fix this**
-    set = zeros(1,(1/per));
-    set(place) = 1;
-    
-    trialType = cat(2, trialType, set);
-end
-end
-
-function [sigs, spans] = createPerturbs(s, numTrial, trialLen, trialType)
-%This function creates the digital signal for the NIDAQ needed for each
-%trial. It also keeps track of the time points when the perturbation should
-%activate and deactivate. This function calculates these points for the 
-%sampling rate of the NIDAQ (s.Rate). 'spans' is then converted to the 
-%Audapter sampling rate (sRate) in the main function.
-
-%The perturbation starts at a semi-random time between 1.7s and 2.1s after 
-%phonation. The pertrubation stops at a semi-random time between 
-%0.7 and 1.1s after the start of pertrubation.
-
-%s:         NIDAQ object handle for keeping track of variables and I/O
-%numTrial:  The number of trials
-%trialLen:  The length of each trial in points
-%trialType: Vector (length = numTrial) of order of trials (control/catch)
-
-%sigs:  Per-trial digital signal to be outputted to NIDAQ
-%spans: Per-trial pertrubation start and stop points to be aligned with mic data
-
-sigs  = zeros(trialLen, numTrial);
-spans = zeros(numTrial,2);
-for i = 1:numTrial
-    St   = round(s.Rate*(1.7 + (2.1-1.7)*rand)); %Hardset (1.7-2.1 seconds)
-    pLen = round(s.Rate*(0.7 + (1.1-0.7)*rand)); %Hardset (0.7-1.1 seconds)   
-    Sp   = St+pLen;    
-    span = St:Sp; 
-
-    sig  = zeros(trialLen,1);
-    if trialType(i) == 1
-        sig(span) = 3; %3V
-    end
-    
-    sigs(:,i)  = sig;
-    spans(i,:) = [St Sp];
-end
 end
 
 function plot_data_DAQ(s, spans, svData, method, pltFolder)

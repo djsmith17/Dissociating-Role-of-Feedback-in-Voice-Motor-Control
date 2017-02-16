@@ -61,7 +61,7 @@ trialLenPts   = p.trialLen*s.Rate; %seconds converted to points
 
 p = setMasking(p, masking); %Trials with masking or no...  
 
-p.trialType = orderTrialsLaced(p.numTrial, 0.25); %numTrials, percentCatch
+p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 
 [sigs, spans] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
