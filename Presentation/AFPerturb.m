@@ -47,7 +47,7 @@ p.postProcSRate= sRate/downFact;
 s = initPerturb;
 
 %Set up OST and PCF Files
-prelimfileLoc = 'C:\Users\djsmith\Documents\MATLAB\SFPerturb\PrelimFiles\';
+prelimfileLoc = 'C:\Users\djsmith\Documents\MATLAB\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Presentation\PrelimFiles\';
 p.ostFN = [prelimfileLoc 'AFPerturbOST.ost']; check_file(p.ostFN); %%
 p.pcfFN = [prelimfileLoc 'AFPerturbPCF.pcf']; check_file(p.pcfFN); %%
 
@@ -71,7 +71,7 @@ p = setMasking(p, masking);
 
 p.trialType = orderTrialsLaced(p.numTrial, 0.25); %numTrials, percentCatch
 
-[sigs, spans] = createPerturbs(s, p.numTrial, trialLen, p.trialType);
+[sigs, spans] = createPerturbSignal(s, p.numTrial, trialLen, p.trialType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
 
 %This is where the fun begins
