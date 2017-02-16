@@ -47,8 +47,8 @@ p.savedFiledir = savedFiledir;
 p.savedWavdir  = savedWavdir;
 p.postProcSRate= sRate/downFact;
 
-%Set up Perturbatron
-s = initPerturb;
+%Set up Parameters to control NIDAQ and Perturbatron
+s = initNIDAQ;
 
 %Set up OST and PCF Files
 prelimfileLoc = 'C:\Users\djsmith\Documents\MATLAB\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Presentation\PrelimFiles\';
@@ -66,6 +66,10 @@ p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 [sigs, spans] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
 
+%Create a negative voltage signal for the force sensors
+negVolSrc = zeros(s.Rate*trialLen, 1) - 1;
+negVolSrc(1) = 0; negVolSrc(end) = 0;
+
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
@@ -80,7 +84,8 @@ for ii = 1:p.numTrial
     Audapter('pcf', p.pcfFN, 0);
     
     %Setup which perturb file we want
-    queueOutputData(s, sigs(:,ii));
+    NIDAQsig = [sigs(:,ii) negVolSrc];
+    queueOutputData(s, NIDAQsig);
     
     %Cue to begin trial
     set(H1,'Visible','on');
@@ -127,18 +132,6 @@ if bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
 end
-end
-
-function s = initPerturb
-%Create the parameters for the NIDAQ
-%https://www.mathworks.com/hardware-support/nidaqmx.html
-
-s = daq.createSession('ni');
-addAnalogOutputChannel(s,'Dev3',0,'Voltage'); %Output to Perturbatron
-addAnalogInputChannel(s,'Dev3',0,'Voltage');  %Input from Force Sensor
-addAnalogInputChannel(s,'Dev3',1,'Voltage');
-
-s.Rate = 8000;
 end
 
 function p = setMasking(p, masking)

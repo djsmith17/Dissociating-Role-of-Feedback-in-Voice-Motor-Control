@@ -11,7 +11,7 @@ trialLen    = 4; %Seconds
 trialLenPts = trialLen*s.Rate;
 pauseLen    = 0;
 
-negVolSrc = zeros(s.Rate*trialLen,1) - 1;
+negVolSrc = zeros(s.Rate*trialLen, 1) - 1;
 negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 trialType = ones(numTrial,1);
