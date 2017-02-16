@@ -14,7 +14,7 @@ pauseLen    = 0;
 negVolSrc = zeros(s.Rate*trialLen,1) - 1;
 negVolSrc(1) = 0; negVolSrc(end) = 0;
 
-trialType = zeros(numTrial,1) + 1; %orderTrialsLaced(numTrial, 0.25); %numTrials, percentCatch
+trialType = ones(numTrial,1);
 
 [sigs, spans] = createPerturbSignal(s, numTrial, trialLenPts, trialType);
 
