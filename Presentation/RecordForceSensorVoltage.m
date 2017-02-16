@@ -11,8 +11,8 @@ trialLen    = 4; %Seconds
 trialLenPts = trialLen*s.Rate;
 pauseLen    = 0;
 
-sig = zeros(s.Rate*trialLen,1) - 1;
-sig(1) = 0; sig(end) = 0;
+negVolSrc = zeros(s.Rate*trialLen,1) - 1;
+negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 trialType = zeros(numTrial,1) + 1; %orderTrialsLaced(numTrial, 0.25); %numTrials, percentCatch
 
@@ -20,7 +20,8 @@ trialType = zeros(numTrial,1) + 1; %orderTrialsLaced(numTrial, 0.25); %numTrials
 
 svData = [];
 for ii = 1:numTrial
-    queueOutputData(s, [sigs(:,ii) sig]);
+    NIDAQsig = [sigs(:,ii) negVolSrc];
+    queueOutputData(s, NIDAQsig);
     fprintf('Running Trial %d\n', ii)
     [data_DAQ, time] = s.startForeground;
     
@@ -44,17 +45,6 @@ ForceSensorData.spans       = spans;
 ForceSensorData.svData      = svData;
 
 save([pltFolder method '_ForceSensorData.mat'],'ForceSensorData')
-end
-
-function s = initPerturb
-
-s = daq.createSession('ni');
-addAnalogOutputChannel(s,'Dev3',0,'Voltage'); %Output to the Perturbatron
-addAnalogOutputChannel(s,'Dev3',1,'Voltage'); %Output voltage to Force Sensor
-addAnalogInputChannel(s,'Dev3',0,'Voltage'); %Input from Force Sensor 1
-addAnalogInputChannel(s,'Dev3',1,'Voltage'); %Input from Force Sensor 1
-
-s.Rate = 8000;
 end
 
 function plot_data_DAQ(s, spans, svData, method, pltFolder)
