@@ -8,27 +8,30 @@ function [sigs, spans] = createPerturbSignal(s, numTrial, trialLen, trialType)
 
 %The perturbation starts at a semi-random time between 1.7s and 2.1s after 
 %phonation. The pertrubation stops at a semi-random time between 
-%0.7 and 1.1s after the start of pertrubation.
+%1.0 and 1.5s after the start of pertrubation.
 
 %s:         NIDAQ object handle for keeping track of variables and I/O
 %numTrial:  The number of trials
 %trialLen:  The length of each trial in points
 %trialType: Vector (length = numTrial) of order of trials (control/catch)
 
-%sigs:  Per-trial digital signal to be outputted to NIDAQ
+%sigs:  Per-trial digital signal outputted by NIDAQ
 %spans: Per-trial pertrubation start and stop points to be aligned with mic data
+
+minSt = 1.7; maxSt = 2.1;   %Hardset (1.7-2.1 seconds)
+minLen = 1.0; maxLen = 1.5; %Hardset (1.0-1.5 seconds) 
 
 sigs  = zeros(trialLen, numTrial);
 spans = zeros(numTrial,2);
 for i = 1:numTrial
-    St   = round(s.Rate*(1.7 + (2.1-1.7)*rand)); %Hardset (1.7-2.1 seconds)
-    pLen = round(s.Rate*(0.7 + (1.1-0.7)*rand)); %Hardset (0.7-1.1 seconds)   
+    St   = round(s.Rate*(minSt + (maxSt-minSt)*rand)); 
+    pLen = round(s.Rate*(minLen + (maxLen-minLen)*rand));   
     Sp   = St+pLen;    
     span = St:Sp; 
 
     sig  = zeros(trialLen,1);
     if trialType(i) == 1
-        sig(span) = 3;
+        sig(span) = 3; %For SFPerturb =3. For AFPerturb =0
     end
     
     sigs(:,i)  = sig;
