@@ -1,4 +1,4 @@
-function [sigs, spans] = createPerturbSignal(s, numTrial, trialLen, trialType)
+function [sigs, spans] = createPerturbSignal(s, numTrial, trialLen, trialType, expType)
 %This function creates the digital signal for the NIDAQ needed to activate 
 %the pertrubatron at each trial. It also keeps track of the time points 
 %when the perturbation should activate and deactivate. This function 
@@ -14,9 +14,13 @@ function [sigs, spans] = createPerturbSignal(s, numTrial, trialLen, trialType)
 %numTrial:  The number of trials
 %trialLen:  The length of each trial in points
 %trialType: Vector (length = numTrial) of order of trials (control/catch)
+%expType:   The string of the experiment that is being performed.
 
 %sigs:  Per-trial digital signal outputted by NIDAQ
 %spans: Per-trial pertrubation start and stop points to be aligned with mic data
+
+expChk{1} = 'Somatosensory Perturbation_Perceptual';
+expChk{2} = 'Auditory Perturbation_Perceptual';
 
 minSt = 1.7; maxSt = 2.1;   %Hardset (1.7-2.1 seconds)
 minLen = 1.0; maxLen = 1.5; %Hardset (1.0-1.5 seconds) 
@@ -30,7 +34,7 @@ for i = 1:numTrial
     span = St:Sp; 
 
     sig  = zeros(trialLen,1);
-    if trialType(i) == 1
+    if trialType(i) == 1 && strcmp(expType, expChk{1}) %Only do this for SFPerturb
         sig(span) = 3; %For SFPerturb  (sometimes) =3. For AFPerturb always =0
     end
     

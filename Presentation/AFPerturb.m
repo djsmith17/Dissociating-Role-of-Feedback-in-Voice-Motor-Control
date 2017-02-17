@@ -9,15 +9,17 @@ function AFPerturb(varargin)
 %made the saving data set of commands its own function. 
 
 %Data Configurations
-subject       = 'null'; %Subject#, Pilot#, null
-run           = 'Run1';
-defaultGender = 'male';
-bVis          = 0;
-masking       = 0;
+expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.run           = 'Run1';
+expParam.defaultGender = 'male';
+expParam.bVis          = 0;
+expParam.masking       = 0;
+
+dirs = sfDirs;
 
 datadir       = 'C:\Users\djsmith\Documents';
-expType       = 'Pilot Data\Auditory Perturbation_Perceptual'; %%
-savedFiledir  = [datadir '\' expType '\' subject '\' run '\'];
+expType       = 'Auditory Perturbation_Perceptual'; %%
+savedFiledir  = [datadir '\Pilot Data\' expType '\' expParam.subject '\' expParam.run '\'];
 savedWavdir   = [savedFiledir '\wavFiles\'];
 
 if exist(savedFiledir, 'dir') == 0
@@ -38,7 +40,7 @@ Audapter('deviceName', audioInterfaceName);
 Audapter('setParam', 'downFact', downFact, 0);
 Audapter('setParam', 'sRate', sRate / downFact, 0);
 Audapter('setParam', 'frameLen', frameLen / downFact, 0);
-p = getAudapterDefaultParams(defaultGender);
+p = getAudapterDefaultParams(expParam.defaultGender);
 p.savedFiledir = savedFiledir;
 p.savedWavdir  = savedWavdir;
 p.postProcSRate= sRate/downFact;
@@ -53,11 +55,11 @@ p.pcfFN = [prelimfileLoc 'AFPerturbPCF.pcf']; check_file(p.pcfFN); %%
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
-data_folder = [datadir '\Pilot Data\Somatosensory Perturbation_Perceptual'];
+InflaRespFile = [datadir '\Pilot Data\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Somatosensory Perturbation_Perceptual\' expParam.subject '\' expParam.subject '_AveInflaResp.mat'];
 try
-    load([data_folder '\' subject '\' subject '_AveInflaResp.mat']);
+    load(InflaRespFile);
 catch me
-    fprintf('\nSubject Data does not exist \n')
+    fprintf('\nSubject Data does not exist at %s \n', InflaRespFile)
 end
 
 % %Level of f0 change based on results from 
@@ -65,17 +67,17 @@ end
 
 p.numTrial    = 4; %Experimental trials = 40
 p.trialLen    = 4; %Seconds
-trialLen      = p.trialLen*s.Rate; %seconds converted to points
+trialLenPts      = p.trialLen*s.Rate; %seconds converted to points
 
-p = setMasking(p, masking);
+p = setMasking(p, expParam.masking);
 
 p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 
-[sigs, spans] = createPerturbSignal(s, p.numTrial, trialLen, p.trialType);
+[sigs, spans] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
 
 %Create a negative voltage signal for the force sensors
-negVolSrc = zeros(s.Rate*trialLen, 1) - 1;
+negVolSrc = zeros(s.Rate*p.trialLen, 1) - 1;
 negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 %This is where the fun begins
@@ -115,18 +117,9 @@ for ii = 1:p.numTrial
     Audapter('stop');   
     set(H2,'Visible','off'); 
     
+    %Save the data
     data = svData(p, ii, data_DAQ);
-    
-%     data = AudapterIO('getData');    
-%     data.ExpVariables  = p;
-%     data.trialType     = p.trialType(ii);
-%     data.span          = p.spans(ii,:);
-%     data.masking       = p.masking;
-%     data.DAQin         = data_DAQ;
-%     save([p.savedFiledir 'Trial' num2str(ii)], 'data')
-%     audiowrite([p.savedWavdir 'Trial' num2str(ii) '_headOut.wav'], data.signalOut, p.postProcSRate)
-%     audiowrite([p.savedWavdir 'Trial' num2str(ii) '_micIn.wav'], data.signalIn, p.postProcSRate)
-    
+
     color = chkRMS(data); %How loud were they?    
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
     set(rec, 'Visible','on');  
@@ -136,7 +129,7 @@ for ii = 1:p.numTrial
 end
 close all
 
-if bVis == 1
+if expParam.bVis == 1
     OST_MULT = 500;
     visSignals(data, 16000, OST_MULT, savedWavdir)
 end
