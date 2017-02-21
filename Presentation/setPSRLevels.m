@@ -1,12 +1,7 @@
 function audStimP = setPSRLevels(route, tStep, ost, pcf, trialType, spans)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment based off a previously recorded 'route' the
-%participant's pitch takes when they're larynx is physically perturbed
-%Last Updated: 12/21/2016
-%12/21/2016: Added a conditional to check if it is a catch trial or
-%control. Extended pre-perturbation period from 0.5-->2.0s
-%01/19/2017: The onset of perturbation is not semi-random to start between
-%1.7 and 2.1 s following phonation
+%participant's pitch takes when they're larynx is physically perturbed.
 
 audStimP = organizeStimulus(route, tStep, trialType, spans);
 
@@ -16,14 +11,14 @@ PCF_tline = writePCFportions(audStimP);
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
 
-drawStimulus(audStimP)
+% drawStimulus(audStimP)
 end
 
 function audStimP = organizeStimulus(route, tStep, trialType, spans)
 
 routeStps = length(route);
 if trialType == 0;
-%     route = zeros(1, routeStps);
+    route = zeros(1, routeStps);
 end
 
 audStimP.AudFs     = 48000;  %Hardset
