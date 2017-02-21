@@ -95,7 +95,7 @@ for ii = 1:p.numTrial
     set(H2,'Visible','on');
     
     %Level of f0 change based on results from 
-    setPSRLevels(InflaRespRoute, tStep, p.ostFN, p.pcfFN, p.trialType(ii), spans_t(ii,:));
+    audStimP = setPSRLevels(InflaRespRoute, tStep, p.ostFN, p.pcfFN, p.trialType(ii), spans_t(ii,:));
     
     %Set the OST and PCF functions
     Audapter('ost', p.ostFN, 0);

@@ -1,4 +1,4 @@
-function setPSRLevels(route, tStep, ost, pcf, trialType, spans)
+function audStimP = setPSRLevels(route, tStep, ost, pcf, trialType, spans)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment based off a previously recorded 'route' the
 %participant's pitch takes when they're larynx is physically perturbed
@@ -8,35 +8,31 @@ function setPSRLevels(route, tStep, ost, pcf, trialType, spans)
 %01/19/2017: The onset of perturbation is not semi-random to start between
 %1.7 and 2.1 s following phonation
 
-numpts = length(route);
-
-if trialType == 0;
-    route = zeros(1,numpts);
-end
-
 audStimP = organizeStimulus(route, tStep, trialType, spans);
 
-OST_tline = writeOSTportions(numpts, spans);
-PCF_tline = writePCFportions(numpts, route);
+OST_tline = writeOSTportions(audStimP);
+PCF_tline = writePCFportions(audStimP);
 
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
 
-drawStimulus
+% drawStimulus(audStimP)
 end
 
 function audStimP = organizeStimulus(route, tStep, trialType, spans)
 
-numpts = length(route);
+routeStps = length(route);
 if trialType == 0;
     route = zeros(1, numpts);
 end
 
-audStimP.route     = route;
-audStimP.tStep     = tStep;  %Length of time-step (Seconds)
-audStimP.lenRoute  = numpts; %How many time-steps
 audStimP.AudFs     = 48000;  %Hardset
 audStimP.lenTrialT = 4;      %Trial Length (Seconds) %Hardset
+audStimP.route     = route;
+audStimP.tStep     = tStep;                %Length of time-step (Seconds)
+audStimP.tStepP    = round(tStep*audStimP.AudFs); %Length of time-step (Points)
+audStimP.routeStps = routeStps;               %How many time-steps
+audStimP.trialType = trialType;            %0 for control %1 for Catch
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs; %Trial Length (Points)
 audStimP.StTime    = spans(1);                               %Seconds
 audStimP.SpTime    = spans(2);                               %Seconds
@@ -47,14 +43,26 @@ audStimP.lenPerP   = round(audStimP.lenPerT*audStimP.AudFs); %Points
 
 audStimP.time     = (0:1:audStimP.lenTrialP-1)/audStimP.AudFs; %Projected recorded time course (Points)
 
-audStimP.routeT   = audStimP.lenRoute*audStimP.tStep; %How long the route takes (Seconds)
+audStimP.routeStpsT   = audStimP.routeStps*audStimP.tStep; %How long the route takes (Seconds)
+audStimP.routeStpsP   = audStimP.routeStpsT*audStimP.AudFs; %How long the route takes (Points)
+audStimP.routeInSp  = audStimP.StPoint + audStimP.routeStpsP; %Point when the shift 'bottoms out'
+audStimP.routeOutSt = audStimP.SpPoint - audStimP.routeStpsP; %Point when the shift begins to increase to baseline
+audStimP.lenPerVall = audStimP.routeOutSt - audStimP.routeInSp; %Points between either pertrubation 'route' (Valley)
 
 stim = zeros(1, audStimP.lenTrialP);
 
+for i = 1:audStimP.routeStps
+    for j = 1:(audStimP.tStepP)
+        stim(audStimP.StPoint + j + (i-1)*audStimP.tStepP) = audStimP.route(i);
+        stim(audStimP.routeOutSt + j +(i-1)*audStimP.tStepP) = audStimP.route(routeStps - (i-1));        
+    end
+end
+stim(audStimP.routeInSp:audStimP.routeOutSt) = audStimP.route(routeStps);
 
+audStimP.stim = stim;
 end
 
-function OST_tline = writeOSTportions(numpts, spans)
+function OST_tline = writeOSTportions(audStimP)
 %The Online Status Tracking file regulates the timing of when actions or
 %changes to the speech occur. The steps between timed actions followed
 %rules outlined in the Audapter Manuel. This has been specifically
@@ -62,12 +70,10 @@ function OST_tline = writeOSTportions(numpts, spans)
 %of how the route is calculated, the elapsed time for each action is 
 %currently fixed.
 
-starTim = spans(1); %Random Start Time between 1.7 and 2.1 s
-elapTim = num2str(0.035); %HardSet **Fix this next**
 finaTim = num2str(0.42);  %HardSet **Fix this next**
 
 %The number of changes to f0 + the last FOUR clean-up lines
-n = numpts + 4;
+n = audStimP.routeStps + 4;
 
 %p = pre-experiment lines in OST file
 p = 7;
@@ -81,18 +87,18 @@ OST_tline{3} = ' ';
 OST_tline{4} = '# Main section: Heuristic rules for tracking';
 OST_tline{5} = ['n = ' num2str(n)];
 OST_tline{6} = '0 INTENSITY_RISE_HOLD 0.01 0.05 {} # Detect voicing onset';
-OST_tline{7} = ['2 ELAPSED_TIME ' num2str(starTim) ' NaN {} #The amount of time pre-perturbation'];
+OST_tline{7} = ['2 ELAPSED_TIME ' num2str(audStimP.StTime) ' NaN {} #The amount of time pre-perturbation']; %Random start between 1.7 and 2.1s
 
 for i = 1:n
-    if i <= numpts
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' elapTim ' NaN {} #Shift ' num2str(i) ' of ' num2str(numpts)];
-    elseif i == numpts + 1 
+    if i <= audStimP.routeStps
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.routeStps)];
+    elseif i == audStimP.routeStps + 1 
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' finaTim ' NaN {} #Hold for the rest of the perturbation'];
-    elseif i == numpts + 2
+    elseif i == audStimP.routeStps + 2
         OST_tline{i+p} = [num2str(i+2) ' OST_END NaN NaN {} #End the dang thing'];
-    elseif 1 == numpts + 3
+    elseif 1 == audStimP.routeStps + 3
         OST_tline{i+p} = ' ';
-    elseif i == numpts + 4
+    elseif i == audStimP.routeStps + 4
         OST_tline{i+p} = 'n = 0';
     end    
 end
@@ -111,7 +117,7 @@ end
 % OST_tline{19} = 'n = 0';
 end
 
-function PCF_tline = writePCFportions(numpts, route)
+function PCF_tline = writePCFportions(audStimP)
 %The Pertrubation Configuration file defines the levels for acoustic 
 %variables at each action step defined in the OST. This have been
 %specifically organized for customized Pitch-Shift Reflex experiments. 
@@ -119,7 +125,7 @@ function PCF_tline = writePCFportions(numpts, route)
 %100 to convert
 
 %The number of changes to f0 + the last TWO clean-up lines
-n = numpts + 2;
+n = audStimP.routeStps + 2;
 
 %p = pre-experiment lines in PCF file
 p = 8;
@@ -138,11 +144,11 @@ PCF_tline{8} = '2, 0.0, 0.0, 0, 0';
 
 %The +2 comes from the numbering on the PCF ahead of these commands
 for i = 1:n
-    if i <= numpts
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(route(i)/100) ', 0.0, 0, 0'];
-    elseif i == numpts + 1 
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(route(end)/100) ', 0.0, 0, 0'];
-    elseif i == numpts + 2
+    if i <= audStimP.routeStps
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(i)/100) ', 0.0, 0, 0'];
+    elseif i == audStimP.routeStps + 1 
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(end)/100) ', 0.0, 0, 0'];
+    elseif i == audStimP.routeStps + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       
 end
@@ -173,6 +179,20 @@ fclose(fid);
 
 end
 
-function drawStimulus
+function drawStimulus(audStimP)
+close all
+plotpos = [200 100];
+plotdim = [1300 500];
+AudStim = figure('Color', [1 1 1]);
+set(AudStim, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+plot(audStimP.time, audStimP.stim)
+xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold')
+ylabel('Fundamental Frequency Shift (st)', 'FontSize', 12, 'FontWeight', 'bold')
+title('Pitch-Shift Reflex Experiment Stimulus', 'FontSize', 16, 'FontWeight', 'bold')
+axis([0 4 -60 0]); box off;
+
+set(gca, 'FontSize', 16,...
+         'FontWeight', 'bold');
 
 end
