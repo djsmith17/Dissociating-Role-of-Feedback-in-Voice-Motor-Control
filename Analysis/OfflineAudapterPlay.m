@@ -9,6 +9,8 @@ if ~isempty(fsic(varargin, '--play'))
 end
  
 % CONFIG
+datadir   = 'C:\Users\djsmith\Documents';
+expType       = 'Auditory Perturbation_Perceptual'; %%
 data_folder   = 'C:\Users\djsmith\Documents\Pilot Data\Somatosensory Perturbation_Perceptual';
 plot_folder   = 'C:\Users\djsmith\Documents\Pilot Results\Somatosensory Perturbation_Perceptual\offline';
 participant   = 'Pilot4';

@@ -20,7 +20,7 @@ expParam.masking       = 0;
 dirs = sfDirs(expParam.project, expParam.expType);
 
 datadir       = 'C:\Users\djsmith\Documents';
-savedFiledir  = [datadir '\Pilot Data\' expType '\' expParam.subject '\' expParam.run '\'];
+savedFiledir  = [datadir '\Pilot Data\' expParam.expType '\' expParam.subject '\' expParam.run '\'];
 savedWavdir   = [savedFiledir '\wavFiles\'];
 
 if exist(savedFiledir, 'dir') == 0
@@ -74,7 +74,7 @@ p = setMasking(p, expParam.masking);
 
 p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 
-[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expType);
+[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expParam.expType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
 
 %Create a negative voltage signal for the force sensors

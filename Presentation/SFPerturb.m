@@ -21,15 +21,14 @@ expParam.bVis          = 0;
 
 dirs = sfDirs(expParam.project, expParam.expType);
 
-datadir       = 'C:\Users\djsmith\Documents';
-savedFiledir  = [datadir '\Pilot Data\' expParam.expType '\' expParam.subject '\' expParam.run '\'];
-savedWavdir   = [savedFiledir '\wavFiles\'];
+dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
+dirs.saveWaveDir = fullfile(dirs.saveFileDir, 'wavFiles');
 
-if exist(savedFiledir, 'dir') == 0
-    mkdir(savedFiledir)
+if exist(dirs.saveFileDir, 'dir') == 0
+    mkdir(dirs.saveFileDir)
 end
-if exist(savedWavdir, 'dir') == 0
-    mkdir(savedWavdir)
+if exist(dirs.saveWaveDir, 'dir') == 0
+    mkdir(dirs.saveWaveDir)
 end
 
 %Paradigm Configurations
@@ -44,17 +43,14 @@ Audapter('setParam', 'downFact', downFact, 0);
 Audapter('setParam', 'sRate', sRate / downFact, 0);
 Audapter('setParam', 'frameLen', frameLen / downFact, 0);
 p = getAudapterDefaultParams(expParam.defaultGender);
-p.savedFiledir = savedFiledir;
-p.savedWavdir  = savedWavdir;
 p.postProcSRate= sRate/downFact;
 
 %Set up Parameters to control NIDAQ and Perturbatron
 s = initNIDAQ;
 
 %Set up OST and PCF Files
-prelimfileLoc = 'C:\Users\djsmith\Documents\MATLAB\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Presentation\PrelimFiles\';
-p.ostFN = [prelimfileLoc 'SFPerturbOST.ost']; check_file(p.ostFN);
-p.pcfFN = [prelimfileLoc 'SFPerturbPCF.pcf']; check_file(p.pcfFN);
+expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
+expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 p.numTrial    = 4; %Experimental trials = 40
 p.trialLen    = 4; %Seconds
@@ -81,8 +77,8 @@ pause()
 pause(1.0) %Let them breathe a sec
 for ii = 1:p.numTrial
     %Set the OST and PCF functions
-    Audapter('ost', p.ostFN, 0);
-    Audapter('pcf', p.pcfFN, 0);
+    Audapter('ost', expParam.ostFN, 0);
+    Audapter('pcf', expParam.pcfFN, 0);
     
     %Setup which perturb file we want
     NIDAQsig = [sigs(:,ii) negVolSrc];
@@ -109,7 +105,7 @@ for ii = 1:p.numTrial
     set(H2,'Visible','off');
     
     %Save the data
-    data = svData(p, ii, data_DAQ);
+    data = svData(p, expParam, dirs, ii, data_DAQ);
      
     color = chkRMS(data); %How loud were they?    
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
@@ -220,7 +216,7 @@ end
 
 end
 
-function data = svData(p, ii, data_DAQ)
+function data = svData(p, expParam, dirs, ii, data_DAQ)
 
 data = AudapterIO('getData');   
 data.ExpVariables  = p;
