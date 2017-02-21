@@ -21,8 +21,8 @@ PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
 PltTgl.aveSessTrial_f0 = 1; 
 PltTgl.SPaveSessTrial_f0 = 1;
 
-AVar.data_folder = 'C:\Users\djsmith\Documents\Pilot Data';
-AVar.plot_folder = 'C:\Users\djsmith\Documents\Pilot Results';
+AVar.data_folder = 'C:\Users\djsmith\Documents\Pilot Data\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\';
+AVar.plot_folder = 'C:\Users\djsmith\Documents\Pilot Results\';
 
 experiments = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
 exp         = 1; %
@@ -143,11 +143,11 @@ for i = subjs
     %Calculate the response to inflation of the collar. To be used in the
     %Auditory Perturbation Experiment. Only need to use the Average of
     %perturbed Trials
-    InflaRespRoute = CalcInflationResponse(meanSessf0_St{2},1);
+    [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St{2},1);
 %     figure; plot(InflaRespRoute)
 
     InflaRespfile = [AVar.data_folder '\' experiments{exp} '\' participant{subjs} '\' participant{subjs} '_AveInflaResp.mat'];
-    save(InflaRespfile, 'InflaRespRoute')
+    save(InflaRespfile, 'InflaRespRoute', 'tStep')
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
@@ -352,7 +352,7 @@ for i = 1:num_pertVals
 end
 end
 
-function [InflaRespRoute] = CalcInflationResponse(meanSessf0_St, show_plt)
+function [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St, show_plt)
 %This calculates the shape of the change in f0 in response to the
 %perturbation onset
 
@@ -361,7 +361,8 @@ chix = find(InflaResp(:,1) > 0.5); %Trials are centered at 0.5s before inflation
 [low, ind] = min(InflaResp(:,2)); %Find the lowest point
 
 timeFram = chix(1):ind;
-InflaRespRoute = InflaResp(timeFram,2);
+InflaRespRoute = InflaResp(timeFram,:);
+tStep = InflaRespRoute(2,1) - InflaRespRoute(1,1);
 
 if show_plt
     plotpos = [200 400];

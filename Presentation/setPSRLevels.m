@@ -1,4 +1,4 @@
-function setPSRLevels(route, ost, pcf, trialType, spans)
+function setPSRLevels(route, tStep, ost, pcf, trialType, spans)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment based off a previously recorded 'route' the
 %participant's pitch takes when they're larynx is physically perturbed
@@ -14,7 +14,7 @@ if trialType == 0;
     route = zeros(1,numpts);
 end
 
-audStimP = organizeStimulus(route, trialType, spans);
+audStimP = organizeStimulus(route, tStep, trialType, spans);
 
 OST_tline = writeOSTportions(numpts, spans);
 PCF_tline = writePCFportions(numpts, route);
@@ -25,26 +25,32 @@ svPSRLevels(pcf, PCF_tline);
 drawStimulus
 end
 
-function audStimP = organizeStimulus(route, trialType, spans)
+function audStimP = organizeStimulus(route, tStep, trialType, spans)
 
 numpts = length(route);
-
 if trialType == 0;
     route = zeros(1, numpts);
 end
 
-audStimP.route    = route;
-audStimP.lenRoute = numpts;
-audStimP.AudFs    = 48000; %Hardset
-audStimP.lenT     = 4;     %Hardset
-audStimP.StTime   = spans(1); %Time
-audStimP.SpTime   = spans(2); %Time
-audStimP.StPoint  = audStimP.StTime*audStimP.AudFs; %Points
-audStimP.SpPoint  = audStimP.SpTime*audStimP.AudFs; %Points
-audStimP.lenP     = audStimP.lenT*audStimP.AudFs;  
-audStimP.time     = (0:1:audStimP.lenP-1)/audStimP.AudFs;
+audStimP.route     = route;
+audStimP.tStep     = tStep;  %Length of time-step (Seconds)
+audStimP.lenRoute  = numpts; %How many time-steps
+audStimP.AudFs     = 48000;  %Hardset
+audStimP.lenTrialT = 4;      %Trial Length (Seconds) %Hardset
+audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs; %Trial Length (Points)
+audStimP.StTime    = spans(1);                               %Seconds
+audStimP.SpTime    = spans(2);                               %Seconds
+audStimP.StPoint   = round(audStimP.StTime*audStimP.AudFs);  %Points
+audStimP.SpPoint   = round(audStimP.SpTime*audStimP.AudFs);  %Points
+audStimP.lenPerT   = audStimP.SpTime - audStimP.StTime;      %Seconds
+audStimP.lenPerP   = round(audStimP.lenPerT*audStimP.AudFs); %Points
 
-stim = zeros(1, audStimP.lenP);
+audStimP.time     = (0:1:audStimP.lenTrialP-1)/audStimP.AudFs; %Projected recorded time course (Points)
+
+audStimP.routeT   = audStimP.lenRoute*audStimP.tStep; %How long the route takes (Seconds)
+
+stim = zeros(1, audStimP.lenTrialP);
+
 
 end
 
