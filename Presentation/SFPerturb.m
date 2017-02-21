@@ -2,13 +2,13 @@ function SFPerturb(varargin)
 %This script is used to present the behavioral portion for the laryngeal
 %perturbation experiment. This uses Audapter. 
 
-%09/09/2016: Made the masking setup its own function for readability
-%12/21/2016: Commented more of the code so I actually know what it does
-%01/16/2017: Worked towards making the masking noise continuous. I also 
-%added more variables to the variables structure for easier access. I also
-%made the saving data set of commands its own function. 
-%01/24/2017: Added functionality to take in force sensor data. Also renamed
-%the function from SFPerturb3 to SFPerturb.
+%This calls the functions:
+%initNIDAQ.m
+%orderTrials.m
+%createPerturbSignal.m
+
+%This uses the toolbox from MATLAB-Toolboxes
+%speechres
 
 %Data Configurations
 expParam.subject       = 'null'; %Subject#, Pilot#, null
@@ -158,7 +158,7 @@ elseif masking == 1
 end 
 end
 
-function plotPerturb(s,lenT,sig)
+function plotPerturb(s, lenT, sig)
 
 t = (0:1:lenT-1)/s.Rate;
 plot(t, sig);
