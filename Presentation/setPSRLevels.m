@@ -16,14 +16,14 @@ PCF_tline = writePCFportions(audStimP);
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
 
-% drawStimulus(audStimP)
+drawStimulus(audStimP)
 end
 
 function audStimP = organizeStimulus(route, tStep, trialType, spans)
 
 routeStps = length(route);
 if trialType == 0;
-    route = zeros(1, numpts);
+%     route = zeros(1, routeStps);
 end
 
 audStimP.AudFs     = 48000;  %Hardset
@@ -31,7 +31,7 @@ audStimP.lenTrialT = 4;      %Trial Length (Seconds) %Hardset
 audStimP.route     = route;
 audStimP.tStep     = tStep;                %Length of time-step (Seconds)
 audStimP.tStepP    = round(tStep*audStimP.AudFs); %Length of time-step (Points)
-audStimP.routeStps = routeStps;               %How many time-steps
+audStimP.routeStps = routeStps;            %How many time-steps
 audStimP.trialType = trialType;            %0 for control %1 for Catch
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs; %Trial Length (Points)
 audStimP.StTime    = spans(1);                               %Seconds
@@ -66,21 +66,17 @@ function OST_tline = writeOSTportions(audStimP)
 %The Online Status Tracking file regulates the timing of when actions or
 %changes to the speech occur. The steps between timed actions followed
 %rules outlined in the Audapter Manuel. This has been specifically
-%organized for customized Pitch-Shift Reflex experiments. Due to the nature
-%of how the route is calculated, the elapsed time for each action is 
-%currently fixed.
+%organized for customized Pitch-Shift Reflex experiments.
 
-finaTim = num2str(0.42);  %HardSet **Fix this next**
-
-%The number of changes to f0 + the last FOUR clean-up lines
-n = audStimP.routeStps + 4;
+%The number of changes to f0 + the hold + last THREE clean-up lines
+n = 2*audStimP.routeStps + 1 + 3;
 
 %p = pre-experiment lines in OST file
 p = 7;
 
 %The first 7 lines (p) of the OST should be nearly the same for all 
 %participants. rmsSlopeWin might change eventually. The experiment starts 
-%with a wait for voicing and then a 0.5s pause. 
+%with a wait for voicing and then a 1.7-2.1s pause. 
 OST_tline{1} = '# Online status tracking (OST) configuration file';
 OST_tline{2} = 'rmsSlopeWin = 0.030000';
 OST_tline{3} = ' ';
@@ -89,16 +85,19 @@ OST_tline{5} = ['n = ' num2str(n)];
 OST_tline{6} = '0 INTENSITY_RISE_HOLD 0.01 0.05 {} # Detect voicing onset';
 OST_tline{7} = ['2 ELAPSED_TIME ' num2str(audStimP.StTime) ' NaN {} #The amount of time pre-perturbation']; %Random start between 1.7 and 2.1s
 
+%The +2 comes from the numbering on the OST ahead of these commands
 for i = 1:n
     if i <= audStimP.routeStps
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.routeStps)];
     elseif i == audStimP.routeStps + 1 
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' finaTim ' NaN {} #Hold for the rest of the perturbation'];
-    elseif i == audStimP.routeStps + 2
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.lenPerVall) ' NaN {} #Hold for the pitch-shift hold period'];
+    elseif i <= 2*audStimP.routeStps + 1
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.routeStps)];    
+    elseif i == 2*audStimP.routeStps + 2
         OST_tline{i+p} = [num2str(i+2) ' OST_END NaN NaN {} #End the dang thing'];
-    elseif 1 == audStimP.routeStps + 3
+    elseif 1 == 2*audStimP.routeStps + 3
         OST_tline{i+p} = ' ';
-    elseif i == audStimP.routeStps + 4
+    elseif i == 2*audStimP.routeStps + 4
         OST_tline{i+p} = 'n = 0';
     end    
 end
@@ -111,28 +110,38 @@ end
 % OST_tline{13} = '8 ELAPSED_TIME 0.035 NaN {} #Shift 6 of 8';
 % OST_tline{14} = '9 ELAPSED_TIME 0.035 NaN {} #Shift 7 of 8';
 % OST_tline{15} = '10 ELAPSED_TIME 0.035 NaN {} #Shift 8 of 8';
-% OST_tline{16} = '11 ELAPSED_TIME 0.42 NaN {} #Hold for the rest of the perturbation';
-% OST_tline{17} = '12 OST_END NaN NaN {} #End the dang thing';
-% OST_tline{18} = ' ';
-% OST_tline{19} = 'n = 0';
+% OST_tline{16} = '11 ELAPSED_TIME 0.42 NaN {} #Hold for the trough';
+% OST_tline{17} = '12 ELAPSED_TIME 0.035 NaN {} #Shift 1 of 8';
+% OST_tline{18} = '13 ELAPSED_TIME 0.035 NaN {} #Shift 2 of 8';
+% OST_tline{19} = '14 ELAPSED_TIME 0.035 NaN {} #Shift 3 of 8';
+% OST_tline{20} = '15 ELAPSED_TIME 0.035 NaN {} #Shift 4 of 8';
+% OST_tline{21} = '16 ELAPSED_TIME 0.035 NaN {} #Shift 5 of 8';
+% OST_tline{22} = '17 ELAPSED_TIME 0.035 NaN {} #Shift 6 of 8';
+% OST_tline{23} = '18 ELAPSED_TIME 0.035 NaN {} #Shift 7 of 8';
+% OST_tline{24} = '19 ELAPSED_TIME 0.035 NaN {} #Shift 8 of 8';
+
+
+% OST_tline{25} = '20 OST_END NaN NaN {} #End the dang thing';
+% OST_tline{26} = ' ';
+% OST_tline{27} = 'n = 0';
 end
 
 function PCF_tline = writePCFportions(audStimP)
 %The Pertrubation Configuration file defines the levels for acoustic 
 %variables at each action step defined in the OST. This have been
 %specifically organized for customized Pitch-Shift Reflex experiments. 
-%The change in f0 is in semitones. The route saves f0 in cents. Divide by
-%100 to convert
+%The PCF expects f0 in units of semitones. My analysis saves f0 in cents. 
+%Divide by 100 to convert.
 
-%The number of changes to f0 + the last TWO clean-up lines
-n = audStimP.routeStps + 2;
+%The number of changes to f0 + the hold + the last ONE clean-up line
+n = 2*audStimP.routeStps + 1 + 1;
 
 %p = pre-experiment lines in PCF file
 p = 8;
 
 %The first 8 lines (p) of the PCF should be nearly the same for all 
 %participants. No time warping is present and the experiment starts with a
-%wait for voicing and then a 0.5s pause. 
+%wait for voicing and then a 1.7-2.1s pause. 
 PCF_tline{1} = '# Section 1 (Time warping): tBegin, rate1, dur1, durHold, rate2';
 PCF_tline{2} = '0';
 PCF_tline{3} = ' ';
@@ -148,7 +157,9 @@ for i = 1:n
         PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(i)/100) ', 0.0, 0, 0'];
     elseif i == audStimP.routeStps + 1 
         PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(end)/100) ', 0.0, 0, 0'];
-    elseif i == audStimP.routeStps + 2
+    elseif i <= 2*audStimP.routeStps + 1
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route((2*audStimP.routeStps + 1) - (i-1))/100) ', 0.0, 0, 0'];
+    elseif i == 2*audStimP.routeStps + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       
 end
@@ -162,7 +173,15 @@ end
 % PCF_tline{15} = '9, -0.55, 0.0, 0, 0';
 % PCF_tline{16} = '10, -0.56, 0.0, 0, 0';
 % PCF_tline{17} = '11, -0.56, 0.0, 0, 0';
-% PCF_tline{18} = '12, 0.0, 0.0, 0, 0';
+% PCF_tline{18} = '12, -0.03, 0.0, 0, 0';
+% PCF_tline{19} = '13, -0.04, 0.0, 0, 0';
+% PCF_tline{20} = '14, -0.04, 0.0, 0, 0';
+% PCF_tline{21} = '15, -0.05, 0.0, 0, 0';
+% PCF_tline{22} = '16, -0.18, 0.0, 0, 0';
+% PCF_tline{23} = '17, -0.39, 0.0, 0, 0';
+% PCF_tline{24} = '18, -0.55, 0.0, 0, 0';
+% PCF_tline{25} = '19, -0.56, 0.0, 0, 0';
+% PCF_tline{26} = '20, 0.0, 0.0, 0, 0';
 end
 
 function tline = svPSRLevels (file, tline)
