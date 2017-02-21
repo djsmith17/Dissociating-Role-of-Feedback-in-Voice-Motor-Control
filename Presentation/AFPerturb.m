@@ -1,33 +1,40 @@
 function AFPerturb(varargin)
-%Pitch-shift Perturbation experiment. This specifically uses a pitch-shift
-%that matches the size of the stimulus seen in the somatosensory
-%perturbation experiment
+%Pitch-shift Perturbation experiment. This script measures acoustic output 
+%from a participant as they have their auditory feedback perturbed.
+%Audapter collects and %manages the recorded acoustic data. This 
+%specifically uses a pitch-shift that matches the size of the stimulus seen
+%in the somatosensory perturbation experiment.
 
-%12/21/2016: Commented alot of code so I know what the heck I am doing. 
-%01/16/2017: Worked towards making the masking noise continuous. I also 
-%added more variables to the variables structure for easier access. I also
-%made the saving data set of commands its own function. 
+%This calls the functions:
+%initNIDAQ.m
+%orderTrials.m
+%createPerturbSignal.m
+%setPSRLevels.m
+
+%This uses the toolbox from MATLAB-Toolboxes
+%speechres
 
 %Data Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
+expParam.curTrial      = [];
+expParam.curSubCond    = [];
 expParam.defaultGender = 'male';
-expParam.bVis          = 0;
 expParam.masking       = 0;
+expParam.bVis          = 0;
 
 dirs = sfDirs(expParam.project, expParam.expType);
 
-datadir       = 'C:\Users\djsmith\Documents';
-savedFiledir  = [datadir '\Pilot Data\' expParam.expType '\' expParam.subject '\' expParam.run '\'];
-savedWavdir   = [savedFiledir '\wavFiles\'];
+dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
+dirs.saveWaveDir = fullfile(dirs.saveFileDir, 'wavFiles');
 
-if exist(savedFiledir, 'dir') == 0
-    mkdir(savedFiledir)
+if exist(dirs.saveFileDir, 'dir') == 0
+    mkdir(dirs.saveFileDir)
 end
-if exist(savedWavdir, 'dir') == 0
-    mkdir(savedWavdir)
+if exist(dirs.saveWaveDir, 'dir') == 0
+    mkdir(dirs.saveWaveDir)
 end
 
 %Paradigm Configurations
@@ -42,17 +49,14 @@ Audapter('setParam', 'downFact', downFact, 0);
 Audapter('setParam', 'sRate', sRate / downFact, 0);
 Audapter('setParam', 'frameLen', frameLen / downFact, 0);
 p = getAudapterDefaultParams(expParam.defaultGender);
-p.savedFiledir = savedFiledir;
-p.savedWavdir  = savedWavdir;
 p.postProcSRate= sRate/downFact;
 
 %Set up Parameters to control NIDAQ and Perturbatron
 s = initNIDAQ;
 
 %Set up OST and PCF Files
-prelimfileLoc = 'C:\Users\djsmith\Documents\MATLAB\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Presentation\PrelimFiles\';
-p.ostFN = [prelimfileLoc 'AFPerturbOST.ost']; check_file(p.ostFN); %%
-p.pcfFN = [prelimfileLoc 'AFPerturbPCF.pcf']; check_file(p.pcfFN); %%
+expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
+expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
@@ -90,6 +94,9 @@ pause()
 [H1, H2, rec] = createVisualFB();
 pause(1.0) %Let them breathe a sec
 for ii = 1:p.numTrial
+    expParam.curTrial   = ['Trial' num2str(ii)];
+    expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
+    
     set(H1,'Visible','on');
     pause(1.0) 
     set(H1,'Visible','off');

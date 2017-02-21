@@ -1,6 +1,8 @@
 function SFPerturb(varargin)
-%This script is used to present the behavioral portion for the laryngeal
-%perturbation experiment. This uses Audapter. 
+%Laryngeal Perturbation experiment. This script measures acoustic output 
+%from a participant as they have their laryngeal phsyically displaced.
+%NIDAQ signal provides Pertrubatron stimulus and Audapter collects and
+%manages the recorded acoustic data.
 
 %This calls the functions:
 %initNIDAQ.m
@@ -15,6 +17,8 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
+expParam.curTrial      = [];
+expParam.curSubCond    = [];
 expParam.defaultGender = 'male';
 expParam.masking       = 1;
 expParam.bVis          = 0;
@@ -76,6 +80,9 @@ pause()
 %Close the curtains
 pause(1.0) %Let them breathe a sec
 for ii = 1:p.numTrial
+    expParam.curTrial   = ['Trial' num2str(ii)];
+    expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
+    
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
@@ -168,8 +175,8 @@ end
 function [H1, H2, rec] = createVisualFB()
 %Overlays for the experiment. 
 
-figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[0 0 1920 1080],'MenuBar','none');
-% figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[1920 0 1681 1050],'MenuBar','none');
+% figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[0 0 1920 1080],'MenuBar','none');
+figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[1920 0 1681 1050],'MenuBar','none');
 
 H1 = annotation(figure1,'textbox',[0.46 0.46 0.2 0.2],...
                         'Color',[1 1 1],...
@@ -219,15 +226,17 @@ end
 function data = svData(p, expParam, dirs, ii, data_DAQ)
 
 data = AudapterIO('getData');   
-data.ExpVariables  = p;
+data.expP          = p;
+data.expParams     = expParam;
+data.dirs          = dirs;
 data.trialType     = p.trialType(ii);
 data.span          = p.spans(ii,:);
 data.masking       = p.masking;
 data.DAQin         = data_DAQ;
-save([p.savedFiledir 'Trial' num2str(ii)], 'data')
+save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 
-audiowrite([p.savedWavdir 'Trial' num2str(ii) '_headOut.wav'], data.signalOut, p.postProcSRate)
-audiowrite([p.savedWavdir 'Trial' num2str(ii) '_micIn.wav'], data.signalIn, p.postProcSRate)
+audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, p.postProcSRate)
+audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, p.postProcSRate)
 end
 
 function visSignals(data, fs, OST_MULT, savedResdir)
