@@ -170,9 +170,9 @@ end
 
 function [H1, H2, rec] = createVisualFB()
 %Overlays for the experiment. 
-% figure0 = figure('NumberTitle','off','Color',[0 0 0],'Position',[0 0 1920 1080],'MenuBar','none');
 
-figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[1920 0 1681 1050],'MenuBar','none');
+figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[0 0 1920 1080],'MenuBar','none');
+% figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[1920 0 1681 1050],'MenuBar','none');
 
 H1 = annotation(figure1,'textbox',[0.46 0.46 0.2 0.2],...
                         'Color',[1 1 1],...
