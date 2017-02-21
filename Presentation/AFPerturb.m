@@ -60,11 +60,11 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
-InflaRespFile = [datadir '\Pilot Data\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Somatosensory Perturbation_Perceptual\' expParam.subject '\' expParam.subject '_AveInflaResp.mat'];
+dirs.InflaRespFile = fullfile(dirs.InflaRespFile, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
-    load(InflaRespFile);
+    load(dirs.InflaRespFile);
 catch me
-    fprintf('\nSubject Data does not exist at %s \n', InflaRespFile)
+    fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
 % %Level of f0 change based on results from 
@@ -126,7 +126,7 @@ for ii = 1:p.numTrial
     set(H2,'Visible','off'); 
     
     %Save the data
-    data = svData(p, ii, data_DAQ);
+    data = svData(p, expParam, dirs, ii, data_DAQ);
 
     color = chkRMS(data); %How loud were they?    
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
@@ -235,18 +235,21 @@ end
 
 end
 
-function data = svData(p, ii, data_DAQ)
+function data = svData(p, expParam, dirs, ii, data_DAQ)
+%Package all the data into something that is useful for analysis
 
-data = AudapterIO('getData');    
-data.ExpVariables  = p;
+data = AudapterIO('getData');   
+data.expP          = p;
+data.expParams     = expParam;
+data.dirs          = dirs;
 data.trialType     = p.trialType(ii);
 data.span          = p.spans(ii,:);
 data.masking       = p.masking;
 data.DAQin         = data_DAQ;
-save([p.savedFiledir 'Trial' num2str(ii)], 'data')
-audiowrite([p.savedWavdir 'Trial' num2str(ii) '_headOut.wav'], data.signalOut, p.postProcSRate)
-audiowrite([p.savedWavdir 'Trial' num2str(ii) '_micIn.wav'], data.signalIn, p.postProcSRate)
+save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 
+audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, p.postProcSRate)
+audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, p.postProcSRate)
 end
 
 function visSignals(data, fs, OST_MULT, savedResdir)

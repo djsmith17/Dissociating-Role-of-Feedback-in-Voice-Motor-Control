@@ -224,6 +224,7 @@ end
 end
 
 function data = svData(p, expParam, dirs, ii, data_DAQ)
+%Package all the data into something that is useful for analysis
 
 data = AudapterIO('getData');   
 data.expP          = p;

@@ -26,6 +26,7 @@ switch host
 %         dirs.DataTestIn     = fullfile('C:\Users\salacho\Documents\Speech Lab',project,'data\test');    % Dir w/ raw datafiles
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB',project,'Analysis');           % Dir w/ data analysis Code
         dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
         dirs.saveFileDir    = '';                                                                           % Used to name figures. Gives the type of analysis done, channels, amongs others
         dirs.saveWaveDir    = '';
         dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
@@ -38,5 +39,4 @@ end
 addpath(genpath(dirs.Code));        % Add dir w/ your code path
 addpath(genpath(dirs.Prelim));      % Add dir w/ Prelim Files
 addpath(genpath(dirs.helpers));     % Add dir w/ helpers code path
-
 end
