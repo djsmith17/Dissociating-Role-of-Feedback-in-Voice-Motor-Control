@@ -73,7 +73,7 @@ p = setMasking(p, expParam.masking);
 
 p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 
-[sigs, spans] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expType);
+[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
 
 %Create a negative voltage signal for the force sensors
@@ -95,7 +95,7 @@ for ii = 1:p.numTrial
     set(H2,'Visible','on');
     
     %Level of f0 change based on results from 
-    setPSRLevels(InflaRespRoute, p.ostFN, p.pcfFN, p.trialType(ii));
+    setPSRLevels(InflaRespRoute, p.ostFN, p.pcfFN, p.trialType(ii), spans_t(ii,:));
     
     %Set the OST and PCF functions
     Audapter('ost', p.ostFN, 0);
@@ -168,7 +168,7 @@ elseif masking == 1
 end 
 end
 
-function plotPerturb(s,lenT,sig)
+function plotPerturb(s, lenT, sig)
 
 t = (0:1:lenT-1)/s.Rate;
 plot(t, sig);

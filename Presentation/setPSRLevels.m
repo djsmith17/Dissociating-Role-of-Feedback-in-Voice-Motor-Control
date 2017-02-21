@@ -1,4 +1,4 @@
-function setPSRLevels(route, ost, pcf, trialType)
+function setPSRLevels(route, ost, pcf, trialType, spans)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment based off a previously recorded 'route' the
 %participant's pitch takes when they're larynx is physically perturbed
@@ -14,25 +14,53 @@ if trialType == 0;
     route = zeros(1,numpts);
 end
 
-OST_tline = writeOSTportions(numpts, route);
+audStimP = organizeStimulus(route, trialType, spans);
+
+OST_tline = writeOSTportions(numpts, spans);
 PCF_tline = writePCFportions(numpts, route);
 
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
+
+drawStimulus
 end
 
-function OST_tline = writeOSTportions(numpts, route)
+function audStimP = organizeStimulus(route, trialType, spans)
+
+numpts = length(route);
+
+if trialType == 0;
+    route = zeros(1, numpts);
+end
+
+audStimP.route    = route;
+audStimP.lenRoute = numpts;
+audStimP.AudFs    = 48000; %Hardset
+audStimP.lenT     = 4;     %Hardset
+audStimP.StTime   = spans(1); %Time
+audStimP.SpTime   = spans(2); %Time
+audStimP.StPoint  = audStimP.StTime*audStimP.AudFs; %Points
+audStimP.SpPoint  = audStimP.SpTime*audStimP.AudFs; %Points
+audStimP.lenP     = audStimP.lenT*audStimP.AudFs;  
+audStimP.time     = (0:1:audStimP.lenP-1)/audStimP.AudFs;
+
+stim = zeros(1, audStimP.lenP);
+
+end
+
+function OST_tline = writeOSTportions(numpts, spans)
 %The Online Status Tracking file regulates the timing of when actions or
 %changes to the speech occur. The steps between timed actions followed
 %rules outlined in the Audapter Manuel. This has been specifically
 %organized for customized Pitch-Shift Reflex experiments. Due to the nature
-%of how the route is calculated, the elapsed time for each action is fixed.
+%of how the route is calculated, the elapsed time for each action is 
+%currently fixed.
 
-starTim = 1.7 + (2.1-1.7)*rand; %Random time between (1.7 and 2.1 s)
+starTim = spans(1); %Random Start Time between 1.7 and 2.1 s
 elapTim = num2str(0.035); %HardSet **Fix this next**
 finaTim = num2str(0.42);  %HardSet **Fix this next**
 
-%The number of changes to f0 + the last four clean-up lines
+%The number of changes to f0 + the last FOUR clean-up lines
 n = numpts + 4;
 
 %p = pre-experiment lines in OST file
@@ -84,7 +112,7 @@ function PCF_tline = writePCFportions(numpts, route)
 %The change in f0 is in semitones. The route saves f0 in cents. Divide by
 %100 to convert
 
-%The number of changes to f0 + the last two clean-up lines
+%The number of changes to f0 + the last TWO clean-up lines
 n = numpts + 2;
 
 %p = pre-experiment lines in PCF file
@@ -136,5 +164,9 @@ for i = 1:length(tline)
     end
 end 
 fclose(fid);
+
+end
+
+function drawStimulus
 
 end

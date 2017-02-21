@@ -63,7 +63,7 @@ p = setMasking(p, expParam.masking); %Trials with masking or no...
 
 p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 
-[sigs, spans] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expType);
+[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
 
 %Create a negative voltage signal for the force sensors
