@@ -11,17 +11,18 @@ function SFPerturb(varargin)
 %speechres
 
 %Data Configurations
+expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
 expParam.defaultGender = 'male';
 expParam.masking       = 1;
 expParam.bVis          = 0;
 
-dirs = sfDirs;
+dirs = sfDirs(expParam.project, expParam.expType);
 
 datadir       = 'C:\Users\djsmith\Documents';
-expType       = 'Somatosensory Perturbation_Perceptual';
-savedFiledir  = [datadir '\Pilot Data\' expType '\' expParam.subject '\' expParam.run '\'];
+savedFiledir  = [datadir '\Pilot Data\' expParam.expType '\' expParam.subject '\' expParam.run '\'];
 savedWavdir   = [savedFiledir '\wavFiles\'];
 
 if exist(savedFiledir, 'dir') == 0
@@ -63,7 +64,7 @@ p = setMasking(p, expParam.masking); %Trials with masking or no...
 
 p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 
-[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expType);
+[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expParam.expType);
 p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
 
 %Create a negative voltage signal for the force sensors

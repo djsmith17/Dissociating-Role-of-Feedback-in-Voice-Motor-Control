@@ -9,16 +9,17 @@ function AFPerturb(varargin)
 %made the saving data set of commands its own function. 
 
 %Data Configurations
+expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
 expParam.defaultGender = 'male';
 expParam.bVis          = 0;
 expParam.masking       = 0;
 
-dirs = sfDirs;
+dirs = sfDirs(expParam.project, expParam.expType);
 
 datadir       = 'C:\Users\djsmith\Documents';
-expType       = 'Auditory Perturbation_Perceptual'; %%
 savedFiledir  = [datadir '\Pilot Data\' expType '\' expParam.subject '\' expParam.run '\'];
 savedWavdir   = [savedFiledir '\wavFiles\'];
 
