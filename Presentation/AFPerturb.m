@@ -212,12 +212,12 @@ function data = svData(expParam, dirs, s, p, audStimP, dataDAQ)
 %Package all the data into something that is useful for analysis
 
 data = AudapterIO('getData');   
-data.expParam      = expParam;
-data.dirs          = dirs;
-data.s             = s;
-data.expP          = p;
-data.audStimP      = audStimP;
-data.DAQin         = dataDAQ;
+data.expParam    = expParam;
+data.dirs        = dirs;
+data.s           = s;
+data.p           = p;
+data.audStimP    = audStimP;
+data.DAQin       = dataDAQ;
 save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 
 audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, p.postProcSRate)

@@ -24,7 +24,7 @@ expParam.curTrial      = [];
 expParam.curSubCond    = [];
 expParam.perCatch      = 0.25;
 expParam.gender        = 'male';
-expParam.masking       = 1;
+expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 
@@ -199,16 +199,23 @@ end
 function data = svData(expParam, dirs, s, p, dataDAQ)
 %Package all the data into something that is useful for analysis
 
-data = AudapterIO('getData');   
-data.expParam      = expParam;
-data.dirs          = dirs;
-data.s             = s;
-data.expP          = p;
-data.DAQin         = dataDAQ;
-save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
+try
+    data = AudapterIO('getData');
+    
+    data.expParam    = expParam; %Experimental Parameters
+    data.dirs        = dirs;     %Directories
+    data.s           = s;        %NIDAQ Object
+    data.p           = p;        %Audapter Parameters
+    data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
+    save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 
-audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, p.postProcSRate)
-audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, p.postProcSRate)
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, expParam.sRateAnal)
+catch
+    disp('Audapter decided not to play')
+    data = [];
+    return
+end
 end
 
 function visSignals(data, fs, OST_MULT, savedResdir)

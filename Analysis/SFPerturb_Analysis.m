@@ -16,16 +16,16 @@ AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
 AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'Pilot6'}; %List of multiple participants
+AVar.participants = {'null'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [1 2];
+AVar.runsInd      = [1];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
 
 AVar.winLen   = 0.05; %analysis window length in seconds
-AVar.pOverlap = 0.30; %Percent Overlap
+AVar.pOverlap = 0.30; %Percent Overlap as decimial
 AVar.anaLen   = 1.20; %What period in time do you want to analyze? Length of vowel is variable.
 AVar.nWin     = length(0:AVar.winLen*(1-AVar.pOverlap):(AVar.anaLen-AVar.winLen));
 
@@ -44,7 +44,7 @@ for i = AVar.partiInd
         
         %Find total number of files 
         d = dir([dirs.saveFileDir, '\*.mat']);
-        fnames = sort_nat({d.name})';       
+        AVar.fnames = sort_nat({d.name})';       
         
         limits = [0 1.2 -100 100];
         allplotf0pts_St  = [];
@@ -53,17 +53,21 @@ for i = AVar.partiInd
         countP = 0; countC = 0; %Counting the number of saved perturbed/control trials
         AVar.curRecording  = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
        
-        for k = 1:length(fnames)
-            load([dirs.saveFileDir '\' fnames{k}]);
+        for k = 1:length(AVar.fnames)
+            %open a given Trial and load 'data.mat' structure
+            load([dirs.saveFileDir '\' AVar.fnames{k}]);
+            
+            %Unpack the 'data.mat' structure
             Mraw  = data.signalIn(1:(end-128)); % Microphone
             Hraw  = data.signalOut(129:end);    % Headphones
-            fs    = round(data.params.sRate);   % Sampling Rate
-            pert  = data.trialType;
-            span  = data.span/3;
+            fs    = data.params.sRate;          % Sampling Rate
+            pert  = data.expParam.trialType;    % List of trial Order
+            span  = data.expParam.spans;        % Pregenerated start and stop points for time-alignment with audio data
+            mask  = data.expParam.masking;
+            DAQin = data.DAQin;
+            
             ostF  = round(resample(data.ost_stat,32,1));
             ostF  = ostF(129:end);
-            mask  = data.masking;
-            DAQin = data.DAQin;
             
 %             St = span(1)-fs*0.5; %0.5s before the start of Pert
 %             Sp = span(2)-fs*0.5; %O.5s before the end of Pert
@@ -72,8 +76,9 @@ for i = AVar.partiInd
             
 %             showMeNIDAQ(DAQin, span, fs)
  
-            [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs); %base it off of mic data (cleaner)            
-            %saveT decides to throw away the trial or not
+            %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
+            [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs);           
+            
                        
             if saveT == 0 %Don't save the trial :(
                 fprintf('Session %d Trial %d not saved. %s\n', j, k, msg)
@@ -419,7 +424,7 @@ set(gca, 'FontSize', 10,...
 close all
 end
 
-function drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, AVar.curRecording, k, plotFolder)
+function drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, curRecording, k, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 InterTrialNHR = figure('Color', [1 1 1]);
@@ -448,7 +453,7 @@ xlabel('Time (s)'); ylabel('f0 (Hz)')
 title('Offset of Perturbation', 'FontSize', 10, 'FontWeight', 'bold')
 axis(limits); box off
 
-suptitle([AVar.curRecording ' Trial #' num2str(k)])
+suptitle([curRecording ' Trial #' num2str(k)])
 
 if pert == 0
     legend('Unperturbed')
@@ -459,14 +464,14 @@ end
 
 plots = {'IntraTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [AVar.curRecording '_' plots{i}];
+    plTitle = [curRecording '_' plots{i}];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
 end            
 end
 
-function drawAVEInterTrialf0(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, AVar.curRecording, plotFolder)
+function drawAVEInterTrialf0(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [800 700];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -523,7 +528,7 @@ title('Offset of Perturbation: Perturbed Trials', 'FontSize', 10, 'FontWeight', 
 axis(limits); box off
 set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
 
-suptitle([AVar.curRecording ' ' masking])
+suptitle([curRecording ' ' masking])
 l2 = legend([num2str(counts(2)) ' Trials']); set(l2,'box', 'off','FontSize', 18);
 
 
@@ -536,14 +541,14 @@ pause(2)
 
 plots = {'InterTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [AVar.curRecording '_' plots{i} '_' smMask];
+    plTitle = [curRecording '_' plots{i} '_' smMask];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
 end
 end
 
-function drawAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, AVar.curRecording, plotFolder)
+function drawAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -588,20 +593,20 @@ title('Offset of Perturbation', 'FontSize', 10, 'FontWeight', 'bold')
 axis(limits); box off
 set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
 
-suptitle([AVar.curRecording ' ' masking])
+suptitle([curRecording ' ' masking])
        
 pause(2)
 
 plots = {'InterTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [AVar.curRecording '_' plots{i} '_' smMask];
+    plTitle = [curRecording '_' plots{i} '_' smMask];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
 end
 end
 
-function drawSPAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, AVar.curRecording, plotFolder)
+function drawSPAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -654,7 +659,7 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
 
 plots = {'InterTrial_f0_pub'};
 for i = 1:length(plots)
-    plTitle = [AVar.curRecording '_' plots{i} '_' smMask];
+    plTitle = [curRecording '_' plots{i} '_' smMask];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
