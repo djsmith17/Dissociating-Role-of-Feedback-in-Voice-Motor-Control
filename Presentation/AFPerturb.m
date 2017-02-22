@@ -8,6 +8,7 @@ function AFPerturb(varargin)
 %This calls the functions:
 %sfDirs.m
 %initNIDAQ.m
+%setAudFeedType.m
 %orderTrials.m
 %createPerturbSignal.m
 %setPSRLevels.m
@@ -56,8 +57,8 @@ p.postProcSRate= sRate/downFact;
 s = initNIDAQ;
 
 %Set up OST and PCF Files
-expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
-expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
+expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
@@ -70,9 +71,9 @@ end
 
 p.numTrial    = 4; %Experimental trials = 40
 p.trialLen    = 4; %Seconds
-trialLenPts      = p.trialLen*s.Rate; %seconds converted to points
+trialLenPts   = p.trialLen*s.Rate; %seconds converted to points
 
-p = setMasking(p, expParam.masking);
+[expParam, p] = setAudFeedType(expParam, dirs, p); %Trials with masking or no... ;
 
 p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
 
@@ -139,39 +140,6 @@ if expParam.bVis == 1
     OST_MULT = 500;
     visSignals(data, 16000, OST_MULT, savedWavdir)
 end
-end
-
-function p = setMasking(p, masking)
-%This function sets the type of Auditory Feedback to be played. If it is
-%masking noise, then it uses the speech-shaped noise file (SSN.wav) to be
-%played.
-
-p.masking = masking;
-
-if masking == 0
-    p.fb          = 1;
-    p.bPitchShift = 1;
-    p.dScale      = 1; %Headphone Scalar
-elseif masking == 1
-    p.fb          = 2;
-%     p.fb3Gain     = 2.0;
-    p.bPitchShift = 0;
-    p.dScale      = 1; %Headphone Scalar
-    noiseWavFN = 'util\SSN.wav'; %Uses Speech-Shaped Noise stored in util
-    
-    maxPBSize  = Audapter('getMaxPBLen');
-
-    check_file(noiseWavFN);
-    [w, fs] = read_audio(noiseWavFN);
-
-    if fs ~= p.sr * p.downFact
-        w = resample(w, p.sr * p.downFact, fs);              
-    end
-    if length(w) > maxPBSize
-        w = w(1:maxPBSize);
-    end
-    Audapter('setParam', 'datapb', w, 1);
-end 
 end
 
 function plotPerturb(s, lenT, sig)
@@ -242,7 +210,6 @@ data.expParams     = expParam;
 data.dirs          = dirs;
 data.trialType     = p.trialType(ii);
 data.span          = p.spans(ii,:);
-data.masking       = p.masking;
 data.DAQin         = data_DAQ;
 save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 

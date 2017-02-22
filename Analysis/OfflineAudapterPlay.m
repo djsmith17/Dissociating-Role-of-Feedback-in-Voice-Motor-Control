@@ -55,7 +55,6 @@ p     = getAudapterDefaultParams('male');
 
 
 
-
 %Level of f0 change based on results from 
 
 p.numTrial    = 1;

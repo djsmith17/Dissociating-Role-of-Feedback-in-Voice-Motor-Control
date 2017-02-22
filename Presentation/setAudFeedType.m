@@ -1,20 +1,21 @@
-function p = setAudFeedType(p, masking)
+function [expParam, p] = setAudFeedType(expParam, dirs, p)
 %This function sets the type of Auditory Feedback to be played during an 
 %experiment involving Audapter. If the Auditory feedback is speech-shaped
 %masking noise, then you will need the masking noise wave file, SSN.wav.
 
-p.masking = masking;
-
-if masking == 0
+if expParam.masking == 0
     p.fb          = 1;
     p.bPitchShift = 1;
     p.dScale      = 1; %Headphone Scalar
-elseif masking == 1
+    
+    expParam.SSNw   = [];
+    expParam.SSNfs  = [];
+elseif expParam.masking == 1
     p.fb          = 2;
-%     p.fb3Gain     = 2.0;
     p.bPitchShift = 0;
     p.dScale      = 1; %Headphone Scalar
-    noiseWavFN = 'util\SSN.wav'; %Uses Speech-Shaped Noise stored in util
+    
+    noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); %Uses Speech-Shaped Noise stored in util
     
     maxPBSize  = Audapter('getMaxPBLen');
 
@@ -28,5 +29,8 @@ elseif masking == 1
         w = w(1:maxPBSize);
     end
     Audapter('setParam', 'datapb', w, 1);
+    
+    expParam.SSNw   = w;
+    expParam.SSNfs  = fs;
 end 
 end
