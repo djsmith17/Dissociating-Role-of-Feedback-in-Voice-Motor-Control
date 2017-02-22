@@ -25,10 +25,12 @@ switch host
         dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
 %         dirs.DataTestIn     = fullfile('C:\Users\salacho\Documents\Speech Lab',project,'data\test');    % Dir w/ raw datafiles
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB',project,'Analysis');           % Dir w/ data analysis Code
+        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB',project,'Results');
         dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
         dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
         dirs.saveFileDir    = '';                                                                           % Used to name figures. Gives the type of analysis done, channels, amongs others
         dirs.saveWaveDir    = '';
+        dirs.saveResultsDir = '';
         dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
     case ''
         % add your host name here

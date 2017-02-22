@@ -5,6 +5,7 @@ function SFPerturb(varargin)
 %manages the recorded acoustic data.
 
 %This calls the functions:
+%sfDirs.m
 %initNIDAQ.m
 %orderTrials.m
 %createPerturbSignal.m

@@ -1,6 +1,7 @@
 function OfflineAudapterPlay(varargin)
-%Testing my automated pitch-shifted stimulus
-%Edited 09/26/2016
+%This scripts loads a previously recorded audio signal and provides a
+%Pitch-shift to it in a similiar fashion that happens during online
+%testing.
 close all
 
 bf0Vis = 1; bSpVis = 0; bPlay = 0;
@@ -8,38 +9,47 @@ if ~isempty(fsic(varargin, '--play'))
     bPlay = 1;
 end
  
-% CONFIG
-datadir   = 'C:\Users\djsmith\Documents';
-expType       = 'Auditory Perturbation_Perceptual'; %%
-data_folder   = 'C:\Users\djsmith\Documents\Pilot Data\Somatosensory Perturbation_Perceptual';
-plot_folder   = 'C:\Users\djsmith\Documents\Pilot Results\Somatosensory Perturbation_Perceptual\offline';
-participant   = 'Pilot4';
-run           = 'Run4';
-data_dir      = [data_folder '\' participant '\' run '\'];
-plot_dir      = [plot_folder '\' participant '\' run '\'];
+%Data Configurations
+expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+expParam.expType       = 'Somatosensory Perturbation_Perceptual';
+expParam.subject       = 'Pilot4'; %Subject#, Pilot#, null
+expParam.run           = 'Run4';
+expParam.curTrial      = [];
+expParam.curSubCond    = [];
+expParam.defaultGender = 'male';
+expParam.masking       = 0;
+expParam.bVis          = 0;
 
-if exist(plot_dir, 'dir') == 0
-    mkdir(plot_dir)
+dirs = sfDirs(expParam.project, expParam.expType);
+
+dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
+dirs.saveResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
+dirs.saveFileSuffix = 'offline';
+
+if exist(dirs.saveResultsDir, 'dir') == 0
+    mkdir(dirs.saveResultsDir)
 end
 
-d = dir([data_dir, '\*.mat']);
+d = dir([dirs.saveFileDir, '\*.mat']);
 fnames = sort_nat({d.name}); 
-load([data_dir '\' fnames{1}]); %Taking the first file for kicks. File out will be 'data'
+
+%Taking the first file for kicks. File out will be 'data'
+load(fullfile(dirs.saveFileDir, fnames{1})); 
 
 Mraw  = data.signalIn; 
 fs    = data.params.sRate;
 p     = getAudapterDefaultParams('male');
 
-prelimfileLoc = 'C:\Users\djsmith\Documents\MATLAB\SFPerturb\PrelimFiles\';
-p.ostFN = [prelimfileLoc 'AFPerturbOST.ost']; check_file(p.ostFN);
-p.pcfFN = [prelimfileLoc 'AFPerturbPCF.pcf']; check_file(p.pcfFN);
+expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
+expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
+dirs.InflaRespFile = fullfile(dirs.InflaRespFile, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
-    load([data_folder '\' participant '\' participant '_AveInflaResp.mat']);
+    load(dirs.InflaRespFile);
 catch me
-    fprintf('Subject Data does not exist \n')
+    fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
 %Level of f0 change based on results from 
@@ -97,15 +107,15 @@ for ii = 1:p.numTrial
     
     if bSpVis 
         OST_MULT = 250;
-        visSignals(data_offline, fs, OST_MULT, plot_dir)
+        visSignals(data_offline, fs, OST_MULT, dirs.saveResultsDir)
     end
 
     if bPlay; soundsc(data_offline.signalOut, fs); end
     
-    fileName = [participant '_' run '_OffTimeWarpMicIn.wav']; 
-    audiowrite([plot_dir fileName], data_offline.signalIn, fs)
+    fileName = fullfile(dirs.saveResultsDir [participant '_' run '_OffTimeWarpMicIn.wav']; 
+    audiowrite([dirs.saveResultsDir fileName], data_offline.signalIn, fs)
     fileName = [participant '_' run '_OffTimeWarpHeadOut.wav']; 
-    audiowrite([plot_dir fileName], data_offline.signalOut, fs)
+    audiowrite([dirs.saveResultsDir fileName], data_offline.signalOut, fs)
 end
 
 end

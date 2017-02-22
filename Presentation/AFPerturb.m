@@ -6,6 +6,7 @@ function AFPerturb(varargin)
 %in the somatosensory perturbation experiment.
 
 %This calls the functions:
+%sfDirs.m
 %initNIDAQ.m
 %orderTrials.m
 %createPerturbSignal.m
