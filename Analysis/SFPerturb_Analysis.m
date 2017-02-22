@@ -4,15 +4,6 @@ function SFPerturb_Analysis()
 %given participant. At the end it approximates a general response to
 %inflation to be used in the auditory perturbation experiment
 
-%12/21/2016: Commented more of the code so I know what it actually does. I
-%also made the Inflation Response calculation its own function.
-%01/18/2017: Made the function do analysis for the Auditory Perturbation Experiment 
-%01/19/2017: Created the variable AVar to localize some important Analysis
-%Variables to one structure. This should make passing variables and reading
-%values easy. 
-%01/24/2017: Changed the name from SFPerturb_Analysis2 to
-%LarynPerturb_Analysis. Deleted the file named SFPerturb_Analysis
-
 clear all; close all;
 %Plot Toggles. This could eventually become an input variable
 PltTgl.Trial_time      = 0; %Time-series trial plot
@@ -20,6 +11,8 @@ PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
 PltTgl.aveSessTrial_f0 = 1; 
 PltTgl.SPaveSessTrial_f0 = 1;
+
+dirs = sfDirs;
 
 AVar.data_folder = 'C:\Users\djsmith\Documents\Pilot Data\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\';
 AVar.plot_folder = 'C:\Users\djsmith\Documents\Pilot Results\';
@@ -29,7 +22,7 @@ exp         = 1; %
 participant = {'Pilot6'};
 subjs  = 1;             %Can select multiple subjs if desired.
 run    = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-sess   = [1 2];         %Can select multiple sessions if desired. 
+sess   = [1 2];         %Can select multiple runs if desired. 
 
 AVar.winLen   = 0.05; %analysis window length in seconds
 AVar.pOverlap = 0.30; %Percent Overlap
