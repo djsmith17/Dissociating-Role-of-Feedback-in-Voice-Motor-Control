@@ -82,22 +82,22 @@ catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
+expParam.cuePause = 1.0;
+expParam.resPause = 2.0;
+
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
-pause()
 
 %Close the curtains
 [H1, H2, rec] = createVisualFB();
+pause()
+
+%Close the curtains
 pause(1.0) %Let them breathe a sec
-for ii = 1:p.numTrial
+for ii = 1:expParam.numTrial
     expParam.curTrial   = ['Trial' num2str(ii)];
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
-    
-    set(H1,'Visible','on');
-    pause(1.0) 
-    set(H1,'Visible','off');
-    set(H2,'Visible','on');
     
     %Level of f0 change based on results from 
     audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.spansT(ii,:));
@@ -109,11 +109,19 @@ for ii = 1:p.numTrial
     %Setup which perturb file we want
     NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
     queueOutputData(s, NIDAQsig);
+    
+    %Cue to begin trial
+    set(H1,'Visible','on');
+    pause(expParam.cuePause)
+    
+    %Phonation
+    set(H1,'Visible','off');
+    set(H2,'Visible','on');
    
+    fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
-    fprintf('Trial %d\n',ii)
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
@@ -129,13 +137,13 @@ for ii = 1:p.numTrial
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
     set(rec, 'Visible','on');  
     
-    pause(2.0)
+    pause(expParam.resPause)
     set(rec, 'Visible','off');
 end
 close all
 
 if expParam.bVis == 1
-    OST_MULT = 500;
+    OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
 end
 end

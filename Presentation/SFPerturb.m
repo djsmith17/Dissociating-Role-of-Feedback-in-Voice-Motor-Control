@@ -71,9 +71,14 @@ expParam.spans = expParam.spans*(expParam.sRateAnal / s.Rate); %Converting from 
 negVolSrc = zeros(s.Rate*expParam.trialLen, 1) - 1;
 negVolSrc(1) = 0; negVolSrc(end) = 0;
 
+expParam.cuePause = 1.0;
+expParam.resPause = 2.0;
+
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
+
+%Close the curtains
 [H1, H2, rec] = createVisualFB();
 pause()
 
@@ -93,16 +98,16 @@ for ii = 1:expParam.numTrial
     
     %Cue to begin trial
     set(H1,'Visible','on');
-    pause(1.0)
+    pause(expParam.cuePause)
     
     %Phonation
     set(H1,'Visible','off');
     set(H2,'Visible','on');  
     
+    fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
-    fprintf('Trial %d\n',ii)
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
@@ -118,7 +123,7 @@ for ii = 1:expParam.numTrial
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
     set(rec, 'Visible','on');  
     
-    pause(2.0)
+    pause(expParam.resPause)
     set(rec, 'Visible','off');
 end
 close all
