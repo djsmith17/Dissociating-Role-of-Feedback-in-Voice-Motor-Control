@@ -21,10 +21,12 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
+expParam.numTrial      = 4; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
 expParam.defaultGender = 'male';
 expParam.masking       = 0;
+expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 
 dirs = sfDirs(expParam.project, expParam.expType);
@@ -40,18 +42,18 @@ if exist(dirs.saveWaveDir, 'dir') == 0
 end
 
 %Paradigm Configurations
-sRate              = 48000;  % Hardware sampling rate (before downsampling)
-downFact           = 3;
-frameLen           = 96;  % Before downsampling
-audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
+expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
+expParam.downFact           = 3;
+expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
+expParam.frameLen           = 96;  % Before downsampling
+expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
-Audapter('deviceName', audioInterfaceName);
-Audapter('setParam', 'downFact', downFact, 0);
-Audapter('setParam', 'sRate', sRate / downFact, 0);
-Audapter('setParam', 'frameLen', frameLen / downFact, 0);
+Audapter('deviceName', expParam.audioInterfaceName);
+Audapter('setParam', 'downFact', expParam.downFact, 0);
+Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
+Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.defaultGender);
-p.postProcSRate= sRate/downFact;
 
 %Set up Parameters to control NIDAQ and Perturbatron
 s = initNIDAQ;
@@ -59,6 +61,17 @@ s = initNIDAQ;
 %Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+
+[expParam, p]      = setAudFeedType(expParam, dirs, p); %Trials with masking or no... ;
+
+expParam.trialType = orderTrials(expParam.numTrial, 0.25); %numTrials, percentCatch
+
+[expParam.sigs, expParam.spans, expParam.spansT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
+expParam.spans = expParam.spans*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
+
+%Create a negative voltage signal for the force sensors
+negVolSrc = zeros(s.Rate*expParam.trialLen, 1) - 1;
+negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
@@ -68,21 +81,6 @@ try
 catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
-
-p.numTrial    = 4; %Experimental trials = 40
-p.trialLen    = 4; %Seconds
-trialLenPts   = p.trialLen*s.Rate; %seconds converted to points
-
-[expParam, p] = setAudFeedType(expParam, dirs, p); %Trials with masking or no... ;
-
-p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
-
-[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expParam.expType);
-p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter fs 
-
-%Create a negative voltage signal for the force sensors
-negVolSrc = zeros(s.Rate*p.trialLen, 1) - 1;
-negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
@@ -102,14 +100,14 @@ for ii = 1:p.numTrial
     set(H2,'Visible','on');
     
     %Level of f0 change based on results from 
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, p.trialType(ii), spans_t(ii,:));
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.spansT(ii,:));
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
     
     %Setup which perturb file we want
-    NIDAQsig = [sigs(:,ii) negVolSrc];
+    NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
     queueOutputData(s, NIDAQsig);
    
     AudapterIO('init', p);
@@ -119,13 +117,13 @@ for ii = 1:p.numTrial
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
-    [data_DAQ, time] = s.startForeground;
+    [dataDAQ, time] = s.startForeground;
     
     Audapter('stop');   
     set(H2,'Visible','off'); 
     
     %Save the data
-    data = svData(p, expParam, dirs, ii, data_DAQ);
+    data = svData(expParam, dirs, s, p, audStimP, dataDAQ);
 
     color = chkRMS(data); %How loud were they?    
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
@@ -201,16 +199,16 @@ end
 
 end
 
-function data = svData(p, expParam, dirs, ii, data_DAQ)
+function data = svData(expParam, dirs, s, p, audStimP, dataDAQ)
 %Package all the data into something that is useful for analysis
 
 data = AudapterIO('getData');   
-data.expP          = p;
-data.expParams     = expParam;
+data.expParam      = expParam;
 data.dirs          = dirs;
-data.trialType     = p.trialType(ii);
-data.span          = p.spans(ii,:);
-data.DAQin         = data_DAQ;
+data.s             = s;
+data.expP          = p;
+data.audStimP      = audStimP;
+data.DAQin         = dataDAQ;
 save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 
 audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, p.postProcSRate)
