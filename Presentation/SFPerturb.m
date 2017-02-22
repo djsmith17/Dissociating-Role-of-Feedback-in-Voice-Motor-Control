@@ -13,7 +13,7 @@ function SFPerturb(varargin)
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
 
-%Data Configurations
+%Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null

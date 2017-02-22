@@ -15,7 +15,7 @@ function AFPerturb(varargin)
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
 
-%Data Configurations
+%Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
@@ -68,9 +68,6 @@ catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
-% %Level of f0 change based on results from 
-% setPSRLevels(InflaRespRoute, p.ostFN, p.pcfFN);
-
 p.numTrial    = 4; %Experimental trials = 40
 p.trialLen    = 4; %Seconds
 trialLenPts      = p.trialLen*s.Rate; %seconds converted to points
@@ -104,11 +101,11 @@ for ii = 1:p.numTrial
     set(H2,'Visible','on');
     
     %Level of f0 change based on results from 
-    audStimP = setPSRLevels(InflaRespRoute, tStep, p.ostFN, p.pcfFN, p.trialType(ii), spans_t(ii,:));
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, p.trialType(ii), spans_t(ii,:));
     
     %Set the OST and PCF functions
-    Audapter('ost', p.ostFN, 0);
-    Audapter('pcf', p.pcfFN, 0);
+    Audapter('ost', expParam.ostFN, 0);
+    Audapter('pcf', expParam.pcfFN, 0);
     
     %Setup which perturb file we want
     NIDAQsig = [sigs(:,ii) negVolSrc];

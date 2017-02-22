@@ -9,7 +9,7 @@ if ~isempty(fsic(varargin, '--play'))
     bPlay = 1;
 end
  
-%Data Configurations
+%Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'Pilot4'; %Subject#, Pilot#, null
@@ -24,27 +24,18 @@ dirs = sfDirs(expParam.project, expParam.expType);
 
 dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
 dirs.saveResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
-dirs.saveFileSuffix = 'offline';
+dirs.saveFileSuffix = 'offlinePSR';
 
 if exist(dirs.saveResultsDir, 'dir') == 0
     mkdir(dirs.saveResultsDir)
 end
 
-d = dir([dirs.saveFileDir, '\*.mat']);
-fnames = sort_nat({d.name}); 
-
-%Taking the first file for kicks. File out will be 'data'
-load(fullfile(dirs.saveFileDir, fnames{1})); 
-
-Mraw  = data.signalIn; 
-fs    = data.params.sRate;
-p     = getAudapterDefaultParams('male');
-
+%Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-%Should give variable of InflaRespRoute. Recorded from previous
-%experimentation
+%Should return variables of InflaRespRoute and tStep. 
+%Recorded from previous experiments
 dirs.InflaRespFile = fullfile(dirs.InflaRespFile, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
     load(dirs.InflaRespFile);
@@ -52,8 +43,20 @@ catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
+d = dir([dirs.saveFileDir, '\*.mat']);
+fnames = sort_nat({d.name}); 
+
+%Taking the first trial for ease. File out will be 'data'
+load(fullfile(dirs.saveFileDir, fnames{1})); 
+
+Mraw  = data.signalIn; 
+fs    = data.params.sRate;
+p     = getAudapterDefaultParams('male');
+
+
+
+
 %Level of f0 change based on results from 
-setPSRLevels(InflaRespRoute, p.ostFN, p.pcfFN, 1);
 
 p.numTrial    = 1;
 p.trialLen    = 2;
@@ -73,10 +76,16 @@ Mraw_frames = makecell(Mraw, data.params.frameLen * data.params.downFact);
 % RMSTHRES = data.rms(svEn(1),1);
 % write2pcf(p.ostFN, [RMSTHRES 0.10], 'ost')
 
-for ii = 1:p.numTrial    
+for ii = 1:p.numTrial
+    expParam.curTrial   = ['Trial' num2str(ii)];
+    expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
+    
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, 1);
+    
+    %Set the OST and PCF functions
 %     write2pcf(p.pcfFN, timeWarpFiles(ii,:), 'pcf')
-    Audapter('ost', p.ostFN, 0); %Set OST file
-    Audapter('pcf', p.pcfFN, 0); %Set PCF file
+    Audapter('ost', expParam.ostFN, 0);
+    Audapter('pcf', expParam.pcfFN, 0);
     
 %     Audapter('setParam', 'rmsthr', 5e-3, 0);
     AudapterIO('init', p);
@@ -112,10 +121,10 @@ for ii = 1:p.numTrial
 
     if bPlay; soundsc(data_offline.signalOut, fs); end
     
-    fileName = fullfile(dirs.saveResultsDir [participant '_' run '_OffTimeWarpMicIn.wav']; 
-    audiowrite([dirs.saveResultsDir fileName], data_offline.signalIn, fs)
-    fileName = [participant '_' run '_OffTimeWarpHeadOut.wav']; 
-    audiowrite([dirs.saveResultsDir fileName], data_offline.signalOut, fs)
+    fileName = fullfile(dirs.saveResultsDir, expParam.curSubCond, '_', dirs.saveFileSuffix, 'MicIn.wav'); 
+    audiowrite(fileName, data_offline.signalIn, fs)
+    fileName = fullfile(dirs.saveResultsDir, expParam.curSubCond, '_', dirs.saveFileSuffix, 'HeadOut.wav'); 
+    audiowrite(fileName, data_offline.signalOut, fs)
 end
 
 end
