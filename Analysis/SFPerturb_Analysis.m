@@ -12,39 +12,38 @@ PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
 PltTgl.aveSessTrial_f0 = 1; 
 PltTgl.SPaveSessTrial_f0 = 1;
 
-dirs = sfDirs;
+AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
+AVar.expInd       = 1; %Either 1 or 2
+AVar.curExp       = AVar.expTypes{AVar.expInd};
+AVar.participants = {'Pilot6'}; %List of multiple participants
+AVar.partiInd     = 1;          %Can select multiple subjs if desired.
+AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
+AVar.runsInd      = [1 2];
+AVar.curRecording = [];
 
-AVar.data_folder = 'C:\Users\djsmith\Documents\Pilot Data\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\';
-AVar.plot_folder = 'C:\Users\djsmith\Documents\Pilot Results\';
-
-experiments = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-exp         = 1; %
-participant = {'Pilot6'};
-subjs  = 1;             %Can select multiple subjs if desired.
-run    = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-sess   = [1 2];         %Can select multiple runs if desired. 
+dirs = sfDirs(AVar.project, AVar.curExp);
 
 AVar.winLen   = 0.05; %analysis window length in seconds
 AVar.pOverlap = 0.30; %Percent Overlap
 AVar.anaLen   = 1.20; %What period in time do you want to analyze? Length of vowel is variable.
 AVar.nWin     = length(0:AVar.winLen*(1-AVar.pOverlap):(AVar.anaLen-AVar.winLen));
 
-for i = subjs
+for i = AVar.partiInd 
     allSessionsf0_St   = [];
     allSessionsf0_Sp   = [];
     allSessionsPert    = [];
     counts             = [0 0];
-    for j = sess
-        AVar.data_dir = [AVar.data_folder '\' experiments{exp} '\' participant{i} '\' run{j} '\']; %Where to find data
-        AVar.plot_dir = [AVar.plot_folder '\' experiments{exp} '\' participant{i} '\' run{j} '\']; %Where to save plots
-        AVar.Exp_Nm   = [participant{i} ' ' run{j}]; %Short hand of experiment details
-        
-        if exist(AVar.plot_dir, 'dir') == 0
-            mkdir(AVar.plot_dir)
+    for j = AVar.runsInd
+        dirs.saveFileDir = fullfile(dirs.Data, AVar.participants{i}, AVar.runs{j}); %Where to find data
+        dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, AVar.runs{j}); %Where to save results
+ 
+        if exist(dirs.saveResultsDir, 'dir') == 0
+            mkdir(dirs.saveResultsDir)
         end
         
         %Find total number of files 
-        d = dir([AVar.data_dir, '\*.mat']);
+        d = dir([dirs.saveFileDir, '\*.mat']);
         fnames = sort_nat({d.name})';       
         
         limits = [0 1.2 -100 100];
@@ -52,8 +51,10 @@ for i = subjs
         allplotf0pts_Sp  = [];
         pertRecord       = [];
         countP = 0; countC = 0; %Counting the number of saved perturbed/control trials
+        AVar.curRecording  = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
+       
         for k = 1:length(fnames)
-            load([AVar.data_dir '\' fnames{k}]);
+            load([dirs.saveFileDir '\' fnames{k}]);
             Mraw  = data.signalIn(1:(end-128)); % Microphone
             Hraw  = data.signalOut(129:end);    % Headphones
             fs    = round(data.params.sRate);   % Sampling Rate
@@ -139,8 +140,8 @@ for i = subjs
     [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St{2},1);
 %     figure; plot(InflaRespRoute)
 
-    InflaRespfile = [AVar.data_folder '\' experiments{exp} '\' participant{subjs} '\' participant{subjs} '_AveInflaResp.mat'];
-    save(InflaRespfile, 'InflaRespRoute', 'tStep')
+    dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
+    save(dirs.InflaRespfile, 'InflaRespRoute', 'tStep')
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
