@@ -21,10 +21,11 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
-expParam.numTrial      = 4; %Experimental trials = 40
+expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
-expParam.defaultGender = 'male';
+expParam.perCatch      = 0.25;
+expParam.gender        = 'male';
 expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
@@ -53,7 +54,7 @@ Audapter('deviceName', expParam.audioInterfaceName);
 Audapter('setParam', 'downFact', expParam.downFact, 0);
 Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
 Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
-p = getAudapterDefaultParams(expParam.defaultGender);
+p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
 s = initNIDAQ;
@@ -64,7 +65,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 
 [expParam, p]      = setAudFeedType(expParam, dirs, p); %Trials with masking or no... ;
 
-expParam.trialType = orderTrials(expParam.numTrial, 0.25); %numTrials, percentCatch
+expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
 [expParam.sigs, expParam.spans, expParam.spansT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
 expParam.spans = expParam.spans*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
