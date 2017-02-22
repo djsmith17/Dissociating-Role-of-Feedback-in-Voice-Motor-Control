@@ -42,7 +42,8 @@ audStimP.routeStpsT   = audStimP.routeStps*audStimP.tStep; %How long the route t
 audStimP.routeStpsP   = audStimP.routeStpsT*audStimP.AudFs; %How long the route takes (Points)
 audStimP.routeInSp  = audStimP.StPoint + audStimP.routeStpsP; %Point when the shift 'bottoms out'
 audStimP.routeOutSt = audStimP.SpPoint - audStimP.routeStpsP; %Point when the shift begins to increase to baseline
-audStimP.lenPerVall = audStimP.routeOutSt - audStimP.routeInSp; %Points between either pertrubation 'route' (Valley)
+audStimP.lenPerVallP = audStimP.routeOutSt - audStimP.routeInSp; %Points between either pertrubation 'route' (Valley)
+audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs; %Seconds between either pertrubation 'route' (Valley)
 
 stim = zeros(1, audStimP.lenTrialP);
 
@@ -85,7 +86,7 @@ for i = 1:n
     if i <= audStimP.routeStps
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.routeStps)];
     elseif i == audStimP.routeStps + 1 
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.lenPerVall) ' NaN {} #Hold for the pitch-shift hold period'];
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.lenPerVallT) ' NaN {} #Hold for the pitch-shift hold period'];
     elseif i <= 2*audStimP.routeStps + 1
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.routeStps)];    
     elseif i == 2*audStimP.routeStps + 2

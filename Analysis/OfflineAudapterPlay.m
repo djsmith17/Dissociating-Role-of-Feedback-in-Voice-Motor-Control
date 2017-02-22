@@ -4,7 +4,7 @@ function OfflineAudapterPlay(varargin)
 %testing.
 close all
 
-bf0Vis = 1; bSpVis = 0; bPlay = 0;
+bf0Vis = 0; bSpVis = 0; bPlay = 1;
 if ~isempty(fsic(varargin, '--play'))
     bPlay = 1;
 end
@@ -30,6 +30,23 @@ if exist(dirs.saveResultsDir, 'dir') == 0
     mkdir(dirs.saveResultsDir)
 end
 
+%Paradigm Configurations
+sRate              = 48000;  % Hardware sampling rate (before downsampling)
+downFact           = 3;
+frameLen           = 96;  % Before downsampling
+audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
+
+%Set up Audapter
+Audapter('deviceName', audioInterfaceName);
+Audapter('setParam', 'downFact', downFact, 0);
+Audapter('setParam', 'sRate', sRate / downFact, 0);
+Audapter('setParam', 'frameLen', frameLen / downFact, 0);
+p = getAudapterDefaultParams(expParam.defaultGender);
+p.postProcSRate= sRate/downFact;
+
+%Set up Parameters to control NIDAQ and Perturbatron
+s = initNIDAQ;
+
 %Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
@@ -43,6 +60,17 @@ catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
+p.numTrial    = 4; %Experimental trials = 40
+p.trialLen    = 4; %Seconds
+trialLenPts   = p.trialLen*s.Rate; %seconds converted to points
+
+[expParam, p] = setAudFeedType(expParam, dirs, p); %Trials with masking or no... 
+
+p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
+
+[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expParam.expType);
+p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter f
+
 d = dir([dirs.saveFileDir, '\*.mat']);
 fnames = sort_nat({d.name}); 
 
@@ -51,21 +79,6 @@ load(fullfile(dirs.saveFileDir, fnames{1}));
 
 Mraw  = data.signalIn; 
 fs    = data.params.sRate;
-p     = getAudapterDefaultParams('male');
-
-
-
-%Level of f0 change based on results from 
-
-p.numTrial    = 1;
-p.trialLen    = 2;
-p.bPitchShift = 1;
-p.dScale      = 2;
-
-trialType = zeros(1,p.numTrial);
-trialType(1) = 1;
-newInd = randperm(p.numTrial);
-trialType = trialType(newInd);
 
 %Resample at 48000Hz
 Mraw        = resample(Mraw, data.params.sr * data.params.downFact, fs);
@@ -79,7 +92,7 @@ for ii = 1:p.numTrial
     expParam.curTrial   = ['Trial' num2str(ii)];
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
     
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, 1);
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, p.trialType(ii), spans_t(ii,:));
     
     %Set the OST and PCF functions
 %     write2pcf(p.pcfFN, timeWarpFiles(ii,:), 'pcf')
@@ -98,7 +111,7 @@ for ii = 1:p.numTrial
     Mraw_offline = data_offline.signalIn(1:(end-128)); % Microphone
     Hraw_offline = data_offline.signalOut(129:end);    % Headphones
     fs_offline   = round(data_offline.params.sRate);   % Sampling Rate
-    pert  = trialType(ii); 
+    pert  = p.trialType(ii); 
     
     span = find(data_offline.ost_stat > 0);
      
@@ -120,9 +133,11 @@ for ii = 1:p.numTrial
 
     if bPlay; soundsc(data_offline.signalOut, fs); end
     
-    fileName = fullfile(dirs.saveResultsDir, expParam.curSubCond, '_', dirs.saveFileSuffix, 'MicIn.wav'); 
+    pause(5)
+    
+    fileName = fullfile(dirs.saveResultsDir, [expParam.curSubCond '_' dirs.saveFileSuffix 'MicIn.wav']); 
     audiowrite(fileName, data_offline.signalIn, fs)
-    fileName = fullfile(dirs.saveResultsDir, expParam.curSubCond, '_', dirs.saveFileSuffix, 'HeadOut.wav'); 
+    fileName = fullfile(dirs.saveResultsDir, [expParam.curSubCond '_' dirs.saveFileSuffix 'HeadOut.wav']); 
     audiowrite(fileName, data_offline.signalOut, fs)
 end
 
