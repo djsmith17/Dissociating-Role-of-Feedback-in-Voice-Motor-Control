@@ -102,7 +102,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, Exp_Nm, k, plot_dir)
+                    drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, AVar.curRecording, k, plot_dir)
                 end
             end          
         end
@@ -119,13 +119,13 @@ for i = AVar.partiInd
 
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
-            drawAVEInterTrialf02(meanf0pts_St, meanf0pts_Sp, limits, curCount, mask, Exp_Nm, plot_dir)
+            drawAVEInterTrialf02(meanf0pts_St, meanf0pts_Sp, limits, curCount, mask, AVar.curRecording, plot_dir)
         end
     end
     
-    plot_dir = [AVar.plot_folder '\' participant{i} '\RunsAve\'];
-    Exp_Nm = [participant{i} ' All Runs'];
-
+    dirs.saveFileDir = fullfile(dirs.Data, AVar.participants{i}, 'RunAve'); %Where to find data
+    AVar.curRecording  = [AVar.participants{i} ' All Runs']; %Short hand of experiment details
+    
     if exist(plot_dir, 'dir') == 0
         mkdir(plot_dir)
     end
@@ -138,19 +138,18 @@ for i = AVar.partiInd
     %Auditory Perturbation Experiment. Only need to use the Average of
     %perturbed Trials
     [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St{2},1);
-%     figure; plot(InflaRespRoute)
 
     dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
     save(dirs.InflaRespfile, 'InflaRespRoute', 'tStep')
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
-        drawAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, Exp_Nm, plot_dir)
+        drawAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, plot_dir)
     end
     
     if PltTgl.SPaveSessTrial_f0 == 1 
         limits = [0 1.2 -80 40];
-        drawSPAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, Exp_Nm, plot_dir)
+        drawSPAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, plot_dir)
     end
 end
 end
@@ -420,7 +419,7 @@ set(gca, 'FontSize', 10,...
 close all
 end
 
-function drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, Exp_Nm, k, plotFolder)
+function drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, AVar.curRecording, k, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 InterTrialNHR = figure('Color', [1 1 1]);
@@ -449,7 +448,7 @@ xlabel('Time (s)'); ylabel('f0 (Hz)')
 title('Offset of Perturbation', 'FontSize', 10, 'FontWeight', 'bold')
 axis(limits); box off
 
-suptitle([Exp_Nm ' Trial #' num2str(k)])
+suptitle([AVar.curRecording ' Trial #' num2str(k)])
 
 if pert == 0
     legend('Unperturbed')
@@ -460,14 +459,14 @@ end
 
 plots = {'IntraTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [Exp_Nm '_' plots{i}];
+    plTitle = [AVar.curRecording '_' plots{i}];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
 end            
 end
 
-function drawAVEInterTrialf0(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, Exp_Nm, plotFolder)
+function drawAVEInterTrialf0(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, AVar.curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [800 700];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -524,7 +523,7 @@ title('Offset of Perturbation: Perturbed Trials', 'FontSize', 10, 'FontWeight', 
 axis(limits); box off
 set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
 
-suptitle([Exp_Nm ' ' masking])
+suptitle([AVar.curRecording ' ' masking])
 l2 = legend([num2str(counts(2)) ' Trials']); set(l2,'box', 'off','FontSize', 18);
 
 
@@ -537,14 +536,14 @@ pause(2)
 
 plots = {'InterTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [Exp_Nm '_' plots{i} '_' smMask];
+    plTitle = [AVar.curRecording '_' plots{i} '_' smMask];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
 end
 end
 
-function drawAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, Exp_Nm, plotFolder)
+function drawAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, AVar.curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -589,20 +588,20 @@ title('Offset of Perturbation', 'FontSize', 10, 'FontWeight', 'bold')
 axis(limits); box off
 set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
 
-suptitle([Exp_Nm ' ' masking])
+suptitle([AVar.curRecording ' ' masking])
        
 pause(2)
 
 plots = {'InterTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [Exp_Nm '_' plots{i} '_' smMask];
+    plTitle = [AVar.curRecording '_' plots{i} '_' smMask];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
 end
 end
 
-function drawSPAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, Exp_Nm, plotFolder)
+function drawSPAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, AVar.curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -655,7 +654,7 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
 
 plots = {'InterTrial_f0_pub'};
 for i = 1:length(plots)
-    plTitle = [Exp_Nm '_' plots{i} '_' smMask];
+    plTitle = [AVar.curRecording '_' plots{i} '_' smMask];
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
