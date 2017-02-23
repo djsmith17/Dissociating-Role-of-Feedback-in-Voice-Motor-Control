@@ -9,8 +9,8 @@ dev = 'Dev3';
 s = daq.createSession('ni');
 addAnalogOutputChannel(s, dev, 0, 'Voltage'); %Output to the Perturbatron
 addAnalogOutputChannel(s, dev, 1, 'Voltage'); %Output voltage to Force Sensor
-addAnalogInputChannel(s, dev, 0, 'Voltage'); %Input from Force Sensor 1
-addAnalogInputChannel(s, dev, 1, 'Voltage'); %Input from Force Sensor 1
+addAnalogInputChannel(s, dev, 0, 'Voltage'); %Input from Force Sensor 1: Collar
+addAnalogInputChannel(s, dev, 1, 'Voltage'); %Input from Force Sensor 2: Neck
 
 s.Rate = 8000;
 end

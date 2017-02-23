@@ -47,14 +47,16 @@ ForceSensorData.svData      = svData;
 save([pltFolder method '_ForceSensorData.mat'],'ForceSensorData')
 end
 
-function plot_data_DAQ(s, spans, svData, method, pltFolder)
+function plot_data_DAQ(sRate, spans, svData, method, pltFolder)
 
 [r, c] = size(spans);
 pts = length(svData);
-time = 0:1/s.Rate:(pts-1)/s.Rate;
+time = 0:1/sRate:(pts-1)/sRate;
 
 plotpos = [500 500];
 plotdim = [1000 400];
+
+sv2File = 0;
 
 for ii = 1:r
     perturb = zeros(1, pts);
@@ -91,9 +93,11 @@ for ii = 1:r
    
     set(gca, 'FontSize', 12,...
              'FontWeight', 'bold')
-   
-    plTitle = [method  '_ForceSensor_Test ' num2str(ii)];     
-    saveFileName = [pltFolder plTitle '.png'];
-    export_fig(saveFileName)   
+         
+    if sv2File == 1
+        plTitle = [method  '_ForceSensor_Test ' num2str(ii)];     
+        saveFileName = [pltFolder plTitle '.png'];
+        export_fig(saveFileName)
+    end
 end
 end

@@ -6,10 +6,11 @@ function SFPerturb_Analysis()
 
 clear all; close all;
 %Plot Toggles. This could eventually become an input variable
+PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
 PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
-PltTgl.aveSessTrial_f0 = 0; 
+PltTgl.aveSessTrial_f0 = 1; 
 PltTgl.SPaveSessTrial_f0 = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -81,7 +82,6 @@ for i = AVar.partiInd
  
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
-            
                        
             if saveT == 0 %Don't save the trial :(
                 fprintf('Session %d Trial %d not saved. %s\n', j, k, msg)
@@ -105,6 +105,11 @@ for i = AVar.partiInd
                 allplotf0pts_Sp  = cat(3, allplotf0pts_Sp, plotf0pts_St);
                 pertRecord       = cat(1, pertRecord, pert(k));
                
+                if PltTgl.ForceSensor == 1;
+                    sRate = 8000;
+                    plot_data_DAQ(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
+                end
+                
                 if PltTgl.Trial_time == 1; %Raw time-varying signal
                     drawTrial(Mraw, Hraw, fs, span(k,:))
                 end
@@ -154,12 +159,12 @@ for i = AVar.partiInd
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
-        drawAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, plot_dir)
+        drawAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, dirs.saveFileDir)
     end
     
     if PltTgl.SPaveSessTrial_f0 == 1 
         limits = [0 1.2 -80 40];
-        drawSPAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, plot_dir)
+        drawSPAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, dirs.saveFileDir)
     end
 end
 end
@@ -691,5 +696,63 @@ for i = 1:length(plots)
 
     saveFileName = [plotFolder plTitle '.png'];
     export_fig(saveFileName)
+end
+end
+
+function plot_data_DAQ(sRate, spans, DAQin, curRecording, saveResultsDir)
+spans = spans*8000/16000;
+
+[r, c] = size(spans);
+pts = length(DAQin);
+time = 0:1/sRate:(pts-1)/sRate;
+
+plotpos = [500 500];
+plotdim = [1000 400];
+
+sv2File = 0;
+
+for ii = 1:r
+    perturb = zeros(1, pts);
+    perturb(spans(ii,1):spans(ii,2)) = -0.5;
+    
+    ForceSensorV(ii) = figure('Color', [1 1 1]);
+    set(ForceSensorV(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+    
+    subplot(1,2,1)
+    plot(time, perturb, 'k')
+    hold on
+    plot(time, DAQin(:,1,ii), 'b')
+    
+    xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold') 
+    ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
+    title('Collar Sensor', 'FontSize', 10, 'FontWeight', 'bold')
+    axis([0 4 -5 5]); box off
+    
+    subplot(1,2,2)
+    plot(time, perturb, 'k')
+    hold on
+    plot(time, DAQin(:,2,ii), 'b')
+    
+    xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold')
+    ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
+    title('Neck Sensor', 'FontSize', 10, 'FontWeight', 'bold')
+    axis([0 4 -5 5]); box off
+    
+    suptitle('Voltage Change in Force Sensors due to Balloon Inflation')
+    
+    pltlgd = legend('Perturbation', 'Voltage from Force Sensor');
+    set(pltlgd, 'box', 'off',...
+                'location', 'best');
+   
+    set(gca, 'FontSize', 12,...
+             'FontWeight', 'bold')
+   
+    if sv2File == 1
+        plTitle = [curRecording  '_ForceSensor_Test ' num2str(ii)];     
+        saveFileName = [saveResultsDir plTitle '.png'];
+        export_fig(saveFileName) 
+    end
+    pause()
+    close all
 end
 end
