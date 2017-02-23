@@ -5,13 +5,15 @@ function AFPerturb(varargin)
 %specifically uses a pitch-shift that matches the size of the stimulus seen
 %in the somatosensory perturbation experiment.
 
-%This calls the functions:
+%This script calls the following (8) functions:
 %sfDirs.m
 %initNIDAQ.m
 %setAudFeedType.m
 %orderTrials.m
 %createPerturbSignal.m
 %setPSRLevels.m
+%setPerturbVisualFB.m
+%updateVisualFeed.m
 
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
@@ -221,17 +223,24 @@ end
 function data = svData(expParam, dirs, s, p, audStimP, dataDAQ)
 %Package all the data into something that is useful for analysis
 
-data = AudapterIO('getData');   
-data.expParam    = expParam;
-data.dirs        = dirs;
-data.s           = s;
-data.p           = p;
-data.audStimP    = audStimP;
-data.DAQin       = dataDAQ;
-save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
+try
+    data = AudapterIO('getData');
+    
+    data.expParam    = expParam; %Experimental Parameters
+    data.dirs        = dirs;     %Directories
+    data.s           = s;        %NIDAQ Object
+    data.p           = p;        %Audapter Parameters
+    data.audStimP    = audStimP; %auditory stimulus Parameters
+    data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
+    save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 
-audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, p.postProcSRate)
-audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, p.postProcSRate)
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, expParam.sRateAnal)
+catch
+    disp('Audapter decided not to show up today')
+    data = [];
+    return
+end
 end
 
 function visSignals(data, fs, OST_MULT, savedResdir)

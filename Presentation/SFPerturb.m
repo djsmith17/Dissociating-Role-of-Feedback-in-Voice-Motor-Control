@@ -4,12 +4,14 @@ function SFPerturb(varargin)
 %NIDAQ signal provides Pertrubatron stimulus and Audapter collects and
 %manages the recorded acoustic data.
 
-%This calls the functions:
+%This script calls the following (7) functions:
 %sfDirs.m
 %initNIDAQ.m
 %setAudFeedType.m
 %orderTrials.m
 %createPerturbSignal.m
+%setPerturbVisualFB.m
+%updateVisualFeed.m
 
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
@@ -222,7 +224,7 @@ try
     audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, expParam.sRateAnal)
     audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, expParam.sRateAnal)
 catch
-    disp('Audapter decided not to play')
+    disp('Audapter decided not to show up today')
     data = [];
     return
 end
