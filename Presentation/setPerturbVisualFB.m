@@ -2,10 +2,6 @@ function [anMsr, H1, H2, fbLines, rec] = setPerturbVisualFB(targRMS, bounds, win
 %Overlays for the experiment.
 %anMsr = annotation Measurements
 
-anMsr.targRMS = targRMS;
-anMsr.UPtargRMS = targRMS + bounds;
-anMsr.DNtargRMS = targRMS - bounds;
-
 %Assume we are using Tongue for the moment
 if win == 1                  %ASUS Monitor
     stX = 0;    stY = 0;
@@ -16,15 +12,21 @@ else                         %Dell Monitor
 end
 anMsr.winPos = [stX stY fullW fullH];
 
-%Something in here that denotes what the top and bottom is and how to scale
-%dB against a visual field.
+%Assuming that perfect RMS lies at 50% of the screen, and the acceptable
+%upper and lower bound are set at 45% and 55% of the screen, the edge of
+%the screen will correspond to these variables accordingly. This will shift
+%with differences in participants varying RMS values
+anMsr.targRMS   = targRMS; %Ideally this is between 40-70 dB
+anMsr.hRMSrange = bounds*10; %half the possible range of RMS, where each 5% mark represents 'bounds' dB
+anMsr.vTopAmp   = anMsr.targRMS + anMsr.hRMSrange; %dB 
+anMsr.vBotAmp   = anMsr.targRMS - anMsr.hRMSrange; %dB 
 
 %Starts with some measurements
 anMsr.bMar      = 0.05; %Bottom Margin
 anMsr.minH      = 0.4;  %From the margin. This will need to change
 anMsr.maxH      = 0.5;  %From the margin. This will need to change
-anMsr.drawMinH  = anMsr.bMar + anMsr.minH;
-anMsr.drawMaxH  = anMsr.bMar + anMsr.maxH;
+anMsr.drawMinH  = anMsr.bMar + anMsr.minH; %45%
+anMsr.drawMaxH  = anMsr.bMar + anMsr.maxH; %55% Goal value is 50%
 
 anMsr.lMar      = 0.15; %Left Margin
 anMsr.lineWidth = 0.1;  %Arbitrary-Looks good at the moment
