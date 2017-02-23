@@ -179,6 +179,22 @@ box off
 end
 
 function [mic1, head1, saveT, msg] = preProc(mic, head, fs)
+%This function performs pre-processing on the recorded audio data before
+%frequency analysis is applied. This function takes the following inputs:
+
+%micR:  Raw Microphone signal
+%headR: Raw Headphone signal
+%fs:     Recording sampling rate
+
+%This function outputs the following
+%micP:     Processed Microphone signal
+%headP:    Processed Headphone signal
+%saveT:    Boolean toggle to determine if the trial should be saved
+%saveTmsg: Reason, if any, that the trial was thrown out
+
+
+
+
 x = double(mic); 
 y = double(head);
 
