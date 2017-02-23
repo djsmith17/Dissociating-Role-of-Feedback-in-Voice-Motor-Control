@@ -1,10 +1,20 @@
-function [anMsr, H1, H2, fbLines, rec] = setPerturbVisualFB(targRMS, bounds)
+function [anMsr, H1, H2, fbLines, rec] = setPerturbVisualFB(targRMS, bounds, win)
 %Overlays for the experiment.
 %anMsr = annotation Measurements
 
 anMsr.targRMS = targRMS;
 anMsr.UPtargRMS = targRMS + bounds;
 anMsr.DNtargRMS = targRMS - bounds;
+
+%Assume we are using Tongue for the moment
+if win == 1                  %ASUS Monitor
+    stX = 0;    stY = 0;
+    fullW = 1920; fullH = 1080;
+else                         %Dell Monitor
+    stX = 1920; stY = 0;
+    fullW = 1680; fullH = 1050;
+end
+anMsr.winPos = [stX stY fullW fullH];
 
 %Something in here that denotes what the top and bottom is and how to scale
 %dB against a visual field.
@@ -32,8 +42,8 @@ anMsr.maxLy = [anMsr.drawMaxH anMsr.drawMaxH]; %First Y and Last Y
 
 anMsr.recPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth anMsr.recHeight];
 
-figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[0 0 1920 1080],'MenuBar','none');
-% figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position',[1920 0 1681 1050],'MenuBar','none');
+%%%%%%
+figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position', anMsr.winPos,'MenuBar','none');
 
 H1 = annotation(figure1,'textbox',[0.46 0.46 0.2 0.2],...
                         'Color',[1 1 1],...

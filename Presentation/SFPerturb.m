@@ -77,13 +77,14 @@ expParam.resPause = 2.0;
 
 expParam.targRMS   = 55; %***dB Example at the moment***
 expParam.boundsRMS = 3;  %+/- dB
+expParam.win       = 2;  %which monitor? 1 or 2
 
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
 
 %Close the curtains
-[anMsr, H1, H2, fbLines, rec] = setPerturbVisualFB(expParam.targRMS, expParam.boundsRMS);
+[anMsr, H1, H2, fbLines, rec] = setPerturbVisualFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
 pause()
 
 %Close the curtains
