@@ -84,7 +84,7 @@ for i = AVar.partiInd
             if saveT == 0 %Don't save the trial :(
                 fprintf('Session %d Trial %d not saved. %s\n', j, k, msg)
             elseif saveT == 1 %Save the Trial!
-                if pert == 1
+                if pert(k) == 1
                     countP = countP + 1;
                 else
                     countC = countC + 1;
@@ -101,14 +101,14 @@ for i = AVar.partiInd
                 fprintf('Session %d Trial %d saved. %d points and %d points\n', j, k, numPoints_St, numPoints_Sp)              
                 allplotf0pts_St  = cat(3, allplotf0pts_St, plotf0pts_St);
                 allplotf0pts_Sp  = cat(3, allplotf0pts_Sp, plotf0pts_Sp);
-                pertRecord       = cat(1, pertRecord, pert);
+                pertRecord       = cat(1, pertRecord, pert(k));
                
                 if PltTgl.Trial_time == 1; %Raw time-varying signal
                     drawTrial(Mraw, Hraw, fs, span(k,:))
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, AVar.curRecording, k, plot_dir)
+                    drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert(k), limits, AVar.curRecording, k, plot_dir)
                 end
             end          
         end
