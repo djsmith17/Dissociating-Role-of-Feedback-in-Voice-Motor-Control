@@ -86,12 +86,15 @@ end
 expParam.cuePause = 1.0;
 expParam.resPause = 2.0;
 
+expParam.targRMS    = 55; %***dB Example at the moment***
+expParam.boundsRMS  = 3;  %+/- dB
+
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
 
 %Close the curtains
-[H1, H2, rec] = createVisualFB();
+[anMsr, H1, H2, fbLines, rec] = setPerturbVisualFB(expParam.targRMS, expParam.boundsRMS);
 pause()
 
 %Close the curtains
@@ -134,11 +137,15 @@ for ii = 1:expParam.numTrial
     %Save the data
     data = svData(expParam, dirs, s, p, audStimP, dataDAQ);
 
-    color = chkRMS(data); %How loud were they?    
+    [color, newPos] = updateVisualFeed(anMsr, data.rms);
+    
+    set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
-    set(rec, 'Visible','on');  
+    set(rec, 'Visible','on'); 
+    set(fbLines, 'Visible', 'on');  
     
     pause(expParam.resPause)
+    set(fbLines, 'Visible', 'off');
     set(rec, 'Visible','off');
 end
 close all
@@ -192,20 +199,22 @@ rec = annotation(figure1,'rectangle',[0.25 0.1 0.5 0.1],...
 
 end
 
-function color = chkRMS(data)
-RMS = mean(data.rms(:,1));
+function color = chkRMS(anMsr, rms)
+RMS = mean(rms(:,1));
 
-highLim = 100;
-lowLim  = 20;
+%based on data I found the new height to be this
+newRecHeight = 0.55;
+newDrawHeight = newRecHeight + anMsr.bMar;
 
-if RMS > highLim
-    color = [1 0 0]; %Red, Too loud
-elseif RMS < lowLim
-    color = [0 0 1]; %Blue, Too soft
+newPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth newRecHeight];
+
+if newDrawHeight > anMsr.drawMaxH
+    color = 'red';
+elseif newDrawHeight < anMsr.drawMinH
+    color = 'red';
 else
-    color = [0 1 0]; %Green, Just right
+    color = 'green';
 end
-
 end
 
 function data = svData(expParam, dirs, s, p, audStimP, dataDAQ)
