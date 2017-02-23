@@ -2,10 +2,11 @@ function [allrmsMean, finalrmsMean] = measureVoiceAmplitude()
 %This takes a few sample recordings of the participant's voice and returns
 %the average RMS value of the recorded voice. This should be used at the
 %beginning of recording session to determine a baseline voice amplitude. 
-%It is assumed that the participant speaks at a comfortable and typical
-%speaking volume, the microphone is placed at a consistent distance for
-%each participant, and microphone gain levels are constant for each
-%participant and through the trial. 
+%This script assumes:
+%1: The participant speaks at a comfortable and typical speaking volume
+%2: The microphone is placed at a consistent distance for each participant
+%3: The microphone gain levels are constant for each participant and through the trials
+%4: The participant phonates a steady-state vowel sound through these recordings
 
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
