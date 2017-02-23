@@ -18,12 +18,12 @@ function audStimP = organizeStimulus(route, tStep, trialType, spans)
 
 routeStps = length(route);
 if trialType == 0;
-    route = zeros(1, routeStps);
+    route = zeros(routeStps, 2);
 end
 
 audStimP.AudFs     = 48000;  %Hardset
 audStimP.lenTrialT = 4;      %Trial Length (Seconds) %Hardset
-audStimP.route     = route;
+audStimP.route     = route(:,2);
 audStimP.tStep     = tStep;                %Length of time-step (Seconds)
 audStimP.tStepP    = round(tStep*audStimP.AudFs); %Length of time-step (Points)
 audStimP.routeStps = routeStps;            %How many time-steps
@@ -40,8 +40,8 @@ audStimP.time     = (0:1:audStimP.lenTrialP-1)/audStimP.AudFs; %Projected record
 
 audStimP.routeStpsT   = audStimP.routeStps*audStimP.tStep; %How long the route takes (Seconds)
 audStimP.routeStpsP   = audStimP.routeStpsT*audStimP.AudFs; %How long the route takes (Points)
-audStimP.routeInSp  = audStimP.StPoint + audStimP.routeStpsP; %Point when the shift 'bottoms out'
-audStimP.routeOutSt = audStimP.SpPoint - audStimP.routeStpsP; %Point when the shift begins to increase to baseline
+audStimP.routeInSp  = round(audStimP.StPoint + audStimP.routeStpsP); %Point when the shift 'bottoms out'
+audStimP.routeOutSt = round(audStimP.SpPoint - audStimP.routeStpsP); %Point when the shift begins to increase to baseline
 audStimP.lenPerVallP = audStimP.routeOutSt - audStimP.routeInSp; %Points between either pertrubation 'route' (Valley)
 audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs; %Seconds between either pertrubation 'route' (Valley)
 

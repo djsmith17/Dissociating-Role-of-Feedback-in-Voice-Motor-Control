@@ -9,17 +9,17 @@ clear all; close all;
 PltTgl.Trial_time      = 0; %Time-series trial plot
 PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
-PltTgl.aveSessTrial_f0 = 1; 
-PltTgl.SPaveSessTrial_f0 = 1;
+PltTgl.aveSessTrial_f0 = 0; 
+PltTgl.SPaveSessTrial_f0 = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
 AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'null'}; %List of multiple participants
+AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [1];
+AVar.runsInd      = [1 2];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -28,6 +28,8 @@ AVar.winLen   = 0.05; %analysis window length in seconds
 AVar.pOverlap = 0.30; %Percent Overlap as decimial
 AVar.anaLen   = 1.20; %What period in time do you want to analyze? Length of vowel is variable.
 AVar.nWin     = length(0:AVar.winLen*(1-AVar.pOverlap):(AVar.anaLen-AVar.winLen));
+
+AVar.svInflaRespRoute = 0;
 
 for i = AVar.partiInd 
     allSessionsf0_St   = [];
@@ -100,7 +102,7 @@ for i = AVar.partiInd
                 
                 fprintf('Session %d Trial %d saved. %d points and %d points\n', j, k, numPoints_St, numPoints_Sp)              
                 allplotf0pts_St  = cat(3, allplotf0pts_St, plotf0pts_St);
-                allplotf0pts_Sp  = cat(3, allplotf0pts_Sp, plotf0pts_Sp);
+                allplotf0pts_Sp  = cat(3, allplotf0pts_Sp, plotf0pts_St);
                 pertRecord       = cat(1, pertRecord, pert(k));
                
                 if PltTgl.Trial_time == 1; %Raw time-varying signal
@@ -132,8 +134,8 @@ for i = AVar.partiInd
     dirs.saveFileDir = fullfile(dirs.Data, AVar.participants{i}, 'RunAve'); %Where to find data
     AVar.curRecording  = [AVar.participants{i} ' All Runs']; %Short hand of experiment details
     
-    if exist(plot_dir, 'dir') == 0
-        mkdir(plot_dir)
+    if exist(dirs.saveFileDir, 'dir') == 0
+        mkdir(dirs.saveFileDir)
     end
     
     %Sort trials of all sessions by pert type and find averages
@@ -143,10 +145,12 @@ for i = AVar.partiInd
     %Calculate the response to inflation of the collar. To be used in the
     %Auditory Perturbation Experiment. Only need to use the Average of
     %perturbed Trials
-    [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St{2},1);
+    if AVar.svInflaRespRoute == 1
+        [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St{2},1);
 
-    dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
-    save(dirs.InflaRespfile, 'InflaRespRoute', 'tStep')
+        dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
+        save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
+    end
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
@@ -293,8 +297,14 @@ function [plotf0pts, numPoints, f0_baseline] = sampleParser_parts(mic, head, spa
 St = span - fs*0.5; 
 Sp = span + fs*0.7 -1;
 
-mic = mic(St:Sp);
-head = head(St:Sp);
+numSamp    = length(mic);
+try
+    mic = mic(St:Sp);
+    head = head(St:Sp);
+catch
+    mic = mic(St:numSamp);
+    head = head(St:numSamp);
+end   
 
 numSamp    = length(mic);
 AnalyisWin = round(fs*AVar.winLen);
@@ -370,6 +380,8 @@ end
 function [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St, show_plt)
 %This calculates the shape of the change in f0 in response to the
 %perturbation onset
+
+disp('Calculating Inflation Response Route')
 
 InflaResp = meanSessf0_St(:,1:2); %Grabbing time and mean f0 for perturbed trials
 chix = find(InflaResp(:,1) > 0.5); %Trials are centered at 0.5s before inflation. 

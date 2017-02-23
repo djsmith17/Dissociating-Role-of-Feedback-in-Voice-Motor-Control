@@ -16,7 +16,7 @@ negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 trialType = ones(numTrial,1);
 
-[sigs, spans] = createPerturbSignal(s, numTrial, trialLenPts, trialType);
+[sigs, spans] = createPerturbSignal(s, numTrial, trialLen, trialType);
 
 svData = [];
 for ii = 1:numTrial
