@@ -75,7 +75,7 @@ for i = AVar.partiInd
             
             span_m = span - 1.5*fs;
             
-%             showMeNIDAQ(DAQin, span, fs)
+%             showMeNIDAQ(DAQin, span(k,:), fs)
  
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
@@ -91,9 +91,9 @@ for i = AVar.partiInd
                 end
                 
                 %Start of Pert
-                [plotf0pts_St, numPoints_St, Fb_st] = sampleParser_parts(mic, head, span(1), fs, AVar);
+                [plotf0pts_St, numPoints_St, Fb_st] = sampleParser_parts(mic, head, span(k,1), fs, AVar);
                 %Stop of Pert
-                [plotf0pts_Sp, numPoints_Sp, Fb_sp] = sampleParser_parts(mic, head, span(2), fs, AVar);
+                [plotf0pts_Sp, numPoints_Sp, Fb_sp] = sampleParser_parts(mic, head, span(k,2), fs, AVar);
                 
                 plotf0pts_St(:,2) = normf0(plotf0pts_St(:,2), Fb_st); %Coverted to cents and normalized
                 plotf0pts_Sp(:,2) = normf0(plotf0pts_Sp(:,2), Fb_st); %Keep Starting baseline frequency
@@ -104,7 +104,7 @@ for i = AVar.partiInd
                 pertRecord       = cat(1, pertRecord, pert);
                
                 if PltTgl.Trial_time == 1; %Raw time-varying signal
-                    drawTrial(Mraw, Hraw, fs, span)
+                    drawTrial(Mraw, Hraw, fs, span(k,:))
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
@@ -418,7 +418,7 @@ plot(dottedEndx, dottedy,'.k')
 xlabel('Time (s)','FontSize', 10, 'FontWeight',  'bold')
 ylabel('Amplitude (V)','FontSize', 10, 'FontWeight',  'bold')
 title('Microphone', 'FontSize', 10)
-axis([0 3 -0.5 0.5])
+axis([0 4 -0.5 0.5])
 box off
 set(gca, 'FontSize', 10,...
         'FontWeight', 'bold')
@@ -438,7 +438,6 @@ set(gca, 'FontSize', 10,...
         'FontWeight', 'bold')
 
 % suptitle(['Aspiration Noise Gain of ' num2str(pert)])
-close all
 end
 
 function drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, curRecording, k, plotFolder)
