@@ -58,13 +58,14 @@ for i = AVar.partiInd
             load([dirs.saveFileDir '\' AVar.fnames{k}]);
             
             %Unpack the 'data.mat' structure
-            Mraw  = data.signalIn(1:(end-128)); % Microphone
-            Hraw  = data.signalOut(129:end);    % Headphones
+            Mraw  = data.signalIn;  % Microphone
+            Hraw  = data.signalOut; % Headphones
             fs    = data.params.sRate;          % Sampling Rate
             pert  = data.expParam.trialType;    % List of trial Order
             span  = data.expParam.spans;        % Pregenerated start and stop points for time-alignment with audio data
             mask  = data.expParam.masking;
             DAQin = data.DAQin;
+            audProcDel = data.params.frameLen*4;
             
             ostF  = round(resample(data.ost_stat,32,1));
             ostF  = ostF(129:end);
@@ -77,7 +78,7 @@ for i = AVar.partiInd
 %             showMeNIDAQ(DAQin, span, fs)
  
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
-            [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs);           
+            [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
             
                        
             if saveT == 0 %Don't save the trial :(
@@ -178,7 +179,7 @@ box off
 
 end
 
-function [mic1, head1, saveT, msg] = preProc(mic, head, fs)
+function [mic1, head1, saveT, msg] = preProc(micR, headR, fs, audProcDel)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
@@ -192,8 +193,8 @@ function [mic1, head1, saveT, msg] = preProc(mic, head, fs)
 %saveT:    Boolean toggle to determine if the trial should be saved
 %saveTmsg: Reason, if any, that the trial was thrown out
 
-
-
+mic  = micR(1:(end-audProcDel));
+head = headR((audProcDel+1):end); 
 
 x = double(mic); 
 y = double(head);

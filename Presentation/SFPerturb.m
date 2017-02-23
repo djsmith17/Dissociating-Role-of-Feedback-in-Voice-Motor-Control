@@ -32,7 +32,7 @@ expParam.curTrial      = [];
 expParam.curSubCond    = [];
 expParam.perCatch      = 0.25;
 expParam.gender        = 'male';
-expParam.masking       = 0;
+expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 
