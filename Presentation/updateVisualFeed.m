@@ -1,8 +1,10 @@
 function [color, newPos] = updateVisualFeed(anMsr, rms)
 %Feedback for the participant on how loud they are. 
 
-%This might be a little loose. Confirm if this is ok...
-RMS = mean(rms(:,1));
+%Convert rms SPL to dB and take the mean
+refSPL  = 0.00002;      %20 micropascals for air
+rmsdB   = 20*log10(rms/refSPL);
+rmsMean = mean(rmsdB);
 
 %New Height
 newRecHeight = 0.55; %This needs to be a calculation of current RMS against maximal RMS (anMsr)

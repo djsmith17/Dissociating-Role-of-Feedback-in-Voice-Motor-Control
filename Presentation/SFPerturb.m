@@ -126,7 +126,8 @@ for ii = 1:expParam.numTrial
     %Save the data
     data = svData(expParam, dirs, s, p, dataDAQ);
        
-    [color, newPos] = updateVisualFeed(anMsr, data.rms);
+    %Grab smooth RMS trace from 'data' structure, compare against baseline
+    [color, newPos] = updateVisualFeed(anMsr, data.rms(:,1));
 
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
