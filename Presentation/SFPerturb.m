@@ -16,6 +16,12 @@ function SFPerturb(varargin)
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
 
+if isempty(varargin)
+    targRMS = 55; 
+else
+    targRMS = varargin{1};
+end
+
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
@@ -77,7 +83,7 @@ negVolSrc(1) = 0; negVolSrc(end) = 0;
 expParam.cuePause = 1.0;
 expParam.resPause = 2.0;
 
-expParam.targRMS   = 55; %***dB Example at the moment***
+expParam.targRMS   = targRMS; %dB
 expParam.boundsRMS = 3;  %+/- dB
 expParam.win       = 2;  %which monitor? 1 or 2
 
