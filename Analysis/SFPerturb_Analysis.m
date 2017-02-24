@@ -326,15 +326,15 @@ for ii = 1:AVar.nEvalSteps
 end
 end
 
-function [normf0pts] = normf0(plotf0pts, f0b)
+function [Trialf0ResultsNorm] = normf0(Trialf0ResultsRaw, f0b)
 
-[r, c] = size(plotf0pts);
+[r, c] = size(Trialf0ResultsRaw);
 
-normf0pts = zeros(r, c);
+Trialf0ResultsNorm = zeros(r, c);
 for i = 1:r
     for j = 1:c
-        f = plotf0pts(i,j);
-        normf0pts(i,j) = (1200*log2(f/f0b));
+        f = Trialf0ResultsRaw(i,j);
+        Trialf0ResultsNorm(i,j) = (1200*log2(f/f0b));
     end
 end
 end
