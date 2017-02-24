@@ -8,7 +8,7 @@ clear all; close all;
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
-PltTgl.Trial_f0        = 1; %Individual Trial change in NHR
+PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
 PltTgl.aveSessTrial_f0 = 0; 
 PltTgl.SPaveSessTrial_f0 = 0;
@@ -113,11 +113,11 @@ for i = AVar.partiInd
                 %Stop of Pert
                 plotf0pts_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
-                prePertInd = plotf0pts_St(:,1) < 0.5;   %Grab the period pre-onset of perturbation
-                f0b = mean(plotf0pts_St(prePertInd,2)); %baeline fundamental frequency
+                prePertInd = plotf0pts_St(:,1) < 0.5;   % Grab the first 0.5s, should be no stimulus
+                f0b = mean(plotf0pts_St(prePertInd,2)); % Baseline fundamental frequency of mic data
                 
-                plotf0pts_St(:,2) = normf0(plotf0pts_St(:,2), f0b); %Coverted to cents and normalized              
-                plotf0pts_Sp(:,2) = normf0(plotf0pts_Sp(:,2), f0b); %Coverted to cents and normalized
+                plotf0pts_St(:,2:3) = normf0(plotf0pts_St(:,2:3), f0b); %Coverted to cents and normalized              
+                plotf0pts_Sp(:,2:3) = normf0(plotf0pts_Sp(:,2:3), f0b); %Coverted to cents and normalized
                 
                 fprintf('Session %d Trial %d saved. %d points \n', j, k, AVar.nEvalSteps)              
                 allplotf0pts_St  = cat(3, allplotf0pts_St, plotf0pts_St);
@@ -271,7 +271,7 @@ end
 end
 
 function plotf0pts = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
-%Finds the change in f0 of windowed signal
+%Finds the change in fundamental frequency of windowed signal
 
 %Inputs
 %mic:  post-processed single-trial Microphone signal
@@ -281,7 +281,12 @@ function plotf0pts = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
 %AVar: structure of analysis variables
 
 %Outputs:
-%plotf0pts: 
+%plotf0pts: Array with rows equal to the number of windows. The first
+%column is the time value that the window is centered around. The second
+%column is the fundamental frequency of the windowed microphone signal. The
+%third column is the fundamental frequency of the windowed headphone
+%signal.
+
 St = trig - AVar.preEveLenP; 
 Sp = trig + AVar.posEveLenP -1;
 
@@ -319,13 +324,16 @@ for ii = 1:AVar.nEvalSteps
 end
 end
 
-function [normf0pts] = normf0(plotf0pts, Fb)
+function [normf0pts] = normf0(plotf0pts, f0b)
 
-normf0pts = zeros(size(plotf0pts));
-for i = 1:length(plotf0pts)
+[r, c] = size(plotf0pts);
 
-    F = plotf0pts(i);
-    normf0pts(i) = (1200*log2(F/Fb));
+normf0pts = zeros(r, c);
+for i = 1:r
+    for j = 1:c
+        f = plotf0pts(i,j);
+        normf0pts(i,j) = (1200*log2(f/f0b));
+    end
 end
 end
 
