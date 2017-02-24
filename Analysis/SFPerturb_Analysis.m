@@ -93,9 +93,9 @@ for i = AVar.partiInd
                 end
                 
                 %Start of Pert
-                [plotf0pts_St, numPoints_St, Fb_st] = sampleParser_parts(mic, head, span(k,1), fs, AVar);
+                [plotf0pts_St, numPoints_St, Fb_st] = sampleParser(mic, head, span(k,1), fs, AVar);
                 %Stop of Pert
-                [plotf0pts_Sp, numPoints_Sp, Fb_sp] = sampleParser_parts(mic, head, span(k,2), fs, AVar);
+                [plotf0pts_Sp, numPoints_Sp, Fb_sp] = sampleParser(mic, head, span(k,2), fs, AVar);
                 
                 plotf0pts_St(:,2) = normf0(plotf0pts_St(:,2), Fb_st); %Coverted to cents and normalized
                 plotf0pts_Sp(:,2) = normf0(plotf0pts_Sp(:,2), Fb_st); %Keep Starting baseline frequency
@@ -188,13 +188,14 @@ box off
 
 end
 
-function [mic1, head1, saveT, msg] = preProc(micR, headR, fs, audProcDel)
+function [micP, headP, saveT, msg] = preProc(micR, headR, fs, audProcDel)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
-%micR:  Raw Microphone signal
-%headR: Raw Headphone signal
-%fs:     Recording sampling rate
+%micR:       Raw Microphone signal
+%headR:      Raw Headphone signal
+%fs:         Recording sampling rate
+%audProcDel: The delay that results from Audapter processing audio
 
 %This function outputs the following
 %micP:     Processed Microphone signal
@@ -222,11 +223,11 @@ I0   = I(1);
 Iend = length(x); 
 
 [B,A]    = butter(4,(2000)/(fs/2));
-filtx    = filtfilt(B,A,x);
-filty    = filtfilt(B,A,y);
+filtx    = filtfilt(B,A,x); %Low-pass filtered under 2000Hz
+filty    = filtfilt(B,A,y); %Low-pass filtered under 2000Hz
  
-mic1     = filtx; %Do the analysis on the 
-head1    = filty; % use the same indices found for mic (less noise) 
+micP     = filtx; %Do the analysis on the 
+headP    = filty; % use the same indices found for mic (less noise) 
 
 if t(I0) > 1.5
     saveT = 0;  
@@ -235,7 +236,6 @@ else
     saveT = 1;
     msg   = 'Everything is good'; 
 end
-
 end
 
 function f0 = calcf0(x,fs)
@@ -271,33 +271,7 @@ else
 end
 end
 
-function [plotf0pts, numPoints] = sampleParser(mic, head, fs, win, oL)
-numSamp    = length(mic);
-NHRwindow  = round(fs*win);
-starting   = 1;
-noverLap   = NHRwindow*(1 - oL);
-
-evalSteps = starting:noverLap:(numSamp-NHRwindow);
-numPoints = length(evalSteps);
-
-plotf0pts = [];
-for ii = 1:numPoints
-    startPt  = evalSteps(ii);
-    stopPt   = evalSteps(ii) + NHRwindow - 1;
-    middlePt = round(mean([startPt stopPt]));
-    timePt   = (middlePt - 1)/fs;
-    
-    mic_now  = mic(startPt:stopPt);
-    head_now = head(startPt:stopPt);
-    
-    f0_M = calcf0(mic_now,fs);
-%     f0_H = calcf0(head_now,fs);
-    
-    plotf0pts  = cat(1, plotf0pts, [timePt f0_M]);
-end
-end
-
-function [plotf0pts, numPoints, f0_baseline] = sampleParser_parts(mic, head, span, fs, AVar)
+function [plotf0pts, numPoints, f0_baseline] = sampleParser(mic, head, span, fs, AVar)
 %Finds the value of f0 over windows of the signal 
 St = span - fs*0.5; 
 Sp = span + fs*0.7 -1;
@@ -307,6 +281,7 @@ try
     mic = mic(St:Sp);
     head = head(St:Sp);
 catch
+    disp('Sp was too long yo!')
     mic = mic(St:numSamp);
     head = head(St:numSamp);
 end   
