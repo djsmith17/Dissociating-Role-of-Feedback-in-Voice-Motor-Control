@@ -25,10 +25,19 @@ AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
 
-AVar.winLen   = 0.05; %analysis window length in seconds
-AVar.pOverlap = 0.30; %Percent Overlap as decimial
-AVar.anaLen   = 1.20; %What period in time do you want to analyze? Length of vowel is variable.
-AVar.nWin     = length(0:AVar.winLen*(1-AVar.pOverlap):(AVar.anaLen-AVar.winLen));
+AVar.anaWinLen   = 0.05; %analysis window length in seconds
+AVar.anaWinLenP  = [];    %analysis window length in points
+AVar.pOverlap    = 0.30;  %window overlap percentage as decimial
+
+AVar.preEveLen = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
+AVar.posEveLen = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
+AVar.totEveLen = AVar.preEveLen + AVar.posEveLen; %Total length (seconds) of observation time
+AVar.preEveLenP = []; %Amount of points of observation period before event (onset/offset)
+AVar.posEveLenP = []; %Amount of points of observation period after event (onset/offset)
+AVar.totEveLenP = []; %Total length (points) of observation time
+AVar.nOverlap   = []; %Number of points between each analysis window starting indice (Changes with Percent of overlap)
+AVar.EvalSteps  = []; %Starting indices for each analysis window
+AVar.nEvalSteps = []; %Number of analysis windows;
 
 AVar.svInflaRespRoute = 0;
 
@@ -38,7 +47,8 @@ for i = AVar.partiInd
     allSessionsPert    = [];
     counts             = [0 0];
     for j = AVar.runsInd
-        dirs.saveFileDir = fullfile(dirs.Data, AVar.participants{i}, AVar.runs{j}); %Where to find data
+        AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
+        dirs.saveFileDir    = fullfile(dirs.Data, AVar.participants{i}, AVar.runs{j}); %Where to find data
         dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, AVar.runs{j}); %Where to save results
  
         if exist(dirs.saveResultsDir, 'dir') == 0
@@ -54,7 +64,6 @@ for i = AVar.partiInd
         allplotf0pts_Sp  = [];
         pertRecord       = [];
         countP = 0; countC = 0; %Counting the number of saved perturbed/control trials
-        AVar.curRecording  = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
        
         for k = 1:length(AVar.fnames)
             %open a given Trial and load 'data.mat' structure
@@ -72,14 +81,19 @@ for i = AVar.partiInd
             
             ostF  = round(resample(data.ost_stat,32,1));
             ostF  = ostF(129:end);
+                           
+            AVar.anaWinLenP = round(AVar.anaWinLen*fs);      
+            AVar.preEveLenP = round(AVar.preEveLen*fs);  %Amount of points of observation period before event (onset/offset)
+            AVar.posEveLenP = round(AVar.posEveLen*fs);  %Amount of points of observation period after event (onset/offset)
+            AVar.totEveLenP = AVar.preEveLenP + AVar.posEveLenP; %Total length (points) of observation time
             
-%             St = span(1)-fs*0.5; %0.5s before the start of Pert
-%             Sp = span(2)-fs*0.5; %O.5s before the end of Pert
-            
-            span_m = span - 1.5*fs;
-            
-%             showMeNIDAQ(DAQin, span(k,:), fs)
- 
+            %Determine number of analysis windows and window start indices
+            %for frequency analysisover specific period
+            AVar.nOverlap   = AVar.anaWinLenP*(1 - AVar.pOverlap); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
+            AVar.EvalSteps  = 1:AVar.nOverlap:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
+            AVar.nEvalSteps = length(AVar.EvalSteps); %Number of analysis windows;
+
+
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
                        
@@ -93,14 +107,18 @@ for i = AVar.partiInd
                 end
                 
                 %Start of Pert
-                [plotf0pts_St, numPoints_St, Fb_st] = sampleParser(mic, head, span(k,1), fs, AVar);
+                [plotf0pts_St, Fb_st] = sampleParser(mic, head, span(k,1), fs, AVar);
                 %Stop of Pert
-                [plotf0pts_Sp, numPoints_Sp, Fb_sp] = sampleParser(mic, head, span(k,2), fs, AVar);
+                [plotf0pts_Sp, Fb_sp] = sampleParser(mic, head, span(k,1), fs, AVar); %Short fix in span
+                
+                prePertInd = plotf0pts_St(:,1) < 0.5;
+                f0b = mean(plotf0pts_St(prePertInd,2));
                 
                 plotf0pts_St(:,2) = normf0(plotf0pts_St(:,2), Fb_st); %Coverted to cents and normalized
+                
                 plotf0pts_Sp(:,2) = normf0(plotf0pts_Sp(:,2), Fb_st); %Keep Starting baseline frequency
                 
-                fprintf('Session %d Trial %d saved. %d points and %d points\n', j, k, numPoints_St, numPoints_Sp)              
+                fprintf('Session %d Trial %d saved. %d points \n', j, k, AVar.nEvalSteps)              
                 allplotf0pts_St  = cat(3, allplotf0pts_St, plotf0pts_St);
                 allplotf0pts_Sp  = cat(3, allplotf0pts_Sp, plotf0pts_St);
                 pertRecord       = cat(1, pertRecord, pert(k));
@@ -115,7 +133,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert(k), limits, AVar.curRecording, k, plot_dir)
+                    drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
         end
@@ -167,25 +185,6 @@ for i = AVar.partiInd
         drawSPAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, dirs.saveFileDir)
     end
 end
-end
-
-function showMeNIDAQ(DAQin, span, fs)
-
-t = 0:1/8000:4-1/8000;
-span = span/fs;
-
-figure('Color', [1 1 1])
-plot(t, DAQin(:,1),'k')
-hold on
-plot(t,DAQin(:,2),'g')
-hold on
-plot([span(1) span(1)], [-10 10],'r')
-plot([span(2) span(2)], [-10 10],'r')
-
-axis([0 4 -5 5])
-
-box off
-
 end
 
 function [micP, headP, saveT, msg] = preProc(micR, headR, fs, audProcDel)
@@ -271,33 +270,25 @@ else
 end
 end
 
-function [plotf0pts, numPoints, f0_baseline] = sampleParser(mic, head, span, fs, AVar)
+function [plotf0pts, f0_baseline] = sampleParser(mic, head, span, fs, AVar)
 %Finds the value of f0 over windows of the signal 
-St = span - fs*0.5; 
-Sp = span + fs*0.7 -1;
+St = span - AVar.preEveLenP; 
+Sp = span + AVar.posEveLenP -1;
 
-numSamp    = length(mic);
 try
     mic = mic(St:Sp);
     head = head(St:Sp);
 catch
     disp('Sp was too long yo!')
+    numSamp = length(mic);
     mic = mic(St:numSamp);
     head = head(St:numSamp);
 end   
 
-numSamp    = length(mic);
-AnalyisWin = round(fs*AVar.winLen);
-starting   = 1;
-noverLap   = AnalyisWin*(1 - AVar.pOverlap); %Overlap is in Percent
-
-evalSteps = starting:noverLap:(numSamp-AnalyisWin);
-numPoints = length(evalSteps);
-
 plotf0pts = [];
-for ii = 1:numPoints
-    startPt  = evalSteps(ii);
-    stopPt   = evalSteps(ii) + AnalyisWin - 1;
+for ii = 1:AVar.nEvalSteps
+    startPt  = AVar.EvalSteps(ii);
+    stopPt   = AVar.EvalSteps(ii) + AVar.anaWinLenP - 1;
     middlePt = round(mean([startPt stopPt]));
     timePt   = (middlePt - 1)/fs;
     
@@ -469,12 +460,11 @@ else
     legend('Perturbed')
 end
 
-
 plots = {'IntraTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i}];
+    plTitle = [curRecording '_' plots{i} '.png'];
 
-    saveFileName = [plotFolder plTitle '.png'];
+    saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
 end            
 end
@@ -687,11 +677,11 @@ plotdim = [1000 400];
 sv2File = 0;
 
 for ii = 1:r
-    perturb = zeros(1, pts);
-    perturb(spans(ii,1):spans(ii,2)) = -0.5;
-    
     ForceSensorV(ii) = figure('Color', [1 1 1]);
     set(ForceSensorV(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+    
+    perturb = zeros(1, pts);
+    perturb(spans(ii,1):spans(ii,2)) = -0.5;
     
     subplot(1,2,1)
     plot(time, perturb, 'k')
