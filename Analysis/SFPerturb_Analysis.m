@@ -268,10 +268,20 @@ else
 end
 end
 
-function plotf0pts = signalFrequencyAnalysis(mic, head, span, fs, AVar)
-%Finds the value of f0 over windows of the signal 
-St = span - AVar.preEveLenP; 
-Sp = span + AVar.posEveLenP -1;
+function plotf0pts = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
+%Finds the change in f0 of windowed signal
+
+%Inputs
+%mic:  post-processed single-trial Microphone signal
+%head: post-processed signle-trial Headphone signal
+%trig: trigger point in audio signals when event occurs (onset/offset)
+%fs:   sampling frequency of audio signals
+%AVar: structure of analysis variables
+
+%Outputs:
+%plotf0pts: 
+St = trig - AVar.preEveLenP; 
+Sp = trig + AVar.posEveLenP -1;
 
 try
     mic = mic(St:Sp);
@@ -290,14 +300,21 @@ for ii = 1:AVar.nEvalSteps
     middlePt = round(mean([startPt stopPt]));
     timePt   = (middlePt - 1)/fs;
     
-    mic_now  = mic(startPt:stopPt);
+    mic_win  = mic(startPt:stopPt);
+    head_win  = mic(startPt:stopPt);
     
-    f0_M = calcf0(mic_now,fs);
+    f0_M = calcf0(mic_win,fs);
+    f0_H = calcf0(head_win,fs);
+    
     if f0_M < 50 || f0_M > 300
         f0_M = plotf0pts(ii-1,2);
     end
     
-    plotf0pts  = cat(1, plotf0pts, [timePt f0_M]);
+    if f0_H < 50 || f0_H > 300
+        f0_H = plotf0pts(ii-1,2);
+    end
+    
+    plotf0pts  = cat(1, plotf0pts, [timePt f0_M f0_H]);
 end
 end
 
