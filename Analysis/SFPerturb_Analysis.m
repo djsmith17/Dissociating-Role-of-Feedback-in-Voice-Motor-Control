@@ -61,9 +61,9 @@ for i = AVar.partiInd
         AVar.fnames = sort_nat({d.name})';       
         
         limits = [0 1.2 -100 100];
-        allplotf0pts_St  = [];
-        allplotf0pts_Sp  = [];
-        pertRecord       = [];
+        Runf0ResultsRaw_St  = [];
+        Runf0ResultsRaw_Sp  = [];
+        runTrialOrder       = [];
         countP = 0; countC = 0; %Counting the number of saved perturbed/control trials
        
         for k = 1:length(AVar.fnames)
@@ -71,14 +71,14 @@ for i = AVar.partiInd
             load([dirs.saveFileDir '\' AVar.fnames{k}]);
             
             %Unpack the 'data.mat' structure
-            Mraw  = data.signalIn;  % Microphone
-            Hraw  = data.signalOut; % Headphones
-            fs    = data.params.sRate;          % Sampling Rate
-            pert  = data.expParam.trialType;    % List of trial Order
-            span  = data.expParam.spans;        % Pregenerated start and stop points for time-alignment with audio data
-            mask  = data.expParam.masking;
-            DAQin = data.DAQin;
-            sRate = 8000; %to be rectified
+            Mraw       = data.signalIn;  % Microphone
+            Hraw       = data.signalOut; % Headphones
+            fs         = data.params.sRate;          % Sampling Rate
+            trialType  = data.expParam.trialType;    % List of trial Order
+            span       = data.expParam.spans;        % Pregenerated start and stop points for time-alignment with audio data
+            mask       = data.expParam.masking;
+            DAQin      = data.DAQin;
+            sRate      = 8000; %to be rectified
             audProcDel = data.params.frameLen*4;
             
             ostF  = round(resample(data.ost_stat,32,1));
@@ -102,27 +102,27 @@ for i = AVar.partiInd
             if saveT == 0 %Don't save the trial :(
                 fprintf('Session %d Trial %d not saved. %s\n', j, k, msg)
             elseif saveT == 1 %Save the Trial!
-                if pert(k) == 1
+                if trialType(k) == 1
                     countP = countP + 1;
                 else
                     countC = countC + 1;
                 end
                 
                 %Start of Pert
-                plotf0pts_St = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar);
+                Trialf0ResultsRaw_St = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar);
                 %Stop of Pert
-                plotf0pts_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
+                Trialf0ResultsRaw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
-                prePertInd = plotf0pts_St(:,1) < 0.5;   % Grab the first 0.5s, should be no stimulus
-                f0b = mean(plotf0pts_St(prePertInd,2)); % Baseline fundamental frequency of mic data
+                prePertInd = Trialf0ResultsRaw_St(:,1) < 0.5;   % Grab the first 0.5s, should be no stimulus
+                f0b = mean(Trialf0ResultsRaw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
                 
-                plotf0pts_St(:,2:3) = normf0(plotf0pts_St(:,2:3), f0b); %Coverted to cents and normalized              
-                plotf0pts_Sp(:,2:3) = normf0(plotf0pts_Sp(:,2:3), f0b); %Coverted to cents and normalized
+                Trialf0ResultsRaw_St(:,2:3) = normf0(Trialf0ResultsRaw_St(:,2:3), f0b); %Coverted to cents and normalized              
+                Trialf0ResultsRaw_Sp(:,2:3) = normf0(Trialf0ResultsRaw_Sp(:,2:3), f0b); %Coverted to cents and normalized
                 
                 fprintf('Session %d Trial %d saved. %d points \n', j, k, AVar.nEvalSteps)              
-                allplotf0pts_St  = cat(3, allplotf0pts_St, plotf0pts_St);
-                allplotf0pts_Sp  = cat(3, allplotf0pts_Sp, plotf0pts_St);
-                pertRecord       = cat(1, pertRecord, pert(k));
+                Runf0ResultsRaw_St  = cat(3, Runf0ResultsRaw_St, Trialf0ResultsRaw_St);
+                Runf0ResultsRaw_Sp  = cat(3, Runf0ResultsRaw_Sp, Trialf0ResultsRaw_Sp);
+                runTrialOrder       = cat(1, runTrialOrder, trialType(k));
                
                 if PltTgl.ForceSensor == 1;
                     plot_data_DAQ(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
@@ -133,20 +133,20 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
+                    drawIntraTrialf0(Trialf0ResultsRaw_St, Trialf0ResultsRaw_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
         end
         curCount = [countC countP];
         
-        allSessionsf0_St = cat(3, allSessionsf0_St, allplotf0pts_St);
-        allSessionsf0_Sp = cat(3, allSessionsf0_Sp, allplotf0pts_Sp);
-        allSessionsPert  = cat(1, allSessionsPert, pertRecord);
+        allSessionsf0_St = cat(3, allSessionsf0_St, Runf0ResultsRaw_St);
+        allSessionsf0_Sp = cat(3, allSessionsf0_Sp, Runf0ResultsRaw_Sp);
+        allSessionsPert  = cat(1, allSessionsPert, runTrialOrder);
         counts = counts + curCount;
                
         %Sort trials of a session by pert type and find averages
-        [meanf0pts_St] = sortTrials(allplotf0pts_St, pertRecord);
-        [meanf0pts_Sp] = sortTrials(allplotf0pts_Sp, pertRecord);
+        [meanf0pts_St] = sortTrials(Runf0ResultsRaw_St, runTrialOrder);
+        [meanf0pts_Sp] = sortTrials(Runf0ResultsRaw_Sp, runTrialOrder);
 
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
@@ -270,7 +270,7 @@ else
 end
 end
 
-function plotf0pts = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
+function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
 %Finds the change in fundamental frequency of windowed signal
 
 %Inputs
@@ -281,14 +281,14 @@ function plotf0pts = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
 %AVar: structure of analysis variables
 
 %Outputs:
-%plotf0pts: Array with rows equal to the number of windows. The first
+%Trialf0ResultsRaw: Array with rows equal to the number of windows. The first
 %column is the time value that the window is centered around. The second
 %column is the fundamental frequency of the windowed microphone signal. The
 %third column is the fundamental frequency of the windowed headphone
 %signal.
 
 St = trig - AVar.preEveLenP; 
-Sp = trig + AVar.posEveLenP -1;
+Sp = trig + AVar.posEveLenP - 1;
 
 try
     mic = mic(St:Sp);
@@ -300,7 +300,7 @@ catch
     head = head(St:numSamp);
 end   
 
-plotf0pts = [];
+Trialf0ResultsRaw = [];
 for ii = 1:AVar.nEvalSteps
     startPt  = AVar.EvalSteps(ii);
     stopPt   = AVar.EvalSteps(ii) + AVar.anaWinLenP - 1;
@@ -313,14 +313,16 @@ for ii = 1:AVar.nEvalSteps
     f0_H = calcf0(head_win,fs);
     
     if f0_M < 50 || f0_M > 300
-        f0_M = plotf0pts(ii-1,2);
+        disp('I had some difficulty calculating f0_M')
+        f0_M = Trialf0ResultsRaw(ii-1,2);
     end
     
     if f0_H < 50 || f0_H > 300
-        f0_H = plotf0pts(ii-1,2);
+        disp('I had some difficulty calculating f0_H')
+        f0_H = 0;
     end
     
-    plotf0pts  = cat(1, plotf0pts, [timePt f0_M f0_H]);
+    Trialf0ResultsRaw = cat(1, Trialf0ResultsRaw, [timePt f0_M f0_H]);
 end
 end
 
