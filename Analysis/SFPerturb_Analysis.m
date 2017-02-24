@@ -8,9 +8,9 @@ clear all; close all;
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
-PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
+PltTgl.Trial_f0        = 1; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
-PltTgl.aveSessTrial_f0 = 1; 
+PltTgl.aveSessTrial_f0 = 0; 
 PltTgl.SPaveSessTrial_f0 = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -77,6 +77,7 @@ for i = AVar.partiInd
             span  = data.expParam.spans;        % Pregenerated start and stop points for time-alignment with audio data
             mask  = data.expParam.masking;
             DAQin = data.DAQin;
+            sRate = 8000; %to be rectified
             audProcDel = data.params.frameLen*4;
             
             ostF  = round(resample(data.ost_stat,32,1));
@@ -93,7 +94,6 @@ for i = AVar.partiInd
             AVar.EvalSteps  = 1:AVar.nOverlap:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
             AVar.nEvalSteps = length(AVar.EvalSteps); %Number of analysis windows;
 
-
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
                        
@@ -107,16 +107,15 @@ for i = AVar.partiInd
                 end
                 
                 %Start of Pert
-                [plotf0pts_St, Fb_st] = sampleParser(mic, head, span(k,1), fs, AVar);
+                plotf0pts_St = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar);
                 %Stop of Pert
-                [plotf0pts_Sp, Fb_sp] = sampleParser(mic, head, span(k,1), fs, AVar); %Short fix in span
+                plotf0pts_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
-                prePertInd = plotf0pts_St(:,1) < 0.5;
-                f0b = mean(plotf0pts_St(prePertInd,2));
+                prePertInd = plotf0pts_St(:,1) < 0.5;   %Grab the period pre-onset of perturbation
+                f0b = mean(plotf0pts_St(prePertInd,2)); %baeline fundamental frequency
                 
-                plotf0pts_St(:,2) = normf0(plotf0pts_St(:,2), Fb_st); %Coverted to cents and normalized
-                
-                plotf0pts_Sp(:,2) = normf0(plotf0pts_Sp(:,2), Fb_st); %Keep Starting baseline frequency
+                plotf0pts_St(:,2) = normf0(plotf0pts_St(:,2), f0b); %Coverted to cents and normalized              
+                plotf0pts_Sp(:,2) = normf0(plotf0pts_Sp(:,2), f0b); %Coverted to cents and normalized
                 
                 fprintf('Session %d Trial %d saved. %d points \n', j, k, AVar.nEvalSteps)              
                 allplotf0pts_St  = cat(3, allplotf0pts_St, plotf0pts_St);
@@ -124,7 +123,6 @@ for i = AVar.partiInd
                 pertRecord       = cat(1, pertRecord, pert(k));
                
                 if PltTgl.ForceSensor == 1;
-                    sRate = 8000;
                     plot_data_DAQ(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
                 end
                 
@@ -270,7 +268,7 @@ else
 end
 end
 
-function [plotf0pts, f0_baseline] = sampleParser(mic, head, span, fs, AVar)
+function plotf0pts = signalFrequencyAnalysis(mic, head, span, fs, AVar)
 %Finds the value of f0 over windows of the signal 
 St = span - AVar.preEveLenP; 
 Sp = span + AVar.posEveLenP -1;
@@ -301,7 +299,6 @@ for ii = 1:AVar.nEvalSteps
     
     plotf0pts  = cat(1, plotf0pts, [timePt f0_M]);
 end
-f0_baseline = mean(plotf0pts(1:14,2));
 end
 
 function [normf0pts] = normf0(plotf0pts, Fb)
