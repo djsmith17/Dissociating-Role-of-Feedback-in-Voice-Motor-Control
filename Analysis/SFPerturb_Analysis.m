@@ -35,7 +35,8 @@ AVar.totEveLen = AVar.preEveLen + AVar.posEveLen; %Total length (seconds) of obs
 AVar.preEveLenP = []; %Amount of points of observation period before event (onset/offset)
 AVar.posEveLenP = []; %Amount of points of observation period after event (onset/offset)
 AVar.totEveLenP = []; %Total length (points) of observation time
-AVar.nOverlap   = []; %Number of points between each analysis window starting indice (Changes with Percent of overlap)
+AVar.tStepP     = []; %Number of points between each analysis window starting indice (Changes with Percent of overlap)
+AVar.tStep      = []; %time step in seconds between the start of each window 
 AVar.EvalSteps  = []; %Starting indices for each analysis window
 AVar.nEvalSteps = []; %Number of analysis windows;
 
@@ -90,8 +91,9 @@ for i = AVar.partiInd
             
             %Determine number of analysis windows and window start indices
             %for frequency analysisover specific period
-            AVar.nOverlap   = AVar.anaWinLenP*(1 - AVar.pOverlap); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
-            AVar.EvalSteps  = 1:AVar.nOverlap:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
+            AVar.tStepP     = AVar.anaWinLenP*(1 - AVar.pOverlap); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
+            AVar.tStep      = AVar.tStepP/fs; %time step in seconds between the start of each window
+            AVar.EvalSteps  = 1:AVar.tStepP:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
             AVar.nEvalSteps = length(AVar.EvalSteps); %Number of analysis windows;
 
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
@@ -167,8 +169,8 @@ for i = AVar.partiInd
     %Auditory Perturbation Experiment. Only need to use the Average of
     %perturbed Trials
     if AVar.svInflaRespRoute == 1
-        [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St{2},1);
-
+        InflaRespRoute = CalcInflationResponse(meanSessf0_St{2},1);
+        tStep = AVar.tStep;
         dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
         save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
     end
@@ -297,8 +299,7 @@ plotf0pts = [];
 for ii = 1:AVar.nEvalSteps
     startPt  = AVar.EvalSteps(ii);
     stopPt   = AVar.EvalSteps(ii) + AVar.anaWinLenP - 1;
-    middlePt = round(mean([startPt stopPt]));
-    timePt   = (middlePt - 1)/fs;
+    timePt   = mean([startPt stopPt])/fs; %Find the time point that is roughly the middle of start and stop points
     
     mic_win   = mic(startPt:stopPt);
     head_win  = head(startPt:stopPt);
@@ -362,7 +363,7 @@ for i = 1:num_pertVals
 end
 end
 
-function [InflaRespRoute, tStep] = CalcInflationResponse(meanSessf0_St, show_plt)
+function InflaRespRoute = CalcInflationResponse(meanSessf0_St, show_plt)
 %This calculates the shape of the change in f0 in response to the
 %perturbation onset
 
@@ -374,7 +375,6 @@ chix = find(InflaResp(:,1) > 0.5); %Trials are centered at 0.5s before inflation
 
 timeFram = chix(1):ind;
 InflaRespRoute = InflaResp(timeFram,:);
-tStep = InflaRespRoute(2,1) - InflaRespRoute(1,1);
 
 if show_plt
     plotpos = [200 400];
@@ -388,10 +388,8 @@ if show_plt
     title('Average Acoustic Response to Inflation')
     xlabel('Time (s)');
     ylabel('f0 (cents)');
-    box off
-    
+    box off 
 end
-
 end
 
 function drawTrial(x, y, fs, span)
