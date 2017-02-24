@@ -300,8 +300,8 @@ for ii = 1:AVar.nEvalSteps
     middlePt = round(mean([startPt stopPt]));
     timePt   = (middlePt - 1)/fs;
     
-    mic_win  = mic(startPt:stopPt);
-    head_win  = mic(startPt:stopPt);
+    mic_win   = mic(startPt:stopPt);
+    head_win  = head(startPt:stopPt);
     
     f0_M = calcf0(mic_win,fs);
     f0_H = calcf0(head_win,fs);
