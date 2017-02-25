@@ -9,7 +9,7 @@ clear all; close all;
 PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
 PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
-PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
+PltTgl.aveTrial_f0     = 1; %Average Trial change in NHR, separated by pert type
 PltTgl.aveSessTrial_f0 = 0; 
 PltTgl.SPaveSessTrial_f0 = 0;
 
@@ -45,12 +45,13 @@ AVar.anaTimeVec = []; %Time point roughly center of start and stop points of ana
 AVar.svInflaRespRoute = 0;
 
 for i = AVar.partiInd 
-    allSessionsf0_St   = [];
-    allSessionsf0_Sp   = [];
-    allSessionsPert    = [];
-    counts             = [0 0];
+    allRunsf0_St   = [];
+    allRunsf0_Sp   = [];
+    allTrialsOrder    = [];
+    runsCount             = [0 0];
     for j = AVar.runsInd
         AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
+        
         dirs.saveFileDir    = fullfile(dirs.Data, AVar.participants{i}, AVar.runs{j}); %Where to find data
         dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, AVar.runs{j}); %Where to save results
  
@@ -63,11 +64,9 @@ for i = AVar.partiInd
         AVar.fnames = sort_nat({d.name})';       
         
         limits = [0 1.2 -100 100];
-        allTrialf0ResultsRaw_St  = []; %
-        allTrialf0ResultsRaw_Sp  = [];
-        runTrialOrder       = [];
-        countP = 0; countC = 0; %Counting the number of saved perturbed/control trials
-       
+        allTrialf0_St  = []; %
+        allTrialf0_Sp  = [];
+        runTrialOrder  = [];       
         for k = 1:length(AVar.fnames)
             %open a given Trial and load 'data.mat' structure
             load([dirs.saveFileDir '\' AVar.fnames{k}]);
@@ -109,27 +108,22 @@ for i = AVar.partiInd
             if saveT == 0 %Don't save the trial :(
                 fprintf('Session %d Trial %d not saved. %s\n', j, k, msg)
             elseif saveT == 1 %Save the Trial!
-                if trialType(k) == 1
-                    countP = countP + 1;
-                else
-                    countC = countC + 1;
-                end
                 
                 %Start of Pert
-                Trialf0ResultsRaw_St = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar);
+                Trialf0Raw_St = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0ResultsRaw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
                 prePertInd = AVar.anaTimeVec < 0.5;             % Grab the first 0.5s, should be no stimulus
-                f0b = mean(Trialf0ResultsRaw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
+                f0b = mean(Trialf0Raw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
                 
-                Trialf0ResultsNorm_St = normf0(Trialf0ResultsRaw_St, f0b); %Coverted to cents and normalized              
-                Trialf0ResultsNorm_Sp = normf0(Trialf0ResultsRaw_Sp, f0b); %Coverted to cents and normalized
+                Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized              
+                Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
                 
                 fprintf('Session %d Trial %d saved\n', j, k)              
-                allTrialf0ResultsRaw_St  = cat(3, allTrialf0ResultsRaw_St, Trialf0ResultsNorm_St);
-                allTrialf0ResultsRaw_Sp  = cat(3, allTrialf0ResultsRaw_Sp, Trialf0ResultsNorm_Sp);
-                runTrialOrder            = cat(1, runTrialOrder, trialType(k));
+                allTrialf0_St  = cat(3, allTrialf0_St, Trialf0Norm_St);
+                allTrialf0_Sp  = cat(3, allTrialf0_Sp, Trialf0Norm_Sp);
+                runTrialOrder  = cat(1, runTrialOrder, trialType(k));
                
                 if PltTgl.ForceSensor == 1;
                     drawDAQsignal(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
@@ -140,37 +134,37 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0ResultsNorm_St, Trialf0ResultsNorm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
+                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
         end
-        curCount = [countC countP];
         
-        allSessionsf0_St = cat(3, allSessionsf0_St, allTrialf0ResultsNorm_St);
-        allSessionsf0_Sp = cat(3, allSessionsf0_Sp, allTrialf0ResultsNorm_Sp);
-        allSessionsPert  = cat(1, allSessionsPert, runTrialOrder);
-        counts = counts + curCount;
+        %Sort trials within a given run by trial type and find averages
+        %across trials
+        [meanTrialf0_St, trialCount] = sortTrials(allTrialf0_St, runTrialOrder);
+        [meanTrialf0_Sp, trialCount] = sortTrials(allTrialf0_Sp, runTrialOrder);        
+        
+        allRunsf0_St   = cat(3, allRunsf0_St, allTrialf0_St);
+        allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
+        allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
+        
+        runsCount = runsCount + trialCount;
                
-        %Sort trials of a session by pert type and find averages
-        [meanf0pts_St] = sortTrials(allTrialf0ResultsNorm_St, runTrialOrder);
-        [meanf0pts_Sp] = sortTrials(allTrialf0ResultsNorm_Sp, runTrialOrder);
-
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
-            drawAVEInterTrialf0(meanf0pts_St, meanf0pts_Sp, limits, curCount, mask, AVar.curRecording, plot_dir)
+            drawAVEInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
-    
-    dirs.saveFileDir = fullfile(dirs.Data, AVar.participants{i}, 'RunAve'); %Where to find data
-    AVar.curRecording  = [AVar.participants{i} ' All Runs']; %Short hand of experiment details
+    AVar.curRecording  = [AVar.participants{i} ' All Runs']; %Short hand of experiment details    
+    dirs.saveFileDir   = fullfile(dirs.Data, AVar.participants{i}, 'RunAve'); %Where to find data
     
     if exist(dirs.saveFileDir, 'dir') == 0
         mkdir(dirs.saveFileDir)
     end
     
     %Sort trials of all sessions by pert type and find averages
-    [meanSessf0_St] = sortTrials(allSessionsf0_St, allSessionsPert); 
-    [meanSessf0_Sp] = sortTrials(allSessionsf0_Sp, allSessionsPert);
+    [meanSessf0_St] = sortTrials(allRunsf0_St, allTrialsOrder); 
+    [meanSessf0_Sp] = sortTrials(allRunsf0_Sp, allTrialsOrder);
     
     %Calculate the response to inflation of the collar. To be used in the
     %Auditory Perturbation Experiment. Only need to use the Average of
@@ -184,12 +178,12 @@ for i = AVar.partiInd
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
-        drawAVEInterTrialf0(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, dirs.saveFileDir)
+        drawAVEInterTrialf0(AVar.anaTimeVec, meanSessf0_St, meanSessf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
     end
     
     if PltTgl.SPaveSessTrial_f0 == 1 
         limits = [0 1.2 -80 40];
-        drawSPAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, dirs.saveFileDir)
+        drawSPAVEInterTrialf0(AVar.anaTimeVec, meanSessf0_St, meanSessf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
     end
 end
 end
@@ -345,37 +339,41 @@ for i = 1:r
 end
 end
 
-function [meanf0pts] = sortTrials(allplotf0pts, pertRecord)
+function [meanTrialf0, trialCount] = sortTrials(allTrialf0, runTrialOrder)
 %This function separates the trials by control or catch trials and
 %finds the mean f0 trace and 95% Confidence Interval over multiple trials 
 %of a type. 
 
 %Sort Trials by type 
-pertVals     = unique(pertRecord(:,1));
-num_pertVals = length(pertVals);
-time         = allplotf0pts(:,1,1);
+PertVals  = unique(runTrialOrder(:,1));
+nPertVals = length(PertVals);
 
-meanf0pts  = cell(1, num_pertVals);
-for i = 1:num_pertVals
-    ind = find(pertRecord(:,1) == pertVals(i));
-    TrialsofaType_f0  = allplotf0pts(:,2,ind);
+meanTrialf0  = cell(1, nPertVals);
+trialCount   = zeros(1, nPertVals);
+for i = 1:nPertVals
+    ind   = runTrialOrder == PertVals(i);
+    nType = sum(ind);
+    TrialsofaType_f0  = allTrialf0(:,:,ind);
     
     micMean_f0   = mean(squeeze(TrialsofaType_f0(:,1,:)),2);
-%     headMean_f0  = mean(squeeze(TrialsofaType_f0(:,2,:)),2);
-    micSTD_f0    = std(squeeze(TrialsofaType_f0(:,1,:)),0,2);
-%     headSTD_f0   = std(squeeze(TrialsofaType_f0(:,2,:)),0,2); 
-
-    numT = length(ind);
+    headMean_f0  = mean(squeeze(TrialsofaType_f0(:,2,:)),2);
     
-    SEM_f0 = micSTD_f0/sqrt(numT); % Standard Error
+    micSTD_f0    = std(squeeze(TrialsofaType_f0(:,1,:)),0,2);
+    headSTD_f0   = std(squeeze(TrialsofaType_f0(:,2,:)),0,2);    
+    
+    SEM_f0 = micSTD_f0/sqrt(nType); % Standard Error
     CIM_f0 = 1.96*SEM_f0; % 95% confidence Interval
+    
+    SEH_f0 = headSTD_f0/sqrt(nType); % Standard Error
+    CIH_f0 = 1.96*SEH_f0; % 95% confidence Interval
                     
 %     ts  = tinv([0.025  0.975],numT-1);      % T-Score
 %     CIM = micMean + ts*SEM; 
                
 %     ts  = tinv([0.025  0.975],numT-1);      % T-Score
 %     CIH = headMean + ts*SEM; 
-   meanf0pts{i}    = [time micMean_f0 CIM_f0];
+   meanTrialf0{i} = [micMean_f0 CIM_f0 headMean_f0 CIH_f0];
+   trialCount(i)  = nType;
 end
 end
 
@@ -497,7 +495,7 @@ for i = 1:length(plots)
 end            
 end
 
-function drawAVEInterTrialf0(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
+function drawAVEInterTrialf0(time, meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -517,9 +515,9 @@ end
 ha = tight_subplot(1,2,[0.1 0.05],[0.1 0.03],[0.05 0.03]);
 
 axes(ha(1))
-errorbar(meanf0ptsSt{1}(:,1), meanf0ptsSt{1}(:,2), meanf0ptsSt{1}(:,3), 'blue') %Unperturbed
+errorbar(time, meanf0ptsSt{1}(:,1), meanf0ptsSt{1}(:,2), 'blue') %Unperturbed
 hold on
-errorbar(meanf0ptsSt{2}(:,1), meanf0ptsSt{2}(:,2), meanf0ptsSt{2}(:,3), 'black') %Perturbed
+errorbar(time, meanf0ptsSt{2}(:,1), meanf0ptsSt{2}(:,2), 'black') %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)'); ylabel('f0 (cents)')
@@ -531,9 +529,9 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
 l0 = legend([num2str(counts(1)) ' Control Trials'], [num2str(counts(2)) ' Perturb Trials']); set(l0,'box', 'off','FontSize', 12);
 
 axes(ha(2))
-errorbar(meanf0ptsSp{1}(:,1), meanf0ptsSp{1}(:,2), meanf0ptsSp{1}(:,3), 'blue')  %Unperturbed
+errorbar(time, meanf0ptsSp{1}(:,1), meanf0ptsSp{1}(:,2), 'blue')  %Unperturbed
 hold on
-errorbar(meanf0ptsSp{2}(:,1), meanf0ptsSp{2}(:,2), meanf0ptsSp{2}(:,3), 'black') %Perturbed
+errorbar(time, meanf0ptsSp{2}(:,1), meanf0ptsSp{2}(:,2), 'black') %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)'); ylabel('f0 (cents)')
@@ -548,14 +546,14 @@ pause(2)
 
 plots = {'InterTrial_f0'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '_' smMask];
+    plTitle = [curRecording '_' plots{i} '.png'];
 
-    saveFileName = [plotFolder plTitle '.png'];
+    saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
 end
 end
 
-function drawSPAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
+function drawSPAVEInterTrialf0(time, meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -575,9 +573,9 @@ end
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.1],[0.05 0.03]);
 
 axes(ha(1))
-errorbar(meanf0ptsSt{1}(:,1), meanf0ptsSt{1}(:,2), meanf0ptsSt{1}(:,3), 'blue', 'LineWidth',2) %Unperturbed
+errorbar(time, meanf0ptsSt{1}(:,1), meanf0ptsSt{1}(:,2), 'blue', 'LineWidth',2) %Unperturbed
 hold on
-errorbar(meanf0ptsSt{2}(:,1), meanf0ptsSt{2}(:,2), meanf0ptsSt{2}(:,3), 'black', 'LineWidth',2) %Perturbed
+errorbar(time, meanf0ptsSt{2}(:,1), meanf0ptsSt{2}(:,2), 'black', 'LineWidth',2) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -591,9 +589,9 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
 l0 = legend([num2str(counts(1)) ' Control Trials'], [num2str(counts(2)) ' Perturb Trials']); set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
 
 axes(ha(2))
-errorbar(meanf0ptsSp{1}(:,1), meanf0ptsSp{1}(:,2), meanf0ptsSp{1}(:,3), 'blue', 'LineWidth',2)  %Unperturbed
+errorbar(time, meanf0ptsSp{1}(:,1), meanf0ptsSp{1}(:,2), 'blue', 'LineWidth',2)  %Unperturbed
 hold on
-errorbar(meanf0ptsSp{2}(:,1), meanf0ptsSp{2}(:,2), meanf0ptsSp{2}(:,3), 'black', 'LineWidth',2) %Perturbed
+errorbar(time, meanf0ptsSp{2}(:,1), meanf0ptsSp{2}(:,2), 'black', 'LineWidth',2) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -608,9 +606,9 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
 
 plots = {'InterTrial_f0_pub'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '_' smMask];
+    plTitle = [curRecording '_' plots{i} '.png'];
 
-    saveFileName = [plotFolder plTitle '.png'];
+    saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
 end
 end
