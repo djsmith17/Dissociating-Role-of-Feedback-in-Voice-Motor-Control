@@ -9,8 +9,8 @@ clear all; close all;
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0     = 1; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0     = 0; %Average f0 trace over all runs analyzed
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -19,7 +19,7 @@ AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [1 2];
+AVar.runsInd      = [2];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -73,7 +73,8 @@ for i = AVar.partiInd
             Hraw       = data.signalOut; % Headphones
             fs         = data.params.sRate;          % Sampling Rate
             trialType  = data.expParam.trialType;    % List of trial Order
-            span       = data.expParam.spans;        % Pregenerated start and stop points for time-alignment with audio data
+            span       = data.expParam.spans;   %Pregenerated start and stop points for time-alignment with audio data
+            spanT       = data.expParam.spansT; %Pregenerated start and stop times for time-alignment with audio data
             mask       = data.expParam.masking;
             DAQin      = data.DAQin;
             sRate      = 8000; %to be rectified
@@ -94,16 +95,17 @@ for i = AVar.partiInd
             AVar.EvalSteps  = 1:AVar.tStepP:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
             AVar.nEvalSteps = length(AVar.EvalSteps); %Number of analysis windows;
             
+            
             AVar.anaInds(:,1) = AVar.EvalSteps;                       %Start indice for analysis based on EvalStep 
             AVar.anaInds(:,2) = AVar.EvalSteps + AVar.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
             AVar.anaTimeVec   = mean(AVar.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
             
 %             fprintf('Analysis will be performed over %2.0f bins of length %2.0f points with a %2.0f%% overlap\n', AVar.nEvalSteps, AVar.anaWinLenP, 100*AVar.pOverlap)
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
-            [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
+            [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, fs, audProcDel, spanT(k,1));           
                        
             if saveT == 0 %Don't save the trial :(
-                fprintf('Session %d Trial %d not saved. %s\n', j, k, msg)
+                fprintf('Run %d Trial %d not saved. %s\n', j, k, saveTmsg)
             elseif saveT == 1 %Save the Trial!
                 
                 %Start of Pert
@@ -112,12 +114,12 @@ for i = AVar.partiInd
                 Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
-                f0b = mean(Trialf0Raw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
+                f0b = mean(Trialf0Raw_St(prePertInd, 1)); % Baseline fundamental frequency of mic data
                 
                 Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized              
                 Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
                 
-                fprintf('Session %d Trial %d saved\n', j, k)              
+                fprintf('Run %d Trial %d saved\n', j, k)              
                 allTrialf0_St  = cat(3, allTrialf0_St, Trialf0Norm_St);
                 allTrialf0_Sp  = cat(3, allTrialf0_Sp, Trialf0Norm_Sp);
                 runTrialOrder  = cat(1, runTrialOrder, trialType(k));
@@ -131,7 +133,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
-                    limits = [0 AVar.totEveLen -100 50];
+                    limits = [0 AVar.totEveLen -100 100];
                     drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
@@ -147,7 +149,7 @@ for i = AVar.partiInd
         allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
            
         if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
-            limits = [0 AVar.totEveLen -100 50];
+            limits = [0 AVar.totEveLen -100 100];
             drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
@@ -178,14 +180,14 @@ for i = AVar.partiInd
         end
 
         if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
-            limits = [0 AVar.totEveLen -100 50];
+            limits = [0 AVar.totEveLen -100 100];
             drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
 end
 end
 
-function [micP, headP, saveT, msg] = preProc(micR, headR, fs, audProcDel)
+function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
@@ -209,29 +211,42 @@ y = double(head);
 lenSig = length(x);
 t = 0:1/fs:(lenSig-1)/fs;
 
-thresh = 0.5;
-[B,A] = butter(4,40/(fs/2));
-xenv  = filter(B,A,abs(x));
+thresh = 0.3;
+[B,A] = butter(4,40/(fs/2)); %Low-pass filter under 40
 
-maxPeak = max(xenv);
+%Envelope the signal removing all high frequncies. 
+%This shows the general change in amplitude over time. 
+xenv  = filter(B,A,abs(x));  
 
-I    = find(xenv > thresh*maxPeak);
-I0   = I(1);
-Iend = length(x); 
+%The largest peak in the envelope theoretically occurs during voicing
+maxPeak = max(xenv); 
+
+%I don't want to start my signal at the max value, so start lower down on
+%the envelope as a threshold
+threshIdx     = find(xenv > thresh*maxPeak); 
+
+%The first index of the theoretical useable signal (Voice onset)
+voiceOnsetInd = threshIdx(1);  
+
+%The rest of the signal base the first index...are there any dead zones??
+chk4Break = sum(xenv(voiceOnsetInd:end) < thresh*maxPeak) > 0.05*fs;
 
 [B,A]    = butter(4,(2000)/(fs/2));
-filtx    = filtfilt(B,A,x); %Low-pass filtered under 2000Hz
-filty    = filtfilt(B,A,y); %Low-pass filtered under 2000Hz
+filtx    = filtfilt(B,A,x); %Low-pass filtered under 2kHz
+filty    = filtfilt(B,A,y); %Low-pass filtered under 2kHz
  
-micP     = filtx; %Do the analysis on the 
-headP    = filty; % use the same indices found for mic (less noise) 
+micP     = filtx; %Take the whole signal for now
+headP    = filty; %Same indices as for mic 
 
-if t(I0) > 1.5
+if t(voiceOnsetInd) > spanSt
     saveT = 0;  
-    msg   = 'We need Gordon!!';
+    saveTmsg = 'Participant started too late!!';
+elseif chk4Break
+    saveT = 0;
+    saveTmsg = 'Participant had a voice break!!';
 else
     saveT = 1;
-    msg   = 'Everything is good'; 
+    saveTmsg = 'Everything is good'; 
 end
 end
 
@@ -484,13 +499,13 @@ else
     legend('Perturbed')
 end
 
-plots = {'IntraTrial_f0'};
+plots = {'IntraTrialf0'};
 for i = 1:length(plots)
     plTitle = [curRecording '_' plots{i} '.png'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
-end            
+end
 end
 
 function drawInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, mask, curRecording, plotFolder)
@@ -544,7 +559,7 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
 
 suptitle([curRecording ' ' masking])
 
-plots = {'InterTrial_f0'};
+plots = {'InterTrialf0'};
 for i = 1:length(plots)
     plTitle = [curRecording '_' plots{i} '.png'];
 
