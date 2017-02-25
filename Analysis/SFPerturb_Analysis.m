@@ -150,7 +150,7 @@ for i = AVar.partiInd
         
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
-            drawAVEInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
+            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
     
@@ -179,14 +179,9 @@ for i = AVar.partiInd
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
         end
 
-        %Plots!! See start of script for toggles    
-        if PltTgl.aveSessTrial_f0 == 1      
-            drawAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
-        end
-
         if PltTgl.SPaveSessTrial_f0 == 1 
-            limits = [0 1.2 -80 40];
-            drawSPAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
+            limits = [0 AVar.totEveLen -100 50];
+            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
 end
@@ -500,65 +495,7 @@ for i = 1:length(plots)
 end            
 end
 
-function drawAVEInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, mask, curRecording, plotFolder)
-plotpos = [200 100];
-plotdim = [1300 500];
-AveInterTrialNHR = figure('Color', [1 1 1]);
-set(AveInterTrialNHR, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-dottedStartx = [0.5 0.5];
-dottedy = [-300 300];
-
-if mask
-    masking = 'With Masking Noise';
-    smMask  = 'WMN';
-else
-    masking = 'Without Masking Noise';
-    smMask  = 'WoMN';
-end
-
-ha = tight_subplot(1,2,[0.1 0.05],[0.1 0.03],[0.05 0.03]);
-
-axes(ha(1))
-errorbar(time, meanTrialf0_St(:,1,1), meanTrialf0_St(:,2,1), 'blue') %Unperturbed
-hold on
-errorbar(time, meanTrialf0_St(:,1,2), meanTrialf0_St(:,2,2), 'black') %Perturbed
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)'); ylabel('f0 (cents)')
-
-title('Onset of Perturbation', 'FontSize', 10, 'FontWeight', 'bold')
-axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
-
-l0 = legend([num2str(counts(1)) ' Control Trials'], [num2str(counts(2)) ' Perturb Trials']); set(l0,'box', 'off','FontSize', 12);
-
-axes(ha(2))
-errorbar(time, meanTrialf0_Sp(:,1,1), meanTrialf0_Sp(:,2,1), 'blue')  %Unperturbed
-hold on
-errorbar(time, meanTrialf0_Sp(:,1,2), meanTrialf0_Sp(:,2,2), 'black') %Perturbed
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)'); ylabel('f0 (cents)')
-
-title('Offset of Perturbation', 'FontSize', 10, 'FontWeight', 'bold')
-axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
-
-suptitle([curRecording ' ' masking])
-       
-pause(2)
-
-plots = {'InterTrial_f0'};
-for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '.png'];
-
-    saveFileName = fullfile(plotFolder, plTitle);
-    export_fig(saveFileName)
-end
-end
-
-function drawSPAVEInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, mask, curRecording, plotFolder)
+function drawInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -607,9 +544,9 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
         'FontSize', 16,...
         'FontWeight','bold');
 
-% suptitle([' '])
+suptitle([curRecording ' ' masking])
 
-plots = {'InterTrial_f0_pub'};
+plots = {'InterTrial_f0'};
 for i = 1:length(plots)
     plTitle = [curRecording '_' plots{i} '.png'];
 
