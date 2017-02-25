@@ -6,12 +6,11 @@ function SFPerturb_Analysis()
 
 clear all; close all;
 %Plot Toggles. This could eventually become an input variable
-PltTgl.ForceSensor     = 0;
-PltTgl.Trial_time      = 0; %Time-series trial plot
-PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
-PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
-PltTgl.aveSessTrial_f0 = 1; 
-PltTgl.SPaveSessTrial_f0 = 1;
+PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
+PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
+PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
+PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0     = 1; %Average f0 trace over all runs analyzed
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -125,15 +124,15 @@ for i = AVar.partiInd
                 allTrialf0_Sp  = cat(3, allTrialf0_Sp, Trialf0Norm_Sp);
                 runTrialOrder  = cat(1, runTrialOrder, trialType(k));
                
-                if PltTgl.ForceSensor == 1;
+                if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
                     drawDAQsignal(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
                 end
                 
-                if PltTgl.Trial_time == 1; %Raw time-varying signal
+                if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial
                     drawTrial(Mraw, Hraw, fs, span(k,:))
                 end
             
-                if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
+                if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial                  
                     drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
@@ -147,9 +146,8 @@ for i = AVar.partiInd
         allRunsf0_St   = cat(3, allRunsf0_St, allTrialf0_St);
         allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
         allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
-        
-        %Plots!! See start of script for toggles    
-        if PltTgl.aveTrial_f0 == 1      
+           
+        if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run    
             drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
@@ -179,7 +177,7 @@ for i = AVar.partiInd
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
         end
 
-        if PltTgl.SPaveSessTrial_f0 == 1 
+        if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
             limits = [0 AVar.totEveLen -100 50];
             drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
