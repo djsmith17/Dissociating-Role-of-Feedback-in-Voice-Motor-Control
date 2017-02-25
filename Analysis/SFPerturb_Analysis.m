@@ -8,7 +8,7 @@ clear all; close all;
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
-PltTgl.Trial_f0        = 1; %Individual Trial change in NHR
+PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
 PltTgl.aveSessTrial_f0 = 0; 
 PltTgl.SPaveSessTrial_f0 = 0;
@@ -40,7 +40,7 @@ AVar.tStep      = []; %time step in seconds between the start of each window
 AVar.EvalSteps  = []; %Starting indices for each analysis window
 AVar.nEvalSteps = []; %Number of analysis windows;
 AVar.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
-AVar.anaTimeVal = []; %Time point roughly center of start and stop points of analysis
+AVar.anaTimeVec = []; %Time point roughly center of start and stop points of analysis
 
 AVar.svInflaRespRoute = 0;
 
@@ -100,8 +100,9 @@ for i = AVar.partiInd
             
             AVar.anaInds(:,1) = AVar.EvalSteps;                       %Start indice for analysis based on EvalStep 
             AVar.anaInds(:,2) = AVar.EvalSteps + AVar.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
-            AVar.anaTimeVal   = mean(AVar.anaInds,2)/fs;              %Time point roughly center of start and stop points of analysis
+            AVar.anaTimeVec   = mean(AVar.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
             
+%             fprintf('Analysis will be performed over %2.0f bins of length %2.0f points with a %2.0f%% overlap\n', AVar.nEvalSteps, AVar.anaWinLenP, 100*AVar.pOverlap)
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
                        
@@ -119,13 +120,13 @@ for i = AVar.partiInd
                 %Stop of Pert
                 Trialf0ResultsRaw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
-                prePertInd = AVar.anaTimeVal < 0.5;             % Grab the first 0.5s, should be no stimulus
+                prePertInd = AVar.anaTimeVec < 0.5;             % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0ResultsRaw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
                 
                 Trialf0ResultsNorm_St = normf0(Trialf0ResultsRaw_St, f0b); %Coverted to cents and normalized              
                 Trialf0ResultsNorm_Sp = normf0(Trialf0ResultsRaw_Sp, f0b); %Coverted to cents and normalized
                 
-                fprintf('Session %d Trial %d saved. %d points \n', j, k, AVar.nEvalSteps)              
+                fprintf('Session %d Trial %d saved\n', j, k)              
                 allTrialf0ResultsRaw_St  = cat(3, allTrialf0ResultsRaw_St, Trialf0ResultsNorm_St);
                 allTrialf0ResultsRaw_Sp  = cat(3, allTrialf0ResultsRaw_Sp, Trialf0ResultsNorm_Sp);
                 runTrialOrder            = cat(1, runTrialOrder, trialType(k));
@@ -139,7 +140,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(AVar.anaTimeVal, Trialf0ResultsNorm_St, Trialf0ResultsNorm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
+                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0ResultsNorm_St, Trialf0ResultsNorm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
         end
