@@ -114,7 +114,7 @@ for i = AVar.partiInd
                 %Stop of Pert
                 Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
-                prePertInd = AVar.anaTimeVec < 0.5;             % Grab the first 0.5s, should be no stimulus
+                prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0Raw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
                 
                 Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized              
@@ -148,42 +148,46 @@ for i = AVar.partiInd
         allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
         allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
         
-        runsCount = runsCount + trialCount;
-               
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
             drawAVEInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
-    AVar.curRecording  = [AVar.participants{i} ' All Runs']; %Short hand of experiment details    
-    dirs.saveFileDir   = fullfile(dirs.Data, AVar.participants{i}, 'RunAve'); %Where to find data
     
-    if exist(dirs.saveFileDir, 'dir') == 0
-        mkdir(dirs.saveFileDir)
-    end
+    %If I decide to analyze more than 1 run at a time. 
+    %Saving myself from over analyzing
+    if length(AVar.runsInd) > 1
     
-    %Sort trials of all sessions by pert type and find averages
-    [meanRunsf0_St, trialCount] = sortTrials(allRunsf0_St, allTrialsOrder); 
-    [meanRunsf0_Sp, trialCount] = sortTrials(allRunsf0_Sp, allTrialsOrder);
-    
-    %Calculate the response to inflation of the collar. To be used in the
-    %Auditory Perturbation Experiment. Only need to use the Average of
-    %perturbed Trials
-    if AVar.svInflaRespRoute == 1
-        InflaRespRoute = CalcInflationResponse(meanRunsf0_St{2},1);
-        tStep = AVar.tStep;
-        dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
-        save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
-    end
+        AVar.curRecording  = [AVar.participants{i} ' All Runs']; %Short hand of experiment details    
+        dirs.saveFileDir   = fullfile(dirs.Data, AVar.participants{i}, 'RunAve'); %Where to find data
 
-    %Plots!! See start of script for toggles    
-    if PltTgl.aveSessTrial_f0 == 1      
-        drawAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
-    end
-    
-    if PltTgl.SPaveSessTrial_f0 == 1 
-        limits = [0 1.2 -80 40];
-        drawSPAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
+        if exist(dirs.saveFileDir, 'dir') == 0
+            mkdir(dirs.saveFileDir)
+        end
+
+        %Sort trials of all sessions by pert type and find averages
+        [meanRunsf0_St, runsCount] = sortTrials(allRunsf0_St, allTrialsOrder); 
+        [meanRunsf0_Sp, runsCount] = sortTrials(allRunsf0_Sp, allTrialsOrder);
+
+        %Calculate the response to inflation of the collar. To be used in the
+        %Auditory Perturbation Experiment. Only need to use the Average of
+        %perturbed Trials
+        if AVar.svInflaRespRoute == 1
+            InflaRespRoute = CalcInflationResponse(AVar, meanRunsf0_St, 1);
+            tStep = AVar.tStep;
+            dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
+            save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
+        end
+
+        %Plots!! See start of script for toggles    
+        if PltTgl.aveSessTrial_f0 == 1      
+            drawAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
+        end
+
+        if PltTgl.SPaveSessTrial_f0 == 1 
+            limits = [0 1.2 -80 40];
+            drawSPAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
+        end
     end
 end
 end
@@ -378,18 +382,18 @@ for i = 1:nPertVals
 end
 end
 
-function InflaRespRoute = CalcInflationResponse(meanSessf0_St, show_plt)
+function InflaRespRoute = CalcInflationResponse(AVar, meanRunsf0, show_plt)
 %This calculates the shape of the change in f0 in response to the
 %perturbation onset
 
 disp('Calculating Inflation Response Route')
 
-InflaResp = meanSessf0_St(:,1:2); %Grabbing time and mean f0 for perturbed trials
-chix = find(InflaResp(:,1) > 0.5); %Trials are centered at 0.5s before inflation. 
-[low, ind] = min(InflaResp(:,2)); %Find the lowest point
+meanPertMicf0 = meanRunsf0(:,1,2);           %Grabbing the mean mic f0 for all perturbed trials
+postOnset     = find(AVar.anaTimeVec > 0.5); %Trials are centered at 0.5s before inflation. 
+[~, ind]      = min(meanPertMicf0);          %Find the lowest point in whole mean signal
 
-timeFram = chix(1):ind;
-InflaRespRoute = InflaResp(timeFram,:);
+timeFram = postOnset(1):ind;
+InflaRespRoute = meanPertMicf0(timeFram);
 
 if show_plt
     plotpos = [200 400];
@@ -397,7 +401,7 @@ if show_plt
     InflaRespFig = figure('Color',[1 1 1]);
     set(InflaRespFig, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
     
-    t = InflaResp(timeFram,1) - InflaResp(chix(1));
+    t = meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
     plot(t,InflaRespRoute)
     
     title('Average Acoustic Response to Inflation')
