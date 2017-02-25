@@ -122,12 +122,12 @@ for i = AVar.partiInd
                 prePertInd = AVar.anaTimeVal < 0.5;             % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0ResultsRaw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
                 
-                Trialf0ResultsRaw_St = normf0(Trialf0ResultsRaw_St, f0b); %Coverted to cents and normalized              
-                Trialf0ResultsRaw_Sp = normf0(Trialf0ResultsRaw_Sp, f0b); %Coverted to cents and normalized
+                Trialf0ResultsNorm_St = normf0(Trialf0ResultsRaw_St, f0b); %Coverted to cents and normalized              
+                Trialf0ResultsNorm_Sp = normf0(Trialf0ResultsRaw_Sp, f0b); %Coverted to cents and normalized
                 
                 fprintf('Session %d Trial %d saved. %d points \n', j, k, AVar.nEvalSteps)              
-                allTrialf0ResultsRaw_St  = cat(3, allTrialf0ResultsRaw_St, Trialf0ResultsRaw_St);
-                allTrialf0ResultsRaw_Sp  = cat(3, allTrialf0ResultsRaw_Sp, Trialf0ResultsRaw_Sp);
+                allTrialf0ResultsRaw_St  = cat(3, allTrialf0ResultsRaw_St, Trialf0ResultsNorm_St);
+                allTrialf0ResultsRaw_Sp  = cat(3, allTrialf0ResultsRaw_Sp, Trialf0ResultsNorm_Sp);
                 runTrialOrder            = cat(1, runTrialOrder, trialType(k));
                
                 if PltTgl.ForceSensor == 1;
@@ -139,20 +139,20 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(AVar.anaTimeVal, Trialf0ResultsRaw_St, Trialf0ResultsRaw_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
+                    drawIntraTrialf0(AVar.anaTimeVal, Trialf0ResultsNorm_St, Trialf0ResultsNorm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
         end
         curCount = [countC countP];
         
-        allSessionsf0_St = cat(3, allSessionsf0_St, allTrialf0ResultsRaw_St);
-        allSessionsf0_Sp = cat(3, allSessionsf0_Sp, allTrialf0ResultsRaw_Sp);
+        allSessionsf0_St = cat(3, allSessionsf0_St, allTrialf0ResultsNorm_St);
+        allSessionsf0_Sp = cat(3, allSessionsf0_Sp, allTrialf0ResultsNorm_Sp);
         allSessionsPert  = cat(1, allSessionsPert, runTrialOrder);
         counts = counts + curCount;
                
         %Sort trials of a session by pert type and find averages
-        [meanf0pts_St] = sortTrials(allTrialf0ResultsRaw_St, runTrialOrder);
-        [meanf0pts_Sp] = sortTrials(allTrialf0ResultsRaw_Sp, runTrialOrder);
+        [meanf0pts_St] = sortTrials(allTrialf0ResultsNorm_St, runTrialOrder);
+        [meanf0pts_Sp] = sortTrials(allTrialf0ResultsNorm_Sp, runTrialOrder);
 
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
