@@ -9,18 +9,18 @@ clear all; close all;
 PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
 PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
-PltTgl.aveTrial_f0     = 1; %Average Trial change in NHR, separated by pert type
-PltTgl.aveSessTrial_f0 = 0; 
-PltTgl.SPaveSessTrial_f0 = 0;
+PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
+PltTgl.aveSessTrial_f0 = 1; 
+PltTgl.SPaveSessTrial_f0 = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 2; %Either 1 or 2
+AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [3];
+AVar.runsInd      = [1 2];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -326,15 +326,15 @@ for ii = 1:AVar.nEvalSteps
 end
 end
 
-function [Trialf0ResultsNorm] = normf0(Trialf0ResultsRaw, f0b)
+function [Trialf0Norm] = normf0(Trialf0Raw, f0b)
 
-[r, c] = size(Trialf0ResultsRaw);
+[r, c] = size(Trialf0Raw);
 
-Trialf0ResultsNorm = zeros(r, c);
+Trialf0Norm = zeros(r, c);
 for i = 1:r
     for j = 1:c
-        f = Trialf0ResultsRaw(i,j);
-        Trialf0ResultsNorm(i,j) = (1200*log2(f/f0b));
+        f = Trialf0Raw(i,j);
+        Trialf0Norm(i,j) = (1200*log2(f/f0b));
     end
 end
 end
@@ -348,7 +348,7 @@ function [meanTrialf0, trialCount] = sortTrials(allTrialf0, runTrialOrder)
 PertVals  = unique(runTrialOrder(:,1));
 nPertVals = length(PertVals);
 
-meanTrialf0  = cell(1, nPertVals);
+meanTrialf0  = [ ];
 trialCount   = zeros(1, nPertVals);
 for i = 1:nPertVals
     ind   = runTrialOrder == PertVals(i);
@@ -372,8 +372,9 @@ for i = 1:nPertVals
                
 %     ts  = tinv([0.025  0.975],numT-1);      % T-Score
 %     CIH = headMean + ts*SEM; 
-   meanTrialf0{i} = [micMean_f0 CIM_f0 headMean_f0 CIH_f0];
-   trialCount(i)  = nType;
+   resultSet    = [micMean_f0 CIM_f0 headMean_f0 CIH_f0];
+   meanTrialf0  = cat(3, meanTrialf0, resultSet);
+   trialCount(i)= nType;
 end
 end
 
@@ -495,7 +496,7 @@ for i = 1:length(plots)
 end            
 end
 
-function drawAVEInterTrialf0(time, meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
+function drawAVEInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -515,9 +516,9 @@ end
 ha = tight_subplot(1,2,[0.1 0.05],[0.1 0.03],[0.05 0.03]);
 
 axes(ha(1))
-errorbar(time, meanf0ptsSt{1}(:,1), meanf0ptsSt{1}(:,2), 'blue') %Unperturbed
+errorbar(time, meanTrialf0_St(:,1,1), meanTrialf0_St(:,2,1), 'blue') %Unperturbed
 hold on
-errorbar(time, meanf0ptsSt{2}(:,1), meanf0ptsSt{2}(:,2), 'black') %Perturbed
+errorbar(time, meanTrialf0_St(:,1,2), meanTrialf0_St(:,2,2), 'black') %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)'); ylabel('f0 (cents)')
@@ -529,9 +530,9 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
 l0 = legend([num2str(counts(1)) ' Control Trials'], [num2str(counts(2)) ' Perturb Trials']); set(l0,'box', 'off','FontSize', 12);
 
 axes(ha(2))
-errorbar(time, meanf0ptsSp{1}(:,1), meanf0ptsSp{1}(:,2), 'blue')  %Unperturbed
+errorbar(time, meanTrialf0_Sp(:,1,1), meanTrialf0_Sp(:,2,1), 'blue')  %Unperturbed
 hold on
-errorbar(time, meanf0ptsSp{2}(:,1), meanf0ptsSp{2}(:,2), 'black') %Perturbed
+errorbar(time, meanTrialf0_Sp(:,1,2), meanTrialf0_Sp(:,2,2), 'black') %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)'); ylabel('f0 (cents)')
@@ -553,7 +554,7 @@ for i = 1:length(plots)
 end
 end
 
-function drawSPAVEInterTrialf0(time, meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
+function drawSPAVEInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
@@ -573,9 +574,9 @@ end
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.1],[0.05 0.03]);
 
 axes(ha(1))
-errorbar(time, meanf0ptsSt{1}(:,1), meanf0ptsSt{1}(:,2), 'blue', 'LineWidth',2) %Unperturbed
+errorbar(time, meanTrialf0_St(:,1,1), meanTrialf0_St(:,2,1), 'blue', 'LineWidth',2) %Unperturbed
 hold on
-errorbar(time, meanf0ptsSt{2}(:,1), meanf0ptsSt{2}(:,2), 'black', 'LineWidth',2) %Perturbed
+errorbar(time, meanTrialf0_St(:,1,2), meanTrialf0_St(:,2,2), 'black', 'LineWidth',2) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -589,9 +590,9 @@ set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
 l0 = legend([num2str(counts(1)) ' Control Trials'], [num2str(counts(2)) ' Perturb Trials']); set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
 
 axes(ha(2))
-errorbar(time, meanf0ptsSp{1}(:,1), meanf0ptsSp{1}(:,2), 'blue', 'LineWidth',2)  %Unperturbed
+errorbar(time, meanTrialf0_Sp(:,1,1), meanTrialf0_Sp(:,2,1), 'blue', 'LineWidth',2)  %Unperturbed
 hold on
-errorbar(time, meanf0ptsSp{2}(:,1), meanf0ptsSp{2}(:,2), 'black', 'LineWidth',2) %Perturbed
+errorbar(time, meanTrialf0_Sp(:,1,2), meanTrialf0_Sp(:,2,2), 'black', 'LineWidth',2) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
