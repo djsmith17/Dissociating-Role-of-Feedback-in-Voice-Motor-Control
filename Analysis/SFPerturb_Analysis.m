@@ -8,19 +8,19 @@ clear all; close all;
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
-PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
+PltTgl.Trial_f0        = 1; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
-PltTgl.aveSessTrial_f0 = 1; 
-PltTgl.SPaveSessTrial_f0 = 1;
+PltTgl.aveSessTrial_f0 = 0; 
+PltTgl.SPaveSessTrial_f0 = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 1; %Either 1 or 2
+AVar.expInd       = 2; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [1 2];
+AVar.runsInd      = [3 4];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -39,6 +39,8 @@ AVar.tStepP     = []; %Number of points between each analysis window starting in
 AVar.tStep      = []; %time step in seconds between the start of each window 
 AVar.EvalSteps  = []; %Starting indices for each analysis window
 AVar.nEvalSteps = []; %Number of analysis windows;
+AVar.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
+AVar.anaTimeVal = []; %Time point roughly center of start and stop points of analysis
 
 AVar.svInflaRespRoute = 0;
 
@@ -61,8 +63,8 @@ for i = AVar.partiInd
         AVar.fnames = sort_nat({d.name})';       
         
         limits = [0 1.2 -100 100];
-        Runf0ResultsRaw_St  = []; %
-        Runf0ResultsRaw_Sp  = [];
+        allTrialf0ResultsRaw_St  = []; %
+        allTrialf0ResultsRaw_Sp  = [];
         runTrialOrder       = [];
         countP = 0; countC = 0; %Counting the number of saved perturbed/control trials
        
@@ -95,7 +97,11 @@ for i = AVar.partiInd
             AVar.tStep      = AVar.tStepP/fs; %time step in seconds between the start of each window
             AVar.EvalSteps  = 1:AVar.tStepP:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
             AVar.nEvalSteps = length(AVar.EvalSteps); %Number of analysis windows;
-
+            
+            AVar.anaInds(:,1) = AVar.EvalSteps;                       %Start indice for analysis based on EvalStep 
+            AVar.anaInds(:,2) = AVar.EvalSteps + AVar.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
+            AVar.anaTimeVal   = mean(AVar.anaInds,2)/fs;              %Time point roughly center of start and stop points of analysis
+            
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, msg] = preProc(Mraw, Hraw, fs, audProcDel);           
                        
@@ -113,16 +119,16 @@ for i = AVar.partiInd
                 %Stop of Pert
                 Trialf0ResultsRaw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
                 
-                prePertInd = Trialf0ResultsRaw_St(:,1) < 0.5;   % Grab the first 0.5s, should be no stimulus
+                prePertInd = AVar.anaTimeVal < 0.5;             % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0ResultsRaw_St(prePertInd,2)); % Baseline fundamental frequency of mic data
                 
-                Trialf0ResultsRaw_St(:,2:3) = normf0(Trialf0ResultsRaw_St(:,2:3), f0b); %Coverted to cents and normalized              
-                Trialf0ResultsRaw_Sp(:,2:3) = normf0(Trialf0ResultsRaw_Sp(:,2:3), f0b); %Coverted to cents and normalized
+                Trialf0ResultsRaw_St = normf0(Trialf0ResultsRaw_St, f0b); %Coverted to cents and normalized              
+                Trialf0ResultsRaw_Sp = normf0(Trialf0ResultsRaw_Sp, f0b); %Coverted to cents and normalized
                 
                 fprintf('Session %d Trial %d saved. %d points \n', j, k, AVar.nEvalSteps)              
-                Runf0ResultsRaw_St  = cat(3, Runf0ResultsRaw_St, Trialf0ResultsRaw_St);
-                Runf0ResultsRaw_Sp  = cat(3, Runf0ResultsRaw_Sp, Trialf0ResultsRaw_Sp);
-                runTrialOrder       = cat(1, runTrialOrder, trialType(k));
+                allTrialf0ResultsRaw_St  = cat(3, allTrialf0ResultsRaw_St, Trialf0ResultsRaw_St);
+                allTrialf0ResultsRaw_Sp  = cat(3, allTrialf0ResultsRaw_Sp, Trialf0ResultsRaw_Sp);
+                runTrialOrder            = cat(1, runTrialOrder, trialType(k));
                
                 if PltTgl.ForceSensor == 1;
                     drawDAQsignal(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
@@ -133,20 +139,20 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.Trial_f0 == 1 %Individual Trial change in NHR                   
-                    drawIntraTrialf0(Trialf0ResultsRaw_St, Trialf0ResultsRaw_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
+                    drawIntraTrialf0(AVar.anaTimeVal, Trialf0ResultsRaw_St, Trialf0ResultsRaw_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
         end
         curCount = [countC countP];
         
-        allSessionsf0_St = cat(3, allSessionsf0_St, Runf0ResultsRaw_St);
-        allSessionsf0_Sp = cat(3, allSessionsf0_Sp, Runf0ResultsRaw_Sp);
+        allSessionsf0_St = cat(3, allSessionsf0_St, allTrialf0ResultsRaw_St);
+        allSessionsf0_Sp = cat(3, allSessionsf0_Sp, allTrialf0ResultsRaw_Sp);
         allSessionsPert  = cat(1, allSessionsPert, runTrialOrder);
         counts = counts + curCount;
                
         %Sort trials of a session by pert type and find averages
-        [meanf0pts_St] = sortTrials(Runf0ResultsRaw_St, runTrialOrder);
-        [meanf0pts_Sp] = sortTrials(Runf0ResultsRaw_Sp, runTrialOrder);
+        [meanf0pts_St] = sortTrials(allTrialf0ResultsRaw_St, runTrialOrder);
+        [meanf0pts_Sp] = sortTrials(allTrialf0ResultsRaw_Sp, runTrialOrder);
 
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
@@ -322,7 +328,7 @@ for ii = 1:AVar.nEvalSteps
         f0_H = 0;
     end
     
-    Trialf0ResultsRaw = cat(1, Trialf0ResultsRaw, [timePt f0_M f0_H]);
+    Trialf0ResultsRaw = cat(1, Trialf0ResultsRaw, [f0_M f0_H]);
 end
 end
 
@@ -445,7 +451,7 @@ set(gca, 'FontSize', 10,...
 % suptitle(['Aspiration Noise Gain of ' num2str(pert)])
 end
 
-function drawIntraTrialf0(plotf0pts_St, plotf0pts_Sp, pert, limits, curRecording, k, plotFolder)
+function drawIntraTrialf0(time, plotf0pts_St, plotf0pts_Sp, pert, limits, curRecording, k, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 InterTrialNHR = figure('Color', [1 1 1]);
@@ -457,7 +463,7 @@ dottedy = [-300 300];
 ha = tight_subplot(1,2,[0.1 0.05],[0.1 0.03],[0.05 0.03]);
 
 axes(ha(1))
-plot(plotf0pts_St(:,1), plotf0pts_St(:,2))
+plot(time, plotf0pts_St(:,1))
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)'); ylabel('f0 (Hz)')
@@ -466,7 +472,7 @@ title('Onset of Perturbation', 'FontSize', 10, 'FontWeight', 'bold')
 axis(limits); box off
 
 axes(ha(2))
-plot(plotf0pts_Sp(:,1), plotf0pts_Sp(:,2))
+plot(time, plotf0pts_Sp(:,1))
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)'); ylabel('f0 (Hz)')
