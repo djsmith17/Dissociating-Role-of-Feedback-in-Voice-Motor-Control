@@ -10,8 +10,8 @@ PltTgl.ForceSensor     = 0;
 PltTgl.Trial_time      = 0; %Time-series trial plot
 PltTgl.Trial_f0        = 0; %Individual Trial change in NHR
 PltTgl.aveTrial_f0     = 0; %Average Trial change in NHR, separated by pert type
-PltTgl.aveSessTrial_f0 = 0; 
-PltTgl.SPaveSessTrial_f0 = 0;
+PltTgl.aveSessTrial_f0 = 1; 
+PltTgl.SPaveSessTrial_f0 = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -61,7 +61,7 @@ for i = AVar.partiInd
         AVar.fnames = sort_nat({d.name})';       
         
         limits = [0 1.2 -100 100];
-        Runf0ResultsRaw_St  = [];
+        Runf0ResultsRaw_St  = []; %
         Runf0ResultsRaw_Sp  = [];
         runTrialOrder       = [];
         countP = 0; countC = 0; %Counting the number of saved perturbed/control trials
@@ -125,7 +125,7 @@ for i = AVar.partiInd
                 runTrialOrder       = cat(1, runTrialOrder, trialType(k));
                
                 if PltTgl.ForceSensor == 1;
-                    plot_data_DAQ(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
+                    drawDAQsignal(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
                 end
                 
                 if PltTgl.Trial_time == 1; %Raw time-varying signal
@@ -150,7 +150,7 @@ for i = AVar.partiInd
 
         %Plots!! See start of script for toggles    
         if PltTgl.aveTrial_f0 == 1      
-            drawAVEInterTrialf02(meanf0pts_St, meanf0pts_Sp, limits, curCount, mask, AVar.curRecording, plot_dir)
+            drawAVEInterTrialf0(meanf0pts_St, meanf0pts_Sp, limits, curCount, mask, AVar.curRecording, plot_dir)
         end
     end
     
@@ -177,7 +177,7 @@ for i = AVar.partiInd
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
-        drawAVEInterTrialf02(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, dirs.saveFileDir)
+        drawAVEInterTrialf0(meanSessf0_St, meanSessf0_Sp, limits, counts, mask, AVar.curRecording, dirs.saveFileDir)
     end
     
     if PltTgl.SPaveSessTrial_f0 == 1 
@@ -493,83 +493,6 @@ end
 
 function drawAVEInterTrialf0(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
 plotpos = [200 100];
-plotdim = [800 700];
-AveInterTrialNHR = figure('Color', [1 1 1]);
-set(AveInterTrialNHR, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-dottedStartx = [0.5 0.5];
-dottedy = [-300 300];
-
-if mask
-    masking = 'With Masking Noise';
-    smMask  = 'WMN';
-else
-    masking = 'Without Masking Noise';
-    smMask  = 'WoMN';
-end
-
-ha = tight_subplot(2,2,[0.1 0.05],[0.07 0.03],[0.07 0.03]);
-
-axes(ha(1))
-errorbar(meanf0ptsSt{1}(:,1), meanf0ptsSt{1}(:,2), meanf0ptsSt{1}(:,3), 'blue')
-xlabel('Time (s)')
-ylabel('f0 (cents)')
-title('Onset of Perturbation: Unperturbed Trials', 'FontSize', 10, 'FontWeight', 'bold')
-axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
-
-axes(ha(3))
-errorbar(meanf0ptsSt{2}(:,1), meanf0ptsSt{2}(:,2), meanf0ptsSt{2}(:,3), 'black')
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)')
-ylabel('f0 (cents)')
-title('Onset of Perturbation: Perturbed Trials', 'FontSize', 10, 'FontWeight', 'bold')
-axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
-
-axes(ha(2))
-errorbar(meanf0ptsSp{1}(:,1), meanf0ptsSp{1}(:,2), meanf0ptsSp{1}(:,3), 'blue')
-xlabel('Time (s)')
-ylabel('f0 (cents)')
-title('Offset of Perturbation: Unperturbed Trials', 'FontSize', 10, 'FontWeight', 'bold')
-axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
-
-l1 = legend([num2str(counts(1)) ' Trials']); set(l1,'box', 'off','FontSize', 18);
-
-axes(ha(4))
-errorbar(meanf0ptsSp{2}(:,1), meanf0ptsSp{2}(:,2), meanf0ptsSp{2}(:,3), 'black')
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)')
-ylabel('f0 (cents)')
-title('Offset of Perturbation: Perturbed Trials', 'FontSize', 10, 'FontWeight', 'bold')
-axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'})
-
-suptitle([curRecording ' ' masking])
-l2 = legend([num2str(counts(2)) ' Trials']); set(l2,'box', 'off','FontSize', 18);
-
-
-
-% 
-% leg1 = legend(['Control: ' num2str(counts(2)) ' Trials'], ['Perturbation: ' num2str(counts(1)) ' Trials']);
-% set(leg1, 'Position',[0.82,0.88,0.10,0.10]);
-                
-pause(2)
-
-plots = {'InterTrial_f0'};
-for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '_' smMask];
-
-    saveFileName = [plotFolder plTitle '.png'];
-    export_fig(saveFileName)
-end
-end
-
-function drawAVEInterTrialf02(meanf0ptsSt, meanf0ptsSp, limits, counts, mask, curRecording, plotFolder)
-plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
 set(AveInterTrialNHR, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -686,7 +609,7 @@ for i = 1:length(plots)
 end
 end
 
-function plot_data_DAQ(sRate, spans, DAQin, curRecording, saveResultsDir)
+function drawDAQsignal(sRate, spans, DAQin, curRecording, saveResultsDir)
 spans = spans*8000/16000;
 
 [r, c] = size(spans);
