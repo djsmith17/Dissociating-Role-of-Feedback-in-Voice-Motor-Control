@@ -20,7 +20,7 @@ AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [3 4];
+AVar.runsInd      = [3];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -47,8 +47,8 @@ AVar.svInflaRespRoute = 0;
 for i = AVar.partiInd 
     allRunsf0_St   = [];
     allRunsf0_Sp   = [];
-    allTrialsOrder    = [];
-    runsCount             = [0 0];
+    allTrialsOrder = [];
+    runsCount      = [0 0];
     for j = AVar.runsInd
         AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
         
@@ -163,14 +163,14 @@ for i = AVar.partiInd
     end
     
     %Sort trials of all sessions by pert type and find averages
-    [meanSessf0_St] = sortTrials(allRunsf0_St, allTrialsOrder); 
-    [meanSessf0_Sp] = sortTrials(allRunsf0_Sp, allTrialsOrder);
+    [meanRunsf0_St, trialCount] = sortTrials(allRunsf0_St, allTrialsOrder); 
+    [meanRunsf0_Sp, trialCount] = sortTrials(allRunsf0_Sp, allTrialsOrder);
     
     %Calculate the response to inflation of the collar. To be used in the
     %Auditory Perturbation Experiment. Only need to use the Average of
     %perturbed Trials
     if AVar.svInflaRespRoute == 1
-        InflaRespRoute = CalcInflationResponse(meanSessf0_St{2},1);
+        InflaRespRoute = CalcInflationResponse(meanRunsf0_St{2},1);
         tStep = AVar.tStep;
         dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
         save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
@@ -178,12 +178,12 @@ for i = AVar.partiInd
 
     %Plots!! See start of script for toggles    
     if PltTgl.aveSessTrial_f0 == 1      
-        drawAVEInterTrialf0(AVar.anaTimeVec, meanSessf0_St, meanSessf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
+        drawAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
     end
     
     if PltTgl.SPaveSessTrial_f0 == 1 
         limits = [0 1.2 -80 40];
-        drawSPAVEInterTrialf0(AVar.anaTimeVec, meanSessf0_St, meanSessf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
+        drawSPAVEInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveFileDir)
     end
 end
 end
