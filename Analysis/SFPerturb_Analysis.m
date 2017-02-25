@@ -47,7 +47,6 @@ for i = AVar.partiInd
     allRunsf0_St   = [];
     allRunsf0_Sp   = [];
     allTrialsOrder = [];
-    runsCount      = [0 0];
     for j = AVar.runsInd
         AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
         
@@ -62,7 +61,6 @@ for i = AVar.partiInd
         d = dir([dirs.saveFileDir, '\*.mat']);
         AVar.fnames = sort_nat({d.name})';       
         
-        limits = [0 1.2 -100 100];
         allTrialf0_St  = []; %
         allTrialf0_Sp  = [];
         runTrialOrder  = [];       
@@ -132,7 +130,8 @@ for i = AVar.partiInd
                     drawTrial(Mraw, Hraw, fs, span(k,:))
                 end
             
-                if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial                  
+                if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
+                    limits = [0 AVar.totEveLen -100 50];
                     drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
@@ -147,7 +146,8 @@ for i = AVar.partiInd
         allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
         allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
            
-        if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run    
+        if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
+            limits = [0 AVar.totEveLen -100 50];
             drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
         end
     end
