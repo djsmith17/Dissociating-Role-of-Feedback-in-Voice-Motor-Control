@@ -308,10 +308,9 @@ end
 
 Trialf0ResultsRaw = [];
 for ii = 1:AVar.nEvalSteps
-    startPt  = AVar.EvalSteps(ii);
-    stopPt   = AVar.EvalSteps(ii) + AVar.anaWinLenP - 1;
-    timePt   = mean([startPt stopPt])/fs; %Find the time point that is roughly the middle of start and stop points
-    
+    startPt  = AVar.anaInds(ii,1);
+    stopPt   = AVar.anaInds(ii,2);
+
     mic_win   = mic(startPt:stopPt);
     head_win  = head(startPt:stopPt);
     
