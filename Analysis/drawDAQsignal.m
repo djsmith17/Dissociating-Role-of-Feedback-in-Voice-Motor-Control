@@ -8,8 +8,6 @@ time = 0:1/sRate:(pts-1)/sRate;
 plotpos = [500 500];
 plotdim = [800 400];
 
-
-
 sv2File = 0;
 
 for ii = 1:r

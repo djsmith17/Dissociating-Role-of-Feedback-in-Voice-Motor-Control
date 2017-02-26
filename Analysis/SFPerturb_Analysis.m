@@ -10,10 +10,10 @@ PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
-PltTgl.InterTrial_Force  = 1;
 PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
+PltTgl.InterTrial_Force  = 1;
 PltTgl.InterRun_Force    = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -143,7 +143,7 @@ for i = AVar.partiInd
                 
                 res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);    %Baseline fundamental frequencies
                                 
-                TrialForce = forceSensorAnalysis(DAQin, spanQ(k,1), AVar); %At the moment only voltage
+                TrialForce = forceSensorAnalysis(DAQin, spanQ(k,1), sRate, AVar); %At the moment only voltage
                 res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
@@ -158,7 +158,7 @@ for i = AVar.partiInd
                     limits = [0 AVar.totEveLen -80 60];
                     drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
-            end          
+            end
         end
         
         %Sort trials within a given run by trial type and find averages
@@ -389,13 +389,18 @@ for ii = 1:AVar.nEvalSteps
 end
 end
 
-function TrialForce = forceSensorAnalysis(DAQin, trig, AVar)
+function TrialForce = forceSensorAnalysis(DAQin, trig, sRate, AVar)
 
 St = trig - AVar.preEveLenQ;
 Sp = trig + AVar.posEveLenQ - 1;
 
 coll = DAQin(St:Sp,1);
 neck = DAQin(St:Sp,2);
+
+[B,A] = butter(4,40/(sRate/2)); %Low-pass filter under 40
+
+coll  = filter(B,A,abs(coll));
+neck  = filter(B,A,abs(neck));
 
 %Eventually some conversion of voltage to force
 
