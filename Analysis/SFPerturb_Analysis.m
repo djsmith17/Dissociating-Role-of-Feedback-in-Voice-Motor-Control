@@ -10,16 +10,16 @@ PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0     = 0; %Average f0 trace over all runs analyzed
+PltTgl.InterRun_f0     = 1; %Average f0 trace over all runs analyzed
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 1; %Either 1 or 2
+AVar.expInd       = 2; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [2];
+AVar.runsInd      = [3 4];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -94,8 +94,7 @@ for i = AVar.partiInd
             AVar.tStep      = AVar.tStepP/fs; %time step in seconds between the start of each window
             AVar.EvalSteps  = 1:AVar.tStepP:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
             AVar.nEvalSteps = length(AVar.EvalSteps); %Number of analysis windows;
-            
-            
+                        
             AVar.anaInds(:,1) = AVar.EvalSteps;                       %Start indice for analysis based on EvalStep 
             AVar.anaInds(:,2) = AVar.EvalSteps + AVar.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
             AVar.anaTimeVec   = mean(AVar.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
@@ -208,28 +207,29 @@ head = headR((audProcDel+1):end);
 x = double(mic); 
 y = double(head);
 
-lenSig = length(x);
-t = 0:1/fs:(lenSig-1)/fs;
+pp.lenSig = length(x);
+pp.t = 0:1/fs:(pp.lenSig-1)/fs;
 
-thresh = 0.3;
+pp.thresh = 0.3;
 [B,A] = butter(4,40/(fs/2)); %Low-pass filter under 40
 
 %Envelope the signal removing all high frequncies. 
 %This shows the general change in amplitude over time. 
-xenv  = filter(B,A,abs(x));  
+pp.xenv  = filter(B,A,abs(x));  
 
 %The largest peak in the envelope theoretically occurs during voicing
-maxPeak = max(xenv); 
+pp.maxPeak = max(pp.xenv); 
 
 %I don't want to start my signal at the max value, so start lower down on
 %the envelope as a threshold
-threshIdx     = find(xenv > thresh*maxPeak); 
+pp.threshIdx     = find(pp.xenv > pp.thresh*pp.maxPeak); 
 
 %The first index of the theoretical useable signal (Voice onset)
-voiceOnsetInd = threshIdx(1);  
+pp.voiceOnsetInd = pp.threshIdx(1);  
 
 %The rest of the signal base the first index...are there any dead zones??
-chk4Break = sum(xenv(voiceOnsetInd:end) < thresh*maxPeak) > 0.05*fs;
+pp.fallOffLog = pp.xenv(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
+pp.chk4Break = sum(pp.fallOffLog) > 0.3*fs; %Last longer than 300ms
 
 [B,A]    = butter(4,(2000)/(fs/2));
 filtx    = filtfilt(B,A,x); %Low-pass filtered under 2kHz
@@ -238,16 +238,19 @@ filty    = filtfilt(B,A,y); %Low-pass filtered under 2kHz
 micP     = filtx; %Take the whole signal for now
 headP    = filty; %Same indices as for mic 
 
-if t(voiceOnsetInd) > spanSt
+if pp.t(pp.voiceOnsetInd) > spanSt
     saveT = 0;  
     saveTmsg = 'Participant started too late!!';
-elseif chk4Break
+elseif pp.chk4Break
     saveT = 0;
     saveTmsg = 'Participant had a voice break!!';
 else
     saveT = 1;
     saveTmsg = 'Everything is good'; 
 end
+
+pp.saveT    = saveT;
+pp.SaveTmsg = saveTmsg;
 end
 
 function f0 = calcf0(x,fs)
