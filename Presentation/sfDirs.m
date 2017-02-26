@@ -21,26 +21,24 @@ host     = deblank(host);
 switch host
     case 'tongue';
         dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, expType);         % Dir w/ raw datafiles
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\Pilot Results', project, expType);   % Dir to output analyzed datafiles and figures to
         dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
 %         dirs.DataTestIn     = fullfile('C:\Users\salacho\Documents\Speech Lab',project,'data\test');    % Dir w/ raw datafiles
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB',project,'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB',project,'Results');
-        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB',project,'Results');            % Dir to output analyzed datafiles and figures to
         dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
+        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
         dirs.saveFileDir    = '';                                                                           % Used to name figures. Gives the type of analysis done, channels, amongs others
         dirs.saveWaveDir    = '';
         dirs.saveResultsDir = '';
         dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
     case 'DanteRig'
-        dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, expType);         % Dir w/ raw datafiles
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\Pilot Results', project, expType);   % Dir to output analyzed datafiles and figures to
+        dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, expType);         % Dir w/ raw datafiles  
         dirs.Prelim         = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
 %         dirs.DataTestIn     = fullfile('C:\Users\salacho\Documents\Speech Lab',project,'data\test');    % Dir w/ raw datafiles
         dirs.Code           = fullfile('E:\Users\djsmith\Documents\MATLAB',project,'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('E:\Users\djsmith\Documents\MATLAB',project,'Results');
-        dirs.helpers        = 'E:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Results        = fullfile('E:\Users\djsmith\Documents\MATLAB',project,'Results');            % Dir to output analyzed datafiles and figures to
         dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
+        dirs.helpers        = 'E:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
         dirs.saveFileDir    = '';                                                                           % Used to name figures. Gives the type of analysis done, channels, amongs others
         dirs.saveWaveDir    = '';
         dirs.saveResultsDir = '';
