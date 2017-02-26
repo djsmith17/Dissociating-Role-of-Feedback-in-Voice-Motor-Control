@@ -155,11 +155,9 @@ for i = AVar.partiInd
         
         %Sort trials within a given run by trial type and find averages
         %across trials
-        [meanTrialf0_St, trialCount] = sortTrials(allTrialf0_St, runTrialOrder);
-        [meanTrialf0_Sp, trialCount] = sortTrials(allTrialf0_Sp, runTrialOrder);
+        [meanTrialf0_St, meanTrialForce, trialCount] = sortTrials(allTrialf0_St, res.allTrialForce, runTrialOrder);
+        [meanTrialf0_Sp, meanTrialForce, trialCount] = sortTrials(allTrialf0_Sp, res.allTrialForce, runTrialOrder);
         meanTrialf0b = round(mean(res.allTrialf0b,1));
-        
-        meanTrialForce = mean(res.allTrialForce,3)
         
         allRunsf0_St   = cat(3, allRunsf0_St, allTrialf0_St);
         allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
@@ -170,7 +168,7 @@ for i = AVar.partiInd
             drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
         
-        if PltTgl.InterTrial_AudRes == 1  %Average f0 trace over all trials of a run 
+        if PltTgl.InterTrial_AudRes == 1  %Average f0 response trace to auditory pert trials of a run 
             limits = [0 AVar.totEveLen -80 60];
             drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
@@ -181,7 +179,7 @@ for i = AVar.partiInd
     %Saving myself from over analyzing
     if length(AVar.runsInd) > 1
     
-        AVar.curRecording  = [AVar.participants{i} ' All ' AVar.curExp(1:3) ' Runs']; %Short hand of experiment details    
+        AVar.curRecording   = [AVar.participants{i} ' All ' AVar.curExp(1:3) ' Runs']; %Short hand of experiment details    
         dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, 'RunsAve'); %Where to save results
  
         if exist(dirs.saveResultsDir, 'dir') == 0
@@ -207,7 +205,7 @@ for i = AVar.partiInd
             drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
         
-        if PltTgl.InterRun_AudRes == 1 %Average f0 trace over all runs analyzed
+        if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
             limits = [0 AVar.totEveLen -80 60];
             drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
@@ -397,7 +395,7 @@ for i = 1:r
 end
 end
 
-function [meanTrialf0, trialCount] = sortTrials(allTrialf0, runTrialOrder)
+function [meanTrialf0, meanTrialForce, trialCount] = sortTrials(allTrialf0, allTrialForce, runTrialOrder)
 %This function separates the trials by control or catch trials and
 %finds the mean f0 trace and 95% Confidence Interval over multiple trials 
 %of a type. 
@@ -406,13 +404,14 @@ function [meanTrialf0, trialCount] = sortTrials(allTrialf0, runTrialOrder)
 PertVals  = unique(runTrialOrder(:,1));
 nPertVals = length(PertVals);
 
-meanTrialf0  = [ ];
+meanTrialf0    = [];
+meanTrialForce = [];
 trialCount   = zeros(1, nPertVals);
 for i = 1:nPertVals
     ind   = runTrialOrder == PertVals(i);
     nType = sum(ind);
-    TrialsofaType_f0  = allTrialf0(:,:,ind);
     
+    TrialsofaType_f0  = allTrialf0(:,:,ind);    
     micMean_f0   = mean(squeeze(TrialsofaType_f0(:,1,:)),2);
     headMean_f0  = mean(squeeze(TrialsofaType_f0(:,2,:)),2);
     
@@ -430,8 +429,25 @@ for i = 1:nPertVals
                
 %     ts  = tinv([0.025  0.975],numT-1);      % T-Score
 %     CIH = headMean + ts*SEM; 
-   resultSet    = [micMean_f0 CIM_f0 headMean_f0 CIH_f0];
-   meanTrialf0  = cat(3, meanTrialf0, resultSet);
+   f0resultSet  = [micMean_f0 CIM_f0 headMean_f0 CIH_f0];
+   meanTrialf0  = cat(3, meanTrialf0, f0resultSet);
+   
+   TrialsofaType_Force  = allTrialForce(:,:,ind);
+   collMean_F = mean(squeeze(TrialsofaType_Force(:,1,:)),2);
+   neckMean_F = mean(squeeze(TrialsofaType_Force(:,2,:)),2);
+   
+   collSTD_F  = std(squeeze(TrialsofaType_Force(:,1,:)),0,2);
+   neckSTD_F  = std(squeeze(TrialsofaType_Force(:,2,:)),0,2);
+   
+   SEC_F = collSTD_F/sqrt(nType); % Standard Error
+   CIC_F = 1.96*SEC_F; % 95% confidence Interval
+    
+   SEN_F = neckSTD_F/sqrt(nType); % Standard Error
+   CIN_F = 1.96*SEN_F; % 95% confidence Interval 
+   
+   ForceresultSet = [collMean_F CIC_F neckMean_F CIN_F];
+   meanTrialForce = cat(3, meanTrialForce, ForceresultSet);
+   
    trialCount(i)= nType;
 end
 end
