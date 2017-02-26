@@ -6,7 +6,7 @@ function SFPerturb_Analysis()
 
 clear all; close all; clc
 %Plot Toggles. This could eventually become an input variable
-PltTgl.ForceSensor     = 1; %Voltage trace of force sensor signal
+PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
@@ -42,6 +42,8 @@ AVar.EvalSteps  = []; %Starting indices for each analysis window
 AVar.nEvalSteps = []; %Number of analysis windows;
 AVar.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
 AVar.anaTimeVec = []; %Time point roughly center of start and stop points of analysis
+AVar.preEveLenQ = []; %Amount of points of observation period before event (onset/offset) for NIDAQ signal
+AVar.posEveLenQ = []; %Amount of points of observation period after event (onset/offset) for NIDAQ signal
 
 AVar.svInflaRespRoute = 0;
 
@@ -67,6 +69,7 @@ for i = AVar.partiInd
         allTrialf0_Sp  = [];
         runTrialOrder  = [];
         res.allTrialf0b = [];
+        res.allTrialForce = [];
         for k = 1:length(AVar.fnames)
             %open a given Trial and load 'data.mat' structure
             load([dirs.saveFileDir '\' AVar.fnames{k}]);
@@ -79,7 +82,7 @@ for i = AVar.partiInd
             trialType  = data.expParam.trialType;    % List of trial Order
             span       = data.expParam.spans;   %Pregenerated start and stop points for time-alignment with audio data
             spanT      = data.expParam.spansT; %Pregenerated start and stop times for time-alignment with audio data
-            spanN      = span*sRate/fs;
+            spanQ      = span*sRate/fs;
             mask       = data.expParam.masking;
             DAQin      = data.DAQin;
             audProcDel = data.params.frameLen*4;
@@ -103,6 +106,9 @@ for i = AVar.partiInd
             AVar.anaInds(:,2) = AVar.EvalSteps + AVar.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
             AVar.anaTimeVec   = mean(AVar.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
             
+            AVar.preEveLenQ   = round(AVar.preEveLen*sRate);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
+            AVar.posEveLenQ   = round(AVar.posEveLen*sRate);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
+            
 %             fprintf('Analysis will be performed over %2.0f bins of length %2.0f points with a %2.0f%% overlap\n', AVar.nEvalSteps, AVar.anaWinLenP, 100*AVar.pOverlap)
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, fs, audProcDel, spanT(k,1));           
@@ -114,7 +120,7 @@ for i = AVar.partiInd
                 %Start of Pert
                 Trialf0Raw_St = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %Short fix in span
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %When span is fixed make this 2!!
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0Raw_St(prePertInd, 1)); % Baseline fundamental frequency of mic data
@@ -127,10 +133,13 @@ for i = AVar.partiInd
                 allTrialf0_Sp  = cat(3, allTrialf0_Sp, Trialf0Norm_Sp);
                 runTrialOrder  = cat(1, runTrialOrder, trialType(k));
                 
-                res.allTrialf0b = cat(1, res.allTrialf0b, f0b);
+                res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);    %Baseline fundamental frequencies
+                                
+                TrialForce = forceSensorAnalysis(DAQin, spanQ(k,:), AVar); %At the moment only voltage
+                res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
-                    drawDAQsignal(sRate, spanN(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
+                    drawDAQsignal(sRate, spanQ(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
                 end
                 
                 if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial
@@ -149,6 +158,8 @@ for i = AVar.partiInd
         [meanTrialf0_St, trialCount] = sortTrials(allTrialf0_St, runTrialOrder);
         [meanTrialf0_Sp, trialCount] = sortTrials(allTrialf0_Sp, runTrialOrder);
         meanTrialf0b = round(mean(res.allTrialf0b,1));
+        
+        meanTrialForce = mean(res.allTrialForce,3)
         
         allRunsf0_St   = cat(3, allRunsf0_St, allTrialf0_St);
         allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
@@ -324,6 +335,7 @@ function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
 St = trig - AVar.preEveLenP; 
 Sp = trig + AVar.posEveLenP - 1;
 
+%Grab a big chuck of the signal centered around the event
 try
     mic = mic(St:Sp);
     head = head(St:Sp);
@@ -357,6 +369,19 @@ for ii = 1:AVar.nEvalSteps
     
     Trialf0ResultsRaw = cat(1, Trialf0ResultsRaw, [f0_M f0_H]);
 end
+end
+
+function TrialForce = forceSensorAnalysis(DAQin, trig, AVar)
+
+St = trig - AVar.preEveLenQ;
+Sp = trig + AVar.posEveLenQ - 1;
+
+coll = DAQin(St:Sp,1);
+neck = DAQin(St:Sp,2);
+
+%Eventually some conversion of voltage to force
+
+TrialForce = [coll neck];
 end
 
 function [Trialf0Norm] = normf0(Trialf0Raw, f0b)
