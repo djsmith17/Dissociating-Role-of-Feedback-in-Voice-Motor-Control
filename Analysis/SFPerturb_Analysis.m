@@ -6,22 +6,22 @@ function SFPerturb_Analysis()
 
 clear all; close all; clc
 %Plot Toggles. This could eventually become an input variable
-PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
+PltTgl.ForceSensor     = 1; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
+PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_f0     = 0; %Average f0 trace over all runs analyzed
-PltTgl.InterRun_AudRes = 1; %Average f0 response trace to auditory pert over all runs analyzed
+PltTgl.InterRun_AudRes = 0; %Average f0 response trace to auditory pert over all runs analyzed
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 2; %Either 1 or 2
+AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [3 4];
+AVar.runsInd      = [1 2];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -75,12 +75,13 @@ for i = AVar.partiInd
             Mraw       = data.signalIn;  % Microphone
             Hraw       = data.signalOut; % Headphones
             fs         = data.params.sRate;          % Sampling Rate
+            sRate      = 8000;        %from NIDAQ needs to be built in
             trialType  = data.expParam.trialType;    % List of trial Order
             span       = data.expParam.spans;   %Pregenerated start and stop points for time-alignment with audio data
             spanT      = data.expParam.spansT; %Pregenerated start and stop times for time-alignment with audio data
+            spanN      = span*sRate/fs;
             mask       = data.expParam.masking;
             DAQin      = data.DAQin;
-            sRate      = 8000; %to be rectified
             audProcDel = data.params.frameLen*4;
             
             ostF  = round(resample(data.ost_stat,32,1));
@@ -129,7 +130,7 @@ for i = AVar.partiInd
                 res.allTrialf0b = cat(1, res.allTrialf0b, f0b);
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
-                    drawDAQsignal(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
+                    drawDAQsignal(sRate, spanN(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
                 end
                 
                 if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial
@@ -137,7 +138,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
-                    limits = [0 AVar.totEveLen -100 100];
+                    limits = [0 AVar.totEveLen -80 60];
                     drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end          
