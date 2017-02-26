@@ -9,8 +9,8 @@ clear all; close all; clc
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0     = 1; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0     = 0; %Average f0 trace over all runs analyzed
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -41,7 +41,7 @@ AVar.nEvalSteps = []; %Number of analysis windows;
 AVar.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
 AVar.anaTimeVec = []; %Time point roughly center of start and stop points of analysis
 
-AVar.svInflaRespRoute = 0;
+AVar.svInflaRespRoute = 1;
 
 for i = AVar.partiInd 
     allRunsf0_St   = [];
@@ -176,7 +176,7 @@ for i = AVar.partiInd
         %Auditory Perturbation Experiment. Only need to use the Average of
         %perturbed Trials
         if AVar.svInflaRespRoute == 1
-            InflaRespRoute = CalcInflationResponse(AVar, meanRunsf0_St, 1);
+            InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, 1, dirs.saveResultsDir);
             tStep = AVar.tStep;
             dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
@@ -397,7 +397,7 @@ for i = 1:nPertVals
 end
 end
 
-function InflaRespRoute = CalcInflationResponse(AVar, meanRunsf0, show_plt)
+function InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0, show_plt, plotFolder)
 %This calculates the shape of the change in f0 in response to the
 %perturbation onset
 
@@ -416,12 +416,20 @@ if show_plt
     InflaRespFig = figure('Color',[1 1 1]);
     set(InflaRespFig, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
     
-    t = meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
-    plot(t,InflaRespRoute)
+    t = 0:AVar.tStep:(AVar.tStep*(length(timeFram)-1)); %meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
+    plot(t, InflaRespRoute, 'blue', 'LineWidth',3)
     
-    title('Average Acoustic Response to Inflation')
-    xlabel('Time (s)');
-    ylabel('f0 (cents)');
-    box off 
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
+    title({'Average Acoustic Response to Inflation'; [AVar.curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']},...
+                         'FontSize', 18,...
+                         'FontWeight', 'bold')
+    axis([0 0.2 -50 0]); box off
+    
+    set(gca, 'FontSize', 16,...
+             'FontWeight','bold');
+         
+    plTitle = [AVar.curRecording '_Inflation Response Route.png'];
+    saveFileName = fullfile(plotFolder, plTitle);
+    export_fig(saveFileName)
 end
 end
