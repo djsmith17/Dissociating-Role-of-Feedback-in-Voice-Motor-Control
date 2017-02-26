@@ -10,16 +10,18 @@ PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
+PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_f0     = 0; %Average f0 trace over all runs analyzed
+PltTgl.InterRun_AudRes = 1; %Average f0 response trace to auditory pert over all runs analyzed
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 1; %Either 1 or 2
+AVar.expInd       = 2; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [1 2];
+AVar.runsInd      = [3 4];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -41,7 +43,7 @@ AVar.nEvalSteps = []; %Number of analysis windows;
 AVar.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
 AVar.anaTimeVec = []; %Time point roughly center of start and stop points of analysis
 
-AVar.svInflaRespRoute = 1;
+AVar.svInflaRespRoute = 0;
 
 for i = AVar.partiInd 
     allRunsf0_St   = [];
@@ -155,6 +157,12 @@ for i = AVar.partiInd
             limits = [0 AVar.totEveLen -80 60];
             drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
+        
+        if PltTgl.InterTrial_AudRes == 1  %Average f0 trace over all trials of a run 
+            limits = [0 AVar.totEveLen -80 60];
+            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+        end
+        
     end
     
     %If I decide to analyze more than 1 run at a time. 
@@ -185,6 +193,11 @@ for i = AVar.partiInd
         if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
             limits = [0 AVar.totEveLen -80 60];
             drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+        end
+        
+        if PltTgl.InterRun_AudRes == 1 %Average f0 trace over all runs analyzed
+            limits = [0 AVar.totEveLen -80 60];
+            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
     end
 end
