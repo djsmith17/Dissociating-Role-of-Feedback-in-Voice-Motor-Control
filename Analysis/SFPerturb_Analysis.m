@@ -4,7 +4,7 @@ function SFPerturb_Analysis()
 %given participant. At the end it approximates a general response to
 %inflation to be used in the auditory perturbation experiment
 
-clear all; close all;
+clear all; close all; clc
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
@@ -14,12 +14,12 @@ PltTgl.InterRun_f0     = 1; %Average f0 trace over all runs analyzed
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 2; %Either 1 or 2
+AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
-AVar.runsInd      = [3 4];
+AVar.runsInd      = [1 2];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project, AVar.curExp);
@@ -63,7 +63,8 @@ for i = AVar.partiInd
         
         allTrialf0_St  = []; %
         allTrialf0_Sp  = [];
-        runTrialOrder  = [];       
+        runTrialOrder  = [];
+        res.allTrialf0b = [];
         for k = 1:length(AVar.fnames)
             %open a given Trial and load 'data.mat' structure
             load([dirs.saveFileDir '\' AVar.fnames{k}]);
@@ -74,7 +75,7 @@ for i = AVar.partiInd
             fs         = data.params.sRate;          % Sampling Rate
             trialType  = data.expParam.trialType;    % List of trial Order
             span       = data.expParam.spans;   %Pregenerated start and stop points for time-alignment with audio data
-            spanT       = data.expParam.spansT; %Pregenerated start and stop times for time-alignment with audio data
+            spanT      = data.expParam.spansT; %Pregenerated start and stop times for time-alignment with audio data
             mask       = data.expParam.masking;
             DAQin      = data.DAQin;
             sRate      = 8000; %to be rectified
@@ -122,6 +123,8 @@ for i = AVar.partiInd
                 allTrialf0_St  = cat(3, allTrialf0_St, Trialf0Norm_St);
                 allTrialf0_Sp  = cat(3, allTrialf0_Sp, Trialf0Norm_Sp);
                 runTrialOrder  = cat(1, runTrialOrder, trialType(k));
+                
+                res.allTrialf0b = cat(1, res.allTrialf0b, f0b);
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
                     drawDAQsignal(sRate, span(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
@@ -141,15 +144,16 @@ for i = AVar.partiInd
         %Sort trials within a given run by trial type and find averages
         %across trials
         [meanTrialf0_St, trialCount] = sortTrials(allTrialf0_St, runTrialOrder);
-        [meanTrialf0_Sp, trialCount] = sortTrials(allTrialf0_Sp, runTrialOrder);        
+        [meanTrialf0_Sp, trialCount] = sortTrials(allTrialf0_Sp, runTrialOrder);
+        meanTrialf0b = round(mean(res.allTrialf0b,1));
         
         allRunsf0_St   = cat(3, allRunsf0_St, allTrialf0_St);
         allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
         allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
            
         if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
-            limits = [0 AVar.totEveLen -100 100];
-            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, mask, AVar.curRecording, dirs.saveResultsDir)
+            limits = [0 AVar.totEveLen -80 60];
+            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
     end
     
@@ -157,11 +161,11 @@ for i = AVar.partiInd
     %Saving myself from over analyzing
     if length(AVar.runsInd) > 1
     
-        AVar.curRecording  = [AVar.participants{i} ' All Runs']; %Short hand of experiment details    
-        dirs.saveFileDir   = fullfile(dirs.Data, AVar.participants{i}, 'RunAve'); %Where to find data
-
-        if exist(dirs.saveFileDir, 'dir') == 0
-            mkdir(dirs.saveFileDir)
+        AVar.curRecording  = [AVar.participants{i} ' All ' AVar.curExp(1:3) ' Runs']; %Short hand of experiment details    
+        dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, 'RunsAve'); %Where to save results
+ 
+        if exist(dirs.saveResultsDir, 'dir') == 0
+            mkdir(dirs.saveResultsDir)
         end
 
         %Sort trials of all sessions by pert type and find averages
@@ -179,8 +183,8 @@ for i = AVar.partiInd
         end
 
         if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
-            limits = [0 AVar.totEveLen -100 100];
-            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, mask, AVar.curRecording, dirs.saveResultsDir)
+            limits = [0 AVar.totEveLen -80 60];
+            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
     end
 end
@@ -511,24 +515,18 @@ for i = 1:length(plots)
 end
 end
 
-function drawInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, mask, curRecording, plotFolder)
+function drawInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curExp, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 AveInterTrialNHR = figure('Color', [1 1 1]);
 set(AveInterTrialNHR, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
+curExp(strfind(curExp, '_')) = ' ';
+
 dottedStartx = [0.5 0.5];
 dottedy = [-300 300];
 
-if mask
-    masking = 'With Masking Noise';
-    smMask  = 'WMN';
-else
-    masking = 'Without Masking Noise';
-    smMask  = 'WoMN';
-end
-
-ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.1],[0.05 0.03]);
+ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
 
 axes(ha(1))
 errorbar(time, meanTrialf0_St(:,1,1), meanTrialf0_St(:,2,1), 'blue', 'LineWidth',2) %Unperturbed
@@ -540,7 +538,8 @@ xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', '
 
 title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
+
+set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold')
 
@@ -556,11 +555,11 @@ xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', '
 
 title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
-set(gca,'XTickLabel',{'-0.5' '-0.3' '-0.1' '0.1' '0.3' '0.5' '0.7'},...
+set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold');
 
-suptitle([curRecording ' ' masking])
+suptitle({[curExp ': Mic Recording']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
 
 plots = {'InterTrialf0'};
 for i = 1:length(plots)
