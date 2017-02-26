@@ -11,8 +11,10 @@ PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
 PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
-PltTgl.InterRun_f0     = 0; %Average f0 trace over all runs analyzed
-PltTgl.InterRun_AudRes = 0; %Average f0 response trace to auditory pert over all runs analyzed
+PltTgl.InterTrial_Force  = 1;
+PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
+PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
+PltTgl.InterRun_Force    = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -41,9 +43,11 @@ AVar.tStep      = []; %time step in seconds between the start of each window
 AVar.EvalSteps  = []; %Starting indices for each analysis window
 AVar.nEvalSteps = []; %Number of analysis windows;
 AVar.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
-AVar.anaTimeVec = []; %Time point roughly center of start and stop points of analysis
+AVar.anaTimeVec = []; %Time points roughly center of start and stop points of analysis
 AVar.preEveLenQ = []; %Amount of points of observation period before event (onset/offset) for NIDAQ signal
 AVar.posEveLenQ = []; %Amount of points of observation period after event (onset/offset) for NIDAQ signal
+AVar.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
+AVar.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
 
 AVar.svInflaRespRoute = 0;
 
@@ -51,6 +55,8 @@ for i = AVar.partiInd
     allRunsf0_St   = [];
     allRunsf0_Sp   = [];
     allTrialsOrder = [];
+    res.allRunsForce_St = [];
+    res.allRunsForce_Sp = [];
     for j = AVar.runsInd
         AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
         
@@ -108,7 +114,9 @@ for i = AVar.partiInd
             
             AVar.preEveLenQ   = round(AVar.preEveLen*sRate);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
             AVar.posEveLenQ   = round(AVar.posEveLen*sRate);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
-            
+            AVar.totEveLenQ   = AVar.preEveLenQ + AVar.posEveLenQ; %Total length (points_NIDAQ) of observation time
+            AVar.QTimeVec     = (0:1:(AVar.totEveLenQ-1))/sRate; %Time points_NIDAQ roughly center of start and stop points of analysis
+
 %             fprintf('Analysis will be performed over %2.0f bins of length %2.0f points with a %2.0f%% overlap\n', AVar.nEvalSteps, AVar.anaWinLenP, 100*AVar.pOverlap)
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
             [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, fs, audProcDel, spanT(k,1));           
@@ -135,7 +143,7 @@ for i = AVar.partiInd
                 
                 res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);    %Baseline fundamental frequencies
                                 
-                TrialForce = forceSensorAnalysis(DAQin, spanQ(k,:), AVar); %At the moment only voltage
+                TrialForce = forceSensorAnalysis(DAQin, spanQ(k,1), AVar); %At the moment only voltage
                 res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
@@ -155,13 +163,16 @@ for i = AVar.partiInd
         
         %Sort trials within a given run by trial type and find averages
         %across trials
-        [meanTrialf0_St, meanTrialForce, trialCount] = sortTrials(allTrialf0_St, res.allTrialForce, runTrialOrder);
-        [meanTrialf0_Sp, meanTrialForce, trialCount] = sortTrials(allTrialf0_Sp, res.allTrialForce, runTrialOrder);
+        [meanTrialf0_St, meanTrialForce_St, trialCount] = sortTrials(allTrialf0_St, res.allTrialForce, runTrialOrder);
+        [meanTrialf0_Sp, meanTrialForce_Sp, trialCount] = sortTrials(allTrialf0_Sp, res.allTrialForce, runTrialOrder);
         meanTrialf0b = round(mean(res.allTrialf0b,1));
         
         allRunsf0_St   = cat(3, allRunsf0_St, allTrialf0_St);
-        allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_St);
+        allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_Sp);
         allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
+        
+        res.allRunsForce_St = cat(3, res.allRunsForce_St, res.allTrialForce);
+        res.allRunsForce_Sp = cat(3, res.allRunsForce_Sp, res.allTrialForce);
            
         if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
             limits = [0 AVar.totEveLen -80 60];
@@ -173,6 +184,10 @@ for i = AVar.partiInd
             drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
         
+        if PltTgl.InterTrial_Force == 1
+            limits = [0 AVar.totEveLen 0 5];
+            drawForceSensorSignal(AVar.QTimeVec, meanTrialForce_St, meanTrialForce_Sp, limits, trialCount, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+        end        
     end
     
     %If I decide to analyze more than 1 run at a time. 
@@ -187,8 +202,8 @@ for i = AVar.partiInd
         end
 
         %Sort trials of all sessions by pert type and find averages
-        [meanRunsf0_St, runsCount] = sortTrials(allRunsf0_St, allTrialsOrder); 
-        [meanRunsf0_Sp, runsCount] = sortTrials(allRunsf0_Sp, allTrialsOrder);
+        [meanRunsf0_St, meanRunsForce_St, runsCount] = sortTrials(allRunsf0_St, res.allRunsForce_St, allTrialsOrder); 
+        [meanRunsf0_Sp, meanRunsForce_Sp, runsCount] = sortTrials(allRunsf0_Sp, res.allRunsForce_Sp, allTrialsOrder);
 
         %Calculate the response to inflation of the collar. To be used in the
         %Auditory Perturbation Experiment. Only need to use the Average of
@@ -208,6 +223,11 @@ for i = AVar.partiInd
         if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
             limits = [0 AVar.totEveLen -80 60];
             drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+        end
+        
+        if PltTgl.InterRun_Force == 1
+            limits = [0 AVar.totEveLen 0 5];
+            drawForceSensorSignal(AVar.QTimeVec, meanRunsForce_St, meanRunsForce_Sp, limits, runsCount, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
     end
 end

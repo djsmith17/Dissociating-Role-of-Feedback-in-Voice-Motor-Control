@@ -1,64 +1,54 @@
-function drawForceSensorSignal(sRate, spans, DAQin, curRecording, saveResultsDir)
+function drawForceSensorSignal(time, meanTrialForce_St, meanTrialForce_Sp, limits, counts, curExp, curRecording, saveResultsDir)
 %Good for seeing the whole signal
+plotpos = [200 100];
+plotdim = [1300 500];
+ForceSensorS = figure('Color', [1 1 1]);
+set(ForceSensorS, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-[r, c] = size(spans);
-pts = length(DAQin);
-time = 0:1/sRate:(pts-1)/sRate;
+curExp(strfind(curExp, '_')) = ' ';
 
-plotpos = [500 500];
-plotdim = [800 400];
+dottedStartx = [0.5 0.5];
+dottedy      = [-300 300];
 
+ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
 
+axes(ha(1))
+errorbar(time, meanTrialForce_St(:,1,2), meanTrialForce_St(:,2,2), 'blue', 'LineWidth',1) %Collar Sensor, Perturbed Trials
+hold on
+errorbar(time, meanTrialForce_St(:,3,2), meanTrialForce_St(:,4,2), 'black', 'LineWidth',1) %Neck Sensor, Perturbed Trials
+hold on
+plot(dottedStartx, dottedy,'k','LineWidth',4)
+xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
 
-sv2File = 0;
+title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
+axis(limits); box off
 
-for ii = 1:r
-    ForceSensorV(ii) = figure('Color', [1 1 1]);
-    set(ForceSensorV(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-    
-    ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
-    
-    perturb = zeros(1, pts);
-    perturb(spans(ii,1):spans(ii,2)) = -0.5;
-    
-    axes(ha(1))
-    plot(time, perturb, 'k')
-    hold on
-    plot(time, DAQin(:,1,ii), 'b')
-    
-    xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold') 
-    ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
-    title('Collar Sensor', 'FontSize', 10, 'FontWeight', 'bold')
-    axis([0 4 -5 5]); box off
-    
-    set(gca, 'FontSize', 12,...
-             'FontWeight', 'bold',...
-             'YTick', -5:1:5)
-    
-    axes(ha(2))
-    plot(time, perturb, 'k')
-    hold on
-    plot(time, DAQin(:,2,ii), 'b')
-    
-    xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold')
-    ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
-    title('Neck Sensor', 'FontSize', 10, 'FontWeight', 'bold')
-    axis([0 4 -5 5]); box off
-    
-    set(gca, 'FontSize', 12,...
-             'FontWeight', 'bold',...
-             'YTick', -5:1:5)
-    
-    suptitle('Voltage Change in Force Sensors due to Balloon Inflation')
-    
-    pltlgd = legend('Perturbation', 'Voltage from Force Sensor');
-    set(pltlgd, 'box', 'off',...
-                'location', 'best'); 
-   
-    if sv2File == 1
-        plTitle = [curRecording  '_ForceSensorTest ' num2str(ii) '.png'];     
-        saveFileName = fullfile(saveResultsDir, plTitle);
-        export_fig(saveFileName) 
-    end
-end
+set(gca, 'YTick', 0:1:5,...
+         'FontSize', 16,...
+         'FontWeight', 'bold')
+     
+pltlgd = legend('Collar Sensor', 'Neck Sensor');
+set(pltlgd, 'box', 'off',...
+            'location', 'best'); 
+
+axes(ha(2))
+errorbar(time, meanTrialForce_Sp(:,1,2), meanTrialForce_Sp(:,2,2), 'blue', 'LineWidth',1) %Collar Sensor, Perturbed Trials
+hold on
+errorbar(time, meanTrialForce_Sp(:,3,2), meanTrialForce_Sp(:,4,2), 'black', 'LineWidth',1) %Neck Sensor, Perturbed Trials
+hold on
+plot(dottedStartx, dottedy,'k','LineWidth',4)
+xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
+
+title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
+axis(limits); box off
+
+set(gca, 'YTick', 0:1:5,...
+         'FontSize', 16,...
+         'FontWeight', 'bold')
+
+suptitle({[curExp ': Inflated Balloon-Collar Force Beta']; [curRecording ': ' num2str(counts(2)) ' Perturbed Trials']})
+
+plTitle = [curRecording  '_ForceSensorAve.png'];     
+saveFileName = fullfile(saveResultsDir, plTitle);
+export_fig(saveFileName) 
 end

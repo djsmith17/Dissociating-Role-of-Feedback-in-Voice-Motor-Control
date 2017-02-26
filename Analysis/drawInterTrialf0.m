@@ -7,7 +7,7 @@ set(AveInterTrialNHR, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 curExp(strfind(curExp, '_')) = ' ';
 
 dottedStartx = [0.5 0.5];
-dottedy = [-300 300];
+dottedy      = [-300 300];
 
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
 
