@@ -20,10 +20,10 @@ answer = inputdlg(prompt,name,numlines,defaultanswer);
 trial = ['t001']; %will hold all of the summary information you need to analyize
 outfile = fullfile(answer{1}, trial) ;%creates file 't001'
 
-s = RandStream.create('mt19937ar','seed',sum(100*clock)); %make it so randperm doesn't call the same thing everytime when matlab is opened
+s = RandStream.create('mt19937ar', 'seed', sum(100*clock)); %make it so randperm doesn't call the same thing everytime when matlab is opened
 RandStream.setGlobalStream(s);
 
-if isempty( answer )
+if isempty(answer)
     return
 end
 
@@ -40,39 +40,43 @@ end
 %% set intial variables
 
 % Standardized values
-fs       = 44100;
-timeT    = [0:1/fs:2];
-soundwav = cos(timeT*2*pi*440); %69 MIDI = 440 Hz
+fs           = 44100;
+time         = 0:1/fs:2;
+timeLen      = length(time);
+freqDef      = 440;                   %Default tone frequency 69 MIDI = 440 Hz
+soundwav_Def = cos(2*pi*freqDef*time);%Default tone signal 
 
 dist     = .4; %sets initial distortion value. This means that on trial 1, the non-reference phase will be 50%  different than the refernce phase
 upstep   = .2; %initial setting that dist will go up by if user answers 'same'. These values change later based on trial number
 downstep = upstep / 2.4483; %initial setting that dist will go down by if user answers 'different'. These values change later based on trial number
 
-
-MaxReversals  = 18;  %number of answer switches the user must make before the game ends
-correctInARow = 0; % keep track of # consecutively correct (regardless of catch or different)  , but reset
-                    % when we get 2 in a row
+MaxReversals  = 18;  % number of answer switches the user must make before the game ends
+correctInARow = 0;   % Tracks # of consecutively correct trials (regardless of catch or different)
+                     % Resets after 2 correct in a row
 
 reversals = 0; % counter for number of changes (reversals) over time
-Trial = 0; % counter for each trial 
+Trial     = 0; % counter for each trial 
 
 changeDirection = 1; % Placeholder to remember "direction" of delta changes to count reversals
 
 ordersave   = []; % Saves whether it is order 1 or order 2, which indicates whether the reference frequency is first or second
 Modulator   = []; % How much to modulate the dist by
+
 dist_values = []; % Saves the dist values
 revValues   = []; % Saves the reversal values, will quit at 12
 
-% Loop until we get the necessary # of reversals or we hit the max number
-% of trials allowed
+%Start her up
+disp('Hit return when ready to start')
+pause
 
-while  reversals < MaxReversals 
+% Loop until we get the necessary # of reversals
+while reversals < MaxReversals 
     Trial = Trial + 1; % advance the trial every time we go through this loop
     randdiff = 8;
     RandomCatchTrial = randperm(randdiff,1); % 1/8 if the time it is the same and 50% it is different
     
     % Create the comparison stimulus
-    if RandomCatchTrial<8
+    if RandomCatchTrial < 8
         isDiff =1; 
         n = 2; 
         order = randperm(n, 1); %different trials, order 1 reference is first, order 2 reference is second 
@@ -91,34 +95,30 @@ while  reversals < MaxReversals
            %OR if different trial order 1 AND first phase play reference
            %OR if different trial order 2 AND second phase play reference
             
-           if order ==1 
+           if order == 1 
                dist_values = [dist_values dist]; %saves all the dist values BEFORE the person hears them/makes a decisions
            end
 
-           soundwav = cos(timeT*2*pi*440); %plays the baseline - doesn't change
+           soundwav = cos(time*2*pi*440); %plays the baseline - doesn't change
         else % makes the comparision stimuli
             if order == 2
                 dist_values = [dist_values dist];
             end   %saves all the dist values BEFORE the person hears them/makes a decisions
 
             newf = 440*2^(dist/12);
-            soundwav = cos(timeT*2*pi*newf);
+            soundwav = cos(time*2*pi*newf);
         end
 
        % Window the beginning and end of the stimuli slightly to avoid clicks
-        taper = tukeywin(length(timeT),0.05);
+        taper = tukeywin(timeLen, 0.05);
         soundwav = soundwav .* taper';
 
-        if Trial==1 && Phase==1
-            disp('Hit return when ready to start') % what the users sees on the screen
-            pause
-        end
-        if Trial~=1 && Phase==1
+        if Phase == 1
             disp(['Hit return to begin next trial'])% what the users sees on the screen
             pause
         end
 
-        sound(.05*soundwav*10^(-6/20),fs); %65 dB on MOTU equipment
+        sound(.05*soundwav*10^(-6/20), fs); %65 dB on MOTU equipment
 
         if Phase == 1
             pause(2) % Play the two sounds in succession (with a short pause between)
@@ -127,7 +127,7 @@ while  reversals < MaxReversals
         if Phase == 2
             fprintf('Same (0) or Different (1)?'); % ask them if they were the same or different
             YourAnswer = getkey; %getkey is a function that finds the value of the next keypress, getkey MUST be in the same folder as this code
-            fprintf('%c\n', YourAnswer) %displays the key that was entered
+            fprintf(' %c\n', YourAnswer) %displays the key that was entered
             
             if YourAnswer == 49 % key press = 1
                 response(Trial) = 1; %the response was 1 (different)
@@ -136,27 +136,25 @@ while  reversals < MaxReversals
             end
 
             % Determine if the user was correct or incorrect
-            
+
             % If it is a catch trial, then isDiff will be 0, and 
             % a response of "Same" (0) will be a match. 
-            
+
             % If it is not a catch trial, isDiff will be 1, and
             % a response of "Different" (1) will be a match.
-            
+
             % In all other cases the trial will not be a match
             match(Trial) = isequal(isDiff,(response(Trial))); 
             
-%             outfile2=fullfile( answer{ 1 } ,['Trial_',num2str(Trial)]);
-%             save = (outfile2);
-          if dist < 0
+            if dist < 0
               dist     = 0.02;
               upstep   = 0.01;
               downstep = upstep / 2.4483; 
-          else
+            else
               if Trial > 10 %reduce step size
                   upstep = 0.1;
                   downstep = upstep / 2.4483; 
-                  if Trial > 20 %reduce step size again (last time)
+                  if Trial > 20 %reduce step size again
                       upstep = 0.05;
                       downstep = upstep / 2.4483;
                       if Trial > 30 %reduce step size again (last time)
@@ -165,7 +163,7 @@ while  reversals < MaxReversals
                       end
                   end
               end
-          end
+            end
 
             % Adaptively adjust dist as required by 2-down, 1-up
             if (Trial > 1) %nothing happens on trial 1, it does not get included into 2 up and 1 down calculations
@@ -207,13 +205,10 @@ while  reversals < MaxReversals
                 reversals = MaxReversals + 1;
             end
         
-    %         outfile2=fullfile( answer{ 1 } ,['Trial_',num2str(Trial)]);
-    %         save( outfile2, 'TrialAnswer')
             ResultMatrix = [dist_values', match', response', ordersave'] ;
-            save( outfile , 'ResultMatrix' , 'revValues' ) ;
+            save(outfile, 'ResultMatrix', 'revValues') ;
         end
     end
-    save( outfile , 'ResultMatrix' , 'revValues', 'ResultMatrixTitle'  ) ;
 end
 
 ans = mean(revValues(end-5:end))
