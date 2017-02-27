@@ -27,8 +27,8 @@ if isempty( answer )
     return
 end
 
-if ~exist( answer{ 1 } , 'dir' )
-    mkdir( answer{ 1 } ) ;
+if ~exist(answer{1}, 'dir')
+    mkdir(answer{1});
 else
     overwrite = inputdlg({'File Exists: Are you sure you want to overwrite?'},'',1,{'no'}); %makes sure you don't write over a file you already have done
     if ~strcmp(overwrite,'yes') & ~strcmp(overwrite,'YES') & ~strcmp(overwrite,'Yes') 
@@ -167,62 +167,57 @@ while  reversals < MaxReversals
               end
           end
 
-        % Adaptively adjust dist as required by 2-down, 1-up
-        if (Trial > 1) %nothing happens on trial 1, it does not get included into 2 up and 1 down calculations
+            % Adaptively adjust dist as required by 2-down, 1-up
+            if (Trial > 1) %nothing happens on trial 1, it does not get included into 2 up and 1 down calculations
+                if (match(Trial)) %this is if match = 1, so they were correct this trial
+                    if (correctInARow == 1) %this means they were correct last trial as well
+                        dist = dist - downstep; %they now have got 2 correct in a row, so move the dist down to make it closer to the reference, aka harder
 
-            if (match(Trial)) %this is if match = 1, so they were correct this trial
-
-                if (correctInARow == 1) %this means they were correct last trial as well
-
-                    dist = dist - downstep; %they now have got 2 correct in a row, so move the dist down to make it closer to the reference, aka harder
-
-                    if (changeDirection == 1)% if it did change direction count a reversal, record the dist value and then note that it already changed directions
-                        reversals = reversals + 1; % counting the reversals
-                        revValues = [revValues dist]; %recording the revValues of the dist that JUST happened 
-                        changeDirection = -1; %nothing that it just changed directions
-                    end;
-                    correctInARow = 0; % reset the # in a row counter after you have changed the dist
+                        if (changeDirection == 1)% if it did change direction count a reversal, record the dist value and then note that it already changed directions
+                            reversals = reversals + 1; % counting the reversals
+                            revValues = [revValues dist]; %recording the revValues of the dist that JUST happened 
+                            changeDirection = -1; %nothing that it just changed directions
+                        end
+                        correctInARow = 0; % reset the # in a row counter after you have changed the dist
+                    else
+                        dist = dist; % no change in dist
+                        % This is the first correct in a row.  No change in dist
+                        correctInARow = 1; % mark our # in a row counter
+                    end
                 else
-                    dist = dist; % no change in dist
-                    % This is the first correct in a row.  No change in dist
-                    correctInARow = 1; % mark our # in a row counter
-                end;
-            else
-                % The subject got the last trial wrong -> increase delta
-                dist = dist + upstep;
-                if (changeDirection == -1)
-                    % This was a reversal in direction of changes
-                     reversals = reversals + 1;
+                    % The subject got the last trial wrong -> increase delta
+                    dist = dist + upstep;
+                    if (changeDirection == -1)
+                        % This was a reversal in direction of changes
+                        reversals = reversals + 1;
                         revValues = [revValues dist];
                         changeDirection = 1;
-                end;
-                correctInARow = 0;
-            end;
-        else
-            % This was the first trial of the experiments - do nothing
-            dist(Trial) = dist(Trial);
-        end;
+                    end
+                    correctInARow = 0;
+                end
+            else
+                % This was the first trial of the experiments - do nothing
+                dist(Trial) = dist(Trial);
+            end
 
-          if dist < 0
-                     dist = .02;
-                     %disp('it was negative!') 
-        end
-          if Trial > 84
-                    reversals = MaxReversals+1;
-          end
-
-    %        outfile2=fullfile( answer{ 1 } ,['Trial_',num2str(Trial)]);
+            if dist < 0
+                dist = .02; %disp('it was negative!')
+            end
+            if Trial > 84
+                reversals = MaxReversals + 1;
+            end
+        
+    %         outfile2=fullfile( answer{ 1 } ,['Trial_',num2str(Trial)]);
     %         save( outfile2, 'TrialAnswer')
-
-     ResultMatrix = [dist_values', match', response', ordersave'] ;  
-     save( outfile , 'ResultMatrix' , 'revValues' ) ;
+            ResultMatrix = [dist_values', match', response', ordersave'] ;
+            save( outfile , 'ResultMatrix' , 'revValues' ) ;
         end
-    
     end
-    
-  % save( outfile , 'ResultMatrix' , 'revValues', 'ResultMatrixTitle'  ) ; 
+    save( outfile , 'ResultMatrix' , 'revValues', 'ResultMatrixTitle'  ) ;
 end
-ans=mean(revValues(end-5:end))
+
+ans = mean(revValues(end-5:end))
+end
 %FullFile =  [ResultMatrixTitle; num2cell(ResultMatrix)];
 %save( outfile , 'ResultMatrix' , 'revValues', 'ResultMatrixTitle', 'FullFile'  ) ; 
 %ans=mean(revValues(end-6:end));
