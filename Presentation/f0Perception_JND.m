@@ -48,7 +48,8 @@ soundwav_Def = cos(2*pi*freqDef*time);%Default tone signal
 
 dist     = .4; %sets initial distortion value. This means that on trial 1, the non-reference phase will be 50%  different than the refernce phase
 upstep   = .2; %initial setting that dist will go up by if user answers 'same'. These values change later based on trial number
-downstep = upstep / 2.4483; %initial setting that dist will go down by if user answers 'different'. These values change later based on trial number
+udRatio  = 2.4483;
+downstep = upstep/udRatio; %initial setting that dist will go down by if user answers 'different'. These values change later based on trial number
 
 MaxReversals  = 18;  % number of answer switches the user must make before the game ends
 correctInARow = 0;   % Tracks # of consecutively correct trials (regardless of catch or different)
@@ -149,21 +150,17 @@ while reversals < MaxReversals
             if dist < 0
               dist     = 0.02;
               upstep   = 0.01;
-              downstep = upstep / 2.4483; 
             else
               if Trial > 10 %reduce step size
                   upstep = 0.1;
-                  downstep = upstep / 2.4483; 
-                  if Trial > 20 %reduce step size again
-                      upstep = 0.05;
-                      downstep = upstep / 2.4483;
-                      if Trial > 30 %reduce step size again (last time)
-                          upstep = 0.02;
-                          downstep = upstep / 2.4483;
-                      end
-                  end
+              elseif Trial > 20 %reduce step size again
+                  upstep = 0.05;
+              elseif Trial > 30 %reduce step size again (last time)
+                  upstep = 0.02;
               end
             end
+            
+            downstep = upstep/udRatio;
 
             % Adaptively adjust dist as required by 2-down, 1-up
             if (Trial > 1) %nothing happens on trial 1, it does not get included into 2 up and 1 down calculations
