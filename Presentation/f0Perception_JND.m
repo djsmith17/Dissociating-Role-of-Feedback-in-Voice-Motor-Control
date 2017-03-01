@@ -48,7 +48,7 @@ soundwav_Def = cos(2*pi*freqDef*time);%Default tone signal
 
 dist     = .4; %sets initial distortion value. This means that on trial 1, the non-reference phase will be 50%  different than the refernce phase
 upstep   = .2; %initial setting that dist will go up by if user answers 'same'. These values change later based on trial number
-udRatio  = 2.4483;
+udRatio  = 2.4483; %MacMillan 2004
 downstep = upstep/udRatio; %initial setting that dist will go down by if user answers 'different'. These values change later based on trial number
 
 MaxReversals  = 18;  % number of answer switches the user must make before the game ends
@@ -78,11 +78,11 @@ while reversals < MaxReversals
     
     % Create the comparison stimulus
     if RandomCatchTrial < 8
-        isDiff =1; 
+        isDiff = 1; 
         n = 2; 
         order = randperm(n, 1); %different trials, order 1 reference is first, order 2 reference is second 
     else
-        isDiff=0;
+        isDiff = 0;
         % In ~1/2 trials the comparison stimulus is same as reference
         order = 3; 
         dist2 = 9999 ; %marks the dist value for the same trials
@@ -100,7 +100,7 @@ while reversals < MaxReversals
                dist_values = [dist_values dist]; %saves all the dist values BEFORE the person hears them/makes a decisions
            end
 
-           soundwav = cos(time*2*pi*440); %plays the baseline - doesn't change
+           soundwav = soundwav_Def; %plays the baseline - doesn't change
         else % makes the comparision stimuli
             if order == 2
                 dist_values = [dist_values dist];
