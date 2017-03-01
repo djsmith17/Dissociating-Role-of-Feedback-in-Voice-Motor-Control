@@ -57,6 +57,7 @@ correctInARow = 0;   % Tracks # of consecutively correct trials (regardless of c
 
 reversals = 0; % counter for number of changes (reversals) over time
 Trial     = 0; % counter for each trial 
+randdiff  = 8; %
 
 changeDirection = 1; % Placeholder to remember "direction" of delta changes to count reversals
 
@@ -73,8 +74,8 @@ pause
 % Loop until we get the necessary # of reversals
 while reversals < MaxReversals 
     Trial = Trial + 1; % advance the trial every time we go through this loop
-    randdiff = 8;
-    RandomCatchTrial = randperm(randdiff,1); % 1/8 if the time it is the same and 50% it is different
+    
+    RandomCatchTrial = randperm(randdiff, 1); % 1/8 if the time it is the same and 50% it is different
     
     % Create the comparison stimulus
     if RandomCatchTrial < 8

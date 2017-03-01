@@ -63,7 +63,7 @@ for ii = 1:expParam.numTrial
     rmsdB = 20*log10(rms/refSPL);
     rmsMean = mean(rmsdB);
     
-    allrmsMean = [allrmsMean, rmsMean]; 
+    allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
 
 finalrmsMean = mean(allrmsMean);
