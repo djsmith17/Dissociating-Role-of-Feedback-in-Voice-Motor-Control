@@ -144,7 +144,7 @@ for ii = 1:expParam.numTrial
     set(H2,'Visible','off'); 
     
     %Save the data
-    data = svData(expParam, dirs, s, p, audStimP, dataDAQ);
+    data = svData(expParam, dirs, p, audStimP, dataDAQ);
 
     %Grab smooth RMS trace from 'data' structure, compare against baseline
     [color, newPos] = updateVisualFeed(anMsr, data.rms(:,1));
@@ -176,7 +176,7 @@ ylabel('Voltage');
 legend('Analog Output 0');
 end
 
-function data = svData(expParam, dirs, s, p, audStimP, dataDAQ)
+function data = svData(expParam, dirs, p, audStimP, dataDAQ)
 %Package all the data into something that is useful for analysis
 
 try
@@ -184,7 +184,6 @@ try
     
     data.expParam    = expParam; %Experimental Parameters
     data.dirs        = dirs;     %Directories
-    data.s           = s;        %NIDAQ Object
     data.p           = p;        %Audapter Parameters
     data.audStimP    = audStimP; %auditory stimulus Parameters
     data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
