@@ -76,8 +76,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-[expParam.sigs, expParam.trigs, expParam.trigsT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
-expParam.trigs = expParam.trigs*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
+[expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
 %Create a negative voltage signal for the force sensors
 negVolSrc = zeros(s.Rate*expParam.trialLen, 1) - 1;
@@ -114,7 +113,7 @@ for ii = 1:expParam.numTrial
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from 
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigsT(ii,:));
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1));
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);

@@ -25,8 +25,8 @@ end
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
-expParam.run           = 'Run2';
+expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.run           = 'Run1';
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
@@ -74,8 +74,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-[expParam.sigs, expParam.trigs, expParam.trigsT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
-expParam.trigs = expParam.trigs*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
+[expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
 %Create a negative voltage signal for the force sensors
 negVolSrc = zeros(s.Rate*expParam.trialLen, 1) - 1;

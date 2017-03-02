@@ -1,9 +1,11 @@
-function audStimP = setPSRLevels(route, tStep, ost, pcf, trialType, spans)
+function audStimP = setPSRLevels(route, tStep, ost, pcf, trialType, trigs)
 %This function will take care of the ost and the pcf function for a custom
-%pitch-shift reflex experiment based off a previously recorded 'route' the
-%participant's pitch takes when they're larynx is physically perturbed.
+%pitch-shift reflex experiment recorded in Audapter. The custom 
+%perturbation shape and magnitude is based off a previously recorded 
+%'route' the participant's pitch takes when they're larynx is physically 
+%perturbed.
 
-audStimP = organizeStimulus(route, tStep, trialType, spans);
+audStimP = organizeStimulus(route, tStep, trialType, trigs);
 
 OST_tline = writeOSTportions(audStimP);
 PCF_tline = writePCFportions(audStimP);
@@ -14,7 +16,7 @@ svPSRLevels(pcf, PCF_tline);
 % drawStimulus(audStimP)
 end
 
-function audStimP = organizeStimulus(route, tStep, trialType, spans)
+function audStimP = organizeStimulus(route, tStep, trialType, trigs)
 
 routeStps = length(route);
 if trialType == 0;
@@ -29,8 +31,8 @@ audStimP.tStepP    = round(tStep*audStimP.AudFs); %Length of time-step (Points)
 audStimP.routeStps = routeStps;            %How many time-steps
 audStimP.trialType = trialType;            %0 for control %1 for Catch
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs; %Trial Length (Points)
-audStimP.StTime    = spans(1);                               %Seconds
-audStimP.SpTime    = spans(2);                               %Seconds
+audStimP.StTime    = trigs(1);                               %Seconds
+audStimP.SpTime    = trigs(2);                               %Seconds
 audStimP.StPoint   = round(audStimP.StTime*audStimP.AudFs);  %Points
 audStimP.SpPoint   = round(audStimP.SpTime*audStimP.AudFs);  %Points
 audStimP.lenPerT   = audStimP.SpTime - audStimP.StTime;      %Seconds

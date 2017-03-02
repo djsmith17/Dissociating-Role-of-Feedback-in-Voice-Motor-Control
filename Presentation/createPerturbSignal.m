@@ -1,4 +1,4 @@
-function [sigs, spans, spansT] = createPerturbSignal(trialLen, numTrial, sRateStim, trialType, expType)
+function [sigs, trigs] = createPerturbSignal(trialLen, numTrial, sRateQ, sRateA, trialType, expType)
 %This function creates the digital signal for the NIDAQ needed to activate 
 %the pertrubatron at each trial. It also keeps track of the time points 
 %when the perturbation should activate and deactivate. This function 
@@ -12,13 +12,13 @@ function [sigs, spans, spansT] = createPerturbSignal(trialLen, numTrial, sRateSt
 
 %trialLen:  The length of each trial in seconds
 %numTrial:  The number of trials
-%sRateStim: Sampling Rate of device creating the stimulis (likely NIDAQ)
+%sRateQ:    Sampling Rate of device creating the stimulis (likely NIDAQ)
+%sRateA:    Sampling Rate of program creating auditory cues (Audpater)
 %trialType: Vector (length = numTrial) of order of trials (control/catch)
 %expType:   The string of the experiment that is being performed.
 
 %sigs:  Per-trial digital signal outputted by NIDAQ
-%spans: Per-trial pertrubation start and stop points to be aligned with mic data
-%spansT: Per-trial pertrubation start and stop times to be aligned with mic data
+%trigs: Per-trial pertrubation start and stop points to be aligned with mic data
 
 expChk{1} = 'Somatosensory Perturbation_Perceptual';
 expChk{2} = 'Auditory Perturbation_Perceptual';
@@ -26,18 +26,17 @@ expChk{2} = 'Auditory Perturbation_Perceptual';
 minSt = 1.0; maxSt = 1.5;   %Hardset (1.0-1.5 seconds)
 minLen = 1.0; maxLen = 1.5; %Hardset (1.0-1.5 seconds) 
 
-trialLenP = trialLen*sRateStim; %Convert from seconds->points for stimulus
+trialLenP = trialLen*sRateQ; %Convert from seconds->points for stimulus
 
 sigs    = zeros(trialLenP, numTrial);
-spans   = zeros(numTrial,2);
-spansT = zeros(numTrial,2);
+trigs   = zeros(numTrial,2,3);
 for i = 1:numTrial
     St_t   = (minSt + (maxSt-minSt)*rand);    %Seconds
     pLen_t = (minLen + (maxLen-minLen)*rand); %Seconds
     Sp_t   = St_t + pLen_t;                   %Seconds
     
-    St_p   = round(sRateStim*St_t);   %Points
-    pLen_p = round(sRateStim*pLen_t); %Points  
+    St_p   = round(sRateQ*St_t);   %Points
+    pLen_p = round(sRateQ*pLen_t); %Points  
     Sp_p   = St_p + pLen_p;        %Points
     span = St_p:Sp_p; 
 
@@ -47,7 +46,8 @@ for i = 1:numTrial
     end
     
     sigs(:,i)    = sig;
-    spans(i,:)   = [St_p Sp_p]; %Points
-    spansT(i,:)  = [St_t Sp_t]; %Seconds
+    trigs(i,:,1) = [St_t Sp_t]; %Trigger in Seconds
+    trigs(i,:,2) = [St_p Sp_p]; %Trigger in Points (NIDAQ)
+    trigs(i,:,3) = [St_p Sp_p]*(sRateA/sRateQ); %Trigger in Points (Audapter)
 end
 end
