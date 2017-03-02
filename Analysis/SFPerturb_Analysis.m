@@ -13,14 +13,14 @@ PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
 PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
 PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
-PltTgl.InterTrial_Force  = 1;
-PltTgl.InterRun_Force    = 1;
+PltTgl.InterTrial_Force  = 0;
+PltTgl.InterRun_Force    = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
 AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'Pilot7'}; %List of multiple participants
+AVar.participants = {'null'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
 AVar.runsInd      = [1 2];
@@ -84,11 +84,23 @@ for i = AVar.partiInd
             Mraw       = data.signalIn;  % Microphone
             Hraw       = data.signalOut; % Headphones
             fs         = data.params.sRate;          % Sampling Rate
-            sRate      = 8000;        %from NIDAQ needs to be built in
+            if isfield(data.expParam, 'sRateQ')
+                sRateQ = data.expParam.sRateQ;
+            else
+                sRateQ = 8000; %from NIDAQ
+            end
+            
+            if isfield(data.expParam, 'spans')
+                trigsT      = data.expParam.spansT;  %Pregenerated start and stop times for time-alignment with audio data
+                trigsA      = data.expParam.spans;   %Pregenerated start and stop points for time-alignment with audio data
+                trigsQ      = trigsA*sRateQ/fs;      %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
+            elseif isfield(data.expParam, 'trigs')
+                trigsT      = data.expParam.trigs(:,:,1);  %Pregenerated start and stop times for time-alignment with audio data
+                trigsA      = data.expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
+                trigsQ      = data.expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
+            end
+            
             trialType  = data.expParam.trialType;    % List of trial Order
-            span       = data.expParam.spans;   %Pregenerated start and stop points for time-alignment with audio data
-            spanT      = data.expParam.spansT; %Pregenerated start and stop times for time-alignment with audio data
-            spanQ      = span*sRate/fs;
             mask       = data.expParam.masking;
             DAQin      = data.DAQin;
             audProcDel = data.params.frameLen*4;
@@ -112,23 +124,23 @@ for i = AVar.partiInd
             AVar.anaInds(:,2) = AVar.EvalSteps + AVar.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
             AVar.anaTimeVec   = mean(AVar.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
             
-            AVar.preEveLenQ   = round(AVar.preEveLen*sRate);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
-            AVar.posEveLenQ   = round(AVar.posEveLen*sRate);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
+            AVar.preEveLenQ   = round(AVar.preEveLen*sRateQ);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
+            AVar.posEveLenQ   = round(AVar.posEveLen*sRateQ);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
             AVar.totEveLenQ   = AVar.preEveLenQ + AVar.posEveLenQ; %Total length (points_NIDAQ) of observation time
-            AVar.QTimeVec     = (0:1:(AVar.totEveLenQ-1))/sRate; %Time points_NIDAQ roughly center of start and stop points of analysis
+            AVar.QTimeVec     = (0:1:(AVar.totEveLenQ-1))/sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
 
 %             fprintf('Analysis will be performed over %2.0f bins of length %2.0f points with a %2.0f%% overlap\n', AVar.nEvalSteps, AVar.anaWinLenP, 100*AVar.pOverlap)
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
-            [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, fs, audProcDel, spanT(k,1));           
+            [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, fs, audProcDel, trigsT(k,1));           
                        
             if saveT == 0 %Don't save the trial :(
                 fprintf('Run %d Trial %d not saved. %s\n', j, k, saveTmsg)
             elseif saveT == 1 %Save the Trial!
                 
                 %Start of Pert
-                Trialf0Raw_St = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar);
+                Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, span(k,1), fs, AVar); %When span is fixed make this 2!!
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar); %When experiment is fixed make this 2!!
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0Raw_St(prePertInd, 1)); % Baseline fundamental frequency of mic data
@@ -143,15 +155,15 @@ for i = AVar.partiInd
                 
                 res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);    %Baseline fundamental frequencies
                                 
-                TrialForce = forceSensorAnalysis(DAQin, spanQ(k,1), sRate, AVar); %At the moment only voltage
+                TrialForce = forceSensorAnalysis(DAQin, trigsQ(k,1), sRateQ, AVar); %At the moment only voltage
                 res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
-                    drawDAQsignal(sRate, spanQ(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
+                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
                 end
                 
                 if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial
-                    drawIntralTrialT(Mraw, Hraw, fs, span(k,:))
+                    drawIntralTrialT(Mraw, Hraw, fs, trigsA(k,:))
                 end
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
