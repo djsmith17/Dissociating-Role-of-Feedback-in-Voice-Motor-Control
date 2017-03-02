@@ -6,7 +6,7 @@ function [sigs, spans, spansT] = createPerturbSignal(trialLen, numTrial, sRateSt
 %'spans' is then converted to the Audapter sampling rate (sRate) in the 
 %main function.
 
-%The perturbation starts at a semi-random time between 1.7s and 2.1s after 
+%The perturbation starts at a semi-random time between 1.0s and 1.5s after 
 %phonation. The pertrubation stops at a semi-random time between 
 %1.0 and 1.5s after the start of pertrubation.
 
@@ -23,7 +23,7 @@ function [sigs, spans, spansT] = createPerturbSignal(trialLen, numTrial, sRateSt
 expChk{1} = 'Somatosensory Perturbation_Perceptual';
 expChk{2} = 'Auditory Perturbation_Perceptual';
 
-minSt = 1.7; maxSt = 2.1;   %Hardset (1.7-2.1 seconds)
+minSt = 1.0; maxSt = 1.5;   %Hardset (1.0-1.5 seconds)
 minLen = 1.0; maxLen = 1.5; %Hardset (1.0-1.5 seconds) 
 
 trialLenP = trialLen*sRateStim; %Convert from seconds->points for stimulus
