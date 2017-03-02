@@ -27,8 +27,8 @@ end
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
-expParam.run           = 'Run4';
+expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.run           = 'Run1';
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
@@ -66,6 +66,7 @@ p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
 s = initNIDAQ;
+expParam.sRateQ = s.Rate; %save the sampling rate of the NIDAQ
 
 %Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
@@ -75,8 +76,8 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-[expParam.sigs, expParam.spans, expParam.spansT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
-expParam.spans = expParam.spans*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
+[expParam.sigs, expParam.trigs, expParam.trigsT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
+expParam.trigs = expParam.trigs*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
 
 %Create a negative voltage signal for the force sensors
 negVolSrc = zeros(s.Rate*expParam.trialLen, 1) - 1;
@@ -113,7 +114,7 @@ for ii = 1:expParam.numTrial
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from 
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.spansT(ii,:));
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigsT(ii,:));
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);

@@ -64,6 +64,7 @@ p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
 s = initNIDAQ;
+expParam.sRateQ = s.Rate; %save the sampling rate of the NIDAQ
 
 %Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
@@ -73,8 +74,8 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-[expParam.sigs, expParam.spans, expParam.spansT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
-expParam.spans = expParam.spans*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
+[expParam.sigs, expParam.trigs, expParam.trigsT] = createPerturbSignal(expParam.trialLen, expParam.numTrial, s.Rate, expParam.trialType, expParam.expType);
+expParam.trigs = expParam.trigs*(expParam.sRateAnal / s.Rate); %Converting from NIDAQ fs to Audapter analysis fs 
 
 %Create a negative voltage signal for the force sensors
 negVolSrc = zeros(s.Rate*expParam.trialLen, 1) - 1;
