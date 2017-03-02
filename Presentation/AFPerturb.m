@@ -28,7 +28,7 @@ end
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
-expParam.run           = 'Run1';
+expParam.run           = 'Run5';
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
@@ -37,6 +37,7 @@ expParam.gender        = 'female';
 expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
+expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 
 dirs = sfDirs(expParam.project, expParam.expType);
 
@@ -113,7 +114,7 @@ for ii = 1:expParam.numTrial
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from 
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1));
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
