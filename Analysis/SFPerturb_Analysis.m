@@ -20,7 +20,7 @@ AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
 AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'null'}; %List of multiple participants
+AVar.participants = {'Pilot8'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
 AVar.runsInd      = [1 2];
@@ -49,7 +49,7 @@ AVar.posEveLenQ = []; %Amount of points of observation period after event (onset
 AVar.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
 AVar.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
 
-AVar.svInflaRespRoute = 0;
+AVar.svInflaRespRoute = 1;
 
 for i = AVar.partiInd 
     allRunsf0_St   = [];
@@ -140,7 +140,7 @@ for i = AVar.partiInd
                 %Start of Pert
                 Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar); %When experiment is fixed make this 2!!
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, AVar); %When experiment is fixed make this 2!!
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0Raw_St(prePertInd, 1)); % Baseline fundamental frequency of mic data
@@ -167,7 +167,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
-                    limits = [0 AVar.totEveLen -80 60];
+                    limits = [0 AVar.totEveLen -240 180];
                     drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
                 end
             end
@@ -187,12 +187,12 @@ for i = AVar.partiInd
         res.allRunsForce_Sp = cat(3, res.allRunsForce_Sp, res.allTrialForce);
            
         if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
-            limits = [0 AVar.totEveLen -80 60];
+            limits = [0 AVar.totEveLen -240 180];
             drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
         
         if PltTgl.InterTrial_AudRes == 1  %Average f0 response trace to auditory pert trials of a run 
-            limits = [0 AVar.totEveLen -80 60];
+            limits = [0 AVar.totEveLen -240 180];
             drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
         
@@ -228,12 +228,12 @@ for i = AVar.partiInd
         end
 
         if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
-            limits = [0 AVar.totEveLen -80 60];
+            limits = [0 AVar.totEveLen -240 180];
             drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
         
         if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
-            limits = [0 AVar.totEveLen -80 60];
+            limits = [0 AVar.totEveLen -240 180];
             drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
         end
         
@@ -515,7 +515,7 @@ if show_plt
     title({'Average Acoustic Response to Inflation'; [AVar.curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']},...
                          'FontSize', 18,...
                          'FontWeight', 'bold')
-    axis([0 0.2 -50 0]); box off
+    axis([0 0.5 -240 0]); box off
     
     set(gca, 'FontSize', 16,...
              'FontWeight','bold');

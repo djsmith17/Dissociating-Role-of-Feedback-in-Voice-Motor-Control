@@ -12,7 +12,7 @@ function [allrmsMean, finalrmsMean] = measureVoiceAmplitude()
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
 expParam.numTrial   = 3;
-expParam.gender     = 'female';
+expParam.gender     = 'male';
 expParam.masking    = 0;
 expParam.trialLen   = 4; %Seconds
 

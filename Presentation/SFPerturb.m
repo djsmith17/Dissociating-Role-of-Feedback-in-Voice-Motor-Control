@@ -25,13 +25,13 @@ end
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'null'; %Subject#, Pilot#, null
-expParam.run           = 'Run1';
+expParam.subject       = 'Pilot8'; %Subject#, Pilot#, null
+expParam.run           = 'Run2';
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
 expParam.perCatch      = 0.25;
-expParam.gender        = 'female';
+expParam.gender        = 'male';
 expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
