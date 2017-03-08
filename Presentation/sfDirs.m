@@ -20,8 +20,11 @@ host     = deblank(host);
 %% Set appropriate directories for code, data input and output, based on system hostname.
 switch host
     case 'tongue';
-        dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, expType);         % Dir w/ raw datafiles
-        dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
+%         dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, expType);         % Dir w/ raw datafiles
+%         dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
+        dirs.Data           = fullfile('W:\Experiments\', project);         % Dir w/ raw datafiles
+        dirs.InflaRespFile  = fullfile('W:\Experiments\', project);
+       
         dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
         dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
