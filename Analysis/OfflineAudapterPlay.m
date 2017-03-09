@@ -95,13 +95,6 @@ load(fullfile(dirs.SavFileDir, fnames{expParam.offLineTrial}));
 Mraw  = data.signalIn; 
 fs    = data.params.sRate;
 
-%Resample at 48000Hz
-Mraw        = resample(Mraw, data.params.sr * data.params.downFact, fs);
-%Split the signal into frames
-Mraw_frames = makecell(Mraw, data.params.frameLen * data.params.downFact);
-
-% RMSTHRES = data.rms(svEn(1),1);
-
 for ii = 1:expParam.numTrial
     expParam.curTrial   = ['Trial' num2str(ii)];
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
@@ -111,6 +104,11 @@ for ii = 1:expParam.numTrial
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
+    
+    %Resample at 48000Hz
+    Mraw_reSamp = resample(Mraw, data.params.sr * data.params.downFact, fs);
+    %Split the signal into frames
+    Mraw_frames = makecell(Mraw_reSamp, data.params.frameLen * data.params.downFact);
     
     fprintf('Trial %d\n', ii)
     AudapterIO('init', p);
@@ -150,7 +148,7 @@ for ii = 1:expParam.numTrial
 %         visSignals(data_off, fs, OST_MULT, dirs.saveResultsDir)
 %     end
 
-    if expParam.bPlay; soundsc(data_off.signalOut, fs); end
+    if expParam.bPlay; soundsc(data_off.signalIn, data_off.expParam.sRateAnal); end
     
     pause(expParam.resPause)
 end
