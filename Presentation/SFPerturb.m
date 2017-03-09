@@ -26,7 +26,7 @@ end
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
-expParam.run           = 'Run1';
+expParam.run           = 'Run2';
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
@@ -36,7 +36,7 @@ expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 
-dirs = sfDirs(expParam.project, expParam.expType);
+dirs = sfDirs(expParam.project);
 
 dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
 dirs.saveWaveDir = fullfile(dirs.saveFileDir, 'wavFiles');

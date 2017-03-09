@@ -1,4 +1,4 @@
-function dirs = sfDirs(project, expType)
+function dirs = sfDirs(project)
 % function dirs = fsDirs(project)
 %
 % Setting the path to code, data in and out, and other toolboxes.
@@ -20,10 +20,8 @@ host     = deblank(host);
 %% Set appropriate directories for code, data input and output, based on system hostname.
 switch host
     case 'tongue';
-%         dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, expType);         % Dir w/ raw datafiles
-%         dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
-        dirs.Data           = fullfile('W:\Experiments\', project);         % Dir w/ raw datafiles
-        dirs.InflaRespFile  = fullfile('W:\Experiments\', project);
+        dirs.Data           = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles
+        dirs.SavedData      = fullfile('W:\Experiments\', project);
        
         dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
@@ -32,9 +30,11 @@ switch host
         dirs.saveFileDir    = '';                                                                           % Used to name figures. Gives the type of analysis done, channels, amongs others
         dirs.saveWaveDir    = '';
         dirs.saveResultsDir = '';
+        dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
     case 'DanteRig'
-        dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, expType);         % Dir w/ raw datafiles  
+        dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project);         % Dir w/ raw datafiles  
+        
         dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
         dirs.Prelim         = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code

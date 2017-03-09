@@ -27,7 +27,7 @@ end
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = 'Pilot8'; %Subject#, Pilot#, null
+expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run4';
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
@@ -39,7 +39,7 @@ expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 
-dirs = sfDirs(expParam.project, expParam.expType);
+dirs = sfDirs(expParam.project);
 
 dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
 dirs.saveWaveDir = fullfile(dirs.saveFileDir, 'wavFiles');
@@ -85,7 +85,7 @@ negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
-dirs.InflaRespFile = fullfile(dirs.InflaRespFile, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
+dirs.InflaRespFile = fullfile(dirs.SavedData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
     load(dirs.InflaRespFile);
 catch me

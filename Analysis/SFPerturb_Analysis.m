@@ -60,7 +60,7 @@ for i = AVar.partiInd
     for j = AVar.runsInd
         AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
         
-        dirs.saveFileDir    = fullfile(dirs.Data, AVar.participants{i}, AVar.runs{j}); %Where to find data
+        dirs.saveFileDir    = fullfile(dirs.SavedData, AVar.participants{i}, AVar.runs{j}); %Where to find data
         dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, AVar.runs{j}); %Where to save results
  
         if exist(dirs.saveResultsDir, 'dir') == 0
@@ -223,7 +223,7 @@ for i = AVar.partiInd
         if AVar.svInflaRespRoute == 1
             InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, 1, dirs.saveResultsDir);
             tStep = AVar.tStep;
-            dirs.InflaRespFile = fullfile(dirs.InflaRespFile, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
+            dirs.InflaRespFile = fullfile(dirs.SavedData, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
         end
 
