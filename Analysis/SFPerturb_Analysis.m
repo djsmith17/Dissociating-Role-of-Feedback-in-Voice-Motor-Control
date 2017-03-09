@@ -26,7 +26,7 @@ AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'};
 AVar.runsInd      = [1 2];
 AVar.curRecording = [];
 
-dirs = sfDirs(AVar.project, AVar.curExp);
+dirs = sfDirs(AVar.project);
 
 AVar.anaWinLen   = 0.05; %analysis window length in seconds
 AVar.anaWinLenP  = [];    %analysis window length in points

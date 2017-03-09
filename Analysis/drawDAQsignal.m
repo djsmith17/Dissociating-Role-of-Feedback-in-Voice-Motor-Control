@@ -1,7 +1,7 @@
-function drawDAQsignal(sRate, spans, DAQin, curRecording, saveResultsDir)
+function drawDAQsignal(sRate, trigs, DAQin, curRecording, saveResultsDir)
 %Good for seeing the whole signal
 
-[r, c] = size(spans);
+[r, c] = size(trigs);
 pts = length(DAQin);
 time = 0:1/sRate:(pts-1)/sRate;
 
@@ -17,7 +17,7 @@ for ii = 1:r
     ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
     
     perturb = zeros(1, pts);
-    perturb(spans(ii,1):spans(ii,2)) = -0.5;
+    perturb(trigs(ii,1):trigs(ii,2)) = -0.5;
     
     axes(ha(1))
     plot(time, perturb, 'k')

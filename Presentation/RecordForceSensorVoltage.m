@@ -1,103 +1,73 @@
-function RecordForceSensorVoltage(n)
-close all; 
+function RecordForceSensorVoltage(varargin)
+%A quick test of the force sensors before running the actual experiment.
+%This makes sure that the sensors are working they should be and we can
+%continue with the experiment. Eventually this will also include the
+%pressure sensor. 
 
-pltFolder = 'C:\Users\djsmith\Documents\Pilot Data\Force Sensor Calibration\';
-method = 'null';
+%This script calls the following (4) functions:
+%sfDirs.m
+%initNIDAQ.m
+%createPerturbSignal.m
+%drawDAQsignal.m
+
+if isempty(varargin)
+    numTrial = 4; 
+else
+    numTrial = varargin{1};
+end
+
+expParam.project       = 'Calibration_Force Sensor';
+expParam.expType       = 'Somatosensory Perturbation_Perceptual';
+expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.numTrial      = numTrial; %Experimental trials = 40
+expParam.trialLen      = 4; %Seconds
+
+dirs = sfDirs(expParam.project);
+
+dirs.saveFileDir    = fullfile(dirs.Data, expParam.subject);
+dirs.saveResultsDir = fullfile(dirs.Data, expParam.subject); %Where to save results 
+
+if exist(dirs.saveFileDir, 'dir') == 0
+    mkdir(dirs.saveFileDir)
+end
+if exist(dirs.saveResultsDir, 'dir') == 0
+    mkdir(dirs.saveFileDir)
+end
+
+expParam.sRate       = 48000;
+expParam.downFact    = 3;
+expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 
 s = initNIDAQ;
+expParam.sRateQ = s.Rate;
 
-numTrial    = n;
-trialLen    = 4; %Seconds
-trialLenPts = trialLen*s.Rate;
-pauseLen    = 0;
+expParam.trialType = ones(expParam.numTrial,1);
 
-negVolSrc = zeros(s.Rate*trialLen, 1) - 1;
+[expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+
+negVolSrc = zeros(expParam.sRateQ*expParam.trialLen, 1) - 1;
 negVolSrc(1) = 0; negVolSrc(end) = 0;
 
-trialType = ones(numTrial,1);
+expParam.resPause = 1;
 
-[sigs, spans] = createPerturbSignal(trialLen, numTrial, 8000, 16000, trialType, 1);
-
-svData = [];
-for ii = 1:numTrial
-    NIDAQsig = [sigs(:,ii) negVolSrc];
+DAQin = [];
+for ii = 1:expParam.numTrial
+    NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
     queueOutputData(s, NIDAQsig);
     fprintf('Running Trial %d\n', ii)
     [data_DAQ, time] = s.startForeground;
     
-    svData = cat(3, svData, data_DAQ);
+    DAQin = cat(3, DAQin, data_DAQ);
     
-    pause(pauseLen)      
+    pause(expParam.resPause)      
 end
 
-plot_data_DAQ(s, spans, svData, method, pltFolder)
+drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,2), DAQin, expParam.subject, dirs.saveResultsDir)
 
-ForceSensorData.pltFolder   = pltFolder;
-ForceSensorData.method      = method;
-ForceSensorData.sRate       = s.Rate;
-ForceSensorData.numTrial    = numTrial;
-ForceSensorData.trialLen    = trialLen;
-ForceSensorData.trialLenPts = trialLenPts;
-ForceSensorData.pauseLen    = pauseLen;
-ForceSensorData.trialType   = trialType;
-ForceSensorData.sigs        = sigs;
-ForceSensorData.spans       = spans;
-ForceSensorData.svData      = svData;
+ForceSensorData.expParam    = expParam;
+ForceSensorData.dirs        = dirs;
+ForceSensorData.DAQin       = DAQin;
 
-save([pltFolder method '_ForceSensorData.mat'],'ForceSensorData')
-end
-
-function plot_data_DAQ(sRate, spans, svData, method, pltFolder)
-
-[r, c] = size(spans);
-pts = length(svData);
-time = 0:1/sRate:(pts-1)/sRate;
-
-plotpos = [500 500];
-plotdim = [1000 400];
-
-sv2File = 0;
-
-for ii = 1:r
-    perturb = zeros(1, pts);
-    perturb(spans(ii,1):spans(ii,2)) = -0.5;
-    
-    ForceSensorV(ii) = figure('Color', [1 1 1]);
-    set(ForceSensorV(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-    
-    subplot(1,2,1)
-    plot(time, perturb, 'k')
-    hold on
-    plot(time, svData(:,1,ii), 'b')
-    
-    xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold') 
-    ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
-    title('Collar Sensor', 'FontSize', 10, 'FontWeight', 'bold')
-    axis([0 4 -5 5]); box off
-    
-    subplot(1,2,2)
-    plot(time, perturb, 'k')
-    hold on
-    plot(time, svData(:,2,ii), 'b')
-    
-    xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold')
-    ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
-    title('Neck Sensor', 'FontSize', 10, 'FontWeight', 'bold')
-    axis([0 4 -5 5]); box off
-    
-    suptitle('Voltage Change in Force Sensors due to Balloon Inflation')
-    
-    pltlgd = legend('Perturbation', 'Voltage from Force Sensor');
-    set(pltlgd, 'box', 'off',...
-                'location', 'best');
-   
-    set(gca, 'FontSize', 12,...
-             'FontWeight', 'bold')
-         
-    if sv2File == 1
-        plTitle = [method  '_ForceSensor_Test ' num2str(ii)];     
-        saveFileName = [pltFolder plTitle '.png'];
-        export_fig(saveFileName)
-    end
-end
+dirs.saveFileDir = fullfile(dirs.saveFileDir, [expParam.subject '_SensorData.mat']);
+save(dirs.saveFileDir, 'ForceSensorData')
 end

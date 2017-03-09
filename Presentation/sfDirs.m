@@ -33,9 +33,9 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
     case 'DanteRig'
-        dirs.Data           = fullfile('C:\Users\djsmith\Documents\Pilot Data', project);         % Dir w/ raw datafiles  
+        dirs.Data           = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles  
+        dirs.SavedData      = fullfile('W:\Experiments\', project);
         
-        dirs.InflaRespFile  = fullfile('C:\Users\djsmith\Documents\Pilot Data', project, 'Somatosensory Perturbation_Perceptual');
         dirs.Prelim         = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
         dirs.Results        = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
@@ -43,6 +43,7 @@ switch host
         dirs.saveFileDir    = '';                                                                           % Used to name figures. Gives the type of analysis done, channels, amongs others
         dirs.saveWaveDir    = '';
         dirs.saveResultsDir = '';
+        dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';  
     otherwise
 end
