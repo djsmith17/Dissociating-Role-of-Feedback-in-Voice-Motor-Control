@@ -16,18 +16,18 @@ expParam.numTrial      = 4; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
 expParam.perCatch      = 1.00;
-expParam.gender        = 'male';
+expParam.gender        = 'female';
 expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
 expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
-expParam.bPlay         = 1;
+expParam.bPlay         = 0;
 expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.offLineTrial  = 37;
 
 dirs = sfDirs(expParam.project);
 
-dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline');
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
 dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
@@ -158,10 +158,10 @@ try
     data.p           = p;        %Audapter Parameters
     data.audStimP    = audStimP; %auditory stimulus Parameters
     data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
-    save(fullfile(dirs.saveFileDir, [expParam.curSubCond dirs.saveFileSuffix]), 'data')
+    save(fullfile(dirs.RecFileDir, [expParam.curSubCond dirs.saveFileSuffix]), 'data')
 
-    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
-    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
 catch
     disp('Audapter decided not to show up today')
     data = [];
