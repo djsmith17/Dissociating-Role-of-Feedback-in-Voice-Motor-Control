@@ -10,8 +10,8 @@ PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
-PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
+PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
 PltTgl.InterTrial_Force  = 0;
 PltTgl.InterRun_Force    = 0;
@@ -193,8 +193,9 @@ for i = AVar.partiInd
         end
         
         if PltTgl.InterTrial_AudRes == 1  %Average f0 response trace to auditory pert trials of a run 
+            wD = length(trialCount);
             limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St(:,:,wD), meanTrialf0_Sp(:,:,wD), limits, trialCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterTrial_Force == 1
@@ -234,8 +235,9 @@ for i = AVar.partiInd
         end
         
         if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
+            wD = length(runsCount);
             limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St(:,:,wD), meanRunsf0_Sp(:,:,wD), limits, runsCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterRun_Force == 1
