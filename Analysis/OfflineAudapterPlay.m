@@ -81,6 +81,10 @@ expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTria
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
+%Create a negative voltage signal for the force sensors
+negVolSrc = zeros(expParam.sRateQ*expParam.trialLen, 1) - 1;
+negVolSrc(1) = 0; negVolSrc(end) = 0;
+
 expParam.resPause = 2.0;
 
 %Taking the first trial for ease. File out will be 'data'
@@ -108,14 +112,19 @@ for ii = 1:expParam.numTrial
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
     
+    fprintf('Trial %d\n', ii)
     AudapterIO('init', p);
     Audapter('reset');
 
     for n = 1:length(Mraw_frames)
         Audapter('runFrame', Mraw_frames{n});
-    end   
+    end
     
-    dataDAQ = 0;
+    NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
+    queueOutputData(s, NIDAQsig);
+    
+    [dataDAQ, time] = s.startForeground;
+    
     data_off = svData(expParam, dirs, p, audStimP, dataDAQ);
     
 %     Mraw_off = data_off.signalIn(1:(end-128));  % Microphone
