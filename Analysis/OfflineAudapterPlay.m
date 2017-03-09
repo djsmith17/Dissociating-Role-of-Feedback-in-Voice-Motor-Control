@@ -12,7 +12,7 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
 expParam.run           = 'Run3';
-expParam.numTrial      = 40; %Experimental trials = 40
+expParam.numTrial      = 4; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
 expParam.perCatch      = 0.25;
@@ -106,17 +106,17 @@ for ii = 1:expParam.numTrial
     end   
     
     dataDAQ = 0;
-    data_offline = svData(expParam, dirs, p, audStimP, dataDAQ);
+    data_off = svData(expParam, dirs, p, audStimP, dataDAQ);
     
-    Mraw_offline = data_offline.signalIn(1:(end-128)); % Microphone
-    Hraw_offline = data_offline.signalOut(129:end);    % Headphones
-    fs_offline   = round(data_offline.params.sRate);   % Sampling Rate
+    Mraw_off = data_off.signalIn(1:(end-128)); % Microphone
+    Hraw_off = data_off.signalOut(129:end);    % Headphones
+    fs_off   = round(data_off.params.sRate);   % Sampling Rate
     pert  = expParam.trialType(ii); 
     
-    span = find(data_offline.ost_stat > 0);
+    span = find(data_off.ost_stat > 0);
      
     span = fs*0.5+1; winL = 0.05; pOve = 0.30;
-    [plotf0pts, numPoints, f0_baseline] = sampleParser(Mraw_offline, Hraw_offline, span, fs_offline, winL, pOve);
+    [plotf0pts, numPoints, f0_baseline] = sampleParser(Mraw_off, Hraw_off, span, fs_off, winL, pOve);
      
     plotf0pts(:,2) = normf0(plotf0pts(:,2), f0_baseline);
     plotf0pts(:,3) = normf0(plotf0pts(:,3), f0_baseline);
@@ -128,10 +128,10 @@ for ii = 1:expParam.numTrial
     
     if expParam.bVis 
         OST_MULT = 500;
-        visSignals(data_offline, fs, OST_MULT, dirs.saveResultsDir)
+        visSignals(data_off, fs, OST_MULT, dirs.saveResultsDir)
     end
 
-    if expParam.bPlay; soundsc(data_offline.signalOut, fs); end
+    if expParam.bPlay; soundsc(data_off.signalOut, fs); end
     
     pause(expParam.resPause)
 end
@@ -149,7 +149,7 @@ try
     data.p           = p;        %Audapter Parameters
     data.audStimP    = audStimP; %auditory stimulus Parameters
     data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
-    save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
+    save(fullfile(dirs.saveFileDir, [expParam.curSubCond dirs.saveFileSuffix]), 'data')
 
     audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
     audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)

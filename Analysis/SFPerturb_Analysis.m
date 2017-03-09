@@ -27,6 +27,7 @@ AVar.runsInd      = [1 2];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project);
+dirs.saveFileSuffix = '_offlinePSR';
 
 AVar.anaWinLen   = 0.05; %analysis window length in seconds
 AVar.anaWinLenP  = [];    %analysis window length in points

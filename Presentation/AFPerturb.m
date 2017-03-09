@@ -188,7 +188,7 @@ try
     data.p           = p;        %Audapter Parameters
     data.audStimP    = audStimP; %auditory stimulus Parameters
     data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
-    save(fullfile(dirs.RecFileDir, expParam.curSubCond), 'data')
+    save(fullfile(dirs.RecFileDir, [expParam.curSubCond dirs.saveFileSuffix]), 'data')
 
     audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
     audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
