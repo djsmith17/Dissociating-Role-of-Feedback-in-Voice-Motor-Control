@@ -20,7 +20,7 @@ AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
 AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'Pilot8'}; %List of multiple participants
+AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4'}; 
 AVar.runsInd      = [1 2];
@@ -60,15 +60,15 @@ for i = AVar.partiInd
     for j = AVar.runsInd
         AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
         
-        dirs.saveFileDir    = fullfile(dirs.SavedData, AVar.participants{i}, AVar.runs{j}); %Where to find data
-        dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, AVar.runs{j}); %Where to save results
+        dirs.SavFileDir    = fullfile(dirs.SavData, AVar.participants{i}, AVar.runs{j}); %Where to find data
+        dirs.SavResultsDir = fullfile(dirs.Results, AVar.participants{i}, AVar.runs{j}); %Where to save results
  
-        if exist(dirs.saveResultsDir, 'dir') == 0
-            mkdir(dirs.saveResultsDir)
+        if exist(dirs.SavResultsDir, 'dir') == 0
+            mkdir(dirs.SavResultsDir)
         end
         
         %Find total number of files 
-        d = dir([dirs.saveFileDir, '\*.mat']);
+        d = dir([dirs.SavFileDir, '\*.mat']);
         AVar.fnames = sort_nat({d.name})';       
         
         allTrialf0_St  = []; %
@@ -78,7 +78,7 @@ for i = AVar.partiInd
         res.allTrialForce = [];
         for k = 1:length(AVar.fnames)
             %open a given Trial and load 'data.mat' structure
-            load([dirs.saveFileDir '\' AVar.fnames{k}]);
+            load([dirs.SavFileDir '\' AVar.fnames{k}]);
             
             %Unpack the 'data.mat' structure
             Mraw       = data.signalIn;  % Microphone
@@ -159,7 +159,7 @@ for i = AVar.partiInd
                 res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
-                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, AVar.curRecording, dirs.saveResultsDir)
+                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, AVar.curRecording, dirs.SavResultsDir)
                 end
                 
                 if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial
@@ -168,7 +168,7 @@ for i = AVar.partiInd
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
                     limits = [0 AVar.totEveLen -240 180];
-                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.saveResultsDir)
+                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.SavResultsDir)
                 end
             end
         end
@@ -188,17 +188,17 @@ for i = AVar.partiInd
            
         if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
             limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterTrial_AudRes == 1  %Average f0 response trace to auditory pert trials of a run 
             limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterTrial_Force == 1
             limits = [0 AVar.totEveLen 0 5];
-            drawForceSensorSignal(AVar.QTimeVec, meanTrialForce_St, meanTrialForce_Sp, limits, trialCount, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+            drawForceSensorSignal(AVar.QTimeVec, meanTrialForce_St, meanTrialForce_Sp, limits, trialCount, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end        
     end
     
@@ -207,10 +207,10 @@ for i = AVar.partiInd
     if length(AVar.runsInd) > 1
     
         AVar.curRecording   = [AVar.participants{i} ' All ' AVar.curExp(1:3) ' Runs']; %Short hand of experiment details    
-        dirs.saveResultsDir = fullfile(dirs.Results, AVar.participants{i}, 'RunsAve'); %Where to save results
+        dirs.SavResultsDir = fullfile(dirs.Results, AVar.participants{i}, 'RunsAve'); %Where to save results
  
-        if exist(dirs.saveResultsDir, 'dir') == 0
-            mkdir(dirs.saveResultsDir)
+        if exist(dirs.SavResultsDir, 'dir') == 0
+            mkdir(dirs.SavResultsDir)
         end
 
         %Sort trials of all sessions by pert type and find averages
@@ -221,7 +221,7 @@ for i = AVar.partiInd
         %Auditory Perturbation Experiment. Only need to use the Average of
         %perturbed Trials
         if AVar.svInflaRespRoute == 1
-            InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, 1, dirs.saveResultsDir);
+            InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, 1, dirs.SavResultsDir);
             tStep = AVar.tStep;
             dirs.InflaRespFile = fullfile(dirs.SavedData, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
@@ -229,17 +229,17 @@ for i = AVar.partiInd
 
         if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
             limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
             limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterRun_Force == 1
             limits = [0 AVar.totEveLen 0 5];
-            drawForceSensorSignal(AVar.QTimeVec, meanRunsForce_St, meanRunsForce_Sp, limits, runsCount, AVar.curExp, AVar.curRecording, dirs.saveResultsDir)
+            drawForceSensorSignal(AVar.QTimeVec, meanRunsForce_St, meanRunsForce_Sp, limits, runsCount, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
     end
 end

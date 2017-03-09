@@ -2,27 +2,31 @@ function OfflineAudapterPlay(varargin)
 %This scripts loads a previously recorded audio signal and provides a
 %Pitch-shift to it in a similiar fashion that happens during online
 %testing.
-close all
 
-bf0Vis = 0; bSpVis = 0; bPlay = 1;
-if ~isempty(fsic(varargin, '--play'))
-    bPlay = 1;
+if isempty(varargin)
+else
 end
- 
+
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'Pilot4'; %Subject#, Pilot#, null
-expParam.run           = 'Run4';
+expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
+expParam.run           = 'Run3';
+expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
-expParam.defaultGender = 'male';
+expParam.perCatch      = 0.25;
+expParam.gender        = 'male';
 expParam.masking       = 0;
+expParam.trialLen      = 4; %Seconds
+expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
+expParam.bPlay         = 1;
+expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 
-dirs = sfDirs(expParam.project, expParam.expType);
+dirs = sfDirs(expParam.project);
 
-dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
+dirs.saveFileDir    = fullfile(dirs.SavedData, expParam.subject, expParam.run);
 dirs.saveResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
 dirs.saveFileSuffix = 'offlinePSR';
 
@@ -31,21 +35,22 @@ if exist(dirs.saveResultsDir, 'dir') == 0
 end
 
 %Paradigm Configurations
-sRate              = 48000;  % Hardware sampling rate (before downsampling)
-downFact           = 3;
-frameLen           = 96;  % Before downsampling
-audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
+expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
+expParam.downFact           = 3;
+expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
+expParam.frameLen           = 96;  % Before downsampling
+expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
-Audapter('deviceName', audioInterfaceName);
-Audapter('setParam', 'downFact', downFact, 0);
-Audapter('setParam', 'sRate', sRate / downFact, 0);
-Audapter('setParam', 'frameLen', frameLen / downFact, 0);
-p = getAudapterDefaultParams(expParam.defaultGender);
-p.postProcSRate= sRate/downFact;
+Audapter('deviceName', expParam.audioInterfaceName);
+Audapter('setParam', 'downFact', expParam.downFact, 0);
+Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
+Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
+p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
 s = initNIDAQ;
+expParam.sRateQ = s.Rate; %save the sampling rate of the NIDAQ
 
 %Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
@@ -53,28 +58,22 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 
 %Should return variables of InflaRespRoute and tStep. 
 %Recorded from previous experiments
-dirs.InflaRespFile = fullfile(dirs.InflaRespFile, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
+dirs.InflaRespFile = fullfile(dirs.SavedData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
     load(dirs.InflaRespFile);
 catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
-p.numTrial    = 4; %Experimental trials = 40
-p.trialLen    = 4; %Seconds
-trialLenPts   = p.trialLen*s.Rate; %seconds converted to points
-
 [expParam, p] = setAudFeedType(expParam, dirs, p); %Trials with masking or no... 
 
-p.trialType = orderTrials(p.numTrial, 0.25); %numTrials, percentCatch
+expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-[sigs, spans, spans_t] = createPerturbSignal(s, p.numTrial, trialLenPts, p.trialType, expParam.expType);
-p.spans = spans*(sRate/s.Rate); %Converting from NIDAQ fs to Audapter f
-
-d = dir([dirs.saveFileDir, '\*.mat']);
-fnames = sort_nat({d.name}); 
+[expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
 %Taking the first trial for ease. File out will be 'data'
+d = dir([dirs.saveFileDir, '\*.mat']);
+fnames = sort_nat({d.name}); 
 load(fullfile(dirs.saveFileDir, fnames{1})); 
 
 Mraw  = data.signalIn; 
@@ -86,20 +85,17 @@ Mraw        = resample(Mraw, data.params.sr * data.params.downFact, fs);
 Mraw_frames = makecell(Mraw, data.params.frameLen * data.params.downFact);
 
 % RMSTHRES = data.rms(svEn(1),1);
-% write2pcf(p.ostFN, [RMSTHRES 0.10], 'ost')
 
-for ii = 1:p.numTrial
+for ii = 1:expParam.numTrial
     expParam.curTrial   = ['Trial' num2str(ii)];
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
     
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, p.trialType(ii), spans_t(ii,:));
+    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
     
     %Set the OST and PCF functions
-%     write2pcf(p.pcfFN, timeWarpFiles(ii,:), 'pcf')
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
     
-%     Audapter('setParam', 'rmsthr', 5e-3, 0);
     AudapterIO('init', p);
     Audapter('reset');
 
@@ -107,11 +103,13 @@ for ii = 1:p.numTrial
         Audapter('runFrame', Mraw_frames{n});
     end   
     
-    data_offline = AudapterIO('getData');
+    dataDAQ = 0;
+    data_offline = svData(expParam, dirs, p, audStimP, dataDAQ);
+    
     Mraw_offline = data_offline.signalIn(1:(end-128)); % Microphone
     Hraw_offline = data_offline.signalOut(129:end);    % Headphones
     fs_offline   = round(data_offline.params.sRate);   % Sampling Rate
-    pert  = p.trialType(ii); 
+    pert  = expParam.trialType(ii); 
     
     span = find(data_offline.ost_stat > 0);
      
@@ -121,17 +119,17 @@ for ii = 1:p.numTrial
     plotf0pts(:,2) = normf0(plotf0pts(:,2), f0_baseline);
     plotf0pts(:,3) = normf0(plotf0pts(:,3), f0_baseline);
     
-    if bf0Vis
+    if expParam.bf0Vis
         limits = [0 0 0 0];
         drawInterTrialf0(plotf0pts, pert)
     end
     
-    if bSpVis 
-        OST_MULT = 250;
+    if expParam.bVis 
+        OST_MULT = 500;
         visSignals(data_offline, fs, OST_MULT, dirs.saveResultsDir)
     end
 
-    if bPlay; soundsc(data_offline.signalOut, fs); end
+    if expParam.bPlay; soundsc(data_offline.signalOut, fs); end
     
     pause(5)
     
@@ -141,6 +139,28 @@ for ii = 1:p.numTrial
     audiowrite(fileName, data_offline.signalOut, fs)
 end
 
+end
+
+function data = svData(expParam, dirs, p, audStimP, dataDAQ)
+%Package all the data into something that is useful for analysis
+
+try
+    data = AudapterIO('getData');
+    
+    data.expParam    = expParam; %Experimental Parameters
+    data.dirs        = dirs;     %Directories
+    data.p           = p;        %Audapter Parameters
+    data.audStimP    = audStimP; %auditory stimulus Parameters
+    data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
+    save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
+
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_' dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_' dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
+catch
+    disp('Audapter decided not to show up today')
+    data = [];
+    return
+end
 end
 
 function [plotf0pts, numPoints, f0_baseline] = sampleParser(mic, head, span, fs, win, oL)

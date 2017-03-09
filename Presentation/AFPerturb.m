@@ -41,14 +41,14 @@ expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 
 dirs = sfDirs(expParam.project);
 
-dirs.saveFileDir = fullfile(dirs.Data, expParam.subject, expParam.run);
-dirs.saveWaveDir = fullfile(dirs.saveFileDir, 'wavFiles');
+dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
 
-if exist(dirs.saveFileDir, 'dir') == 0
-    mkdir(dirs.saveFileDir)
+if exist(dirs.RecFileDir, 'dir') == 0
+    mkdir(dirs.RecFileDir)
 end
-if exist(dirs.saveWaveDir, 'dir') == 0
-    mkdir(dirs.saveWaveDir)
+if exist(dirs.RecWaveDir, 'dir') == 0
+    mkdir(dirs.RecWaveDir)
 end
 
 %Paradigm Configurations
@@ -85,7 +85,7 @@ negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
-dirs.InflaRespFile = fullfile(dirs.SavedData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
+dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
     load(dirs.InflaRespFile);
 catch me
@@ -188,10 +188,10 @@ try
     data.p           = p;        %Audapter Parameters
     data.audStimP    = audStimP; %auditory stimulus Parameters
     data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
-    save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
+    save(fullfile(dirs.RecFileDir, expParam.curSubCond), 'data')
 
-    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, expParam.sRateAnal)
-    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond '_headOut.wav']), data.signalOut, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond '_micIn.wav']), data.signalIn, expParam.sRateAnal)
 catch
     disp('Audapter decided not to show up today')
     data = [];
