@@ -9,13 +9,13 @@ end
 
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-expParam.expType       = 'Somatosensory Perturbation_Perceptual';
+expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
 expParam.run           = 'Run3';
 expParam.numTrial      = 4; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
-expParam.perCatch      = 0.25;
+expParam.perCatch      = 1.00;
 expParam.gender        = 'male';
 expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
@@ -23,15 +23,25 @@ expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
 expParam.bPlay         = 1;
 expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.offLineTrial  = 37;
 
 dirs = sfDirs(expParam.project);
 
-dirs.saveFileDir    = fullfile(dirs.SavedData, expParam.subject, expParam.run);
-dirs.saveResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
+dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
+
+dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
+dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
 dirs.saveFileSuffix = '_offlinePSR';
 
-if exist(dirs.saveResultsDir, 'dir') == 0
-    mkdir(dirs.saveResultsDir)
+if exist(dirs.RecFileDir, 'dir') == 0
+    mkdir(dirs.RecFileDir)
+end
+if exist(dirs.RecWaveDir, 'dir') == 0
+    mkdir(dirs.RecWaveDir)
+end
+if exist(dirs.SavResultsDir, 'dir') == 0
+    mkdir(dirs.SavResultsDir)
 end
 
 %Paradigm Configurations
@@ -58,7 +68,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 
 %Should return variables of InflaRespRoute and tStep. 
 %Recorded from previous experiments
-dirs.InflaRespFile = fullfile(dirs.SavedData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
+dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
     load(dirs.InflaRespFile);
 catch me
@@ -71,12 +81,12 @@ expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTria
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-expParam.resPause = 4.0;
+expParam.resPause = 2.0;
 
 %Taking the first trial for ease. File out will be 'data'
-d = dir([dirs.saveFileDir, '\*.mat']);
+d = dir([dirs.SavFileDir, '\*.mat']);
 fnames = sort_nat({d.name}); 
-load(fullfile(dirs.saveFileDir, fnames{1})); 
+load(fullfile(dirs.SavFileDir, fnames{expParam.offLineTrial})); 
 
 Mraw  = data.signalIn; 
 fs    = data.params.sRate;
@@ -108,34 +118,33 @@ for ii = 1:expParam.numTrial
     dataDAQ = 0;
     data_off = svData(expParam, dirs, p, audStimP, dataDAQ);
     
-    Mraw_off = data_off.signalIn(1:(end-128)); % Microphone
-    Hraw_off = data_off.signalOut(129:end);    % Headphones
-    fs_off   = round(data_off.params.sRate);   % Sampling Rate
-    pert  = expParam.trialType(ii); 
-    
-    span = find(data_off.ost_stat > 0);
-     
-    span = fs*0.5+1; winL = 0.05; pOve = 0.30;
-    [plotf0pts, numPoints, f0_baseline] = sampleParser(Mraw_off, Hraw_off, span, fs_off, winL, pOve);
-     
-    plotf0pts(:,2) = normf0(plotf0pts(:,2), f0_baseline);
-    plotf0pts(:,3) = normf0(plotf0pts(:,3), f0_baseline);
-    
-    if expParam.bf0Vis
-        limits = [0 0 0 0];
-        drawInterTrialf0(plotf0pts, pert)
-    end
-    
-    if expParam.bVis 
-        OST_MULT = 500;
-        visSignals(data_off, fs, OST_MULT, dirs.saveResultsDir)
-    end
+%     Mraw_off = data_off.signalIn(1:(end-128));  % Microphone
+%     Hraw_off = data_off.signalOut(129:end);     % Headphones
+%     fs_off   = round(data_off.params.sRate);    % Sampling Rate
+%     pert  = expParam.trialType(ii); 
+%     
+%     span = find(data_off.ost_stat > 0);
+%      
+%     span = fs*0.5+1; winL = 0.05; pOve = 0.30;
+%     [plotf0pts, numPoints, f0_baseline] = sampleParser(Mraw_off, Hraw_off, span, fs_off, winL, pOve);
+%      
+%     plotf0pts(:,2) = normf0(plotf0pts(:,2), f0_baseline);
+%     plotf0pts(:,3) = normf0(plotf0pts(:,3), f0_baseline);
+%     
+%     if expParam.bf0Vis
+%         limits = [0 0 0 0];
+%         drawInterTrialf0(plotf0pts, pert)
+%     end
+%     
+%     if expParam.bVis 
+%         OST_MULT = 500;
+%         visSignals(data_off, fs, OST_MULT, dirs.saveResultsDir)
+%     end
 
     if expParam.bPlay; soundsc(data_off.signalOut, fs); end
     
     pause(expParam.resPause)
 end
-
 end
 
 function data = svData(expParam, dirs, p, audStimP, dataDAQ)

@@ -22,8 +22,19 @@ trialType = [];
 numSets = numTrial*per;
 if round(numSets) ~= numSets
     disp('ERROR: Give me a whole number of sets')
-elseif per >= 0.5
-    disp('ERROR: This pattern does not support 50% catch trials')
+elseif per == 0
+    disp('No trials will be perturbed!')
+    trialType = zeros(1, numTrial);
+elseif per == 1
+    disp('All trials will be perturbed!')
+    trialType = ones(1, numTrial);
+elseif per == 0.5
+    disp('Half of all trials will be pertrubed in a semi-random permutation')
+    trialType = zeros(1, numTrial);
+    trialType(1:numTrial/2) = 1;
+    trialType = trialType(randperm(numTrial));
+elseif per < 1.0 && per > 0.5
+    disp('ERROR: This only supports percents of 100%, 50%, or lower than 50%')
 else
     for ii = 1:numSets
         set = zeros(1, setSize);
