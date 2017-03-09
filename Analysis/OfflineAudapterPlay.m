@@ -28,7 +28,7 @@ dirs = sfDirs(expParam.project);
 
 dirs.saveFileDir    = fullfile(dirs.SavedData, expParam.subject, expParam.run);
 dirs.saveResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
-dirs.saveFileSuffix = 'offlinePSR';
+dirs.saveFileSuffix = '_offlinePSR';
 
 if exist(dirs.saveResultsDir, 'dir') == 0
     mkdir(dirs.saveResultsDir)
@@ -70,6 +70,8 @@ end
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+
+expParam.resPause = 4.0;
 
 %Taking the first trial for ease. File out will be 'data'
 d = dir([dirs.saveFileDir, '\*.mat']);
@@ -131,12 +133,7 @@ for ii = 1:expParam.numTrial
 
     if expParam.bPlay; soundsc(data_offline.signalOut, fs); end
     
-    pause(5)
-    
-    fileName = fullfile(dirs.saveResultsDir, [expParam.curSubCond '_' dirs.saveFileSuffix 'MicIn.wav']); 
-    audiowrite(fileName, data_offline.signalIn, fs)
-    fileName = fullfile(dirs.saveResultsDir, [expParam.curSubCond '_' dirs.saveFileSuffix 'HeadOut.wav']); 
-    audiowrite(fileName, data_offline.signalOut, fs)
+    pause(expParam.resPause)
 end
 
 end
@@ -154,8 +151,8 @@ try
     data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
     save(fullfile(dirs.saveFileDir, expParam.curSubCond), 'data')
 
-    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_' dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
-    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond '_' dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.saveWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
 catch
     disp('Audapter decided not to show up today')
     data = [];
