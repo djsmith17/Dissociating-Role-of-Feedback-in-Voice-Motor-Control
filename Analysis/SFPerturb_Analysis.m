@@ -4,6 +4,8 @@ function SFPerturb_Analysis()
 %given participant. At the end it approximates a general response to
 %inflation to be used in the auditory perturbation experiment
 
+%Require the Signal Processing Toolbox
+
 clear all; close all; clc
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
