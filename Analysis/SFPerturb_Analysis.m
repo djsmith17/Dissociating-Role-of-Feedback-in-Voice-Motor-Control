@@ -11,18 +11,18 @@ clear all; close all; clc
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
-PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
+PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
-PltTgl.InterTrial_Force  = 0;
-PltTgl.InterRun_Force    = 0;
+PltTgl.InterTrial_Force  = 1;
+PltTgl.InterRun_Force    = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
 AVar.expInd       = 2; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'Pilot8'}; %List of multiple participants
+AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
 AVar.runsInd      = [1 2];
@@ -31,9 +31,9 @@ AVar.curRecording = [];
 dirs = sfDirs(AVar.project);
 % dirs.saveFileSuffix = '_offlinePSR';
 
-AVar.anaWinLen   = 0.05; %analysis window length in seconds
+AVar.anaWinLen   = 0.01; %analysis window length in seconds
 AVar.anaWinLenP  = [];    %analysis window length in points
-AVar.pOverlap    = 0.30;  %window overlap percentage as decimial
+AVar.pOverlap    = 0.50;  %window overlap percentage as decimial
 
 AVar.preEveLen = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
 AVar.posEveLen = 1.0; %Amount of time in seconds of observation period after event (onset/offset)

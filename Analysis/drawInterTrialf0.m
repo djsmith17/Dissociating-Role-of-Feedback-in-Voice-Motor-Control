@@ -12,9 +12,9 @@ dottedy      = [-300 300];
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
 
 axes(ha(1))
-errorbar(time, meanTrialf0_St(:,1,1), meanTrialf0_St(:,2,1), 'blue', 'LineWidth',2) %Unperturbed
+shadedErrorBar(time, meanTrialf0_St(:,1,1), meanTrialf0_St(:,2,1), 'b', 1) %Unperturbed
 hold on
-errorbar(time, meanTrialf0_St(:,1,2), meanTrialf0_St(:,2,2), 'black', 'LineWidth',2) %Perturbed
+shadedErrorBar(time, meanTrialf0_St(:,1,2), meanTrialf0_St(:,2,2), 'r', 0) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -29,9 +29,9 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 l0 = legend([num2str(counts(1)) ' Control Trials'], [num2str(counts(2)) ' Perturb Trials']); set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
 
 axes(ha(2))
-errorbar(time, meanTrialf0_Sp(:,1,1), meanTrialf0_Sp(:,2,1), 'blue', 'LineWidth',2)  %Unperturbed
+shadedErrorBar(time, meanTrialf0_Sp(:,1,1), meanTrialf0_Sp(:,2,1), 'b', 1)  %Unperturbed
 hold on
-errorbar(time, meanTrialf0_Sp(:,1,2), meanTrialf0_Sp(:,2,2), 'black', 'LineWidth',2) %Perturbed
+shadedErrorBar(time, meanTrialf0_Sp(:,1,2), meanTrialf0_Sp(:,2,2), 'r', 0) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')

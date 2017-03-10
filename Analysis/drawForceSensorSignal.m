@@ -13,9 +13,9 @@ dottedy      = [-300 300];
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
 
 axes(ha(1))
-errorbar(time, meanTrialForce_St(:,1,2), meanTrialForce_St(:,2,2), 'blue', 'LineWidth',1) %Collar Sensor, Perturbed Trials
+shadedErrorBar(time, meanTrialForce_St(:,1,2), meanTrialForce_St(:,2,2), 'b', 1) %Collar Sensor, Perturbed Trials
 hold on
-errorbar(time, meanTrialForce_St(:,3,2), meanTrialForce_St(:,4,2), 'black', 'LineWidth',1) %Neck Sensor, Perturbed Trials
+shadedErrorBar(time, meanTrialForce_St(:,3,2), meanTrialForce_St(:,4,2), 'r', 0) %Neck Sensor, Perturbed Trials
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -32,9 +32,9 @@ set(pltlgd, 'box', 'off',...
             'location', 'best'); 
 
 axes(ha(2))
-errorbar(time, meanTrialForce_Sp(:,1,2), meanTrialForce_Sp(:,2,2), 'blue', 'LineWidth',1) %Collar Sensor, Perturbed Trials
+shadedErrorBar(time, meanTrialForce_Sp(:,1,2), meanTrialForce_Sp(:,2,2), 'b', 1) %Collar Sensor, Perturbed Trials
 hold on
-errorbar(time, meanTrialForce_Sp(:,3,2), meanTrialForce_Sp(:,4,2), 'black', 'LineWidth',1) %Neck Sensor, Perturbed Trials
+shadedErrorBar(time, meanTrialForce_Sp(:,3,2), meanTrialForce_Sp(:,4,2), 'r', 0)%Neck Sensor, Perturbed Trials
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')

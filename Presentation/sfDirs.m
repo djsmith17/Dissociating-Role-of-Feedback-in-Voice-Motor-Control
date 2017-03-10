@@ -35,7 +35,7 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
     case 'DanteRig'
-        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles  
+        dirs.RecData        = fullfile('E:\Documents\DATA', project); % Dir w/ raw datafiles  
         dirs.SavData        = fullfile('W:\Experiments\', project);
         
         dirs.Prelim         = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
