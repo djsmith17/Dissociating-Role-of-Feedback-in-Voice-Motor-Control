@@ -20,7 +20,7 @@ PltTgl.InterRun_Force    = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 2; %Either 1 or 2
+AVar.expInd       = 1; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
@@ -31,9 +31,9 @@ AVar.curRecording = [];
 dirs = sfDirs(AVar.project);
 % dirs.saveFileSuffix = '_offlinePSR';
 
-AVar.anaWinLen   = 0.01; %analysis window length in seconds
+AVar.anaWinLen   = 0.05; %analysis window length in seconds
 AVar.anaWinLenP  = [];    %analysis window length in points
-AVar.pOverlap    = 0.50;  %window overlap percentage as decimial
+AVar.pOverlap    = 0.60;  %window overlap percentage as decimial
 
 AVar.preEveLen = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
 AVar.posEveLen = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
@@ -143,7 +143,7 @@ for i = AVar.partiInd
                 %Start of Pert
                 Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, AVar); %When experiment is fixed make this 2!!
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar); %When experiment is fixed make this 2!!
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0Raw_St(prePertInd, 1)); % Baseline fundamental frequency of mic data

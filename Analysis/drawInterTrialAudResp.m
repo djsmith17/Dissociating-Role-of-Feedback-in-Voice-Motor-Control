@@ -12,7 +12,7 @@ dottedy = [-300 300];
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
 
 axes(ha(1))
-shadedErrorBar(time, meanTrialf0_St(:,1), meanTrialf0_St(:,2), 'b', 0) %Pertrubed Microphone
+shadedErrorBar(time, meanTrialf0_St(:,1), meanTrialf0_St(:,2), 'b', 1) %Pertrubed Microphone
 hold on
 shadedErrorBar(time, meanTrialf0_St(:,3), meanTrialf0_St(:,4), 'r', 1) %Perturbed Headphones
 hold on
@@ -29,7 +29,7 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 l0 = legend('Microphone', 'Headphones'); set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
 
 axes(ha(2))
-shadedErrorBar(time, meanTrialf0_Sp(:,1), meanTrialf0_Sp(:,2), 'b', 0)  %Pertrubed Microphone
+shadedErrorBar(time, meanTrialf0_Sp(:,1), meanTrialf0_Sp(:,2), 'b', 1)  %Pertrubed Microphone
 hold on
 shadedErrorBar(time, meanTrialf0_Sp(:,3), meanTrialf0_Sp(:,4), 'r', 1) %Perturbed Headphones
 hold on

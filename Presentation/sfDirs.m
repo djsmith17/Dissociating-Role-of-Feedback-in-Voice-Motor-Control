@@ -38,10 +38,10 @@ switch host
         dirs.RecData        = fullfile('E:\Documents\DATA', project); % Dir w/ raw datafiles  
         dirs.SavData        = fullfile('W:\Experiments\', project);
         
-        dirs.Prelim         = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('E:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'E:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Prelim         = fullfile('E:\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
+        dirs.Code           = fullfile('E:\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
+        dirs.Results        = fullfile('E:\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'E:\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
