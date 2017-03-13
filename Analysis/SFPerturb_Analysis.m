@@ -11,12 +11,12 @@ clear all; close all; clc
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
 PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
-PltTgl.InterTrial_Force  = 1;
-PltTgl.InterRun_Force    = 1;
+PltTgl.InterTrial_Force  = 0;
+PltTgl.InterRun_Force    = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -52,7 +52,7 @@ AVar.posEveLenQ = []; %Amount of points of observation period after event (onset
 AVar.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
 AVar.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
 
-AVar.svInflaRespRoute = 0;
+AVar.svInflaRespRoute = 1;
 
 for i = AVar.partiInd 
     allRunsf0_St   = [];
@@ -227,7 +227,7 @@ for i = AVar.partiInd
         if AVar.svInflaRespRoute == 1
             InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, 1, dirs.SavResultsDir);
             tStep = AVar.tStep;
-            dirs.InflaRespFile = fullfile(dirs.SavedData, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
+            dirs.InflaRespFile = fullfile(dirs.SavData, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
         end
 

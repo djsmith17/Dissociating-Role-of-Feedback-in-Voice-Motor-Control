@@ -24,14 +24,14 @@ expParam.trialLen      = 4; %Seconds
 
 dirs = sfDirs(expParam.project);
 
-dirs.saveFileDir    = fullfile(dirs.Data, expParam.subject);
-dirs.saveResultsDir = fullfile(dirs.Data, expParam.subject); %Where to save results 
+dirs.savFileDir    = fullfile(dirs.RecData, expParam.subject);
+dirs.savResultsDir = fullfile(dirs.RecData, expParam.subject); %Where to save results 
 
-if exist(dirs.saveFileDir, 'dir') == 0
-    mkdir(dirs.saveFileDir)
+if exist(dirs.savFileDir, 'dir') == 0
+    mkdir(dirs.savFileDir)
 end
-if exist(dirs.saveResultsDir, 'dir') == 0
-    mkdir(dirs.saveFileDir)
+if exist(dirs.savResultsDir, 'dir') == 0
+    mkdir(dirs.savFileDir)
 end
 
 expParam.sRate       = 48000;
@@ -62,12 +62,12 @@ for ii = 1:expParam.numTrial
     pause(expParam.resPause)      
 end
 
-drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,2), DAQin, expParam.subject, dirs.saveResultsDir)
+drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,2), DAQin, expParam.subject, dirs.savResultsDir)
 
 ForceSensorData.expParam    = expParam;
 ForceSensorData.dirs        = dirs;
 ForceSensorData.DAQin       = DAQin;
 
-dirs.saveFileDir = fullfile(dirs.saveFileDir, [expParam.subject '_SensorData.mat']);
-save(dirs.saveFileDir, 'ForceSensorData')
+dirs.savFileDir = fullfile(dirs.savFileDir, [expParam.subject '_SensorData.mat']);
+save(dirs.savFileDir, 'ForceSensorData')
 end

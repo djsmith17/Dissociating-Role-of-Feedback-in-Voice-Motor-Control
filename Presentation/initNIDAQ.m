@@ -7,10 +7,10 @@ function s = initNIDAQ
 
 dev = 'Dev3';
 s = daq.createSession('ni');
-addAnalogOutputChannel(s, dev, 0, 'Voltage'); %Output to the Perturbatron
-addAnalogOutputChannel(s, dev, 1, 'Voltage'); %Output voltage to Force Sensor
-addAnalogInputChannel(s, dev, 0, 'Voltage'); %Input from Force Sensor 1: Collar
-addAnalogInputChannel(s, dev, 1, 'Voltage'); %Input from Force Sensor 2: Neck
+addAnalogOutputChannel(s, dev, 0, 'Voltage'); %Output signal to the Perturbatron
+addAnalogOutputChannel(s, dev, 1, 'Voltage'); %Output voltage to power the Force Sensor
+addAnalogInputChannel(s, dev, 0, 'Voltage'); %Input signal from Force Sensor 1: Collar
+addAnalogInputChannel(s, dev, 1, 'Voltage'); %Input signal from Force Sensor 2: Neck
 
 s.Rate = 8000;
 end
