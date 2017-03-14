@@ -9,6 +9,7 @@ function RecordForceSensorVoltage(varargin)
 %initNIDAQ.m
 %createPerturbSignal.m
 %drawDAQsignal.m
+close all;
 
 if isempty(varargin)
     numTrial = 4; 
@@ -62,7 +63,7 @@ for ii = 1:expParam.numTrial
     pause(expParam.resPause)      
 end
 
-drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,2), DAQin, expParam.subject, dirs.savResultsDir)
+drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,1), DAQin, expParam.subject, dirs.savResultsDir)
 
 ForceSensorData.expParam    = expParam;
 ForceSensorData.dirs        = dirs;

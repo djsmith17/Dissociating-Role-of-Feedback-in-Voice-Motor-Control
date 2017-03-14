@@ -13,9 +13,9 @@ dottedy      = [-300 300];
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
 
 axes(ha(1))
-shadedErrorBar(time, meanTrialForce_St(:,1,2), meanTrialForce_St(:,2,2), 'b', 1) %Collar Sensor, Perturbed Trials
+cH = shadedErrorBar(time, meanTrialForce_St(:,1,2), meanTrialForce_St(:,2,2), 'b', 1); %Collar Sensor, Perturbed Trials
 hold on
-shadedErrorBar(time, meanTrialForce_St(:,3,2), meanTrialForce_St(:,4,2), 'r', 1) %Neck Sensor, Perturbed Trials
+nH = shadedErrorBar(time, meanTrialForce_St(:,3,2), meanTrialForce_St(:,4,2), 'r', 1); %Neck Sensor, Perturbed Trials
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -27,7 +27,7 @@ set(gca, 'YTick', 0:1:5,...
          'FontSize', 16,...
          'FontWeight', 'bold')
      
-pltlgd = legend('Collar Sensor', 'Neck Sensor');
+pltlgd = legend([cH.mainLine nH.mainLine], 'Collar Sensor', 'Neck Sensor');
 set(pltlgd, 'box', 'off',...
             'location', 'best'); 
 

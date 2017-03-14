@@ -7,6 +7,8 @@ time = 0:1/sRate:(pts-1)/sRate;
 
 plotpos = [500 500];
 plotdim = [800 400];
+limits  = [0 4 1 3.5];
+pertColor = [0.5 0.5 0.5];
 
 sv2File = 0;
 
@@ -16,32 +18,34 @@ for ii = 1:r
     
     ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
     
-    perturb = zeros(1, pts);
-    perturb(trigs(ii,1):trigs(ii,2)) = -0.5;
+    pertAx  = [trigs(ii,1),trigs(ii,2)];
+    pertAy  = [6 6];
     
     axes(ha(1))
-    plot(time, perturb, 'k')
+%     plot(time, perturb, 'k')
+    area(pertAx, pertAy, -1, 'FaceColor', pertColor)
     hold on
-    plot(time, DAQin(:,1,ii), 'b')
+    plot(time, DAQin(:,1,ii), 'r')
     
     xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold') 
     ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
     title('Collar Sensor', 'FontSize', 10, 'FontWeight', 'bold')
-    axis([0 4 -5 5]); box off
+    axis(limits); box off
     
     set(gca, 'FontSize', 12,...
              'FontWeight', 'bold',...
              'YTick', -5:1:5)
     
     axes(ha(2))
-    plot(time, perturb, 'k')
+%     plot(time, perturb, 'k')
+    area(pertAx, pertAy, -1, 'FaceColor', pertColor)
     hold on
-    plot(time, DAQin(:,2,ii), 'b')
+    plot(time, DAQin(:,2,ii), 'r')
     
     xlabel('Time (s)', 'FontSize', 10, 'FontWeight', 'bold')
     ylabel('Voltage (V)', 'FontSize', 10, 'FontWeight', 'bold')
     title('Neck Sensor', 'FontSize', 10, 'FontWeight', 'bold')
-    axis([0 4 -5 5]); box off
+    axis(limits); box off
     
     set(gca, 'FontSize', 12,...
              'FontWeight', 'bold',...
