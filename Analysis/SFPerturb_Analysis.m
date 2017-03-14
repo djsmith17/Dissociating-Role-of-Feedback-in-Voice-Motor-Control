@@ -13,10 +13,10 @@ PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
 PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
 PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
-PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
-PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
-PltTgl.InterTrial_Force  = 1;
-PltTgl.InterRun_Force    = 1;
+PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
+PltTgl.InterRun_AudRes   = 1; %Average f0 response trace to auditory pert over all runs analyzed
+PltTgl.InterTrial_Force  = 0;
+PltTgl.InterRun_Force    = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -25,7 +25,7 @@ AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
-AVar.runsInd      = [1 2];
+AVar.runsInd      = [3 4];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project);

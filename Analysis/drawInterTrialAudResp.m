@@ -41,7 +41,8 @@ title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
 set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
-        'FontWeight','bold');
+        'FontWeight','bold',...
+        'YAxisLocation', 'right');
 
 suptitle({[curExp ': ' num2str(counts) ' Perturbed Trials']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
 
