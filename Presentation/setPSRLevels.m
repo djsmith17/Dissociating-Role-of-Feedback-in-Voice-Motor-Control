@@ -1,11 +1,11 @@
-function audStimP = setPSRLevels(route, tStep, ost, pcf, trialType, trigs, stimType)
+function audStimP = setPSRLevels(InflaRespRoute, tStep, ost, pcf, trialType, trigs, stimType)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment recorded in Audapter. The custom 
 %perturbation shape and magnitude is based off a previously recorded 
 %'route' the participant's pitch takes when they're larynx is physically 
 %perturbed.
 
-audStimP = organizeStimulus(route, tStep, trialType, trigs, stimType);
+audStimP = organizeStimulus(trialType, stimType, trigs, InflaRespRoute, tStep);
 
 OST_tline = writeOSTportions(audStimP);
 PCF_tline = writePCFportions(audStimP);
@@ -13,15 +13,10 @@ PCF_tline = writePCFportions(audStimP);
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
 
-% drawStimulus(audStimP)
+drawStimulus(audStimP)
 end
 
-function audStimP = organizeStimulus(route, tStep, trialType, trigs, stimType)
-
-routeStps = length(route);
-if trialType == 0;
-    route = zeros(routeStps, 1);
-end
+function audStimP = organizeStimulus(trialType, stimType, trigs, InflaRespRoute, tStep)
 
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.AudFs     = 48000;     % Hardset
@@ -36,53 +31,61 @@ audStimP.SpPoint   = round(audStimP.SpTime*audStimP.AudFs);  %Points
 audStimP.lenPerT   = audStimP.SpTime - audStimP.StTime;      %Seconds
 audStimP.lenPerP   = round(audStimP.lenPerT*audStimP.AudFs); %Points
 
-audStimP.route     = route(:, 1);
-audStimP.routeFin  = audStimP.route(end);
-audStimP.tStep     = tStep;                       %Length of time-step (Seconds)
-audStimP.tStepP    = round(tStep*audStimP.AudFs); %Length of time-step (Points)
-audStimP.routeStps = routeStps;                   %How many time-steps
-
-audStimP.rampLenT = audStimP.routeStps*audStimP.tStep;       %How long is the ramp (Seconds)
-audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
-
-audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
-audStimP.rampUPst = round(audStimP.SpPoint - audStimP.rampLenP); %Point when ramp up starts (begins to climb towards baseline)
+audStimP.route     = InflaRespRoute;
+audStimP.routetStep= tStep;
+audStimP.routeStps = length(InflaRespRoute);
+audStimP.routeLenT = audStimP.routetStep*audStimP.routeStps;
 
 if stimType == 1
-   
-    audStimP.rampStps = audStimP.routeStps;
+    if trialType == 0;
+        audStimP.ramp = zeros(size(InflaRespRoute));
+    else
+        audStimP.ramp = InflaRespRoute;
+    end
+    
+    audStimP.rampFin  = audStimP.ramp(end);
+    audStimP.rampStps = length(audStimP.ramp);
+    audStimP.tStep    = tStep;                       %Length of time-step (Seconds)
+    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs); %Length of time-step (Points)
+    
+    audStimP.rampLenT = audStimP.rampStps*audStimP.tStep;       %How long is the ramp (Seconds)
+    audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
+    
+    audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
+    audStimP.rampUPst = round(audStimP.SpPoint - audStimP.rampLenP); %Point when ramp up starts (begins to climb towards baseline)
+    
+    audStimP.rampDNRange = []; audStimP.rampUPRange = [];
+    audStimP.rampDNValues = []; audStimP.rampUPValues = [];
+    
     for r = 1:audStimP.rampStps
         startDN = audStimP.StPoint + (r-1)*audStimP.tStepP;
         audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.tStepP;
-        audStimP.rampDNValues(r)   = audStimP.route(r);
+        audStimP.rampDNValues(r)  = audStimP.ramp(r);
         
         startUP = audStimP.rampUPst + (r-1)*audStimP.tStepP;
         audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.tStepP;
-        audStimP.rampUPValues(r)   = audStimP.route(routeStps - (r-1));
+        audStimP.rampUPValues(r)  = audStimP.ramp(audStimP.rampStps - (r-1));
     end       
     
     audStimP.lenPerVallP = audStimP.rampUPst - audStimP.rampDNsp; %Points between either pertrubation 'route' (Valley)
     audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs;   %Seconds between either pertrubation 'route' (Valley)
-    audStimP.VallRange  = audStimP.rampDNsp:audStimP.rampUPst;
-    audStimP.VallValue   = audStimP.routeFin;    
+    audStimP.VallRange   = audStimP.rampDNsp:audStimP.rampUPst;
+    audStimP.VallValue   = audStimP.rampFin;    
     
-elseif stimType == 2    
-    %0 - minPoint Sigmoid
-    
+elseif stimType == 2 %0 - minPoint Sigmoid    
     if trialType == 0;
-        route = zeros(100, 1);
+        audStimP.ramp = zeros(100, 1);
     else
         x = 0:0.1:10;
-        route = audStimP.routeFin*sigmf(x,[1 5]);
+        audStimP.ramp = InflaRespRoute(end)*sigmf(x,[1 5]);
     end
         
-    audStimP.newroute     = route;
-    audStimP.newrouteFin  = audStimP.newroute(end);
-    audStimP.newtStep     = audStimP.rampLenT/100;
-    audStimP.newtStepP    = round(audStimP.newtStep*audStimP.AudFs);    
-    audStimP.newRouteStps = length(audStimP.newroute);
-    
-    audStimP.rampLenT = audStimP.newRouteStps*audStimP.newtStep; %How long is the ramp (Seconds)
+    audStimP.rampFin  = audStimP.ramp(end);
+    audStimP.rampStps = length(audStimP.ramp);
+    audStimP.tStep    = audStimP.routeLenT/100;
+    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs);        
+   
+    audStimP.rampLenT = audStimP.rampStps*audStimP.tStep; %How long is the ramp (Seconds)
     audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
 
     audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
@@ -90,38 +93,35 @@ elseif stimType == 2
     
     audStimP.rampDNRange = []; audStimP.rampUPRange = [];
     audStimP.rampDNValues = []; audStimP.rampUPValues = [];
-    audStimP.rampStps = audStimP.newRouteStps;
+    
     for r = 1:audStimP.rampStps
-        startDN = audStimP.StPoint + (r-1)*audStimP.newtStepP;
-        audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.newtStepP;
-        audStimP.rampDNValues(r)  = audStimP.newroute(r);
+        startDN = audStimP.StPoint + (r-1)*audStimP.tStepP;
+        audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.tStepP;
+        audStimP.rampDNValues(r)  = audStimP.ramp(r);
         
-        startUP = audStimP.rampUPst + (r-1)*audStimP.newtStepP;
-        audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.newtStepP;
-        audStimP.rampUPValues(r)  = audStimP.newroute(audStimP.rampStps - (r-1));
+        startUP = audStimP.rampUPst + (r-1)*audStimP.tStepP;
+        audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.tStepP;
+        audStimP.rampUPValues(r)  = audStimP.ramp(audStimP.rampStps - (r-1));
     end 
     
     audStimP.lenPerVallP = audStimP.rampUPst - audStimP.rampDNsp; %Points between either pertrubation 'route' (Valley)
     audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs;   %Seconds between either pertrubation 'route' (Valley)
-    audStimP.VallRange  = audStimP.rampDNsp:audStimP.rampUPst;
-    audStimP.VallValue  = audStimP.newrouteFin; 
+    audStimP.VallRange   = audStimP.rampDNsp:audStimP.rampUPst;
+    audStimP.VallValue   = audStimP.rampFin; 
     
-elseif stimType == 3
-    %0 - 100 linearly
-    
+elseif stimType == 3 %0 - 100 linearly   
     if trialType == 0;
-        route = zeros(99, 1);
+        audStimP.ramp = zeros(99, 1);
     else
-        route = -1*(0:100-1);
+        audStimP.ramp = -1*(0:100-1);
     end
         
-    audStimP.newroute     = route;
-    audStimP.newrouteFin  = audStimP.newroute(end);
-    audStimP.newtStep     = audStimP.rampLenT/100;
-    audStimP.newtStepP    = round(audStimP.newtStep*audStimP.AudFs);    
-    audStimP.newRouteStps = length(audStimP.newroute);
+    audStimP.rampFin  = audStimP.ramp(end);
+    audStimP.rampStps = length(audStimP.ramp);
+    audStimP.tStep    = audStimP.routeLenT/100;
+    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs);        
     
-    audStimP.rampLenT = audStimP.newRouteStps*audStimP.newtStep; %How long is the ramp (Seconds)
+    audStimP.rampLenT = audStimP.rampStps*audStimP.tStep; %How long is the ramp (Seconds)
     audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
 
     audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
@@ -129,21 +129,21 @@ elseif stimType == 3
     
     audStimP.rampDNRange = []; audStimP.rampUPRange = [];
     audStimP.rampDNValues = []; audStimP.rampUPValues = [];
-    audStimP.rampStps = audStimP.newRouteStps;
+
     for r = 1:audStimP.rampStps
-        startDN = audStimP.StPoint + (r-1)*audStimP.newtStepP;
-        audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.newtStepP;
-        audStimP.rampDNValues(r)  = audStimP.newroute(r);
+        startDN = audStimP.StPoint + (r-1)*audStimP.tStepP;
+        audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.tStepP;
+        audStimP.rampDNValues(r)  = audStimP.ramp(r);
         
-        startUP = audStimP.rampUPst + (r-1)*audStimP.newtStepP;
-        audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.newtStepP;
-        audStimP.rampUPValues(r)  = audStimP.newroute(audStimP.rampStps - (r-1));
+        startUP = audStimP.rampUPst + (r-1)*audStimP.tStepP;
+        audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.tStepP;
+        audStimP.rampUPValues(r)  = audStimP.ramp(audStimP.rampStps - (r-1));
     end 
     
     audStimP.lenPerVallP = audStimP.rampUPst - audStimP.rampDNsp; %Points between either pertrubation 'route' (Valley)
     audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs;   %Seconds between either pertrubation 'route' (Valley)
-    audStimP.VallRange  = audStimP.rampDNsp:audStimP.rampUPst;
-    audStimP.VallValue  = audStimP.newrouteFin; 
+    audStimP.VallRange   = audStimP.rampDNsp:audStimP.rampUPst;
+    audStimP.VallValue   = audStimP.rampFin; 
 end
 
 stim = zeros(1, audStimP.lenTrialP);
@@ -163,7 +163,7 @@ function OST_tline = writeOSTportions(audStimP)
 %organized for customized Pitch-Shift Reflex experiments.
 
 %The number of changes to f0 + the hold + last THREE clean-up lines
-n = 2*audStimP.routeStps + 1 + 3;
+n = 2*audStimP.rampStps + 1 + 3;
 
 %p = pre-experiment lines in OST file
 p = 7;
@@ -181,17 +181,17 @@ OST_tline{7} = ['2 ELAPSED_TIME ' num2str(audStimP.StTime) ' NaN {} #The amount 
 
 %The +2 comes from the numbering on the OST ahead of these commands
 for i = 1:n
-    if i <= audStimP.routeStps
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.routeStps)];
-    elseif i == audStimP.routeStps + 1 
+    if i <= audStimP.rampStps
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.rampStps)];
+    elseif i == audStimP.rampStps + 1 
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.lenPerVallT) ' NaN {} #Hold for the pitch-shift hold period'];
-    elseif i <= 2*audStimP.routeStps + 1
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.routeStps)];    
-    elseif i == 2*audStimP.routeStps + 2
+    elseif i <= 2*audStimP.rampStps + 1
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.rampStps)];    
+    elseif i == 2*audStimP.rampStps + 2
         OST_tline{i+p} = [num2str(i+2) ' OST_END NaN NaN {} #End the dang thing'];
-    elseif 1 == 2*audStimP.routeStps + 3
+    elseif 1 == 2*audStimP.rampStps + 3
         OST_tline{i+p} = ' ';
-    elseif i == 2*audStimP.routeStps + 4
+    elseif i == 2*audStimP.rampStps + 4
         OST_tline{i+p} = 'n = 0';
     end    
 end
@@ -228,7 +228,7 @@ function PCF_tline = writePCFportions(audStimP)
 %Divide by 100 to convert.
 
 %The number of changes to f0 + the hold + the last ONE clean-up line
-n = 2*audStimP.routeStps + 1 + 1;
+n = 2*audStimP.rampStps + 1 + 1;
 
 %p = pre-experiment lines in PCF file
 p = 8;
@@ -247,13 +247,13 @@ PCF_tline{8} = '2, 0.0, 0.0, 0, 0';
 
 %The +2 comes from the numbering on the PCF ahead of these commands
 for i = 1:n
-    if i <= audStimP.routeStps
+    if i <= audStimP.rampStps
         PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(i)/100) ', 0.0, 0, 0'];
-    elseif i == audStimP.routeStps + 1 
+    elseif i == audStimP.rampStps + 1 
         PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(end)/100) ', 0.0, 0, 0'];
-    elseif i <= 2*audStimP.routeStps + 1
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route((2*audStimP.routeStps + 1) - (i-1))/100) ', 0.0, 0, 0'];
-    elseif i == 2*audStimP.routeStps + 2
+    elseif i <= 2*audStimP.rampStps + 1
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route((2*audStimP.rampStps + 1) - (i-1))/100) ', 0.0, 0, 0'];
+    elseif i == 2*audStimP.rampStps + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       
 end
