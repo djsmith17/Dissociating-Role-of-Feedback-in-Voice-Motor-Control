@@ -41,110 +41,54 @@ if stimType == 1
         audStimP.ramp = zeros(size(InflaRespRoute));
     else
         audStimP.ramp = InflaRespRoute;
-    end
-    
-    audStimP.rampFin  = audStimP.ramp(end);
-    audStimP.rampStps = length(audStimP.ramp);
-    audStimP.tStep    = tStep;                       %Length of time-step (Seconds)
-    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs); %Length of time-step (Points)
-    
-    audStimP.rampLenT = audStimP.rampStps*audStimP.tStep;       %How long is the ramp (Seconds)
-    audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
-    
-    audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
-    audStimP.rampUPst = round(audStimP.SpPoint - audStimP.rampLenP); %Point when ramp up starts (begins to climb towards baseline)
-    
-    audStimP.rampDNRange = []; audStimP.rampUPRange = [];
-    audStimP.rampDNValues = []; audStimP.rampUPValues = [];
-    
-    for r = 1:audStimP.rampStps
-        startDN = audStimP.StPoint + (r-1)*audStimP.tStepP;
-        audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.tStepP;
-        audStimP.rampDNValues(r)  = audStimP.ramp(r);
-        
-        startUP = audStimP.rampUPst + (r-1)*audStimP.tStepP;
-        audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.tStepP;
-        audStimP.rampUPValues(r)  = audStimP.ramp(audStimP.rampStps - (r-1));
-    end       
-    
-    audStimP.lenPerVallP = audStimP.rampUPst - audStimP.rampDNsp; %Points between either pertrubation 'route' (Valley)
-    audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs;   %Seconds between either pertrubation 'route' (Valley)
-    audStimP.VallRange   = audStimP.rampDNsp:audStimP.rampUPst;
-    audStimP.VallValue   = audStimP.rampFin;    
-    
+    end   
+    audStimP.tStep    = tStep;                                %Length of time-step (Seconds)
+    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs); %Length of time-step (Points)       
 elseif stimType == 2 %0 - minPoint Sigmoid    
     if trialType == 0;
         audStimP.ramp = zeros(100, 1);
     else
         x = 0:0.1:10;
         audStimP.ramp = InflaRespRoute(end)*sigmf(x,[1 5]);
-    end
-        
-    audStimP.rampFin  = audStimP.ramp(end);
-    audStimP.rampStps = length(audStimP.ramp);
-    audStimP.tStep    = audStimP.routeLenT/100;
-    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs);        
-   
-    audStimP.rampLenT = audStimP.rampStps*audStimP.tStep; %How long is the ramp (Seconds)
-    audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
-
-    audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
-    audStimP.rampUPst = round(audStimP.SpPoint - audStimP.rampLenP); %Point when ramp up starts (begins to climb towards baseline)
-    
-    audStimP.rampDNRange = []; audStimP.rampUPRange = [];
-    audStimP.rampDNValues = []; audStimP.rampUPValues = [];
-    
-    for r = 1:audStimP.rampStps
-        startDN = audStimP.StPoint + (r-1)*audStimP.tStepP;
-        audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.tStepP;
-        audStimP.rampDNValues(r)  = audStimP.ramp(r);
-        
-        startUP = audStimP.rampUPst + (r-1)*audStimP.tStepP;
-        audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.tStepP;
-        audStimP.rampUPValues(r)  = audStimP.ramp(audStimP.rampStps - (r-1));
-    end 
-    
-    audStimP.lenPerVallP = audStimP.rampUPst - audStimP.rampDNsp; %Points between either pertrubation 'route' (Valley)
-    audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs;   %Seconds between either pertrubation 'route' (Valley)
-    audStimP.VallRange   = audStimP.rampDNsp:audStimP.rampUPst;
-    audStimP.VallValue   = audStimP.rampFin; 
-    
+    end       
+    audStimP.tStep    = audStimP.routeLenT/100;               %Length of time-step (Seconds)
+    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs); %Length of time-step (Points)            
 elseif stimType == 3 %0 - 100 linearly   
     if trialType == 0;
         audStimP.ramp = zeros(99, 1);
     else
         audStimP.ramp = -1*(0:100-1);
-    end
-        
-    audStimP.rampFin  = audStimP.ramp(end);
-    audStimP.rampStps = length(audStimP.ramp);
-    audStimP.tStep    = audStimP.routeLenT/100;
-    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs);        
-    
-    audStimP.rampLenT = audStimP.rampStps*audStimP.tStep; %How long is the ramp (Seconds)
-    audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
-
-    audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
-    audStimP.rampUPst = round(audStimP.SpPoint - audStimP.rampLenP); %Point when ramp up starts (begins to climb towards baseline)
-    
-    audStimP.rampDNRange = []; audStimP.rampUPRange = [];
-    audStimP.rampDNValues = []; audStimP.rampUPValues = [];
-
-    for r = 1:audStimP.rampStps
-        startDN = audStimP.StPoint + (r-1)*audStimP.tStepP;
-        audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.tStepP;
-        audStimP.rampDNValues(r)  = audStimP.ramp(r);
-        
-        startUP = audStimP.rampUPst + (r-1)*audStimP.tStepP;
-        audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.tStepP;
-        audStimP.rampUPValues(r)  = audStimP.ramp(audStimP.rampStps - (r-1));
-    end 
-    
-    audStimP.lenPerVallP = audStimP.rampUPst - audStimP.rampDNsp; %Points between either pertrubation 'route' (Valley)
-    audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs;   %Seconds between either pertrubation 'route' (Valley)
-    audStimP.VallRange   = audStimP.rampDNsp:audStimP.rampUPst;
-    audStimP.VallValue   = audStimP.rampFin; 
+    end        
+    audStimP.tStep    = audStimP.routeLenT/100;               %Length of time-step (Seconds)
+    audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs); %Length of time-step (Points)           
 end
+
+audStimP.rampFin  = audStimP.ramp(end);
+audStimP.rampStps = length(audStimP.ramp);
+
+audStimP.rampLenT = audStimP.rampStps*audStimP.tStep;       %How long is the ramp (Seconds)
+audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
+
+audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)
+audStimP.rampUPst = round(audStimP.SpPoint - audStimP.rampLenP); %Point when ramp up starts (begins to climb towards baseline)
+
+audStimP.rampDNRange = []; audStimP.rampUPRange = [];
+audStimP.rampDNValues = []; audStimP.rampUPValues = [];
+
+for r = 1:audStimP.rampStps
+    startDN = audStimP.StPoint + (r-1)*audStimP.tStepP;
+    audStimP.rampDNRange(:,r) = startDN : startDN + audStimP.tStepP;
+    audStimP.rampDNValues(r)  = audStimP.ramp(r);
+
+    startUP = audStimP.rampUPst + (r-1)*audStimP.tStepP;
+    audStimP.rampUPRange(:,r) = startUP : startUP + audStimP.tStepP;
+    audStimP.rampUPValues(r)  = audStimP.ramp(audStimP.rampStps - (r-1));
+end       
+
+audStimP.lenPerVallP = audStimP.rampUPst - audStimP.rampDNsp; %Points between either pertrubation 'route' (Valley)
+audStimP.lenPerVallT = audStimP.lenPerVallP/audStimP.AudFs;   %Seconds between either pertrubation 'route' (Valley)
+audStimP.VallRange   = audStimP.rampDNsp:audStimP.rampUPst;
+audStimP.VallValue   = audStimP.rampFin;
 
 stim = zeros(1, audStimP.lenTrialP);
 for i = 1:audStimP.rampStps
@@ -248,11 +192,11 @@ PCF_tline{8} = '2, 0.0, 0.0, 0, 0';
 %The +2 comes from the numbering on the PCF ahead of these commands
 for i = 1:n
     if i <= audStimP.rampStps
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(i)/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.ramp(i)/100) ', 0.0, 0, 0'];
     elseif i == audStimP.rampStps + 1 
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route(end)/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.ramp(end)/100) ', 0.0, 0, 0'];
     elseif i <= 2*audStimP.rampStps + 1
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.route((2*audStimP.rampStps + 1) - (i-1))/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.ramp((2*audStimP.rampStps + 1) - (i-1))/100) ', 0.0, 0, 0'];
     elseif i == 2*audStimP.rampStps + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       

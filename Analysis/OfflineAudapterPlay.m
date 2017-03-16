@@ -22,7 +22,7 @@ expParam.trialLen      = 4; %Seconds
 expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
 expParam.bPlay         = 0;
-expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.offLineTrial  = 37;
 
 dirs = sfDirs(expParam.project);
