@@ -10,11 +10,11 @@ clear all; close all; clc
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
-PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
-PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
-PltTgl.InterRun_AudRes   = 1; %Average f0 response trace to auditory pert over all runs analyzed
+PltTgl.IntraTrial_f0   = 1; %f0 trace of individual trial
+PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
+PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
 PltTgl.InterTrial_Force  = 0;
 PltTgl.InterRun_Force    = 0;
 
@@ -25,11 +25,11 @@ AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
-AVar.runsInd      = [3 4];
+AVar.runsInd      = [5];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project);
-% dirs.saveFileSuffix = '_offlinePSR';
+% dirs.saveFileSuffix = '_offlinePSR_Sigmoid';
 
 AVar.anaWinLen   = 0.05; %analysis window length in seconds
 AVar.anaWinLenP  = [];    %analysis window length in points
@@ -146,7 +146,7 @@ for i = AVar.partiInd
                 %Start of Pert
                 Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar); %When experiment is fixed make this 2!!
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, AVar); %When experiment is fixed make this 2!!
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = mean(Trialf0Raw_St(prePertInd, 1)); % Baseline fundamental frequency of mic data
@@ -174,7 +174,7 @@ for i = AVar.partiInd
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
                     limits = [0 AVar.totEveLen -240 180];
-                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, trialType(k), limits, AVar.curRecording, k, dirs.SavResultsDir)
+                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, limits, trialType(k), f0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
                 end
             end
         end

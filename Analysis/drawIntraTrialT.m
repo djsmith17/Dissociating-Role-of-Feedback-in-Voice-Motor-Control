@@ -1,4 +1,4 @@
-function drawIntralTrialT(x, y, fs, span)
+function drawIntraTrialT(x, y, fs, span)
 h = figure();
 
 figpos = [300 200];
