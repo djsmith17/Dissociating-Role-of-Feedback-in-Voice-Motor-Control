@@ -10,13 +10,13 @@ clear all; close all; clc
 %Plot Toggles. This could eventually become an input variable
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
-PltTgl.IntraTrial_f0   = 1; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
+PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
+PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
 PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
 PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
-PltTgl.InterTrial_Force  = 0;
-PltTgl.InterRun_Force    = 0;
+PltTgl.InterTrial_Force  = 1;
+PltTgl.InterRun_Force    = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
@@ -25,7 +25,7 @@ AVar.curExp       = AVar.expTypes{AVar.expInd};
 AVar.participants = {'Pilot7'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
-AVar.runsInd      = [5];
+AVar.runsInd      = [1 2];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project);
@@ -53,9 +53,10 @@ AVar.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
 AVar.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
 
 AVar.svInflaRespRoute = 0;
-AVar.f0Limits         = [];
-AVar.ForceLimits      = [];
-AVar.PressureLimits   = [];
+AVar.f0Limits         = [0 AVar.totEveLen -60 50];
+AVar.InflaRespLimits  = [0 0.5 -60 0];
+AVar.ForceLimits      = [0 AVar.totEveLen 1 3.5];
+AVar.PressureLimits   = [0 AVar.totEveLen 20 30];
 
 for i = AVar.partiInd 
     allRunsf0_St   = [];
@@ -77,7 +78,7 @@ for i = AVar.partiInd
         d = dir([dirs.SavFileDir, '\*.mat']);
         AVar.fnames = sort_nat({d.name})';       
         
-        allTrialf0_St  = []; %
+        allTrialf0_St  = [];
         allTrialf0_Sp  = [];
         runTrialOrder  = [];
         res.allTrialf0b = [];
@@ -146,10 +147,10 @@ for i = AVar.partiInd
                 %Start of Pert
                 Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, AVar); %When experiment is fixed make this 2!!
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar); %When experiment is fixed make this 2!!
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
-                f0b = mean(Trialf0Raw_St(prePertInd, 1)); % Baseline fundamental frequency of mic data
+                f0b = round(mean(Trialf0Raw_St(prePertInd, 1))); % Baseline fundamental frequency of mic data
                 
                 Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized              
                 Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
@@ -173,8 +174,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
-                    limits = [0 AVar.totEveLen -240 180];
-                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, limits, trialType(k), f0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, AVar.f0Limits, trialType(k), f0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
                 end
             end
         end
@@ -195,14 +195,12 @@ for i = AVar.partiInd
         AVar.ForceLimits      = [0 AVar.totEveLen 1 3.5];
            
         if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
-            limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, AVar.f0Limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterTrial_AudRes == 1  %Average f0 response trace to auditory pert trials of a run 
             wD = length(trialCount);
-            limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St(:,:,wD), meanTrialf0_Sp(:,:,wD), limits, trialCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St(:,:,wD), meanTrialf0_Sp(:,:,wD), AVar.f0Limits, trialCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterTrial_Force == 1
@@ -228,22 +226,20 @@ for i = AVar.partiInd
         %Calculate the response to inflation of the collar. To be used in the
         %Auditory Perturbation Experiment. Only need to use the Average of
         %perturbed Trials
+        InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, AVar.InflaRespLimits, dirs.SavResultsDir);
+        tStep = AVar.tStep;
         if AVar.svInflaRespRoute == 1
-            InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, 1, dirs.SavResultsDir);
-            tStep = AVar.tStep;
             dirs.InflaRespFile = fullfile(dirs.SavData, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
         end
 
         if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
-            limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, AVar.f0Limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
             wD = length(runsCount);
-            limits = [0 AVar.totEveLen -240 180];
-            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St(:,:,wD), meanRunsf0_Sp(:,:,wD), limits, runsCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St(:,:,wD), meanRunsf0_Sp(:,:,wD), AVar.f0Limits, runsCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterRun_Force == 1
@@ -497,7 +493,7 @@ for i = 1:nPertVals
 end
 end
 
-function InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0, show_plt, plotFolder)
+function InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0, limits, plotFolder)
 %This calculates the shape of the change in f0 in response to the
 %perturbation onset
 
@@ -510,26 +506,24 @@ postOnset     = find(AVar.anaTimeVec > 0.5); %Trials are centered at 0.5s before
 timeFram = postOnset(1):ind;
 InflaRespRoute = meanPertMicf0(timeFram);
 
-if show_plt
-    plotpos = [200 400];
-    plotdim = [600 600];
-    InflaRespFig = figure('Color',[1 1 1]);
-    set(InflaRespFig, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-    
-    t = 0:AVar.tStep:(AVar.tStep*(length(timeFram)-1)); %meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
-    plot(t, InflaRespRoute, 'blue', 'LineWidth',3)
-    
-    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-    title({'Average Acoustic Response to Inflation'; [AVar.curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']},...
-                         'FontSize', 18,...
-                         'FontWeight', 'bold')
-    axis([0 0.5 -240 0]); box off
-    
-    set(gca, 'FontSize', 16,...
-             'FontWeight','bold');
-         
-    plTitle = [AVar.curRecording '_Inflation Response Route.png'];
-    saveFileName = fullfile(plotFolder, plTitle);
-    export_fig(saveFileName)
-end
+plotpos = [200 400];
+plotdim = [600 600];
+InflaRespFig = figure('Color',[1 1 1]);
+set(InflaRespFig, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+t = 0:AVar.tStep:(AVar.tStep*(length(timeFram)-1)); %meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
+plot(t, InflaRespRoute, 'blue', 'LineWidth',3)
+
+xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
+title({'Average Acoustic Response to Inflation'; [AVar.curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']},...
+                     'FontSize', 18,...
+                     'FontWeight', 'bold')
+axis(limits); box off
+
+set(gca, 'FontSize', 16,...
+         'FontWeight','bold');
+
+plTitle = [AVar.curRecording '_Inflation Response Route.png'];
+saveFileName = fullfile(plotFolder, plTitle);
+export_fig(saveFileName)
 end

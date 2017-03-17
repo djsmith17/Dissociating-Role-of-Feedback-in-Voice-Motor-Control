@@ -18,10 +18,7 @@ defaultanswer = {'s001'};
 answer = inputdlg(prompt,name,numlines,defaultanswer);
 
 trial = ['t001']; %will hold all of the summary information you need to analyize
-outfile = fullfile(answer{1}, trial) ;%creates file 't001'
-
-s = RandStream.create('mt19937ar', 'seed', sum(100*clock)); %make it so randperm doesn't call the same thing everytime when matlab is opened
-RandStream.setGlobalStream(s);
+outfile = fullfile(answer{1}, trial); %creates file 't001'
 
 if isempty(answer)
     return
@@ -58,6 +55,9 @@ correctInARow = 0;   % Tracks # of consecutively correct trials (regardless of c
 reversals = 0; % counter for number of changes (reversals) over time
 Trial     = 0; % counter for each trial 
 randdiff  = 8; %
+
+s = RandStream.create('mt19937ar', 'seed', sum(100*clock)); %make it so randperm doesn't call the same thing everytime when matlab is opened
+RandStream.setGlobalStream(s);
 
 changeDirection = 1; % Placeholder to remember "direction" of delta changes to count reversals
 
