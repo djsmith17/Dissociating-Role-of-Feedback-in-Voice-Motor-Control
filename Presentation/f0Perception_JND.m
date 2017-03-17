@@ -196,7 +196,7 @@ while reversals < MaxReversals
     end
 end
 
-ans = mean(revValues(end-5:end))
+Last5Mean = mean(revValues(end-5:end));
 end
 
 function drawJNDResults()
