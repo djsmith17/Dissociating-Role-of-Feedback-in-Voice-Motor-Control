@@ -167,16 +167,6 @@ if expParam.bVis == 1
 end
 end
 
-function plotPerturb(s, lenT, sig)
-
-t = (0:1:lenT-1)/s.Rate;
-plot(t, sig);
-
-xlabel('Time'); 
-ylabel('Voltage'); 
-legend('Analog Output 0');
-end
-
 function data = svData(expParam, dirs, p, audStimP, dataDAQ)
 %Package all the data into something that is useful for analysis
 

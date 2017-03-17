@@ -11,22 +11,22 @@ clear all; close all; clc
 PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
 PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
 PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
-PltTgl.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
-PltTgl.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
+PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
+PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
+PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
+PltTgl.InterRun_AudRes   = 1; %Average f0 response trace to auditory pert over all runs analyzed
 PltTgl.InterTrial_Force  = 0;
 PltTgl.InterRun_Force    = 0;
-PltTgl.svInflaRespRoute  = 1;
+PltTgl.svInflaRespRoute  = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 1; %Either 1 or 2
+AVar.expInd       = 2; %Either 1 or 2
 AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'Pilot7'}; %List of multiple participants
+AVar.participants = {'Pilot8'}; %List of multiple participants
 AVar.partiInd     = 1;          %Can select multiple subjs if desired.
 AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
-AVar.runsInd      = [1 2];
+AVar.runsInd      = [3 4];
 AVar.curRecording = [];
 
 dirs = sfDirs(AVar.project);
@@ -53,8 +53,8 @@ AVar.posEveLenQ = []; %Amount of points of observation period after event (onset
 AVar.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
 AVar.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
 
-AVar.f0Limits         = [0 AVar.totEveLen -80 50];
-AVar.InflaRespLimits  = [0 0.5 -50 0];
+AVar.f0Limits         = [0 AVar.totEveLen -240 180];
+AVar.InflaRespLimits  = [0 0.5 -200 0];
 AVar.ForceLimits      = [0 AVar.totEveLen 1 3.5];
 AVar.PressureLimits   = [0 AVar.totEveLen 20 30];
 
@@ -147,7 +147,7 @@ for i = AVar.partiInd
                 %Start of Pert
                 Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar); %When experiment is fixed make this 2!!
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, AVar); %When experiment is fixed make this 2!!
                 
                 prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = round(mean(Trialf0Raw_St(prePertInd, 1))); % Baseline fundamental frequency of mic data
