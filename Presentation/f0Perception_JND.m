@@ -1,4 +1,4 @@
-function f0Perception_JND()
+function f0Perception_JND(varargin)
 %Edit 08-15-2013: Cara Stepp, amplitude changes
 %Edit 06-13-2014: Liz Heller Murray
 %Edit 04-07-2015: Defne Abur, normalized sound, 65dB on MOTU
@@ -7,34 +7,20 @@ function f0Perception_JND()
 %Edit 02-26-2017: Dante Smith, just some general organization
 
 %% GAME INITIALIZATION
-clear all; close all; % empty the MATLAB workspace
-
-%generates the GUI that pops up at the beginning of the game
-prompt        = {'Subject:'};
-name          = 'Hearing JND';
-numlines      = 1;
-defaultanswer = {'s001'};
- 
-answer = inputdlg(prompt,name,numlines,defaultanswer);
-
-trial = ['t001']; %will hold all of the summary information you need to analyize
-outfile = fullfile(answer{1}, trial); %creates file 't001'
-
-if isempty(answer)
-    return
-end
-
-if ~exist(answer{1}, 'dir')
-    mkdir(answer{1});
+if isempty(varargin)
+    participant = 'null'; 
 else
-    overwrite = inputdlg({'File Exists: Are you sure you want to overwrite?'},'',1,{'no'}); %makes sure you don't write over a file you already have done
-    if ~strcmp(overwrite,'yes') & ~strcmp(overwrite,'YES') & ~strcmp(overwrite,'Yes') 
-      return;
-    end
+    participant = varargin{1};
 end
 
+acuVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 
-%% set intial variables
+dirs = sfDirs(acuVar.project);
+dirs.SavFileDir = fullfile(dirs.RecData, participant);
+
+if exist(dirs.SavResultsDir, 'dir') == 0
+    mkdir(dirs.SavFileDir);
+end
 
 % Standardized values
 fs           = 44100;
@@ -48,9 +34,9 @@ upstep   = .2; %initial setting that dist will go up by if user answers 'same'. 
 udRatio  = 2.4483; %MacMillan 2004
 downstep = upstep/udRatio; %initial setting that dist will go down by if user answers 'different'. These values change later based on trial number
 
-MaxReversals  = 18;  % number of answer switches the user must make before the game ends
-correctInARow = 0;   % Tracks # of consecutively correct trials (regardless of catch or different)
-                     % Resets after 2 correct in a row
+MaxReversals  = 18; % number of answer switches the user must make before the game ends
+correctInARow = 0;  % Tracks # of consecutively correct trials (regardless of catch or different)
+                    % Resets after 2 correct in a row
 
 reversals = 0; % counter for number of changes (reversals) over time
 Trial     = 0; % counter for each trial 
@@ -203,26 +189,23 @@ while reversals < MaxReversals
                 reversals = MaxReversals + 1;
             end
         
-            ResultMatrix = [dist_values', match', response', ordersave'] ;
-            save(outfile, 'ResultMatrix', 'revValues') ;
+            ResultMatrix = [dist_values', match', response', ordersave'];
+            dirs.SavFileDir = fullfile(dirs.SavFileDir, [participant '_f0Acuity.mat']);
+            save(dirs.SavFileDir, 'ResultMatrix', 'revValues');
         end
     end
 end
 
 ans = mean(revValues(end-5:end))
 end
-%FullFile =  [ResultMatrixTitle; num2cell(ResultMatrix)];
-%save( outfile , 'ResultMatrix' , 'revValues', 'ResultMatrixTitle', 'FullFile'  ) ; 
-%ans=mean(revValues(end-6:end));
-%FullFile =  [ResultMatrixTitle; num2cell(ResultMatrix)];
-%save( outfile , 'ResultMatrix' , 'revValues', 'ResultMatrixTitle', 'FullFile'  ) ;  
 
-% Create a plot of delta against trials
-% figure;
-% plot(delta,'-o');
-% xlabel('Trial number');
-% ylabel('\Delta f (Hz)','Interpreter','Tex');
+function drawJNDResults()
+figure;
+plot(delta,'-o');
+xlabel('Trial number');
+ylabel('\Delta f (Hz)','Interpreter','Tex');
 
-% Calculate the average delta over the last nJNDTrials trials
-% JND = mean(delta(end-nJNDTrials:end));
-% msgbox(sprintf('JND estimate is %2.2f Hz',JND));
+Calculate the average delta over the last nJNDTrials trials
+JND = mean(delta(end-nJNDTrials:end));
+msgbox(sprintf('JND estimate is %2.2f Hz',JND));
+end
