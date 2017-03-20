@@ -17,12 +17,12 @@ for ii = 1:r
     pertAy  = [6 6];
     
     area(pertAx, pertAy, -1, 'FaceColor', pertColor, 'EdgeColor', pertColor)
-%     hold on
-%     plot(time, DAQin(:,2,ii), 'b', 'LineWidth', 2) %Collar
-%     hold on
-%     plot(time, DAQin(:,3,ii), 'r', 'LineWidth', 2) %Neck
     hold on
-    plot(time, DAQin(:,4,ii), 'r', 'LineWidth', 2) %Pressure
+    plot(time, DAQin(:,2,ii), 'b', 'LineWidth', 2) %Collar
+    hold on
+    plot(time, DAQin(:,3,ii), 'r', 'LineWidth', 2) %Neck
+    hold on
+    plot(time, DAQin(:,4,ii), 'k', 'LineWidth', 2) %Pressure
     
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
     ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
