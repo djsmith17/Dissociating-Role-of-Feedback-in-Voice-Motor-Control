@@ -166,7 +166,7 @@ for i = AVar.partiInd
                 res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
-                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, AVar.curRecording, dirs.SavResultsDir)
+                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, AVar.ForceLimits, AVar.curRecording, dirs.SavResultsDir)
                 end
                 
                 if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial

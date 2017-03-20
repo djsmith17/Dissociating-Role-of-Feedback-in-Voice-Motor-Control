@@ -39,21 +39,19 @@ expParam.sRate       = 48000;
 expParam.downFact    = 3;
 expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 
-s = initNIDAQ;
+[s, niCh, nVS] = initNIDAQ(expParam.trialLen, 'Dev3');
 expParam.sRateQ = s.Rate;
+expParam.niCh   = niCh;
 
 expParam.trialType = ones(expParam.numTrial,1);
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-negVolSrc = zeros(expParam.sRateQ*expParam.trialLen, 1) - 1;
-negVolSrc(1) = 0; negVolSrc(end) = 0;
-
 expParam.resPause = 1;
 
 DAQin = [];
 for ii = 1:expParam.numTrial
-    NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
+    NIDAQsig = [expParam.sigs(:,ii) nVS];
     queueOutputData(s, NIDAQsig);
     fprintf('Running Trial %d\n', ii)
     [data_DAQ, time] = s.startForeground;
@@ -63,7 +61,8 @@ for ii = 1:expParam.numTrial
     pause(expParam.resPause)      
 end
 
-drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,1), DAQin, expParam.subject, dirs.savResultsDir)
+limits  = [0 4 0 5];
+drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,1), DAQin, limits, expParam.subject, dirs.savResultsDir)
 
 ForceSensorData.expParam    = expParam;
 ForceSensorData.dirs        = dirs;
