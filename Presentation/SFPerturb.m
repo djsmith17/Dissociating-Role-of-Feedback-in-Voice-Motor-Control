@@ -92,7 +92,7 @@ fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
 
 %Close the curtains
-[anMsr, H1, H2, fbLines, rec] = setPerturbVisualFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
+[anMsr, H1, H2, fbLines, rec, trigCirc] = setPerturbVisualFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
 pause()
 
 %Close the curtains
@@ -113,8 +113,9 @@ for ii = 1:expParam.numTrial
     set(H1,'Visible','on');
     pause(expParam.cuePause)
     
-    %Phonation
+    %Phonation Start
     set(H1,'Visible','off');
+    set(trigCirc,'Visible','on');
     set(H2,'Visible','on');  
     
     fprintf('Trial %d\n',ii)
@@ -126,7 +127,9 @@ for ii = 1:expParam.numTrial
     %long as vector lasts. In this case, 4.0 seconds. 
     [dataDAQ, time] = s.startForeground;
      
-    Audapter('stop');  
+    %Phonation End
+    Audapter('stop');
+    set(trigCirc,'Visible','off');
     set(H2,'Visible','off');
     
     %Save the data
