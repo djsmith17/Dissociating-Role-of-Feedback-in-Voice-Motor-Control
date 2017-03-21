@@ -18,7 +18,7 @@ else
 end
 
 collectNewData         = 0; %Boolean
-sv2F                   = 0; %Boolean
+sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';

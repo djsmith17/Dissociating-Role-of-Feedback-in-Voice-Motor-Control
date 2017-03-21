@@ -44,7 +44,7 @@ for ii = 1:r
                 'location', 'NorthWest'); 
    
     if sv2F == 1
-        plTitle = [curRecording  '_ForceSensorTest ' num2str(ii) '.png'];     
+        plTitle = [curRecording  '_DAQSignalOutput ' num2str(ii) '.png'];     
         saveFileName = fullfile(saveResultsDir, plTitle);
         export_fig(saveFileName) 
     end
