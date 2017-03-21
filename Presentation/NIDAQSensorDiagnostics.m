@@ -17,8 +17,8 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 1; %Boolean
-sv2F                   = 1; %Boolean
+collectNewData         = 0; %Boolean
+sv2F                   = 0; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
@@ -37,7 +37,7 @@ end
 if exist(dirs.savResultsDir, 'dir') == 0
     mkdir(dirs.savFileDir)
 end
-dirs.savFileDir = fullfile(dirs.savFileDir, [expParam.subject '_SensorData.mat']);
+dirs.savFileDir = fullfile(dirs.savFileDir, [expParam.subject '_NSD.mat']);
 
 if collectNewData == 1
     expParam.sRate       = 48000;
@@ -66,31 +66,31 @@ if collectNewData == 1
         pause(expParam.resPause)      
     end
     
-    ForceSensorData.expParam    = expParam;
-    ForceSensorData.dirs        = dirs;
-    ForceSensorData.DAQin       = DAQin;
+    NSD.expParam    = expParam;
+    NSD.dirs        = dirs;
+    NSD.DAQin       = DAQin;
 
-    save(dirs.savFileDir, 'ForceSensorData')
+    save(dirs.savFileDir, 'NSD')
 else
     load(dirs.savFileDir)
 end
 
-pts = length(DAQin);
-time = 0:1/expParam.sRateQ:(pts-1)/expParam.sRateQ;
-trigs = findPertTrigs(time, DAQin(:,1,:));
+pts = length(NSD.DAQin);
+time = 0:1/NSD.expParam.sRateQ:(pts-1)/NSD.expParam.sRateQ;
+trigs = findPertTrigs(time, NSD.DAQin(:,1,:));
 
-[B,A] = butter(4, 40/(expParam.sRateQ/2)); %Low-pass filter under 40
+[B,A] = butter(4, 40/(NSD.expParam.sRateQ/2)); %Low-pass filter under 40
 
-fSensorC = squeeze(DAQin(:,2,:));
-fSensorN = squeeze(DAQin(:,3,:));
-pSensor  = squeeze(DAQin(:,4,:));
+fSensorC = squeeze(NSD.DAQin(:,2,:));
+fSensorN = squeeze(NSD.DAQin(:,3,:));
+pSensor  = squeeze(NSD.DAQin(:,4,:));
 
 fSensorC  = filter(B,A,abs(fSensorC));
 fSensorN  = filter(B,A,abs(fSensorN));
 
 pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
-drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, pLimits, fLimits, expParam.subject, dirs.savResultsDir, sv2F)
+drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, pLimits, fLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
 end
 
 function niAn = nidaqAnalysis(expParam, DAQin)
