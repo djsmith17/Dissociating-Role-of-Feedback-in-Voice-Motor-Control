@@ -1,4 +1,4 @@
-function NIDAQSensorDiagnostic(varargin)
+function NIDAQSensorDiagnostics(varargin)
 %A quick test of the force sensors before running the actual experiment.
 %This makes sure that the sensors are working they should be and we can
 %continue with the experiment. Eventually this will also include the
@@ -20,7 +20,7 @@ end
 collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
-expParam.project       = 'Calibration_Force Sensor';
+expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
