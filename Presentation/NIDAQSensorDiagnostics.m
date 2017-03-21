@@ -79,16 +79,17 @@ niAn = nidaqAnalysis(NSD.expParam, NSD.DAQin);
 
 pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
-drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, pLimits, fLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
+drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
 end
 
 function niAn = nidaqAnalysis(expParam, DAQin)
 
 sRate = expParam.sRateQ;
 
-pts = length(DAQin);
-time = 0:1/sRate:(pts-1)/sRate;
+[r, c, n] = size(DAQin);
+time = 0:1/sRate:(r-1)/sRate;
 
+numTrial = n; 
 pert     = squeeze(DAQin(:,1,:));
 fSensorC = squeeze(DAQin(:,2,:));
 fSensorN = squeeze(DAQin(:,3,:));
@@ -98,15 +99,21 @@ pSensor  = squeeze(DAQin(:,4,:));
 fSensorC  = filter(B,A,abs(fSensorC));
 fSensorN  = filter(B,A,abs(fSensorN));
 
-[pertTrig, pertThresh] = findPertTrigs(time, pert);
-[presTrig, presThresh] = findPertTrigs(time, pSensor);
-[fSCTrig, fSCThresh]   = findPertTrigs(time, fSensorC);  
-[fSNTrig, fSNThresh]   = findPertTrigs(time, fSensorN); 
+[pertTrig, pertThresh, pertidx] = findPertTrigs(time, pert);
+[presTrig, presThresh, presidx] = findPertTrigs(time, pSensor);
+[fSCTrig, fSCThresh, fSCidx]   = findPertTrigs(time, fSensorC);  
+[fSNTrig, fSNThresh, fSNidx]   = findPertTrigs(time, fSensorN); 
 
-[Preslags, PresLagVals] = calcMeanLags(pertTrig, presTrig);
-[fSClags, fSCLagVals]   = calcMeanLags(pertTrig, fSCTrig);
-[fSNlags, fSNLagVals]   = calcMeanLags(pertTrig, fSNTrig);
+[PresLags, PresLagVals] = calcMeanLags(pertTrig, presTrig);
+[fSCLags, fSCLagVals]   = calcMeanLags(pertTrig, fSCTrig);
+[fSNLags, fSNLagVals]   = calcMeanLags(pertTrig, fSNTrig);
 
+rangePressures = [];
+for ii = 1:n
+    onsetPressure  = round(100*max(pSensor(:,ii)))/100;
+    offsetPressure = round(100*pSensor(pertidx(ii,2), ii))/100;
+    rangePressures = cat(1, rangePressures, [onsetPressure offsetPressure]);
+end
 niAn.time = time;
 niAn.pert = pert;
 niAn.fSensorC = fSensorC;
@@ -122,29 +129,34 @@ niAn.fSCThresh  = fSCThresh;
 niAn.fSNTrig    = fSNTrig;
 niAn.fSNThresh  = fSNThresh;
 
-niAn.PresLags = Preslags;
+niAn.PresLags    = PresLags;
 niAn.PresLagVals = PresLagVals;
-niAn.fSCLags  = fSClags;
-niAn.fSCLagVals = fSCLagVals;
-niAn.fSNLags = fSNlags;
-niAn.fSNLagVals = fSNLagVals;
+niAn.fSCLags     = fSCLags;
+niAn.fSCLagVals  = fSCLagVals;
+niAn.fSNLags     = fSNLags;
+niAn.fSNLagVals  = fSNLagVals;
+
+niAn.rangePressures = rangePressures;
+niAn.meanRangePressure = mean(rangePressures, 1);
 end
 
-function [trigs, threshes] = findPertTrigs(time, pertCh)
+function [trigs, threshes, idx] = findPertTrigs(time, pertCh)
 pertCh = round(pertCh); %Should be step function 0V or 3V
 [~, c] = size(pertCh);
 
 trigs = [];
 threshes = [];
+idx   = [];
 for i = 1:c
     thresh = mean(pertCh(2000:4000, i));
     
     I = find(pertCh(:,i) > thresh);
-    trigSt = time(I(1));
-    trigSp = time(I(end));
+    trigSt = round(1000*time(I(1)))/1000;
+    trigSp = round(1000*time(I(end)))/1000;
 
-    trigs = cat(1, trigs, [trigSt trigSp]);
+    trigs    = cat(1, trigs, [trigSt trigSp]);
     threshes = cat(1, threshes, thresh);
+    idx      = cat(1, idx, [I(1) I(end)]);
 end
 end
 
@@ -152,7 +164,7 @@ function [lags, lagVals] = calcMeanLags(pertTrig, sensorTrig)
 
 lags = sensorTrig - pertTrig;
 lagsMean = mean(lags, 1);
-lagsSTD  = std(lags, 0, 2);
+lagsSTD  = std(lags, 0, 1);
 
 SEM = lagsSTD/sqrt(length(lags)); 
 CIM = 1.96*SEM;
