@@ -17,6 +17,9 @@ else
     numTrial = varargin{1};
 end
 
+collectNewData         = 1; %Boolean
+sv2F                   = 1; %Boolean
+
 expParam.project       = 'Calibration_Force Sensor';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
@@ -34,47 +37,76 @@ end
 if exist(dirs.savResultsDir, 'dir') == 0
     mkdir(dirs.savFileDir)
 end
+dirs.savFileDir = fullfile(dirs.savFileDir, [expParam.subject '_SensorData.mat']);
 
-expParam.sRate       = 48000;
-expParam.downFact    = 3;
-expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
+if collectNewData == 1
+    expParam.sRate       = 48000;
+    expParam.downFact    = 3;
+    expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 
-[s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
-expParam.sRateQ = s.Rate;
-expParam.niCh   = niCh;
+    [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
+    expParam.sRateQ = s.Rate;
+    expParam.niCh   = niCh;
 
-expParam.trialType = ones(expParam.numTrial,1);
+    expParam.trialType = ones(expParam.numTrial,1);
 
-[expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+    [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-expParam.resPause = 1;
+    expParam.resPause = 1;
 
-DAQin = [];
-for ii = 1:expParam.numTrial
-    NIDAQsig = [expParam.sigs(:,ii) nVS];
-    queueOutputData(s, NIDAQsig);
-    fprintf('Running Trial %d\n', ii)
-    [data_DAQ, time] = s.startForeground;
+    DAQin = [];
+    for ii = 1:expParam.numTrial
+        NIDAQsig = [expParam.sigs(:,ii) nVS];
+        queueOutputData(s, NIDAQsig);
+        fprintf('Running Trial %d\n', ii)
+        [data_DAQ, time] = s.startForeground;
+
+        DAQin = cat(3, DAQin, data_DAQ);
+
+        pause(expParam.resPause)      
+    end
     
-    DAQin = cat(3, DAQin, data_DAQ);
-    
-    pause(expParam.resPause)      
+    ForceSensorData.expParam    = expParam;
+    ForceSensorData.dirs        = dirs;
+    ForceSensorData.DAQin       = DAQin;
+
+    save(dirs.savFileDir, 'ForceSensorData')
+else
+    load(dirs.savFileDir)
 end
 
 pts = length(DAQin);
 time = 0:1/expParam.sRateQ:(pts-1)/expParam.sRateQ;
 trigs = findPertTrigs(time, DAQin(:,1,:));
 
+[B,A] = butter(4, 40/(expParam.sRateQ/2)); %Low-pass filter under 40
+
+fSensorC = squeeze(DAQin(:,2,:));
+fSensorN = squeeze(DAQin(:,3,:));
+pSensor  = squeeze(DAQin(:,4,:));
+
+fSensorC  = filter(B,A,abs(fSensorC));
+fSensorN  = filter(B,A,abs(fSensorN));
+
 pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
-drawDAQsignal(time, DAQin, trigs, pLimits, fLimits, expParam.subject, dirs.savResultsDir)
+drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, pLimits, fLimits, expParam.subject, dirs.savResultsDir, sv2F)
+end
 
-ForceSensorData.expParam    = expParam;
-ForceSensorData.dirs        = dirs;
-ForceSensorData.DAQin       = DAQin;
+function niAn = nidaqAnalysis(expParam, DAQin)
 
-dirs.savFileDir = fullfile(dirs.savFileDir, [expParam.subject '_SensorData.mat']);
-save(dirs.savFileDir, 'ForceSensorData')
+pts = length(DAQin);
+time = 0:1/expParam.sRateQ:(pts-1)/expParam.sRateQ;
+
+pert     = squeeze(DAQin(:,1,:));
+fSensorC = squeeze(DAQin(:,2,:));
+fSensorN = squeeze(DAQin(:,3,:));
+pSensor  = squeeze(DAQin(:,4,:));
+
+[B,A] = butter(4, 40/(expParam.sRateQ/2)); %Low-pass filter under 40
+
+niAn.time = time;
+
 end
 
 function trigs = findPertTrigs(time, pertCh)
@@ -89,4 +121,8 @@ for i = 1:c
 
     trigs = cat(1, trigs, [trigSt trigSp]);
 end
+end
+
+function lags = lagCalc(trigs)
+
 end

@@ -1,4 +1,4 @@
-function drawDAQsignal(time, DAQin, trigs, pLimits, fLimits, curRecording, saveResultsDir)
+function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, pLimits, fLimits, curRecording, saveResultsDir, sv2F)
 %Good for seeing the whole signal
 [r, ~] = size(trigs);
 
@@ -6,7 +6,6 @@ plotpos = [500 300];
 plotdim = [800 600];
 pertColor = [0.8 0.8 0.8];
 
-sv2F = 1;
 for ii = 1:r
     ForceSensorV(ii) = figure('Color', [1 1 1]);
     set(ForceSensorV(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -18,7 +17,7 @@ for ii = 1:r
     hold on
     %Pressure ('4') followed by Force Sensor Collar ('2') and Force Sensor
     %Neck ('3')
-    [aX, fS, pS] = plotyy([time' time'], [DAQin(:,2,ii) DAQin(:,3,ii)], time, DAQin(:,4,ii));
+    [aX, fS, pS] = plotyy([time' time'], [fSensorC(:,ii) fSensorN(:,ii)], time, pSensor(:,ii));
     
     set(pS, 'LineWidth', 2,... 
             'Color', 'k');
