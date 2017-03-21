@@ -8,16 +8,7 @@ plotdim = [800 600];
 CombinedSensor = figure('Color', [1 1 1]);
 set(CombinedSensor, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-colors = [0.0 0.0 0.0,
-          1.0 0.0 0.0,
-          0.0 1.0 0.0,
-          0.0 0.0 1.0,
-          0.0 0.5 0.5,
-          0.5 0.5 0.0,
-          0.5 0.0 0.5,
-          0.3 0.6 0.3,
-          0.6 0.3 0.3,
-          0.3 0.3 0.6];
+colors = distinguishable_colors(r);
 
 plot([1 1], [-1 5], 'k-', 'LineWidth', 2)
 
@@ -33,6 +24,7 @@ axis(pLimits);
 box off
 
 set(gca,'FontSize', 12,...
+        'XTickLabel', {'-1.0' '-0.5' '0' '0.5' '1.0' '1.5' '2.0' '2.5'},...
         'FontWeight', 'bold')
 
 pltlgd = legend(h, 'Trial 1', 'Trial 2', 'Trial 3', 'Trial 4', 'Trial 5', 'Trial 6', 'Trial 7', 'Trial 8', 'Trial 9', 'Trial 10');
