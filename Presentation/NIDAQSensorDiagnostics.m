@@ -80,6 +80,8 @@ niAn = nidaqAnalysis(NSD.expParam, NSD.DAQin);
 pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
 drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
+
+drawDAQcombined(niAn.time, niAn.pSensor, niAn.trigs, niAn, pLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
 end
 
 function niAn = nidaqAnalysis(expParam, DAQin)
