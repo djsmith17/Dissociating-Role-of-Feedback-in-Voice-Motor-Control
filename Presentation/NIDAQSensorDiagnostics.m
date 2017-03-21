@@ -81,7 +81,8 @@ pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
 drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
 
-drawDAQcombined(niAn.time, niAn.pSensor, niAn.trigs, niAn, pLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
+pLimits = [0 3.5 0 4];
+drawDAQcombined(niAn.timeAl, niAn.pSensorAl, niAn.trigs, niAn, pLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
 end
 
 function niAn = nidaqAnalysis(expParam, DAQin)
@@ -111,11 +112,16 @@ fSensorN  = filter(B,A,abs(fSensorN));
 [fSNLags, fSNLagVals]   = calcMeanLags(pertTrig, fSNTrig);
 
 rangePressures = [];
-for ii = 1:n
+for ii = 1:numTrial
     onsetPressure  = round(100*max(pSensor(:,ii)))/100;
     offsetPressure = round(100*pSensor(pertidx(ii,2), ii))/100;
     rangePressures = cat(1, rangePressures, [onsetPressure offsetPressure]);
 end
+
+pSensorAl = alignSensorData(numTrial, sRate, pSensor, pertidx);
+timeAl = 0:1/sRate:(length(pSensorAl)-1)/sRate;
+
+niAn.numTrial = numTrial;
 niAn.time = time;
 niAn.pert = pert;
 niAn.fSensorC = fSensorC;
@@ -140,6 +146,10 @@ niAn.fSNLagVals  = fSNLagVals;
 
 niAn.rangePressures = rangePressures;
 niAn.meanRangePressure = mean(rangePressures, 1);
+
+niAn.pSensorAl = pSensorAl;
+niAn.timeAl = timeAl;
+
 end
 
 function [trigs, threshes, idx] = findPertTrigs(time, pertCh)
@@ -172,4 +182,15 @@ SEM = lagsSTD/sqrt(length(lags));
 CIM = 1.96*SEM;
 
 lagVals = [lagsMean, CIM];
+end
+
+function sensorAl = alignSensorData(numTrial, sRate, sensor, idx)
+
+sensorAl = [];
+for ii = 1:numTrial
+    St = idx(ii,1) - sRate*1;
+    Sp = idx(ii,1) + sRate*2.5;
+    
+    sensorAl = cat(2, sensorAl, sensor(St:Sp,ii));
+end
 end

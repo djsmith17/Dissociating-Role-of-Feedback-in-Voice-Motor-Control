@@ -4,33 +4,44 @@ function drawDAQcombined(time, pSensor, trigs, niAn, pLimits, curRecording, save
 
 plotpos = [500 300];
 plotdim = [800 600];
-pertColor = [0.8 0.8 0.8];
 
 CombinedSensor = figure('Color', [1 1 1]);
 set(CombinedSensor, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-[aX, H] = plotyy([time' time'], [fSensorC(:,ii) fSensorN(:,ii)], time, pSensor(:,ii));
+colors = [0.0 0.0 0.0,
+          1.0 0.0 0.0,
+          0.0 1.0 0.0,
+          0.0 0.0 1.0,
+          0.0 0.5 0.5,
+          0.5 0.5 0.0,
+          0.5 0.0 0.5,
+          0.3 0.6 0.3,
+          0.6 0.3 0.3,
+          0.3 0.3 0.6];
 
-set(H, 'LineWidth', 2,... 
-        'Color', 'k');
+plot([1 1], [-1 5], 'k-', 'LineWidth', 2)
+
+for ii = 1:niAn.numTrial
+    hold on
+    h(ii) = plot(time, pSensor(:,ii), 'LineWidth', 2, 'Color', colors(ii,:));
+end
 
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
-ylabel(aX, 'Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
-title('Sensors Measurements due to Balloon Inflation', 'FontSize', 18, 'FontWeight', 'bold')
-axis(aX, pLimits);
+ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
+title('Pressure Sensor Measurements due to Balloon Inflation', 'FontSize', 18, 'FontWeight', 'bold')
+axis(pLimits);
 box off
 
-set(aX, 'ycolor', 'k',...
-        'FontSize', 12,...
+set(gca,'FontSize', 12,...
         'FontWeight', 'bold')
 
-pltlgd = legend([pA H fS(1) fS(2)], 'Perturbation Period', 'Pressure Sensor', 'Force Sensor: Collar', 'Force Sensor: Neck');
+pltlgd = legend(h, 'Trial 1', 'Trial 2', 'Trial 3', 'Trial 4', 'Trial 5', 'Trial 6', 'Trial 7', 'Trial 8', 'Trial 9', 'Trial 10');
 set(pltlgd, 'box', 'off',...
             'location', 'NorthWest'); 
 
-t = annotation('textbox',[0.55 0.82 0.35 0.1],...
-               'string', {['Pressure Sensor Onset Lag: ' num2str(1000*niAn.PresLags(ii,1)) 'ms'];...
-                          ['Onset & Offset Pressures: ' num2str(niAn.rangePressures(ii,1)) 'psi, ' num2str(niAn.rangePressures(ii,2)) 'psi']},...
+t = annotation('textbox',[0.5 0.82 0.45 0.1],...
+               'string', {['Mean Pressure Onset Lag: ' num2str(1000*niAn.PresLagVals(1)) 'ms'];...
+                          ['Mean Onset & Offset Pressure Values: ' num2str(niAn.meanRangePressure(1)) 'psi, ' num2str(niAn.meanRangePressure(2)) 'psi']},...
                 'LineStyle','none',...
                 'FontWeight','bold',...
                 'FontSize',10,...
