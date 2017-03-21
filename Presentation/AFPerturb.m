@@ -66,8 +66,9 @@ Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
-s = initNIDAQ;
-expParam.sRateQ = s.Rate; %save the sampling rate of the NIDAQ
+[s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
+expParam.sRateQ = s.Rate; % NIDAQ sampling rate
+expParam.niCh   = niCh;   % Structure of Channel Names
 
 %Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
@@ -78,10 +79,6 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
-
-%Create a negative voltage signal for the force sensors
-negVolSrc = zeros(expParam.sRateQ*expParam.trialLen, 1) - 1;
-negVolSrc(1) = 0; negVolSrc(end) = 0;
 
 %Should give variable of InflaRespRoute. Recorded from previous
 %experimentation
@@ -121,7 +118,7 @@ for ii = 1:expParam.numTrial
     Audapter('pcf', expParam.pcfFN, 0);
     
     %Setup which perturb file we want
-    NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
+    NIDAQsig = [expParam.sigs(:,ii) nVS];
     queueOutputData(s, NIDAQsig);
     
     %Cue to begin trial

@@ -39,7 +39,7 @@ expParam.sRate       = 48000;
 expParam.downFact    = 3;
 expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 
-[s, niCh, nVS] = initNIDAQ(expParam.trialLen, 'Dev3');
+[s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
 expParam.sRateQ = s.Rate;
 expParam.niCh   = niCh;
 
