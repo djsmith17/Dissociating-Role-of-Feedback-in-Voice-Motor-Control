@@ -61,8 +61,13 @@ for ii = 1:expParam.numTrial
     pause(expParam.resPause)      
 end
 
-limits  = [0 4 0 5];
-drawDAQsignal(expParam.sRateQ, expParam.trigs(:,:,1), DAQin, limits, expParam.subject, dirs.savResultsDir)
+pts = length(DAQin);
+time = 0:1/expParam.sRateQ:(pts-1)/expParam.sRateQ;
+trigs = findPertTrigs(time, DAQin(:,1,:));
+
+pLimits = [0 4 0 4];
+fLimits = [0 4 1 5];
+drawDAQsignal(time, DAQin, trigs, pLimits, fLimits, expParam.subject, dirs.savResultsDir)
 
 ForceSensorData.expParam    = expParam;
 ForceSensorData.dirs        = dirs;
@@ -70,4 +75,18 @@ ForceSensorData.DAQin       = DAQin;
 
 dirs.savFileDir = fullfile(dirs.savFileDir, [expParam.subject '_SensorData.mat']);
 save(dirs.savFileDir, 'ForceSensorData')
+end
+
+function trigs = findPertTrigs(time, pertCh)
+pertCh = round(squeeze(pertCh)); %Should be step function 0V or 3V
+[~, c] = size(pertCh);
+
+trigs = [];
+for i = 1:c
+    I = find(pertCh(:,i) > 0);
+    trigSt = time(I(1));
+    trigSp = time(I(end));
+
+    trigs = cat(1, trigs, [trigSt trigSp]);
+end
 end
