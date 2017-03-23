@@ -44,9 +44,9 @@ anMsr.maxLy = [anMsr.drawMaxH anMsr.drawMaxH]; %First Y and Last Y
 
 anMsr.recPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth anMsr.recHeight];
 
-anMsr.r    = 100;
+anMsr.r    = 50;
 anMsr.cirX = 0;
-anMsr.cirY = 0;
+anMsr.cirY = 0.025;
 anMsr.cirW = round(100*anMsr.r/fullW)/100;
 anMsr.cirH = round(100*anMsr.r/fullH)/100;
 

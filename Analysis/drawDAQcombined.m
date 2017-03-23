@@ -1,6 +1,8 @@
-function drawDAQcombined(time, pSensor, trigs, niAn, pLimits, curRecording, saveResultsDir, sv2F)
+function drawDAQcombined(time, pSensor, trigs, niAn, pLimits, curExp, saveResultsDir, sv2F)
 %Good for seeing the whole signal
 [r, ~] = size(trigs);
+
+curExp(strfind(curExp, '_')) = ' ';
 
 plotpos = [500 300];
 plotdim = [800 600];
@@ -19,7 +21,8 @@ end
 
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
 ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
-title('Pressure Sensor Measurements due to Balloon Inflation', 'FontSize', 18, 'FontWeight', 'bold')
+title({'Pressure Sensor Measurements due to Balloon Inflation';
+        curExp}, 'FontSize', 12, 'FontWeight', 'bold')
 axis(pLimits);
 box off
 
@@ -40,7 +43,7 @@ t = annotation('textbox',[0.5 0.82 0.45 0.1],...
                 'FontName','Arial');
 
 if sv2F == 1
-    plTitle = [curRecording  '_CombinedDAQSignalOutput.png'];     
+    plTitle = [curExp  '_CombinedDAQSignalOutput.png'];     
     saveFileName = fullfile(saveResultsDir, plTitle);
     export_fig(saveFileName) 
 end

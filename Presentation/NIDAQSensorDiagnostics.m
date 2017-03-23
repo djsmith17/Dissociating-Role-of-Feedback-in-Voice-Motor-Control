@@ -22,7 +22,7 @@ sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.subject       = 'Pilot0_noPhonation'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 
@@ -149,7 +149,6 @@ niAn.meanRangePressure = mean(rangePressures, 1);
 
 niAn.pSensorAl = pSensorAl;
 niAn.timeAl = timeAl;
-
 end
 
 function [trigs, threshes, idx] = findPertTrigs(time, pertCh)
@@ -172,7 +171,7 @@ for i = 1:c
 end
 end
 
-function [lags, lagVals] = calcMeanLags(pertTrig, sensorTrig)
+function [lags, lagMeans] = calcMeanLags(pertTrig, sensorTrig)
 
 lags = sensorTrig - pertTrig;
 lagsMean = mean(lags, 1);
@@ -181,7 +180,7 @@ lagsSTD  = std(lags, 0, 1);
 SEM = lagsSTD/sqrt(length(lags)); 
 CIM = 1.96*SEM;
 
-lagVals = [lagsMean, CIM];
+lagMeans = [lagsMean, CIM];
 end
 
 function sensorAl = alignSensorData(numTrial, sRate, sensor, idx)

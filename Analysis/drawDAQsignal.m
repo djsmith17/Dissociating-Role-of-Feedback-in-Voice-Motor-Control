@@ -1,6 +1,8 @@
-function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, niAn, pLimits, fLimits, curRecording, saveResultsDir, sv2F)
+function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, niAn, pLimits, fLimits, curExp, saveResultsDir, sv2F)
 %Good for seeing the whole signal
 [r, ~] = size(trigs);
+
+curExp(strfind(curExp, '_')) = ' ';
 
 plotpos = [500 300];
 plotdim = [800 600];
@@ -30,7 +32,8 @@ for ii = 1:r
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
     ylabel(aX(1), 'Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k')
     ylabel(aX(2), 'Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
-    title('Sensors Measurements due to Balloon Inflation', 'FontSize', 18, 'FontWeight', 'bold')
+    title({'Sensors Measurements due to Balloon Inflation';
+           curExp}, 'FontSize', 12, 'FontWeight', 'bold')
     axis(aX(1), fLimits); 
     axis(aX(2), pLimits);
     box off
@@ -52,7 +55,7 @@ for ii = 1:r
                     'FontName','Arial');
    
     if sv2F == 1
-        plTitle = [curRecording  '_DAQSignalOutput ' num2str(ii) '.png'];     
+        plTitle = [curExp  '_DAQSignalOutput ' num2str(ii) '.png'];     
         saveFileName = fullfile(saveResultsDir, plTitle);
         export_fig(saveFileName) 
     end
