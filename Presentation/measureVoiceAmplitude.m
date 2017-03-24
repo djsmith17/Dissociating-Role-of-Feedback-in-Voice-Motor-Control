@@ -16,7 +16,7 @@ expParam.gender     = 'male';
 expParam.masking    = 0;
 expParam.trialLen   = 4; %Seconds
 
-dirs = dfDirs(expParam.project, expParam.expType);
+dirs = dfDirs(expParam.project);
 
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
@@ -57,11 +57,8 @@ for ii = 1:expParam.numTrial
     
     Audapter('stop');   
     
-    data = AudapterIO('getData');
-    
-    rms   = data.rms(:,1);
-    rmsdB = 20*log10(rms/refSPL);
-    rmsMean = mean(rmsdB);
+    data    = AudapterIO('getData');
+    rmsMean = calcMeanRMS(data, refSPL);
     
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
@@ -70,4 +67,10 @@ finalrmsMean = mean(allrmsMean);
 
 fprintf('\nThe mean amplitude from each of the three voice recordings were %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
 fprintf('\nThe mean amplitude from all three voice recordings is %4.2f dB\n', finalrmsMean)
+end
+
+function rmsMean = calcMeanRMS(data, refSPL)
+rms   = data.rms(:,1);
+rmsdB = 20*log10(rms/refSPL);
+rmsMean = mean(rmsdB);
 end

@@ -1,4 +1,4 @@
-function NIDAQSensorDiagnostics(varargin)
+function dfDiagnostics_Sensors(varargin)
 %A quick test of the force sensors before running the actual experiment.
 %This makes sure that the sensors are working they should be and we can
 %continue with the experiment. Eventually this will also include the
