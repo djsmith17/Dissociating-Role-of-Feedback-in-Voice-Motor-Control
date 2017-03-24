@@ -1,4 +1,4 @@
-function [expParam, p] = setAudFeedType(expParam, dirs, p)
+function [expParam, p] = dfSetAudFB(expParam, dirs, p)
 %This function sets the type of Auditory Feedback to be played during an 
 %experiment involving Audapter. If the Auditory feedback is speech-shaped
 %masking noise, then you will need the masking noise wave file, SSN.wav.

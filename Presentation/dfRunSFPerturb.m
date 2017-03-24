@@ -71,7 +71,7 @@ expParam.niCh   = niCh;   % Structure of Channel Names
 expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-[expParam, p]      = setAudFeedType(expParam, dirs, p); %Trials with masking or no...  
+[expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no...  
 
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 

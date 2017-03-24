@@ -75,7 +75,7 @@ catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
-[expParam, p] = setAudFeedType(expParam, dirs, p); %Trials with masking or no... 
+[expParam, p] = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... 
 
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
