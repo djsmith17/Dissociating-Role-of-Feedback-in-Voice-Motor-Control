@@ -6,8 +6,8 @@ function [s, niCh, nVS] = initNIDAQ(trialLen, dev)
 %https://www.mathworks.com/hardware-support/nidaqmx.html
 
 %inputs:
-%trialLen: Trial length. How long are we recording data
-%dev:      The device to use. Defaults to Dev
+%trialLen: Length of the recording. This is used to create a -1V signal
+%dev:      The device to use. Defaults to Dev3
 
 %outputs:
 %s:        The NIDAQ session for recording

@@ -111,7 +111,7 @@ for ii = 1:expParam.numTrial
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from 
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
+    audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);

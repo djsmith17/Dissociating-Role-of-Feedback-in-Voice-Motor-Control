@@ -29,7 +29,7 @@ AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'};
 AVar.runsInd      = [3 4];
 AVar.curRecording = [];
 
-dirs = sfDirs(AVar.project);
+dirs = dfDirs(AVar.project);
 % dirs.saveFileSuffix = '_offlinePSR_Sigmoid';
 
 AVar.anaWinLen   = 0.05; %analysis window length in seconds

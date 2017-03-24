@@ -1,4 +1,4 @@
-function audStimP = setPSRLevels(InflaRespRoute, tStep, ost, pcf, trialType, trigs, stimType)
+function audStimP = dfSetAudapFiles(InflaRespRoute, tStep, ost, pcf, trialType, trigs, stimType)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment recorded in Audapter. The custom 
 %perturbation shape and magnitude is based off a previously recorded 
