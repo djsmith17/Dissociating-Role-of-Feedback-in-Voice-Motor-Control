@@ -39,7 +39,7 @@ expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 
-dirs = sfDirs(expParam.project);
+dirs = dfDirs(expParam.project);
 
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');

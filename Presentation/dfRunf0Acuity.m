@@ -1,4 +1,4 @@
-function f0Acuity_JND(varargin)
+function dfRunf0Acuity(varargin)
 %Edit 08-15-2013: Cara Stepp, amplitude changes
 %Edit 06-13-2014: Liz Heller Murray
 %Edit 04-07-2015: Defne Abur, normalized sound, 65dB on MOTU

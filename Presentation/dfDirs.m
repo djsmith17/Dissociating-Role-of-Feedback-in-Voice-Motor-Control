@@ -1,4 +1,4 @@
-function dirs = sfDirs(project)
+function dirs = dfDirs(project)
 % function dirs = fsDirs(project)
 %
 % Setting the path to code, data in and out, and other toolboxes.

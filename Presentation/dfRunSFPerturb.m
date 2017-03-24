@@ -36,7 +36,7 @@ expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 
-dirs = sfDirs(expParam.project);
+dirs = dfDirs(expParam.project);
 
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
