@@ -1,17 +1,15 @@
-function AFPerturb(varargin)
-%Pitch-shift Perturbation experiment. This script measures acoustic output 
-%from a participant as they have their auditory feedback perturbed.
-%Audapter collects and %manages the recorded acoustic data. This 
-%specifically uses a pitch-shift that matches the size of the stimulus seen
-%in the somatosensory perturbation experiment.
+function dfRunSFPerturb(varargin)
+%Laryngeal Perturbation experiment. This script measures acoustic output 
+%from a participant as they have their laryngeal phsyically displaced.
+%NIDAQ signal provides Pertrubatron stimulus and Audapter collects and
+%manages the recorded acoustic data.
 
-%This script calls the following (8) functions:
+%This script calls the following (7) functions:
 %sfDirs.m
 %initNIDAQ.m
 %setAudFeedType.m
 %orderTrials.m
 %createPerturbSignal.m
-%setPSRLevels.m
 %setPerturbVisualFB.m
 %updateVisualFeed.m
 
@@ -26,23 +24,22 @@ end
 
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-expParam.expType       = 'Auditory Perturbation_Perceptual';
+expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
-expParam.run           = 'Run3';
+expParam.run           = 'Run1';
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
 expParam.perCatch      = 0.25;
 expParam.gender        = 'male';
-expParam.masking       = 0;
+expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
-expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 
 dirs = sfDirs(expParam.project);
 
-dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
-dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
+dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -71,23 +68,14 @@ expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 
 %Set up OST and PCF Files
-expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
-expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
+expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-[expParam, p]      = setAudFeedType(expParam, dirs, p); %Trials with masking or no... ;
+[expParam, p]      = setAudFeedType(expParam, dirs, p); %Trials with masking or no...  
 
 expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
-
-%Should give variable of InflaRespRoute. Recorded from previous
-%experimentation
-dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
-try
-    load(dirs.InflaRespFile);
-catch me
-    fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
-end
 
 expParam.cuePause = 1.0;
 expParam.resPause = 2.0;
@@ -110,9 +98,6 @@ for ii = 1:expParam.numTrial
     expParam.curTrial   = ['Trial' num2str(ii)];
     expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
     
-    %Level of f0 change based on results from 
-    audStimP = setPSRLevels(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
-    
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
@@ -128,8 +113,8 @@ for ii = 1:expParam.numTrial
     %Phonation Start
     set(H1,'Visible','off');
     set(trigCirc,'Visible','on');
-    set(H2,'Visible','on');
-   
+    set(H2,'Visible','on');  
+    
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
     Audapter('reset');
@@ -138,18 +123,18 @@ for ii = 1:expParam.numTrial
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
     [dataDAQ, time] = s.startForeground;
-    
+     
     %Phonation End
     Audapter('stop');
     set(trigCirc,'Visible','off');
-    set(H2,'Visible','off'); 
+    set(H2,'Visible','off');
     
     %Save the data
-    data = svData(expParam, dirs, p, audStimP, dataDAQ);
-
+    data = svData(expParam, dirs, p, dataDAQ);
+       
     %Grab smooth RMS trace from 'data' structure, compare against baseline
     [color, newPos] = updateVisualFeed(anMsr, data.rms(:,1));
-    
+
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
     set(rec, 'Visible', 'on'); 
@@ -157,7 +142,7 @@ for ii = 1:expParam.numTrial
     
     pause(expParam.resPause)
     set(fbLines, 'Visible', 'off');
-    set(rec, 'Visible', 'off');
+    set(rec, 'Visible', 'off'); 
 end
 close all
 
@@ -167,7 +152,7 @@ if expParam.bVis == 1
 end
 end
 
-function data = svData(expParam, dirs, p, audStimP, dataDAQ)
+function data = svData(expParam, dirs, p, dataDAQ)
 %Package all the data into something that is useful for analysis
 
 try
@@ -176,7 +161,6 @@ try
     data.expParam    = expParam; %Experimental Parameters
     data.dirs        = dirs;     %Directories
     data.p           = p;        %Audapter Parameters
-    data.audStimP    = audStimP; %auditory stimulus Parameters
     data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
     save(fullfile(dirs.RecFileDir, [expParam.curSubCond dirs.saveFileSuffix]), 'data')
 
