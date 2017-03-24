@@ -199,13 +199,13 @@ end
 Last5Mean = mean(revValues(end-5:end));
 end
 
-function drawJNDResults()
-figure;
-plot(delta,'-o');
-xlabel('Trial number');
-ylabel('\Delta f (Hz)','Interpreter','Tex');
-
-Calculate the average delta over the last nJNDTrials trials
-JND = mean(delta(end-nJNDTrials:end));
-msgbox(sprintf('JND estimate is %2.2f Hz',JND));
-end
+% function drawJNDResults()
+% figure;
+% plot(delta,'-o');
+% xlabel('Trial number');
+% ylabel('\Delta f (Hz)','Interpreter','Tex');
+% 
+% Calculate the average delta over the last nJNDTrials trials
+% JND = mean(delta(end-nJNDTrials:end));
+% msgbox(sprintf('JND estimate is %2.2f Hz',JND));
+% end
