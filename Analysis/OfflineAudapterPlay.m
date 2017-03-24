@@ -77,7 +77,7 @@ end
 
 [expParam, p] = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... 
 
-expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
+expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 

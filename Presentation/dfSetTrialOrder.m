@@ -1,4 +1,4 @@
-function trialType = orderTrials(numTrial, per)
+function trialType = dfSetTrialOrder(numTrial, per)
 %This function organizes trials in sets based on variable 'per'. The first
 %trial and the last trial of each set is always a control trial. A random
 %trial between the first and last trial will be a catch trial, with the

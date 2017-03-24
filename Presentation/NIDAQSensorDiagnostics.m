@@ -26,7 +26,7 @@ expParam.subject       = 'Pilot0_noPhonation'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 
-dirs = sfDirs(expParam.project);
+dirs = dfDirs(expParam.project);
 
 dirs.savFileDir    = fullfile(dirs.RecData, expParam.subject);
 dirs.savResultsDir = fullfile(dirs.RecData, expParam.subject); %Where to save results 

@@ -1,4 +1,4 @@
-function [anMsr, H1, H2, fbLines, LoudRec, trigCirc] = setPerturbVisualFB(targRMS, bounds, win)
+function [anMsr, H1, H2, fbLines, LoudRec, trigCirc] = dfSetVisFB(targRMS, bounds, win)
 %Overlays for the experiment.
 %anMsr = annotation Measurements
 

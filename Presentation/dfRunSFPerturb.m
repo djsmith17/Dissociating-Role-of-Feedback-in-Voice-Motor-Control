@@ -73,7 +73,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no...  
 
-expParam.trialType = orderTrials(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
+expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
 [expParam.sigs, expParam.trigs] = createPerturbSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
@@ -89,7 +89,7 @@ fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
 
 %Close the curtains
-[anMsr, H1, H2, fbLines, rec, trigCirc] = setPerturbVisualFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
+[anMsr, H1, H2, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
 pause()
 
 %Close the curtains
