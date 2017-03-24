@@ -16,7 +16,7 @@ expParam.gender     = 'male';
 expParam.masking    = 0;
 expParam.trialLen   = 4; %Seconds
 
-dirs = sfDirs(expParam.project, expParam.expType);
+dirs = dfDirs(expParam.project, expParam.expType);
 
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
@@ -35,7 +35,7 @@ p = getAudapterDefaultParams(expParam.gender);
 expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-[expParam, p]      = setAudFeedType(expParam, dirs, p); %Sets some p params
+[expParam, p]      = dfSetAudFB(expParam, dirs, p); %Sets some p params
 
 refSPL  = 0.00002; %20 micropascals
 

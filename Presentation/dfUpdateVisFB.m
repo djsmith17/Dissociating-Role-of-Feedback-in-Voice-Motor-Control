@@ -1,4 +1,4 @@
-function [color, newPos] = updateVisualFeed(anMsr, rms)
+function [color, newPos] = dfUpdateVisFB(anMsr, rms)
 %Feedback for the participant on how loud they are. 
 
 %Convert rms SPL to dB and take the mean
