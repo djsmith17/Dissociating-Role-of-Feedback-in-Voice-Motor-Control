@@ -1,4 +1,4 @@
-function [allrmsMean, finalrmsMean] = measureVoiceAmplitude()
+function [allrmsMean, finalrmsMean] = dfDiagnostics_Voice()
 %This takes a few sample recordings of the participant's voice and returns
 %the average RMS value of the recorded voice. This should be used at the
 %beginning of recording session to determine a baseline voice amplitude. 
@@ -74,3 +74,4 @@ rms   = data.rms(:,1);
 rmsdB = 20*log10(rms/refSPL);
 rmsMean = mean(rmsdB);
 end
+
