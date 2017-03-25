@@ -5,9 +5,9 @@ function dfDiagnostics_Sensors(varargin)
 %pressure sensor. 
 
 %This script calls the following (4) functions:
-%sfDirs.m
+%dfDirs.m
 %initNIDAQ.m
-%createPerturbSignal.m
+%dfMakePertSignal.m
 %drawDAQsignal.m
 close all;
 

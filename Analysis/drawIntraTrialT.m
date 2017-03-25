@@ -1,4 +1,4 @@
-function drawIntraTrialT(x, y, fs, span)
+function drawIntraTrialT(x, y, fs, trigs)
 h = figure();
 
 figpos = [300 200];
@@ -6,8 +6,8 @@ figdim = [1000 500];
 
 set(h,'color',[1 1 1],'position',[figpos figdim])
 t = 0:1/fs:((length(x)-1)/fs);
-dottedStartx = span(1)/fs*ones(1,50);
-dottedEndx   = span(2)/fs*ones(1,50);
+dottedStartx = trigs(1)/fs*ones(1,50);
+dottedEndx   = trigs(2)/fs*ones(1,50);
 dottedy = 5*linspace(-1,1,50);
 
 subplot(1,2,1)

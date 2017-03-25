@@ -5,13 +5,13 @@ function dfRunSFPerturb(varargin)
 %manages the recorded acoustic data.
 
 %This script calls the following (7) functions:
-%sfDirs.m
+%dfDirs.m
 %initNIDAQ.m
-%setAudFeedType.m
-%orderTrials.m
-%createPerturbSignal.m
-%setPerturbVisualFB.m
-%updateVisualFeed.m
+%dfSetAudFB.m
+%dfSetTrialOrder.m
+%dfMakePertSignal.m
+%dfSetVisFB.m
+%dfupdateVisFB.m
 
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres

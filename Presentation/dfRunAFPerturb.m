@@ -6,14 +6,14 @@ function dfRunAFPerturb(varargin)
 %in the somatosensory perturbation experiment.
 
 %This script calls the following (8) functions:
-%sfDirs.m
+%dfDirs.m
 %initNIDAQ.m
-%setAudFeedType.m
-%orderTrials.m
-%createPerturbSignal.m
-%setPSRLevels.m
-%setPerturbVisualFB.m
-%updateVisualFeed.m
+%dfSetAudFB.m
+%dfTrialOrder.m
+%dfMakePertSignal.m
+%dfSetAudapFiles.m
+%dfSetVisFB.m
+%dfUpdateVisFB.m
 
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
