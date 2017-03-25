@@ -1,4 +1,4 @@
-function sampleMaskingNoise()
+function dfPlayMaskingNoise()
 %Test the levels of masking noise based on how the paradigm is set up for
 %voice perturbations
 
