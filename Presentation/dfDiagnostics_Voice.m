@@ -75,3 +75,16 @@ rmsdB = 20*log10(rms/refSPL);
 rmsMean = mean(rmsdB);
 end
 
+function quikFFT(data)
+x = data.signalIn;
+fs = data.params.sRate;
+Y = fft(x);
+L = length(x);
+P2 = abs(Y/L);
+P1 = P2(1:L/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+f = fs*(0:(L/2))/L;
+
+figure
+plot(f,P1)
+end

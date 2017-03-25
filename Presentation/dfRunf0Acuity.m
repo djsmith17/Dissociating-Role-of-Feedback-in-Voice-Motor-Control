@@ -15,12 +15,13 @@ end
 
 acuVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 
-dirs = sfDirs(acuVar.project);
-dirs.SavFileDir = fullfile(dirs.RecData, participant);
+dirs = dfDirs(acuVar.project);
+dirs.RecFileDir = fullfile(dirs.RecData, participant);
 
-if exist(dirs.SavResultsDir, 'dir') == 0
-    mkdir(dirs.SavFileDir);
+if exist(dirs.RecFileDir, 'dir') == 0
+    mkdir(dirs.RecFileDir);
 end
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity.mat']);
 
 % Standardized values
 fs           = 44100;
@@ -190,7 +191,6 @@ while reversals < MaxReversals
             end
         
             ResultMatrix = [dist_values', match', response', ordersave'];
-            dirs.SavFileDir = fullfile(dirs.SavFileDir, [participant '_f0Acuity.mat']);
             save(dirs.SavFileDir, 'ResultMatrix', 'revValues');
         end
     end
