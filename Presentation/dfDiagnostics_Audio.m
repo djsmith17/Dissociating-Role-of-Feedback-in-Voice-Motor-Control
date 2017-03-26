@@ -12,12 +12,12 @@ function dfDiagnostics_Audio(varargin)
 close all;
 
 if isempty(varargin)
-    numTrial = 4; 
+    numTrial = 10; 
 else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'Diagnostics_Audio';
@@ -26,6 +26,7 @@ expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;
+expParam.gender        = 'male';
 
 dirs = dfDirs(expParam.project);
 
@@ -41,13 +42,27 @@ end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagAud.mat']);
 
 if collectNewData == 1
-    expParam.sRate       = 48000;
-    expParam.downFact    = 3;
-    expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
+    %Paradigm Configurations
+    expParam.sRate              = 48000;
+    expParam.downFact           = 3;
+    expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
+    expParam.frameLen           = 96;  % Before downsampling
+    expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
+    
+    %Set up Audapter
+    Audapter('deviceName', expParam.audioInterfaceName);
+    Audapter('setParam', 'downFact', expParam.downFact, 0);
+    Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
+    Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
+    p = getAudapterDefaultParams(expParam.gender);
 
     [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
+    
+    %Set up OST and PCF Files
+    expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
+    expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
@@ -57,10 +72,21 @@ if collectNewData == 1
 
     DAQin = [];
     for ii = 1:expParam.numTrial
+        
+        %Setup which perturb file we want
         NIDAQsig = [expParam.sigs(:,ii) nVS];
-        queueOutputData(s, NIDAQsig);
+        queueOutputData(s, NIDAQsig);        
+        
         fprintf('Running Trial %d\n', ii)
+        AudapterIO('init', p);
+        Audapter('reset');
+        Audapter('start');
+        
+        %This will hold the script for as long as OutputData vector lasts.
         [data_DAQ, time] = s.startForeground;
+        
+        %Phonation End
+        Audapter('stop');
 
         DAQin = cat(3, DAQin, data_DAQ);
 

@@ -135,8 +135,7 @@ for ii = 1:expParam.numTrial
     Audapter('reset');
     Audapter('start');
     
-    %Play out the Analog Perturbatron Signal. This will hold script for as
-    %long as vector lasts. In this case, 4.0 seconds. 
+    %This will hold the script for as long as OutputData vector lasts.
     [dataDAQ, time] = s.startForeground;
     
     %Phonation End
