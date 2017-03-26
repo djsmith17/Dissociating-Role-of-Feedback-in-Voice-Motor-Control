@@ -88,6 +88,7 @@ if collectNewData == 1
         %Phonation End
         Audapter('stop');
 
+        data = dfSaveRawData(expParam, dirs, p, audStimP, dataDAQ);
         DAQin = cat(3, DAQin, data_DAQ);
 
         pause(expParam.resPause)      
