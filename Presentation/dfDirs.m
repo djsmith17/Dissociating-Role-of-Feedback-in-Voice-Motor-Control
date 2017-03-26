@@ -32,6 +32,7 @@ switch host
         dirs.RecWaveDir     = '';
         dirs.SavFileDir     = '';
         dirs.SavResultsDir  = '';
+       
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
     case 'DanteRig'
@@ -47,6 +48,7 @@ switch host
         dirs.RecWaveDir     = '';
         dirs.SavFileDir     = '';
         dirs.SavResultsDir  = '';
+       
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';  
     otherwise

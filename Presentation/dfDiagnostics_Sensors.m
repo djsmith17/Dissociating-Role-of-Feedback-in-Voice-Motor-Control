@@ -25,19 +25,20 @@ expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
+expParam.perCatch      = 1;
 
 dirs = dfDirs(expParam.project);
 
-dirs.savFileDir    = fullfile(dirs.RecData, expParam.subject);
-dirs.savResultsDir = fullfile(dirs.RecData, expParam.subject); %Where to save results 
+dirs.RecFileDir    = fullfile(dirs.RecData, expParam.subject);
+dirs.SavResultsDir = fullfile(dirs.RecData, expParam.subject); %Where to save results 
 
-if exist(dirs.savFileDir, 'dir') == 0
-    mkdir(dirs.savFileDir)
+if exist(dirs.RecFileDir, 'dir') == 0
+    mkdir(dirs.RecFileDir)
 end
-if exist(dirs.savResultsDir, 'dir') == 0
-    mkdir(dirs.savFileDir)
+if exist(dirs.SavResultsDir, 'dir') == 0
+    mkdir(dirs.SavResultsDir)
 end
-dirs.savFileDir = fullfile(dirs.savFileDir, [expParam.subject '_DiagSensors.mat']);
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagSensors.mat']);
 
 if collectNewData == 1
     expParam.sRate       = 48000;
@@ -48,7 +49,7 @@ if collectNewData == 1
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 
-    expParam.trialType = ones(expParam.numTrial,1);
+    expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
     [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
@@ -70,17 +71,17 @@ if collectNewData == 1
     NSD.dirs        = dirs;
     NSD.DAQin       = DAQin;
 
-    save(dirs.savFileDir, 'NSD')
+    save(dirs.RecFileDir, 'NSD')
 else
-    load(dirs.savFileDir)
+    load(dirs.RecFileDir)
 end
 
 niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 
 pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
-drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
+drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
 
 pLimits = [0 3.5 0 4];
-drawDAQcombined(niAn.timeAl, niAn.pSensorAl, niAn.trigs, niAn, pLimits, NSD.expParam.subject, dirs.savResultsDir, sv2F)
+drawDAQcombined(niAn.timeAl, niAn.pSensorAl, niAn.trigs, niAn, pLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
 end
