@@ -45,4 +45,6 @@ niCh.ai6 = 'Optical Triggerbox';
 
 nVS = zeros(s.Rate*trialLen, 1) - 1;
 nVS(1) = 0; nVS(end) = 0;
+
+disp('NIDAQ has been initialized!')
 end

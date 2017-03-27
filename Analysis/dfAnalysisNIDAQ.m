@@ -6,19 +6,22 @@ sRate = expParam.sRateQ;
 niAn.numTrial = n;
 niAn.numCh    = c;
 niAn.time     = 0:1/sRate:(r-1)/sRate;
-niAn.pert     = squeeze(DAQin(:,1,:));
-niAn.fSensorC = squeeze(DAQin(:,2,:));
-niAn.fSensorN = squeeze(DAQin(:,3,:));
-niAn.pSensor  = squeeze(DAQin(:,4,:));
+niAn.pertSig  = squeeze(DAQin(:,1,:));
+niAn.sensorFC = squeeze(DAQin(:,2,:));
+niAn.sensorFN = squeeze(DAQin(:,3,:));
+niAn.sensorP  = squeeze(DAQin(:,4,:));
+niAn.audioM   = squeeze(DAQin(:,5,:));
+niAn.audioH   = squeeze(DAQin(:,6,:));
+niAn.sensorO  = squeeze(DAQin(:,7,:));
 
 [B,A] = butter(4, 40/(sRate/2)); %Low-pass filter under 40
-niAn.fSensorC  = filter(B,A,abs(niAn.fSensorC));
-niAn.fSensorN  = filter(B,A,abs(niAn.fSensorN));
+niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
+niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
-[pertTrig, pertThresh, pertidx] = findPertTrigs(niAn.time, niAn.pert);
-[presTrig, presThresh, presidx] = findPertTrigs(niAn.time, niAn.pSensor);
-[fSCTrig, fSCThresh, fSCidx]    = findPertTrigs(niAn.time, niAn.fSensorC);  
-[fSNTrig, fSNThresh, fSNidx]    = findPertTrigs(niAn.time, niAn.fSensorN); 
+[pertTrig, pertThresh, idxPert] = findPertTrigs(niAn.time, niAn.pertSig);
+[presTrig, presThresh, idxPres] = findPertTrigs(niAn.time, niAn.sensorP);
+[fSCTrig, fSCThresh, idxFC]    = findPertTrigs(niAn.time, niAn.sensorFC);  
+[fSNTrig, fSNThresh, idxFN]    = findPertTrigs(niAn.time, niAn.sensorFN); 
 
 [PresLags, PresLagVals] = calcMeanLags(pertTrig, presTrig);
 [fSCLags, fSCLagVals]   = calcMeanLags(pertTrig, fSCTrig);
@@ -26,12 +29,12 @@ niAn.fSensorN  = filter(B,A,abs(niAn.fSensorN));
 
 rangePressures = [];
 for ii = 1:numTrial
-    onsetPressure  = round(100*max(niAn.pSensor(:,ii)))/100;
-    offsetPressure = round(100*niAn.pSensor(pertidx(ii,2), ii))/100;
+    onsetPressure  = round(100*max(niAn.sensorP(:,ii)))/100;
+    offsetPressure = round(100*niAn.sensorP(idxPert(ii,2), ii))/100;
     rangePressures = cat(1, rangePressures, [onsetPressure offsetPressure]);
 end
 
-niAn.pSensorAl = alignSensorData(sRate, niAn.numTrial, niAn.pertidx, niAn.pSensor);
+niAn.pSensorAl = alignSensorData(sRate, niAn.numTrial, niAn.pertidx, niAn.sensorP);
 niAn.timeAl    = 0:1/sRate:(length(niAn.pSensorAl)-1)/sRate;
 
 niAn.trigs      = pertTrig;

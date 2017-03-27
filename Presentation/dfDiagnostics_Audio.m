@@ -31,10 +31,14 @@ expParam.gender        = 'male';
 dirs = dfDirs(expParam.project);
 
 dirs.RecFileDir    = fullfile(dirs.RecData, expParam.subject);
+dirs.RecWaveDir    = fullfile(dirs.RecFileDir, 'wavFiles');
 dirs.SavResultsDir = fullfile(dirs.RecData, expParam.subject); %Where to save results 
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
+end
+if exist(dirs.RecWaveDir, 'dir') == 0
+    mkdir(dirs.RecWaveDir)
 end
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
@@ -68,14 +72,41 @@ if collectNewData == 1
 
     [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-    expParam.resPause = 1;
+    expParam.cuePause = 1.0;
+    expParam.resPause = 2.0;
+    
+    expParam.targRMS   = 55; %dB %Filler
+    expParam.boundsRMS = 3;  %+/- dB
+    expParam.win       = 2;  %which monitor? 1 or 2
 
+    %Close the curtains
+    [anMsr, H1, H2, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
+    
     DAQin = [];
     for ii = 1:expParam.numTrial
+        expParam.curTrial   = ['Trial' num2str(ii)];
+        expParam.curSubCond = [expParam.subject expParam.curTrial];
+    
+        
+        %Level of f0 change based on results from 
+        audStimP = []; %dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
+        
+        %Set the OST and PCF functions
+        Audapter('ost', expParam.ostFN, 0);
+        Audapter('pcf', expParam.pcfFN, 0);
         
         %Setup which perturb file we want
         NIDAQsig = [expParam.sigs(:,ii) nVS];
-        queueOutputData(s, NIDAQsig);        
+        queueOutputData(s, NIDAQsig);   
+        
+        %Cue to begin trial
+        set(H1,'Visible','on');
+        pause(expParam.cuePause)
+        
+        %Phonation Start
+        set(H1,'Visible','off');
+        set(trigCirc,'Visible','on');
+        set(H2,'Visible','on');
         
         fprintf('Running Trial %d\n', ii)
         AudapterIO('init', p);
@@ -83,15 +114,27 @@ if collectNewData == 1
         Audapter('start');
         
         %This will hold the script for as long as OutputData vector lasts.
-        [data_DAQ, time] = s.startForeground;
+        [dataDAQ, time] = s.startForeground;
         
         %Phonation End
         Audapter('stop');
+        set(trigCirc,'Visible','off');
+        set(H2,'Visible','off'); 
 
         data = dfSaveRawData(expParam, dirs, p, audStimP, dataDAQ);
-        DAQin = cat(3, DAQin, data_DAQ);
+        DAQin = cat(3, DAQin, dataDAQ);
 
-        pause(expParam.resPause)      
+        %Grab smooth RMS trace from 'data' structure, compare against baseline
+        [color, newPos] = dfUpdateVisFB(anMsr, data.rms(:,1));
+
+        set(rec, 'position', newPos);
+        set(rec, 'Color', color); set(rec, 'FaceColor', color);
+        set(rec, 'Visible', 'on'); 
+        set(fbLines, 'Visible', 'on');  
+
+        pause(expParam.resPause)
+        set(fbLines, 'Visible', 'off');
+        set(rec, 'Visible', 'off');      
     end
     
     NSD.expParam    = expParam;
