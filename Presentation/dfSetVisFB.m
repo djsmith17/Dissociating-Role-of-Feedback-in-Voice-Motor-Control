@@ -46,7 +46,7 @@ anMsr.recPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth anMsr.recHeight];
 
 anMsr.r        = 60;
 anMsr.visTrigX = 0;
-anMsr.visTrigY = 0;
+anMsr.visTrigY = 0.02;
 anMsr.visTrigW = round(100*anMsr.r/fullW)/100;
 anMsr.visTrigH = round(100*anMsr.r/fullH)/100;
 
