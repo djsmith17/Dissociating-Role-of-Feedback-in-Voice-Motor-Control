@@ -1,4 +1,4 @@
-function [anMsr, H1, H2, fbLines, LoudRec, trigCirc] = dfSetVisFB(targRMS, bounds, win)
+function [anMsr, H1, H2, fbLines, LoudRec, visTrig] = dfSetVisFB(targRMS, bounds, win)
 %Overlays for the experiment.
 %anMsr = annotation Measurements
 
@@ -44,13 +44,13 @@ anMsr.maxLy = [anMsr.drawMaxH anMsr.drawMaxH]; %First Y and Last Y
 
 anMsr.recPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth anMsr.recHeight];
 
-anMsr.r    = 50;
-anMsr.cirX = 0;
-anMsr.cirY = 0.025;
-anMsr.cirW = round(100*anMsr.r/fullW)/100;
-anMsr.cirH = round(100*anMsr.r/fullH)/100;
+anMsr.r        = 60;
+anMsr.visTrigX = 0;
+anMsr.visTrigY = 0;
+anMsr.visTrigW = round(100*anMsr.r/fullW)/100;
+anMsr.visTrigH = round(100*anMsr.r/fullH)/100;
 
-anMsr.cirPos = [anMsr.cirX anMsr.cirY anMsr.cirW anMsr.cirH];
+anMsr.visTrigPos = [anMsr.visTrigX anMsr.visTrigY anMsr.visTrigW anMsr.visTrigH];
 
 %%%%%%
 figure1 = figure('NumberTitle','off','Color',[0 0 0],'Position', anMsr.winPos,'MenuBar','none');
@@ -75,7 +75,7 @@ H2 = annotation(figure1,'textbox',[0.38 0.46 0.2 0.2],...
                         'BackgroundColor',[0 0 0],...
                         'visible','off');
                     
-trigCirc = annotation(figure1, 'ellipse', anMsr.cirPos,...
+visTrig = annotation(figure1, 'rectangle', anMsr.visTrigPos,...
                                'Color',[1 1 1],...
                                'FaceColor', [1 1 1],...
                                'visible', 'off');
