@@ -24,9 +24,10 @@ expParam.project       = 'Diagnostics_Audio';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
-expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
+expParam.masking       = 0;
+expParam.trialLen      = 4; %Seconds
 
 dirs = dfDirs(expParam.project);
 
@@ -43,7 +44,6 @@ end
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagAud.mat']);
 
 if collectNewData == 1
     %Paradigm Configurations
@@ -86,8 +86,7 @@ if collectNewData == 1
     for ii = 1:expParam.numTrial
         expParam.curTrial   = ['Trial' num2str(ii)];
         expParam.curSubCond = [expParam.subject expParam.curTrial];
-    
-        
+          
         %Level of f0 change based on results from 
         audStimP = []; %dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
         
@@ -137,21 +136,25 @@ if collectNewData == 1
         set(rec, 'Visible', 'off');      
     end
     
-    NSD.expParam    = expParam;
-    NSD.dirs        = dirs;
-    NSD.DAQin       = DAQin;
+    DA.expParam    = expParam;
+    DA.dirs        = dirs;
+    DA.DAQin       = DAQin;
+    DA.audStimP    = audStimP;
+    DA.p           = p;
 
-    save(dirs.RecFileDir, 'NSD')
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagAud.mat']);
+    save(dirs.RecFileDir, 'DA')
 else
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagAud.mat']);
     load(dirs.RecFileDir)
 end
 
-niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
+niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 
 pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
-drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, DA.expParam.subject, dirs.SavResultsDir, sv2F)
 
 pLimits = [0 3.5 0 4];
-drawDAQcombined(niAn.timeAl, niAn.pSensorAl, niAn.trigs, niAn, pLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQcombined(niAn.timeAl, niAn.pSensorAl, niAn.trigs, niAn, pLimits, DA.expParam.subject, dirs.SavResultsDir, sv2F)
 end
