@@ -19,52 +19,48 @@ niAn.sensorO  = squeeze(DAQin(:,7,:));
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
-niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp);
-niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
-niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
-niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
+niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp, sRate);
+niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp, sRate);
+niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp, sRate);
+niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp, sRate);
 
-[pertTrig, pertThresh, idxPert] = findPertTrigs(niAn.time, niAn.pertSig);
-[presTrig, presThresh, idxPres] = findPertTrigs(niAn.time, niAn.sensorP);
-[fSCTrig, fSCThresh, idxFC]     = findPertTrigs(niAn.time, niAn.sensorFC);  
-[fSNTrig, fSNThresh, idxFN]     = findPertTrigs(niAn.time, niAn.sensorFN); 
+[niAn.pertTrig, niAn.pertThresh, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_DN, sRate);
+[niAn.presTrig, niAn.presThresh, niAn.idxPres] = findPertTrigs(niAn.time, niAn.sensorP_DN, sRate);
+[niAn.fSCTrig, niAn.fSCThresh, niAn.idxFC]     = findPertTrigs(niAn.time, niAn.sensorFC_DN, sRate);  
+[niAn.fSNTrig, niAn.fSNThresh, niAn.idxFN]     = findPertTrigs(niAn.time, niAn.sensorFN_DN, sRate); 
 
-[niAn.lagsPres, niAn.lagMeansPres] = calcMeanLags(pertTrig, presTrig);
-[niAn.lagsFC, niAn.lagMeansFC]     = calcMeanLags(pertTrig, fSCTrig);
-[niAn.lagsFN, niAn.lagMeansFN]     = calcMeanLags(pertTrig, fSNTrig);
+[niAn.lagsPres, niAn.lagMeansPres] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
+[niAn.lagsFC, niAn.lagMeansFC]     = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
+[niAn.lagsFN, niAn.lagMeansFN]     = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.rangePressures = [];
 for ii = 1:numTrial
     onsetPressure  = round(100*max(niAn.sensorP(:,ii)))/100;
-    offsetPressure = round(100*niAn.sensorP(idxPert(ii,2), ii))/100;
+    offsetPressure = round(100*niAn.sensorP(niAn.idxPert(ii,2), ii))/100;
     niAn.rangePressures = cat(1, niAn.rangePressures, [onsetPressure offsetPressure]);
 end
 niAn.meanRangePressure = mean(niAn.rangePressures, 1);
 
 niAn.pSensorAl = alignSensorData(sRate, niAn.numTrial, niAn.pertidx, niAn.sensorP);
 niAn.timeAl    = 0:1/sRate:(length(niAn.pSensorAl)-1)/sRate;
-
-niAn.trigs      = pertTrig;
-niAn.pertThresh = pertThresh;
-niAn.presTrig   = presTrig;
-niAn.presThresh = presThresh;
-niAn.fSCTrig    = fSCTrig;
-niAn.fSCThresh  = fSCThresh;
-niAn.fSNTrig    = fSNTrig;
-niAn.fSNThresh  = fSNThresh;
 end
 
-function [trigs, threshes, idx] = findPertTrigs(time, sensor)
-sensor = round(sensor); %Should be step function 0V or 3V
-[~, numTrial] = size(sensor);
+function [trigs, threshes, idx] = findPertTrigs(time, sensor, fs)
+[numSamp, numTrial] = size(sensor);
+st = 1*fs;
+sp = 3*fs;
 
 trigs = [];
 threshes = [];
 idx   = [];
 for i = 1:numTrial
-    thresh = mean(sensor(2000:4000, i));
+    for j = 2:numSamp
+        m(j) = sensor(j,i) - sensor((j-1),i);
+    end
+        
+    thresh = mean(sensor(1:st, i));
     
-    I = find(sensor(:,i) > thresh);
+    I = find(sensor(st:sp,i) > thresh);
     trigSt = round(1000*time(I(1)))/1000;
     trigSp = round(1000*time(I(end)))/1000;
 
@@ -74,14 +70,15 @@ for i = 1:numTrial
 end
 end
 
-function sensorDN = dnSampleSignal(sensor, dnSamp)
+function sensorDN = dnSampleSignal(sensor, dnSamp, fs)
 [numSamp, numTrial] = size(sensor);
 
+win = fs*0.075;
 numSampDN = numSamp/dnSamp;
 
 sensorDN = zeros(numSampDN, numTrial);
 for i = 1:numSampDN
-    sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
+    sensorDN(i,:) = mean(sensor((1:win) + dnSamp*(i-1),:));
 end
 end
 
