@@ -5,6 +5,7 @@ sRate = expParam.sRateQ;
 
 niAn.numTrial = n;
 niAn.numCh    = c;
+niAn.dnSamp   = 10;
 niAn.time     = 0:1/sRate:(r-1)/sRate;
 niAn.pertSig  = squeeze(DAQin(:,1,:));
 niAn.sensorFC = squeeze(DAQin(:,2,:));
@@ -17,6 +18,11 @@ niAn.sensorO  = squeeze(DAQin(:,7,:));
 [B,A] = butter(4, 40/(sRate/2)); %Low-pass filter under 40
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
+
+niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp);
+niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
+niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
+niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 
 [pertTrig, pertThresh, idxPert] = findPertTrigs(niAn.time, niAn.pertSig);
 [presTrig, presThresh, idxPres] = findPertTrigs(niAn.time, niAn.sensorP);
@@ -48,23 +54,34 @@ niAn.fSNTrig    = fSNTrig;
 niAn.fSNThresh  = fSNThresh;
 end
 
-function [trigs, threshes, idx] = findPertTrigs(time, pertCh)
-pertCh = round(pertCh); %Should be step function 0V or 3V
-[~, c] = size(pertCh);
+function [trigs, threshes, idx] = findPertTrigs(time, sensor)
+sensor = round(sensor); %Should be step function 0V or 3V
+[~, numTrial] = size(sensor);
 
 trigs = [];
 threshes = [];
 idx   = [];
-for i = 1:c
-    thresh = mean(pertCh(2000:4000, i));
+for i = 1:numTrial
+    thresh = mean(sensor(2000:4000, i));
     
-    I = find(pertCh(:,i) > thresh);
+    I = find(sensor(:,i) > thresh);
     trigSt = round(1000*time(I(1)))/1000;
     trigSp = round(1000*time(I(end)))/1000;
 
     trigs    = cat(1, trigs, [trigSt trigSp]);
     threshes = cat(1, threshes, thresh);
     idx      = cat(1, idx, [I(1) I(end)]);
+end
+end
+
+function sensorDN = dnSampleSignal(sensor, dnSamp)
+[numSamp, numTrial] = size(sensor);
+
+numSampDN = numSamp/dnSamp;
+
+sensorDN = zeros(numSampDN, numTrial);
+for i = 1:numSampDN
+    sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
 end
 end
 
