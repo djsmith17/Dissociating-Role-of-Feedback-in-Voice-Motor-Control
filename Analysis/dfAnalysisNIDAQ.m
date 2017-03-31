@@ -19,10 +19,10 @@ niAn.sensorO  = squeeze(DAQin(:,7,:));
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
-niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp, sRate);
-niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp, sRate);
-niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp, sRate);
-niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp, sRate);
+niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp);
+niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
+niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
+niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 
 [niAn.pertTrig, niAn.pertThresh, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_DN, sRate);
 [niAn.presTrig, niAn.presThresh, niAn.idxPres] = findPertTrigs(niAn.time, niAn.sensorP_DN, sRate);
@@ -70,7 +70,7 @@ for i = 1:numTrial
 end
 end
 
-function sensorDN = dnSampleSignal(sensor, dnSamp, fs)
+function sensorDN = dnSampleSignal(sensor, dnSamp)
 [numSamp, numTrial] = size(sensor);
 
 win = fs*0.075;
@@ -78,7 +78,21 @@ numSampDN = numSamp/dnSamp;
 
 sensorDN = zeros(numSampDN, numTrial);
 for i = 1:numSampDN
-    sensorDN(i,:) = mean(sensor((1:win) + dnSamp*(i-1),:));
+    sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
+end
+end
+
+function sensorDN = dnSampleSmoothSignal(sensor, fs)
+[numSamp, ~] = size(sensor);
+
+win = fs*0.075;
+pOV = 0.8;
+tStep = win*(1-pOV);
+stIdx = 1:tStep:numSamp-win;
+
+sensorDN = [];
+for iSt = stIdx
+    sensorDN = cat(1, sensorDN, mean(sensor(iSt:iSt+win, :)));
 end
 end
 
