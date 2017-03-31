@@ -3,10 +3,12 @@ function niAn = dfAnalysisNIDAQ(expParam, DAQin)
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
 
+niAn.sRate    = sRate;
 niAn.numTrial = n;
 niAn.numCh    = c;
 niAn.dnSamp   = 10;
-niAn.time     = 0:1/sRate:(r-1)/sRate;
+niAn.sRateDN  = sRate/niAn.dnSamp;
+niAn.time     = (0:1/sRate:(r-1)/sRate)';
 niAn.pertSig  = squeeze(DAQin(:,1,:));
 niAn.sensorFC = squeeze(DAQin(:,2,:));
 niAn.sensorFN = squeeze(DAQin(:,3,:));
@@ -15,19 +17,20 @@ niAn.audioM   = squeeze(DAQin(:,5,:));
 niAn.audioH   = squeeze(DAQin(:,6,:));
 niAn.sensorO  = squeeze(DAQin(:,7,:));
 
-[B,A] = butter(4, 40/(sRate/2)); %Low-pass filter under 40
+[B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 40
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
+niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);
 niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 
-[niAn.pertTrig, niAn.pertThresh, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_DN, sRate);
-[niAn.presTrig, niAn.presThresh, niAn.idxPres] = findPertTrigs(niAn.time, niAn.sensorP_DN, sRate);
-[niAn.fSCTrig, niAn.fSCThresh, niAn.idxFC]     = findPertTrigs(niAn.time, niAn.sensorFC_DN, sRate);  
-[niAn.fSNTrig, niAn.fSNThresh, niAn.idxFN]     = findPertTrigs(niAn.time, niAn.sensorFN_DN, sRate); 
+[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_DN, niAn.sRateDN);
+[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_DN, niAn.sRateDN);
+[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_DN, niAn.sRateDN);  
+[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_DN, niAn.sRateDN); 
 
 [niAn.lagsPres, niAn.lagMeansPres] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
 [niAn.lagsFC, niAn.lagMeansFC]     = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
@@ -45,35 +48,33 @@ niAn.pSensorAl = alignSensorData(sRate, niAn.numTrial, niAn.pertidx, niAn.sensor
 niAn.timeAl    = 0:1/sRate:(length(niAn.pSensorAl)-1)/sRate;
 end
 
-function [trigs, threshes, idx] = findPertTrigs(time, sensor, fs)
+function [trigs, idx] = findPertTrigs(time, sensor, fs)
 [numSamp, numTrial] = size(sensor);
-st = 1*fs;
-sp = 3*fs;
+
+baselineIdx = 1:fs*1;
 
 trigs = [];
-threshes = [];
 idx   = [];
 for i = 1:numTrial
+    m = [];
     for j = 2:numSamp
         m(j) = sensor(j,i) - sensor((j-1),i);
     end
-        
-    thresh = mean(sensor(1:st, i));
+    m(baselineIdx) = 0;
+    ups = find(m > 0.02);
+    dns = find(m < -0.02);
     
-    I = find(sensor(st:sp,i) > thresh);
-    trigSt = round(1000*time(I(1)))/1000;
-    trigSp = round(1000*time(I(end)))/1000;
+    stIdx = ups(1); spIdx = dns(1);       
+    trigSt = round(1000*time(stIdx))/1000;
+    trigSp = round(1000*time(spIdx))/1000;
 
     trigs    = cat(1, trigs, [trigSt trigSp]);
-    threshes = cat(1, threshes, thresh);
-    idx      = cat(1, idx, [I(1) I(end)]);
+    idx      = cat(1, idx, [stIdx spIdx]);
 end
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
 [numSamp, numTrial] = size(sensor);
-
-win = fs*0.075;
 numSampDN = numSamp/dnSamp;
 
 sensorDN = zeros(numSampDN, numTrial);
