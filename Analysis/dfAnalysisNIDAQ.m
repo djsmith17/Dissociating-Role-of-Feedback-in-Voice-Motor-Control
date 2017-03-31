@@ -23,9 +23,9 @@ niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
 niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);
 niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp);
+niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
-niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_DN, niAn.sRateDN);
 [niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_DN, niAn.sRateDN);
@@ -37,15 +37,15 @@ niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 [niAn.lagsFN, niAn.lagMeansFN]     = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.rangePressures = [];
-for ii = 1:numTrial
-    onsetPressure  = round(100*max(niAn.sensorP(:,ii)))/100;
-    offsetPressure = round(100*niAn.sensorP(niAn.idxPert(ii,2), ii))/100;
+for ii = 1:niAn.numTrial
+    onsetPressure  = round(100*max(niAn.sensorP_DN(:,ii)))/100;
+    offsetPressure = round(100*niAn.sensorP_DN(niAn.idxPert(ii,2), ii))/100;
     niAn.rangePressures = cat(1, niAn.rangePressures, [onsetPressure offsetPressure]);
 end
 niAn.meanRangePressure = mean(niAn.rangePressures, 1);
 
-niAn.pSensorAl = alignSensorData(sRate, niAn.numTrial, niAn.pertidx, niAn.sensorP);
-niAn.timeAl    = 0:1/sRate:(length(niAn.pSensorAl)-1)/sRate;
+niAn.sensorP_Al = alignSensorData(niAn.sRateDN , niAn.numTrial, niAn.idxPert, niAn.sensorP_DN);
+niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN ;
 end
 
 function [trigs, idx] = findPertTrigs(time, sensor, fs)
@@ -61,15 +61,18 @@ for i = 1:numTrial
         m(j) = sensor(j,i) - sensor((j-1),i);
     end
     m(baselineIdx) = 0;
-    ups = find(m > 0.02);
-    dns = find(m < -0.02);
+    threshUp = 0.5*max(m);
+    threshDn = 0.5*min(m);
+    ups = find(m > threshUp);
+    dns = find(m < threshDn);
     
-    stIdx = ups(1); spIdx = dns(1);       
-    trigSt = round(1000*time(stIdx))/1000;
-    trigSp = round(1000*time(spIdx))/1000;
+    idxSt = ups(1); 
+    idxSp = dns(1);       
+    trigSt = round(1000*time(idxSt))/1000;
+    trigSp = round(1000*time(idxSp))/1000;
 
-    trigs    = cat(1, trigs, [trigSt trigSp]);
-    idx      = cat(1, idx, [stIdx spIdx]);
+    trigs = cat(1, trigs, [trigSt trigSp]);
+    idx   = cat(1, idx, [idxSt idxSp]);
 end
 end
 

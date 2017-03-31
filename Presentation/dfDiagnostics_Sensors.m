@@ -80,8 +80,8 @@ niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 
 pLimits = [0 4 0 4];
 fLimits = [0 4 1 5];
-drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQsignal(niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, niAn.pertTrig, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
 
 pLimits = [0 3.5 0 4];
-drawDAQcombined(niAn.timeAl, niAn.pSensorAl, niAn.trigs, niAn, pLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQcombined(niAn.time_Al, niAn.sensorP_Al, niAn.pertTrig, niAn, pLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
 end
