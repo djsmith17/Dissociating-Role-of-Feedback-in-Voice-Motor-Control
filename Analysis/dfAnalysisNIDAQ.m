@@ -37,12 +37,23 @@ niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 [niAn.lagsFN, niAn.lagMeansFN]     = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.rangePressures = [];
+niAn.maxTimesP       = [];
 for ii = 1:niAn.numTrial
-    onsetPressure  = round(100*max(niAn.sensorP_DN(:,ii)))/100;
-    offsetPressure = round(100*niAn.sensorP_DN(niAn.idxPert(ii,2), ii))/100;
+    [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
+    [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);  
+    
+    
+    
+    onsetPressure  = round(100*maxP)/100;
+    offsetPressure = round(100*minP)/100;
+    maxTime = round(100*niAn.time_DN(maxInd))/100;
+    niAn.maxTimesP      = cat(1, niAn.maxTimesP, maxTime);
     niAn.rangePressures = cat(1, niAn.rangePressures, [onsetPressure offsetPressure]);
 end
 niAn.meanRangePressure = mean(niAn.rangePressures, 1);
+
+niAn.riseTimeP = niAn.maxTimesP - niAn.presTrig(:,1);
+niAn.meanRiseTimeP = mean(niAn.riseTimeP);
 
 niAn.sensorP_Al = alignSensorData(niAn.sRateDN , niAn.numTrial, niAn.idxPert, niAn.sensorP_DN);
 niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN ;
