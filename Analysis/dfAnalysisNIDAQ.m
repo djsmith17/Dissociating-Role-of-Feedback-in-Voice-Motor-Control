@@ -40,9 +40,7 @@ niAn.rangePressures = [];
 niAn.maxTimesP       = [];
 for ii = 1:niAn.numTrial
     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
-    [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);  
-    
-    
+    [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);      
     
     onsetPressure  = round(100*maxP)/100;
     offsetPressure = round(100*minP)/100;
