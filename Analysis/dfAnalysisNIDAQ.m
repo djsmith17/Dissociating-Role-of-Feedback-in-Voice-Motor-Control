@@ -37,7 +37,7 @@ niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 [niAn.lagsFN, niAn.lagMeansFN]     = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.rangePressures = [];
-niAn.maxTimesP       = [];
+niAn.maxTimesP      = [];
 for ii = 1:niAn.numTrial
     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);      

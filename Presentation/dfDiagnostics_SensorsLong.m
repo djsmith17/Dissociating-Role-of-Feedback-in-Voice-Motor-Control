@@ -22,7 +22,7 @@ sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'null2'; %Subject#, Pilot#, null
+expParam.subject       = 'nullLong'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;
@@ -44,8 +44,12 @@ if collectNewData == 1
     expParam.sRate       = 48000;
     expParam.downFact    = 3;
     expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
-
-    [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
+    expParam.resPause    = 1;
+    
+    %New!
+    expParam.trialLenLong = expParam.numTrial*(expParam.trialLen + expParam.resPause);
+    
+    [s, niCh, nVS]  = initNIDAQ(expParam.trialLenLong, 'Dev3');
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 
@@ -53,23 +57,21 @@ if collectNewData == 1
 
     [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-    expParam.resPause = 1;
-
-    DAQin = [];
-    for ii = 1:expParam.numTrial
-        NIDAQsig = [expParam.sigs(:,ii) nVS];
-        queueOutputData(s, NIDAQsig);
-        fprintf('Running Trial %d\n', ii)
-        [data_DAQ, time] = s.startForeground;
-
-        DAQin = cat(3, DAQin, data_DAQ);
-
-        pause(expParam.resPause)      
+    %New!
+    expParam.resPauseVec = zeros(expParam.sRateQ*expParam.resPause,1);
+    expParam.sigLong     = [];
+    for w = 1:expParam.numTrial
+        expParam.sigLong = [expParam.sigLong; expParam.sigs(:,w); expParam.resPauseVec];
     end
+
+    NIDAQsig = [expParam.sigLong, nVS];
+    queueOutputData(s, NIDAQsig);
+    fprintf('Running Trial %d\n', 1)
+    [data_DAQ, time] = s.startForeground;
     
     NSD.expParam    = expParam;
     NSD.dirs        = dirs;
-    NSD.DAQin       = DAQin;
+    NSD.DAQin       = data_DAQ;
 
     save(dirs.RecFileDir, 'NSD')
 else
@@ -78,8 +80,8 @@ end
 
 niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 
-pLimits = [0 4 0 5];
-fLimits = [0 4 1 5];
+pLimits = [0 50 0 5];
+fLimits = [0 50 1 5];
 drawDAQsignal(niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, niAn.pertTrig, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
 
 pLimits = [0 3.5 0 5];
