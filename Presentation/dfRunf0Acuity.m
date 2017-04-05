@@ -36,26 +36,23 @@ upstep   = .2; %initial setting that dist will go up by if user answers 'same'. 
 udRatio  = 2.4483; %MacMillan 2004
 downstep = upstep/udRatio; %initial setting that dist will go down by if user answers 'different'. These values change later based on trial number
 
-MaxReversals  = 18; % number of answer switches the user must make before the game ends
-correctInARow = 0;  % Tracks # of consecutively correct trials (regardless of catch or different)
-                    % Resets after 2 correct in a row
-
-reversals = 0; % counter for number of changes (reversals) over time
-trial     = 0; % counter for each trial 
-randdiff  = 8; %
-
-s = RandStream.create('mt19937ar', 'seed', sum(100*clock)); %make it so randperm doesn't call the same thing everytime when matlab is opened
-RandStream.setGlobalStream(s);
-
-changeDirection = 1; % Placeholder to remember "direction" of delta changes to count reversals
+MaxReversals = 18;% number of answer switches the user must make before the game ends
+reversals    = 0; % counter for number of changes (reversals) over time
+trial        = 0; % counter for each trial 
+randdiff     = 8; % 1 in 8 trials are a catch trial
 
 trialTypes = []; % Saves whether it is order 1 or order 2, which indicates whether the reference frequency is first or second
 distVals   = []; % Saves the dist values
 responses  = []; % Saves the responses
 matches    = []; % Saves the user result
+revValues  = []; % Saves the reversal values, will quit at 12
 
-Modulator   = []; % How much to modulate the dist by
-revValues   = []; % Saves the reversal values, will quit at 12
+changeDirection = 1; %Placeholder to remember "direction" of delta changes to count reversals
+correctInARow   = 0; %Tracks # of consecutively correct trials (regardless of catch or different)
+                     %Resets after 2 correct in a row
+
+s = RandStream.create('mt19937ar', 'seed', sum(100*clock)); %make it so randperm doesn't call the same thing everytime when matlab is opened
+RandStream.setGlobalStream(s);
 
 %Start her up
 disp('Hit return when ready to start')
@@ -113,7 +110,7 @@ while reversals < MaxReversals
     end
     responses = cat(1, responses, response);
     
-    match = isequal(diffTokens, response);
+    match = isequal(diffTokens, response); %Was the subject correct?
     matches = cat(1, matches, match);
     
     for Phase = 1:2 %phase 1 plays first then phase 2
