@@ -44,7 +44,7 @@ randdiff     = 8; % 1 in 8 trials are a catch trial
 trialTypes = []; % Saves whether it is order 1 or order 2, which indicates whether the reference frequency is first or second
 distVals   = []; % Saves the dist values
 responses  = []; % Saves the responses
-matches    = []; % Saves the user result
+matches    = []; % Saves the user answer
 revValues  = []; % Saves the reversal values, will quit at 12
 
 changeDirection = 1; %Placeholder to remember "direction" of delta changes to count reversals
@@ -63,8 +63,8 @@ while reversals < MaxReversals
     trial = trial + 1; % advance the trial every time we go through this loop 
     RandomCatchTrial = randperm(randdiff, 1); % 1/8 if the time it is the same and 50% it is different
     
-    % Create the comparison stimulus
-    if RandomCatchTrial < 8
+    %Determine trial type and record dist to be used
+    if RandomCatchTrial < randdiff
         diffTokens = 1; 
         trialType  = randperm(2,1); %different trials, order 1 reference is first, order 2 reference is second 
         distVal    = dist;
@@ -76,6 +76,7 @@ while reversals < MaxReversals
     trialTypes = cat(1, trialTypes, trialType); %Will be saved in Results
     distVals   = cat(1, distVals, distVal);     %Will be saved in Results
     
+    %Set up the audio tokens to be played
     freqNew = freqDef*2^(dist/12);
     if trialType == 1
         token1 = soundwav_Def;
@@ -88,17 +89,19 @@ while reversals < MaxReversals
         token2 = soundwav_Def;
     end
     
-    token1_proc = preProcessToken(token1, taper);
+    %Process the audio tokens for easy perception
+    token1_proc = preProcessToken(token1, taper); 
     token2_proc = preProcessToken(token2, taper);
     
     %The actual trial. Listen to two tokens. Are they the same or different
-    disp('Hit return to begin next trial')% what the users sees on the screen
+    fprintf('Hit return to begin next trial\n')% what the users sees on the screen
     pause
     sound(token1_proc, fs) %Token 1
     pause(2)
     sound(token2_proc, fs) %Token 2
-    fprintf('Same (0) or Different (1)?');
-
+    
+    %Ask the subject if the tones were the same or different
+    fprintf('Same (0) or Different (1)?');    
     YourAnswer = getkey; %getkey is a function that finds the value of the next keypress, getkey MUST be in the same folder as this code
     fprintf(' %c\n', YourAnswer) %displays the key that was entered
 
@@ -109,8 +112,9 @@ while reversals < MaxReversals
     end
     responses = cat(1, responses, response); %Will be saved in Results
     
+    %Determine if the subject was correct
     match = isequal(diffTokens, response); %Was the subject correct?
-    matches = cat(1, matches, match); %Will be saved in Results
+    matches = cat(1, matches, match);      %Will be saved in Results
 
     if dist < 0
         dist   = 0.02;
@@ -134,7 +138,7 @@ while reversals < MaxReversals
                 correctInARow = 0;      %Reset correctness counter
                 dist = dist - downstep; %Decrease dist (Task is harder)
 
-                if (changeDirection == 1) %Reversal flipping to decreasing dist
+                if changeDirection == 1 %Reversal flipping to decreasing dist
                     reversals = reversals + 1;           %Record # of reversals
                     revValues = cat(1, revValues, dist); %Record dist at the reversal
                     changeDirection = -1;                %Use decreasing values of dist until subject answers incorrectly
