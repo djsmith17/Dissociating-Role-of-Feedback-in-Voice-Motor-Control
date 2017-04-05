@@ -49,10 +49,12 @@ RandStream.setGlobalStream(s);
 
 changeDirection = 1; % Placeholder to remember "direction" of delta changes to count reversals
 
-trialTypes   = []; % Saves whether it is order 1 or order 2, which indicates whether the reference frequency is first or second
-Modulator   = []; % How much to modulate the dist by
+trialTypes = []; % Saves whether it is order 1 or order 2, which indicates whether the reference frequency is first or second
+distVals   = []; % Saves the dist values
+responses  = []; % Saves the responses
+matches    = []; % Saves the user result
 
-dist_values = []; % Saves the dist values
+Modulator   = []; % How much to modulate the dist by
 revValues   = []; % Saves the reversal values, will quit at 12
 
 %Start her up
@@ -74,7 +76,6 @@ while reversals < MaxReversals
         diffTokens = 0;
         trialType  = 3; 
         distVal    = 0;
-        dist_values = [dist_values 9999];     
     end
     trialTypes = cat(1, trialTypes, trialType);
     distVals   = cat(1, distVals, distVal);
@@ -94,11 +95,12 @@ while reversals < MaxReversals
     token1_proc = preProcessToken(token1, taper);
     token2_proc = preProcessToken(token2, taper);
     
+    %The actual trial. Listen to two tokens. Are they the same or different
     disp('Hit return to begin next trial')% what the users sees on the screen
     pause
-    sound(token1_proc, fs)
+    sound(token1_proc, fs) %Token 1
     pause(2)
-    sound(token2_proc, fs)
+    sound(token2_proc, fs) %Token 2
     fprintf('Same (0) or Different (1)?');
 
     YourAnswer = getkey; %getkey is a function that finds the value of the next keypress, getkey MUST be in the same folder as this code
@@ -111,6 +113,9 @@ while reversals < MaxReversals
     end
     responses = cat(1, responses, response);
     
+    match = isequal(diffTokens, response);
+    matches = cat(1, matches, match);
+    
     for Phase = 1:2 %phase 1 plays first then phase 2
         if (trialType == 3) || (trialType == 1 && Phase == 1) || (trialType == 2 && Phase == 2)
            %if catchtrial, both phases play reference
@@ -118,13 +123,13 @@ while reversals < MaxReversals
            %OR if different trial order 2 AND second phase play reference
             
            if trialType == 1 
-               dist_values = [dist_values dist]; %saves all the dist values BEFORE the person hears them/makes a decisions
+               distVals = [distVals dist]; %saves all the dist values BEFORE the person hears them/makes a decisions
            end
 
            soundwav = soundwav_Def; %plays the baseline - doesn't change
         else % makes the comparision stimuli
             if trialType == 2
-                dist_values = [dist_values dist];
+                distVals = [distVals dist];
             end   %saves all the dist values BEFORE the person hears them/makes a decisions
 
             newf = freqDef*2^(dist/12);
@@ -222,7 +227,7 @@ while reversals < MaxReversals
                 reversals = MaxReversals + 1;
             end
         
-            ResultMatrix = [dist_values', match', response', trialTypes'];
+            ResultMatrix = [distVals', matches', responses', trialTypes'];
             save(dirs.SavFileDir, 'ResultMatrix', 'revValues');
         end
     end
