@@ -73,8 +73,8 @@ while reversals < MaxReversals
         trialType  = 3; 
         distVal    = 0;
     end
-    trialTypes = cat(1, trialTypes, trialType);
-    distVals   = cat(1, distVals, distVal);
+    trialTypes = cat(1, trialTypes, trialType); %Will be saved in Results
+    distVals   = cat(1, distVals, distVal);     %Will be saved in Results
     
     newf = freqDef*2^(dist/12);
     if trialType == 1
@@ -107,10 +107,10 @@ while reversals < MaxReversals
     elseif YourAnswer == 48 % key press = 0
         response = 0; %the response was 0 (same)
     end
-    responses = cat(1, responses, response);
+    responses = cat(1, responses, response); %Will be saved in Results
     
     match = isequal(diffTokens, response); %Was the subject correct?
-    matches = cat(1, matches, match);
+    matches = cat(1, matches, match); %Will be saved in Results
 
     if dist < 0
         dist     = 0.02;
@@ -168,8 +168,8 @@ while reversals < MaxReversals
     end
 end
 
-ResultMatrix = [distVals', matches', responses', trialTypes'];
-save(dirs.SavFileDir, 'ResultMatrix', 'revValues');
+f0AcuityResults = [trialTypes', distVals', responses', matches'];
+save(dirs.SavFileDir, 'f0AcuityResults', 'revValues');
 
 Last5Mean = mean(revValues(end-5:end));
 end
