@@ -27,9 +27,9 @@ dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity.mat']);
 fs           = 44100;
 time         = 0:1/fs:2;
 timeLen      = length(time);
-freqDef      = 440;                   %Default tone frequency 69 MIDI = 440 Hz
-soundwav_Def = cos(2*pi*freqDef*time);%Default tone signal 
-taper        = tukeywin(timeLen, 0.05);
+freqDef      = 440;                     %Default tone frequency 69 MIDI = 440 Hz
+soundwav_Def = cos(2*pi*freqDef*time);  %Default tone signal 
+taper        = tukeywin(timeLen, 0.05); %Windowing function
 
 dist     = .4; %sets initial distortion value. This means that on trial 1, the non-reference phase will be 50%  different than the refernce phase
 upstep   = .2; %initial setting that dist will go up by if user answers 'same'. These values change later based on trial number
@@ -113,8 +113,8 @@ while reversals < MaxReversals
     matches = cat(1, matches, match); %Will be saved in Results
 
     if dist < 0
-        dist     = 0.02;
-        upstep   = 0.01;
+        dist   = 0.02;
+        upstep = 0.01;
     else
         if trial > 10 %reduce step size
             upstep = 0.1;
@@ -128,40 +128,34 @@ while reversals < MaxReversals
     downstep = upstep/udRatio;
 
     % Adaptively adjust dist as required by 2-down, 1-up
-    if (trial > 1) %nothing happens on trial 1, it does not get included into 2 up and 1 down calculations
-        if (match(trial)) %this is if match = 1, so they were correct this trial
-            if (correctInARow == 1) %this means they were correct last trial as well
-                dist = dist - downstep; %they now have got 2 correct in a row, so move the dist down to make it closer to the reference, aka harder
+    if (trial > 1) %Trial 1 is not included in the 2-down and 1-up calculations
+        if (match == 1) %The subject was correct -> maybe decrease dist
+            if (correctInARow == 1) %Subject was correct last trial as well, time to move dist
+                correctInARow = 0;      %Reset correctness counter
+                dist = dist - downstep; %Decrease dist (Task is harder)
 
-                if (changeDirection == 1)% if it did change direction count a reversal, record the dist value and then note that it already changed directions
-                    reversals = reversals + 1; % counting the reversals
-                    revValues = [revValues dist]; %recording the revValues of the dist that JUST happened 
-                    changeDirection = -1; %nothing that it just changed directions
-                end
-                correctInARow = 0; % reset the # in a row counter after you have changed the dist
+                if (changeDirection == 1) %Reversal flipping to decreasing dist
+                    reversals = reversals + 1;           %Record # of reversals
+                    revValues = cat(1, revValues, dist); %Record dist at the reversal
+                    changeDirection = -1;                %Use decreasing values of dist until subject answers incorrectly
+                end               
             else
-                dist = dist; % no change in dist
-                % This is the first correct in a row.  No change in dist
-                correctInARow = 1; % mark our # in a row counter
+                correctInARow = 1; %First correct in a row.  No change in dist                
             end
-        else
-            % The subject got the last trial wrong -> increase delta
-            dist = dist + upstep;
-            if (changeDirection == -1)
-                % This was a reversal in direction of changes
-                reversals = reversals + 1;
-                revValues = [revValues dist];
-                changeDirection = 1;
-            end
-            correctInARow = 0;
+        else %The subject was wrong -> absolutely increase dist
+            correctInARow = 0;    %Reset correctness counter
+            dist = dist + upstep; %Increase dist (Task is easier)
+            
+            if (changeDirection == -1) %Reversal flipping to increasing dist
+                reversals = reversals + 1;           %Record # of reversals
+                revValues = cat(1, revValues, dist); %Record dist at the reversal
+                changeDirection = 1;                 %Use increasing values of dist until subject answers correctly
+            end         
         end
-    else
-        % This was the first trial of the experiments - do nothing
-        dist(trial) = dist(trial);
     end
 
     if dist < 0
-        dist = .02; %disp('it was negative!')
+        dist = .02; disp('it was negative!')
     end
     if trial > 84
         reversals = MaxReversals + 1;
@@ -180,6 +174,10 @@ xp = -6/20;
 
 token_tape = token .* taper';
 token_proc = A*token_tape*10^(xp);
+end
+
+function adjustDist(trial, match)
+
 end
 
 % function drawJNDResults()
