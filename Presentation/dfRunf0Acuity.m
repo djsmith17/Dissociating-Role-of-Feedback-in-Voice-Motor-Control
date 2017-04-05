@@ -68,14 +68,49 @@ while reversals < MaxReversals
     % Create the comparison stimulus
     if RandomCatchTrial < 8
         diffTokens = 1; 
-        trialType = randperm(2,1); %different trials, order 1 reference is first, order 2 reference is second 
+        trialType  = randperm(2,1); %different trials, order 1 reference is first, order 2 reference is second 
+        distVal    = dist;
     else
         diffTokens = 0;
-        trialType = 3; 
+        trialType  = 3; 
+        distVal    = 0;
         dist_values = [dist_values 9999];     
-    end;        
+    end
     trialTypes = cat(1, trialTypes, trialType);
+    distVals   = cat(1, distVals, distVal);
+    
+    newf = freqDef*2^(dist/12);
+    if trialType == 1
+        token1 = soundwav_Def;
+        token2 = cos(time*2*pi*newf);
+    elseif trialType == 2
+        token1 = cos(time*2*pi*newf);
+        token2 = soundwav_Def;
+    elseif trialType == 3
+        token1 = soundwav_Def;
+        token2 = soundwav_Def;
+    end
+    
+    token1_proc = preProcessToken(token1, taper);
+    token2_proc = preProcessToken(token2, taper);
+    
+    disp('Hit return to begin next trial')% what the users sees on the screen
+    pause
+    sound(token1_proc, fs)
+    pause(2)
+    sound(token2_proc, fs)
+    fprintf('Same (0) or Different (1)?');
 
+    YourAnswer = getkey; %getkey is a function that finds the value of the next keypress, getkey MUST be in the same folder as this code
+    fprintf(' %c\n', YourAnswer) %displays the key that was entered
+
+    if YourAnswer == 49 % key press = 1
+        response = 1; %the response was 1 (different)
+    elseif YourAnswer == 48 % key press = 0
+        response = 0; %the response was 0 (same)
+    end
+    responses = cat(1, responses, response);
+    
     for Phase = 1:2 %phase 1 plays first then phase 2
         if (trialType == 3) || (trialType == 1 && Phase == 1) || (trialType == 2 && Phase == 2)
            %if catchtrial, both phases play reference
@@ -92,7 +127,7 @@ while reversals < MaxReversals
                 dist_values = [dist_values dist];
             end   %saves all the dist values BEFORE the person hears them/makes a decisions
 
-            newf = 440*2^(dist/12);
+            newf = freqDef*2^(dist/12);
             soundwav = cos(time*2*pi*newf);
         end
 
@@ -194,6 +229,14 @@ while reversals < MaxReversals
 end
 
 Last5Mean = mean(revValues(end-5:end));
+end
+
+function token_proc = preProcessToken(token, taper)
+A  = .05;
+xp = -6/20; 
+
+token_tape = token .* taper';
+token_proc = A*token_tape*10^(xp);
 end
 
 % function drawJNDResults()
