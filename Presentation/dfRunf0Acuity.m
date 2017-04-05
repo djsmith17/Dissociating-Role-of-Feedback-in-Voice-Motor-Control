@@ -76,12 +76,12 @@ while reversals < MaxReversals
     trialTypes = cat(1, trialTypes, trialType); %Will be saved in Results
     distVals   = cat(1, distVals, distVal);     %Will be saved in Results
     
-    newf = freqDef*2^(dist/12);
+    freqNew = freqDef*2^(dist/12);
     if trialType == 1
         token1 = soundwav_Def;
-        token2 = cos(time*2*pi*newf);
+        token2 = cos(2*pi*freqNew*time);
     elseif trialType == 2
-        token1 = cos(time*2*pi*newf);
+        token1 = cos(2*pi*freqNew*time);
         token2 = soundwav_Def;
     elseif trialType == 3
         token1 = soundwav_Def;
