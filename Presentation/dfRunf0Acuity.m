@@ -128,9 +128,9 @@ while reversals < MaxReversals
     downstep = upstep/udRatio;
 
     % Adaptively adjust dist as required by 2-down, 1-up
-    if (trial > 1) %Trial 1 is not included in the 2-down and 1-up calculations
-        if (match == 1) %The subject was correct -> maybe decrease dist
-            if (correctInARow == 1) %Subject was correct last trial as well, time to move dist
+    if trial > 1 %Trial 1 is not included in the 2-down and 1-up calculations
+        if match == 1 %The subject was correct -> maybe decrease dist
+            if correctInARow == 1 %Subject was correct last trial as well, time to move dist
                 correctInARow = 0;      %Reset correctness counter
                 dist = dist - downstep; %Decrease dist (Task is harder)
 
@@ -142,11 +142,11 @@ while reversals < MaxReversals
             else
                 correctInARow = 1; %First correct in a row.  No change in dist                
             end
-        else %The subject was wrong -> absolutely increase dist
+        elseif match == 0 %The subject was wrong -> absolutely increase dist
             correctInARow = 0;    %Reset correctness counter
             dist = dist + upstep; %Increase dist (Task is easier)
             
-            if (changeDirection == -1) %Reversal flipping to increasing dist
+            if changeDirection == -1 %Reversal flipping to increasing dist
                 reversals = reversals + 1;           %Record # of reversals
                 revValues = cat(1, revValues, dist); %Record dist at the reversal
                 changeDirection = 1;                 %Use increasing values of dist until subject answers correctly
