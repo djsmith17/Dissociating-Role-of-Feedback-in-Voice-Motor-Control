@@ -180,7 +180,7 @@ token_tape = token .* taper';
 token_proc = A*token_tape*10^(xp);
 end
 
-function adjustDist(trial, match)
+function adjustDist(trial, match, correctInARow, changeDirection, reversals, revValues, dist)
 
 end
 
