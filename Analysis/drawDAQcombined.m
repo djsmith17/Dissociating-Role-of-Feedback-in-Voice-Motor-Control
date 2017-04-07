@@ -35,7 +35,10 @@ set(gca,'FontSize', 12,...
         'XTickLabel', {'-1.0' '-0.5' '0' '0.5' '1.0' '1.5' '2.0' '2.5'},...
         'FontWeight', 'bold')
 
-pltlgd = legend(h, 'Trial 1', 'Trial 2', 'Trial 3', 'Trial 4', 'Trial 5', 'Trial 6', 'Trial 7', 'Trial 8', 'Trial 9', 'Trial 10');
+lgdNames = cell(numTrial, 1);
+for i = 1:numTrial; lgdNames{i} = ['Trial ' num2str(i)]; end;
+
+pltlgd = legend(h, lgdNames);
 set(pltlgd, 'box', 'off',...
             'location', 'NorthWest'); 
 
