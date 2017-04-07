@@ -1,18 +1,19 @@
-function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, niAn, saveResultsDir, sv2F)
+function drawDAQsignal(niAn, time, fSensorC, fSensorN, pSensor, saveResultsDir, sv2F)
 %Plots multiple signals against each other. Creates a new plot for each 
 %trial. Displays relevant information
 
 curExp   = niAn.curExp;   %The current experiment detials (Subject/Run)
 numTrial = niAn.numTrial; %Number of Trials
+trigs    = niAn.pertTrig; %Where the perturbations occur
 
-lagsPres       = niAn.lagsPres;
+lagTimeP       = niAn.lagsPres;
 riseTimeP      = niAn.riseTimeP;
 rangePressures = niAn.rangePressures;
 pLimits        = niAn.pLimits;
 
-lagsFC  = niAn.lagsFC;
-lagsFN  = niAn.lagsFN;
-fLimits = niAn.fLimits;
+lagTimeFC  = niAn.lagsFC;
+lagTimeFN  = niAn.lagsFN;
+fLimits    = niAn.fLimits;
 
 curExp(strfind(curExp, '_')) = ' ';
 
@@ -29,8 +30,7 @@ for ii = 1:numTrial
     
     pA = area(pertAx, pertAy, -1, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on
-    %Pressure ('4') followed by Force Sensor Collar ('2') and Force Sensor
-    %Neck ('3')
+
     [aX, fS, pS] = plotyy([time time], [fSensorC(:,ii) fSensorN(:,ii)], time, pSensor(:,ii));
     
     set(pS, 'LineWidth', 2,... 
@@ -59,10 +59,10 @@ for ii = 1:numTrial
                 'location', 'NorthWest'); 
             
     t = annotation('textbox',[0.60 0.82 0.40 0.1],...
-                   'string', {['Pressure Onset Lag: ' num2str(1000*lagsPres(ii,1)) 'ms'];...
+                   'string', {['Pressure Onset Lag: ' num2str(1000*lagTimeP(ii,1)) 'ms'];...
                               ['Pressure Rise Time: ' num2str(1000*riseTimeP(ii,1)) 'ms'];...
-                              ['Collar Force Onset Lag: ' num2str(1000*lagsFC(ii,1)) 'ms'];...
-                              ['Neck Force Onset Lag: ' num2str(1000*lagsFN(ii,1)) 'ms'];...
+                              ['Collar Force Onset Lag: ' num2str(1000*lagTimeFC(ii,1)) 'ms'];...
+                              ['Neck Force Onset Lag: ' num2str(1000*lagTimeFN(ii,1)) 'ms'];...
                               ['Onset/Offset Pressure Values: ' num2str(rangePressures(ii,1), '%1.2f') 'psi, ' num2str(rangePressures(ii,2), '%1.2f') 'psi']},...
                     'LineStyle','none',...
                     'FontWeight','bold',...

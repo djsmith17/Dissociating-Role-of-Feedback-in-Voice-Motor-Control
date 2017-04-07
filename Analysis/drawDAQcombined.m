@@ -1,4 +1,4 @@
-function drawDAQcombined(time, sensor, niAn, saveResultsDir, sv2F)
+function drawDAQcombined(niAn, time, sensor, saveResultsDir, sv2F)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
@@ -14,17 +14,16 @@ curExp(strfind(curExp, '_')) = ' ';
 
 plotpos = [500 300];
 plotdim = [800 600];
+trialColors = distinguishable_colors(numTrial);
 
 CombinedSensor = figure('Color', [1 1 1]);
 set(CombinedSensor, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-colors = distinguishable_colors(numTrial);
 
 plot([1 1], [-1 5], 'k-', 'LineWidth', 2)
 
 for ii = 1:numTrial
     hold on
-    h(ii) = plot(time, sensor(:,ii), 'LineWidth', 2, 'Color', colors(ii,:));
+    h(ii) = plot(time, sensor(:,ii), 'LineWidth', 2, 'Color', trialColors(ii,:));
 end
 
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
