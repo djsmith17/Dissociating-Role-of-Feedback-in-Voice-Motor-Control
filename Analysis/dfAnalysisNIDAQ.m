@@ -3,6 +3,7 @@ function niAn = dfAnalysisNIDAQ(expParam, DAQin)
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
 
+niAn.curExp   = expParam.subject;
 niAn.sRate    = sRate;
 niAn.numTrial = n;
 niAn.numCh    = c;

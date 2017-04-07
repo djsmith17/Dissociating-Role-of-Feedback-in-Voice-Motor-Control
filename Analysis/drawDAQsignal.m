@@ -1,8 +1,8 @@
-function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, niAn, curExp, saveResultsDir, sv2F)
+function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, niAn, saveResultsDir, sv2F)
 %plot multiple signals, and relevant information about values
 
-
-numTrial = niAn.numTrial;
+curExp   = niAn.curExp;   %The current experiment detials (Subject/Run)
+numTrial = niAn.numTrial; %Number of Trials
 
 fLimits = niAn.fLimits;
 pLimits = niAn.pLimits;

@@ -1,8 +1,9 @@
-function drawDAQcombined(time, sensor, niAn, curExp, saveResultsDir, sv2F)
+function drawDAQcombined(time, sensor, niAn, saveResultsDir, sv2F)
 %Good for seeing the whole signal. Looking at only one sensor. Assumes the
 %trials have been aligned.
 
-numTrial   = niAn.numTrial;
+curExp     = niAn.curExp;   %The current experiment detials (Subject/Run)
+numTrial   = niAn.numTrial; %Number of Trials
 
 SensLim_Al = niAn.pLimits_Al;
 

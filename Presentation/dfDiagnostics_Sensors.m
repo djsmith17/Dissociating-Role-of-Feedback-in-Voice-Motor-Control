@@ -78,7 +78,7 @@ end
 
 niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 
-drawDAQsignal(niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, niAn.pertTrig, niAn, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQsignal(niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, niAn.pertTrig, niAn, dirs.SavResultsDir, sv2F)
 
-drawDAQcombined(niAn.time_Al, niAn.sensorP_Al, niAn, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQcombined(niAn.time_Al, niAn.sensorP_Al, niAn, dirs.SavResultsDir, sv2F)
 end
