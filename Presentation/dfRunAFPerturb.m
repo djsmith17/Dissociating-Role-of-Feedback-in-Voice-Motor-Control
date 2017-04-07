@@ -130,7 +130,7 @@ for ii = 1:expParam.numTrial
     set(trigCirc,'Visible','on');
     set(H2,'Visible','on');
    
-    fprintf('Trial %d\n',ii)
+    fprintf('Running Trial %d\n',ii)
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');

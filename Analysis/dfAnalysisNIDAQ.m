@@ -1,4 +1,13 @@
 function niAn = dfAnalysisNIDAQ(expParam, DAQin)
+%A quick reference
+%
+%Pert: Perturbation signal
+%P:    Pressure sensor signal
+%FC:   Force Sensor Collar
+%FN:   Force Sensor Neck
+%
+%Trig: Trigger values where onset and offset occur
+%DN:   Down Sampled (and smoothed)
 
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;

@@ -17,16 +17,16 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'Diagnostics_Audio';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.subject       = 'HeadPhoneOut_noSplit2'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
-expParam.masking       = 0;
+expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 
 dirs = dfDirs(expParam.project);
@@ -65,9 +65,10 @@ if collectNewData == 1
     expParam.niCh   = niCh;
     
     %Set up OST and PCF Files
-    expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
-    expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+    expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
+    expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
+    [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... ;
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
     [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 'Somatosensory Perturbation_Perceptual');
@@ -151,7 +152,6 @@ end
 
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 
-drawDAQsignal(niAn, niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, dirs.SavResultsDir, sv2F)
-
-drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
+% drawDAQsignal(niAn, niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, dirs.SavResultsDir, sv2F)
+% drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
 end
