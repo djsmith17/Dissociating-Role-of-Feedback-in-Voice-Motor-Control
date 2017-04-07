@@ -52,9 +52,12 @@ niAn.meanRangePressure = mean(niAn.rangePressures, 1);
 
 niAn.riseTimeP = niAn.maxTimesP - niAn.presTrig(:,1);
 niAn.meanRiseTimeP = mean(niAn.riseTimeP);
+niAn.pLimits = [0 4 0 5];
+niAn.fLimits = [0 4 1 5];
 
 niAn.sensorP_Al = alignSensorData(niAn.sRateDN , niAn.numTrial, niAn.idxPert, niAn.sensorP_DN);
-niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN ;
+niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN;
+niAn.pLimits_Al = [0 3.5 0 5];
 end
 
 function [trigs, idx] = findPertTrigs(time, sensor, fs)

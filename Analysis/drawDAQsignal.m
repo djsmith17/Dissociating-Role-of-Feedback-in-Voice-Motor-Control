@@ -1,6 +1,11 @@
-function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, niAn, pLimits, fLimits, curExp, saveResultsDir, sv2F)
+function drawDAQsignal(time, fSensorC, fSensorN, pSensor, trigs, niAn, curExp, saveResultsDir, sv2F)
 %plot multiple signals, and relevant information about values
-[numTrials, ~] = size(trigs);
+
+
+numTrial = niAn.numTrial;
+
+fLimits = niAn.fLimits;
+pLimits = niAn.pLimits;
 
 curExp(strfind(curExp, '_')) = ' ';
 
@@ -8,7 +13,7 @@ plotpos = [500 300];
 plotdim = [800 600];
 pertColor = [0.8 0.8 0.8];
 
-for ii = 1:numTrials
+for ii = 1:numTrial
     DAQOutput(ii) = figure('Color', [1 1 1]);
     set(DAQOutput(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
     

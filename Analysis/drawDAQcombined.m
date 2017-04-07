@@ -1,9 +1,10 @@
-function drawDAQcombined(time, sensor, niAn, pLimits, curExp, saveResultsDir, sv2F)
+function drawDAQcombined(time, sensor, niAn, curExp, saveResultsDir, sv2F)
 %Good for seeing the whole signal. Looking at only one sensor. Assumes the
 %trials have been aligned.
 
+numTrial   = niAn.numTrial;
 
-numTrial = niAn.numTrial;
+SensLim_Al = niAn.pLimits_Al;
 
 curExp(strfind(curExp, '_')) = ' ';
 
@@ -26,7 +27,7 @@ xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
 ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Mean Pressure Sensor Measurements aligned at Perturbation Onset';
         curExp}, 'FontSize', 12, 'FontWeight', 'bold')
-axis(pLimits);
+axis(SensLim_Al);
 box off
 
 set(gca,'FontSize', 12,...
