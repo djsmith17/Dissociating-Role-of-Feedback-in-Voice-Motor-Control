@@ -83,5 +83,5 @@ fLimits = [0 4 1 5];
 drawDAQsignal(niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, niAn.pertTrig, niAn, pLimits, fLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
 
 pLimits = [0 3.5 0 5];
-drawDAQcombined(niAn.time_Al, niAn.sensorP_Al, niAn.pertTrig, niAn, pLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQcombined(niAn.time_Al, niAn.sensorP_Al, niAn, pLimits, NSD.expParam.subject, dirs.SavResultsDir, sv2F)
 end

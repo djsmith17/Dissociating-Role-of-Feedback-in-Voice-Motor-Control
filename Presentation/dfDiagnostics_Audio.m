@@ -70,7 +70,7 @@ if collectNewData == 1
 
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 'Somatosensory Perturbation_Perceptual');
 
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
@@ -151,10 +151,10 @@ end
 
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 
-pLimits = [0 4 0 4];
+pLimits = [0 4 0 5];
 fLimits = [0 4 1 5];
-drawDAQsignal(niAn.time, niAn.fSensorC, niAn.fSensorN, niAn.pSensor, niAn.trigs, niAn, pLimits, fLimits, DA.expParam.subject, dirs.SavResultsDir, sv2F)
+drawDAQsignal(niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, niAn.pertTrig, niAn, pLimits, fLimits, DA.expParam.subject, dirs.SavResultsDir, sv2F)
 
-pLimits = [0 3.5 0 4];
-drawDAQcombined(niAn.timeAl, niAn.pSensorAl, niAn.trigs, niAn, pLimits, DA.expParam.subject, dirs.SavResultsDir, sv2F)
+pLimits = [0 3.5 0 5];
+drawDAQcombined(niAn.time_Al, niAn.sensorP_Al, niAn, pLimits, DA.expParam.subject, dirs.SavResultsDir, sv2F)
 end

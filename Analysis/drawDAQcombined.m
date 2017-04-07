@@ -1,7 +1,9 @@
-function drawDAQcombined(time, sensor, trigs, niAn, pLimits, curExp, saveResultsDir, sv2F)
+function drawDAQcombined(time, sensor, niAn, pLimits, curExp, saveResultsDir, sv2F)
 %Good for seeing the whole signal. Looking at only one sensor. Assumes the
 %trials have been aligned.
-[r, ~] = size(trigs);
+
+
+numTrial = niAn.numTrial;
 
 curExp(strfind(curExp, '_')) = ' ';
 
@@ -11,11 +13,11 @@ plotdim = [800 600];
 CombinedSensor = figure('Color', [1 1 1]);
 set(CombinedSensor, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-colors = distinguishable_colors(r);
+colors = distinguishable_colors(numTrial);
 
 plot([1 1], [-1 5], 'k-', 'LineWidth', 2)
 
-for ii = 1:niAn.numTrial
+for ii = 1:numTrial
     hold on
     h(ii) = plot(time, sensor(:,ii), 'LineWidth', 2, 'Color', colors(ii,:));
 end
