@@ -13,7 +13,7 @@ if expParam.masking == 0
 elseif expParam.masking == 1
     p.fb          = 2;
     p.bPitchShift = 0;
-    p.dScale      = 1; %Headphone Scalar
+%     p.dScale      = 1; %Headphone Scalar
     
     noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); %Uses Speech-Shaped Noise stored in util
     
