@@ -17,12 +17,12 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'Diagnostics_Audio';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = 'HeadPhoneOut_noSplit2'; %Subject#, Pilot#, null
+expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
@@ -84,6 +84,7 @@ if collectNewData == 1
     [anMsr, H1, H2, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
     
     DAQin = [];
+    rawData = [];
     for ii = 1:expParam.numTrial
         expParam.curTrial   = ['Trial' num2str(ii)];
         expParam.curSubCond = [expParam.subject expParam.curTrial];
@@ -121,8 +122,9 @@ if collectNewData == 1
         set(trigCirc,'Visible','off');
         set(H2,'Visible','off'); 
 
-        data = dfSaveRawData(expParam, dirs, p, audStimP, dataDAQ);
+        data = dfSaveRawData(expParam, dirs);
         DAQin = cat(3, DAQin, dataDAQ);
+        rawData = cat(1, rawData, data);
 
         %Grab smooth RMS trace from 'data' structure, compare against baseline
         [color, newPos] = dfUpdateVisFB(anMsr, data.rms(:,1));
@@ -137,11 +139,12 @@ if collectNewData == 1
         set(rec, 'Visible', 'off');      
     end
     
-    DA.expParam    = expParam;
     DA.dirs        = dirs;
-    DA.DAQin       = DAQin;
-    DA.audStimP    = audStimP;
+    DA.expParam    = expParam;
     DA.p           = p;
+    DA.audStimP    = audStimP;
+    DA.DAQin       = DAQin;
+    DA.rawData     = rawData;      
 
     dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagAud.mat']);
     save(dirs.RecFileDir, 'DA')
