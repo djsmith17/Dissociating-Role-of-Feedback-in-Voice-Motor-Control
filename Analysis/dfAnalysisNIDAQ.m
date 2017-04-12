@@ -27,6 +27,9 @@ niAn.audioM   = squeeze(DAQin(:,5,:));
 niAn.audioH   = squeeze(DAQin(:,6,:));
 niAn.sensorO  = squeeze(DAQin(:,7,:));
 
+niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate);
+niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate);
+
 [B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 40
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
@@ -119,6 +122,56 @@ stIdx = 1:tStep:numSamp-win;
 sensorDN = [];
 for iSt = stIdx
     sensorDN = cat(1, sensorDN, mean(sensor(iSt:iSt+win, :)));
+end
+end
+
+function sensorf0 = signalFrequencyAnalysis(sensor, fs)
+[numSamp, numTrial] = size(sensor);
+
+win = 0.05;
+pOV = 0.5;
+winP = win*fs;
+tStepP = winP*(1-pOV);
+winSts = 1:tStepP:(numSamp-winP);
+numWin = length(winSts);
+
+sensorf0 = zeros(numWin, numTrial);
+for i = 1:numWin
+    winIdx = winSts(i):winSts(i)+ winP - 1;
+    sensorf0(i) = calcf0(sensor(winIdx), fs);
+end
+end
+
+function f0 = calcf0(x,fs)
+% Created by Gabriel Galindo
+% Formatted by Dante Smith -12/11/15
+
+lim_inf = ceil(fs/(500));
+lim_sup = floor(fs/(50));
+U = xcov(x,'unbias');
+U = U(ceil(end/2):end);
+U = (U(lim_inf:lim_sup)-min(U(lim_inf:lim_sup)))/(max(U(lim_inf:lim_sup)) - min(U(lim_inf:lim_sup)));
+[M,P] = findpeaks(U);
+
+if isempty(P)
+    f0 = NaN;
+else
+    P = P(find(M >= 0.9,1,'first'));
+    if isempty(P)
+        f0 = NaN;
+    else
+        f0 = fs/(P + lim_inf);
+    end
+
+    NFFT = pow2(nextpow2(length(x)/4));
+    [Pxx,Fxx] = pwelch(x,NFFT,[],[],fs,'onesided');
+
+    if ~isnan(f0)
+        H = Pxx(find(Fxx>=f0,1,'first'));
+        if (10*log10(max(Pxx)/H) > 80)
+            f0 = NaN;
+        end
+    end   
 end
 end
 
