@@ -6,7 +6,7 @@ function [expParam, p] = dfSetAudFB(expParam, dirs, p)
 if expParam.masking == 0
     p.fb          = 1;
     p.bPitchShift = 1;
-    p.dScale      = 1; %Headphone Scalar
+%     p.dScale      = 1; %Headphone Scalar
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];

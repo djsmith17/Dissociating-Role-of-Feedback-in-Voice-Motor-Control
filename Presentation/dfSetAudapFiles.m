@@ -13,7 +13,7 @@ PCF_tline = writePCFportions(audStimP);
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
 
-drawStimulus(audStimP)
+% drawStimulus(audStimP)
 end
 
 function audStimP = organizeStimulus(trialType, stimType, trigs, InflaRespRoute, tStep)

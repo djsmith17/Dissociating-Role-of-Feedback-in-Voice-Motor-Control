@@ -92,8 +92,8 @@ if collectNewData == 1
         audStimP = []; %dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
         
         %Set the OST and PCF functions
-        Audapter('ost', expParam.ostFN, 0);
-        Audapter('pcf', expParam.pcfFN, 0);
+        Audapter('ost', '', 0);
+        Audapter('pcf', '', 0);
         
         %Setup which perturb file we want
         NIDAQsig = [expParam.sigs(:,ii) nVS];
