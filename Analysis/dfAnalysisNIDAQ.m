@@ -14,9 +14,18 @@ sRate = expParam.sRateQ;
 
 niAn.curExp   = expParam.subject;
 niAn.sRate    = sRate;
+niAn.numSamp  = r;
 niAn.numTrial = n;
 niAn.numCh    = c;
 niAn.dnSamp   = 10;
+
+niAn.win = 0.05; %seconds
+niAn.pOV = 0.6;  %60% overlap
+niAn.winP   = niAn.win*niAn.sRate;
+niAn.tStepP = niAn.winP*(1-niAn.pOV);
+niAn.winSts = 1:niAn.tStepP:(niAn.numSamp-niAn.winP);
+niAn.numWin = length(niAn.winSts);
+
 niAn.sRateDN  = sRate/niAn.dnSamp;
 niAn.time     = (0:1/sRate:(r-1)/sRate)';
 niAn.pertSig  = squeeze(DAQin(:,1,:));
@@ -27,8 +36,9 @@ niAn.audioM   = squeeze(DAQin(:,5,:));
 niAn.audioH   = squeeze(DAQin(:,6,:));
 niAn.sensorO  = squeeze(DAQin(:,7,:));
 
-niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate);
-niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate);
+niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
+niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
+niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
 
 [B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 40
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
@@ -111,34 +121,23 @@ for i = 1:numSampDN
 end
 end
 
-function sensorDN = dnSampleSmoothSignal(sensor, fs)
-[numSamp, ~] = size(sensor);
-
-win = fs*0.075;
-pOV = 0.8;
-tStep = win*(1-pOV);
-stIdx = 1:tStep:numSamp-win;
+function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
 
 sensorDN = [];
-for iSt = stIdx
-    sensorDN = cat(1, sensorDN, mean(sensor(iSt:iSt+win, :)));
+for iSt = 1:numWin
+    winIdx = winSts(iSt):winSts(iSt) + winP - 1;
+    sensorDN = cat(1, sensorDN, mean(sensor(winIdx, :)));
 end
 end
 
-function sensorf0 = signalFrequencyAnalysis(sensor, fs)
-[numSamp, numTrial] = size(sensor);
-
-win = 0.05;
-pOV = 0.5;
-winP = win*fs;
-tStepP = winP*(1-pOV);
-winSts = 1:tStepP:(numSamp-winP);
-numWin = length(winSts);
+function sensorf0 = signalFrequencyAnalysis(sensor, fs, numTrial, winP, numWin, winSts)
 
 sensorf0 = zeros(numWin, numTrial);
 for i = 1:numWin
-    winIdx = winSts(i):winSts(i)+ winP - 1;
-    sensorf0(i) = calcf0(sensor(winIdx), fs);
+    for j = 1:numTrial
+        winIdx = winSts(i):winSts(i)+ winP - 1;
+        sensorf0(i,j) = calcf0(sensor(winIdx, j), fs);
+    end
 end
 end
 
