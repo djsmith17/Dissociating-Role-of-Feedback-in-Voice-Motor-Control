@@ -17,7 +17,7 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'Diagnostics_Audio';
@@ -26,7 +26,7 @@ expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
-expParam.masking       = 1;
+expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
 
 dirs = dfDirs(expParam.project);
@@ -71,7 +71,7 @@ if collectNewData == 1
     [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... ;
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 'Somatosensory Perturbation_Perceptual');
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
@@ -93,8 +93,8 @@ if collectNewData == 1
         audStimP = []; %dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
         
         %Set the OST and PCF functions
-        Audapter('ost', '', 0);
-        Audapter('pcf', '', 0);
+        Audapter('ost', expParam.ostFN, 0);
+        Audapter('pcf', expParam.pcfFN, 0);
         
         %Setup which perturb file we want
         NIDAQsig = [expParam.sigs(:,ii) nVS];
