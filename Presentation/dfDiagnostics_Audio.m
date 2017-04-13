@@ -155,6 +155,6 @@ end
 
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 
-% drawDAQsignal(niAn, niAn.time_DN, niAn.sensorFC_DN, niAn.sensorFN_DN, niAn.sensorP_DN, dirs.SavResultsDir, sv2F)
+drawDAQsignal(niAn, 2, dirs.SavResultsDir, sv2F)
 % drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
 end

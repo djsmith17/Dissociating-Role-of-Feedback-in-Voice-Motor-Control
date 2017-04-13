@@ -40,6 +40,8 @@ niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.w
 niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
 
+
+
 [B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 40
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
