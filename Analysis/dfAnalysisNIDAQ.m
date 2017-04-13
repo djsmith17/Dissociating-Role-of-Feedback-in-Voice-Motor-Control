@@ -39,8 +39,12 @@ niAn.sensorO  = squeeze(DAQin(:,7,:));
 niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
+niAn.f0b      = round(mean(mean(niAn.audioMf0(1:45,:),1)));
 
+niAn.audioMf0_norm = 1200*log2(niAn.audioMf0/niAn.f0b);
+niAn.audioHf0_norm = 1200*log2(niAn.audioHf0/niAn.f0b);
 
+niAn.aLimits = [0 4 -100 100];
 
 [B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 40
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
@@ -138,7 +142,7 @@ sensorf0 = zeros(numWin, numTrial);
 for i = 1:numWin
     for j = 1:numTrial
         winIdx = winSts(i):winSts(i)+ winP - 1;
-        sensorf0(i,j) = calcf0(sensor(winIdx, j), fs);
+        sensorf0(i,j) = round(calcf0(sensor(winIdx, j), fs));
     end
 end
 end

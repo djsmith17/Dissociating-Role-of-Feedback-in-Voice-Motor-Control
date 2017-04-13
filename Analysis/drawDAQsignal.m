@@ -21,8 +21,9 @@ lagTimeFN  = niAn.lagsFN;
 fLimits    = niAn.fLimits;
 
 time_audio = niAn.time_audio;
-micf0     = niAn.audioMf0;
-headf0    = niAn.audioHf0;
+micf0     = niAn.audioMf0_norm;
+headf0    = niAn.audioHf0_norm;
+aLimits   = niAn.aLimits;
 
 curExp(strfind(curExp, '_')) = ' ';
 
@@ -35,9 +36,9 @@ for ii = 1:numTrial
     set(DAQOutput(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
     
     pertAx  = [trigs(ii,1), trigs(ii,2)];
-    pertAy  = [1000 1000];
+    pertAy  = [200 200];
     
-    pA = area(pertAx, pertAy, -1, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on
 
     if plotFlag == 1
@@ -80,14 +81,24 @@ for ii = 1:numTrial
                         'FontName','Arial');
         plotTitle =  '_DAQSignalOutput ';
     else
-        plot(time_audio, micf0)
+        aM = plot(time_audio, micf0(:,ii), 'r');
         hold on
-        plot(time_audio, headf0)
+        aH = plot(time_audio, headf0(:,ii), 'b');
         
         xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
         ylabel('f0 (Cents)', 'FontSize', 18, 'FontWeight', 'bold')
+        title({'Audio Measurements due to Audapter Pertrubations';
+                curExp}, 'FontSize', 12, 'FontWeight', 'bold')
+        axis(aLimits);
+        box off
         
+        set(gca, 'FontSize', 12,...
+                 'FontWeight', 'bold');
         
+        pltlgd = legend([pA aM aH], 'Perturbation Period', 'Microphone', 'Headphones');
+        set(pltlgd, 'box', 'off',...
+                'location', 'NorthWest'); 
+            
         plotTitle =  '_DAQAudioInput ';
     end
    
