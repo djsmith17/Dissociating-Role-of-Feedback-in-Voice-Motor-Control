@@ -22,7 +22,7 @@ sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'null3'; %Subject#, Pilot#, null
+expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;

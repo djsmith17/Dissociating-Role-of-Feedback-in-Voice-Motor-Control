@@ -17,11 +17,11 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'Diagnostics_Audio';
-expParam.expType       = 'Auditory Perturbation_Perceptual';
+expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
