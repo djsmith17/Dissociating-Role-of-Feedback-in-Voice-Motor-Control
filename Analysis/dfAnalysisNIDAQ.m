@@ -20,7 +20,7 @@ niAn.numCh    = c;
 niAn.dnSamp   = 10;
 
 niAn.win = 0.05; %seconds
-niAn.pOV = 0.6;  %60% overlap
+niAn.pOV = 0.60;  %60% overlap
 niAn.winP   = niAn.win*niAn.sRate;
 niAn.tStepP = niAn.winP*(1-niAn.pOV);
 niAn.winSts = 1:niAn.tStepP:(niAn.numSamp-niAn.winP);

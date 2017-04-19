@@ -153,6 +153,8 @@ else
     load(dirs.RecFileDir)
 end
 
+auAn = dfAnalysisAudapter(DA.expParam, DA.rawData, DA.DAQin);
+
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 
 drawDAQsignal(niAn, 2, dirs.SavResultsDir, sv2F)

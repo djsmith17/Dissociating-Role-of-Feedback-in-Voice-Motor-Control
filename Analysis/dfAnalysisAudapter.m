@@ -1,4 +1,4 @@
-function dfAnalysisAudapter(expParam, DAQin)
+function auAn = dfAnalysisAudapter(expParam, rawData, DAQin)
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -18,56 +18,77 @@ PltTgl.InterTrial_Force  = 0;
 PltTgl.InterRun_Force    = 0;
 PltTgl.svInflaRespRoute  = 0;
 
-AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.expTypes     = {'Somatosensory Perturbation_Perceptual', 'Auditory Perturbation_Perceptual'};
-AVar.expInd       = 2; %Either 1 or 2
-AVar.curExp       = AVar.expTypes{AVar.expInd};
-AVar.participants = {'Pilot8'}; %List of multiple participants
-AVar.partiInd     = 1;          %Can select multiple subjs if desired.
-AVar.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
-AVar.runsInd      = [3 4];
-AVar.curRecording = [];
-
-dirs = dfDirs(AVar.project);
+% auAn.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
+% auAn.runsInd      = [3 4];
+% auAn.curRecording = [];
+% 
+% dirs = dfDirs(auAn.project);
 % dirs.saveFileSuffix = '_offlinePSR_Sigmoid';
 
-AVar.anaWinLen   = 0.05; %analysis window length in seconds
-AVar.anaWinLenP  = [];    %analysis window length in points
-AVar.pOverlap    = 0.60;  %window overlap percentage as decimial
+auAn.curExp   = expParam.expType;
+auAn.curSubj  = expParam.subject;
+auAn.curRec   = [ ]; %Short hand of experiment details
+auAn.sRate    = expParam.sRateAnal;
+auAn.sRateQ   = expParam.sRateQ;
+auAn.numTrial = expParam.numTrial;
+auAn.trigsT   = expParam.trigs(:,:,1);  %Pregenerated start and stop times for time-alignment with audio data
+auAn.trigsA   = expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
+auAn.trigsQ   = expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
+auAn.trialType = expParam.trialType;    %List of trial Order
+auAn.mask      = expParam.masking;        
 
-AVar.preEveLen = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
-AVar.posEveLen = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
-AVar.totEveLen = AVar.preEveLen + AVar.posEveLen; %Total length (seconds) of observation time
-AVar.preEveLenP = []; %Amount of points of observation period before event (onset/offset)
-AVar.posEveLenP = []; %Amount of points of observation period after event (onset/offset)
-AVar.totEveLenP = []; %Total length (points) of observation time
-AVar.tStepP     = []; %Number of points between each analysis window starting indice (Changes with Percent of overlap)
-AVar.tStep      = []; %time step in seconds between the start of each window 
-AVar.EvalSteps  = []; %Starting indices for each analysis window
-AVar.nEvalSteps = []; %Number of analysis windows;
-AVar.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
-AVar.anaTimeVec = []; %Time points roughly center of start and stop points of analysis
-AVar.preEveLenQ = []; %Amount of points of observation period before event (onset/offset) for NIDAQ signal
-AVar.posEveLenQ = []; %Amount of points of observation period after event (onset/offset) for NIDAQ signal
-AVar.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
-AVar.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
+auAn.dnSamp  = 10;
+auAn.winLen  = 0.05; %analysis window length in seconds
+auAn.pOV     = 0.60;  %window overlap percentage as decimial
+auAn.winLenP = auAn.winLen*auAn.sRate;    %analysis window length in points
+auAn.tStepP  = auAn.winLenP*(1-auAn.pOV); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
+auAn.tStep   = auAn.tStepP/auAn.sRate;            
 
-AVar.f0Limits         = [0 AVar.totEveLen -240 180];
-AVar.InflaRespLimits  = [0 0.5 -200 0];
-AVar.ForceLimits      = [0 AVar.totEveLen 1 3.5];
-AVar.PressureLimits   = [0 AVar.totEveLen 20 30];
+auAn.preEveLen  = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
+auAn.preEveLenP = round(auAn.preEveLen*auAn.sRate);  %Amount of points of observation period before event (onset/offset)
+auAn.posEveLen  = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
+auAn.posEveLenP = round(auAn.posEveLen*auAn.sRate);  %Amount of points of observation period after event (onset/offset)
+auAn.totEveLen  = auAn.preEveLen + auAn.posEveLen; %Total length (seconds) of observation time
+auAn.totEveLenP = auAn.preEveLenP + auAn.posEveLenP; %Total length (points) of observation time
+      
+auAn.winSts  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.winLenP); %Starting indices for each analysis window
+auAn.numWin  = length(auAn.winSts); %Number of analysis windows;       
 
-for i = AVar.partiInd 
-    allRunsf0_St   = [];
-    allRunsf0_Sp   = [];
-    allTrialsOrder = [];
-    res.allRunsForce_St = [];
-    res.allRunsForce_Sp = [];
-    for j = AVar.runsInd
-        AVar.curRecording   = [AVar.participants{i} ' ' AVar.runs{j}]; %Short hand of experiment details
+for ii = 1:auAn.numTrial
+    auAn.curRec = [auAn.curSubj ' Run ' num2str(ii)]; %Short hand of experiment details
+    data = rawData(ii);
+    
+    Mraw = data.signalIn;     % Microphone
+    Hraw = data.signalOut;    % Headphones
+
+end
+
+auAn.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
+auAn.anaTimeVec = []; %Time points roughly center of start and stop points of analysis
+auAn.preEveLenQ = []; %Amount of points of observation period before event (onset/offset) for NIDAQ signal
+auAn.posEveLenQ = []; %Amount of points of observation period after event (onset/offset) for NIDAQ signal
+auAn.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
+auAn.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
+
+auAn.f0Limits         = [0 auAn.totEveLen -240 180];
+auAn.InflaRespLimits  = [0 0.5 -200 0];
+auAn.ForceLimits      = [0 auAn.totEveLen 1 3.5];
+auAn.PressureLimits   = [0 auAn.totEveLen 20 30];
+
+res.allRunsf0_St    = [];
+res.allRunsf0_Sp    = [];
+res.allTrialsOrder  = [];
+res.allRunsForce_St = [];
+res.allRunsForce_St = [];
+
+for i = auAn.partiInd 
+
+
+    for j = auAn.runsInd
         
-        dirs.SavFileDir    = fullfile(dirs.SavData, AVar.participants{i}, AVar.runs{j}); %Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, AVar.participants{i}, AVar.runs{j}); %Where to save results
+        
+        dirs.SavFileDir    = fullfile(dirs.SavData, auAn.participants{i}, auAn.runs{j}); %Where to find data
+        dirs.SavResultsDir = fullfile(dirs.Results, auAn.participants{i}, auAn.runs{j}); %Where to save results
  
         if exist(dirs.SavResultsDir, 'dir') == 0
             mkdir(dirs.SavResultsDir)
@@ -75,65 +96,36 @@ for i = AVar.partiInd
         
         %Find total number of files 
         d = dir([dirs.SavFileDir, '\*.mat']);
-        AVar.fnames = sort_nat({d.name})';       
+        auAn.fnames = sort_nat({d.name})';       
         
         allTrialf0_St  = [];
         allTrialf0_Sp  = [];
         runTrialOrder  = [];
         res.allTrialf0b = [];
         res.allTrialForce = [];
-        for k = 1:length(AVar.fnames)
+        for k = 1:length(auAn.fnames)
             %open a given Trial and load 'data.mat' structure
-            load([dirs.SavFileDir '\' AVar.fnames{k}]);
+            load([dirs.SavFileDir '\' auAn.fnames{k}]);
             
-            %Unpack the 'data.mat' structure
-            Mraw       = data.signalIn;  % Microphone
-            Hraw       = data.signalOut; % Headphones
-            fs         = data.params.sRate;          % Sampling Rate
-            if isfield(data.expParam, 'sRateQ')
-                sRateQ = data.expParam.sRateQ;
-            else
-                sRateQ = 8000; %from NIDAQ
-            end
-            
-            if isfield(data.expParam, 'spans')
-                trigsT      = data.expParam.spansT;  %Pregenerated start and stop times for time-alignment with audio data
-                trigsA      = data.expParam.spans;   %Pregenerated start and stop points for time-alignment with audio data
-                trigsQ      = trigsA*sRateQ/fs;      %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
-            elseif isfield(data.expParam, 'trigs')
-                trigsT      = data.expParam.trigs(:,:,1);  %Pregenerated start and stop times for time-alignment with audio data
-                trigsA      = data.expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
-                trigsQ      = data.expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
-            end
-            
-            trialType  = data.expParam.trialType;    % List of trial Order
-            mask       = data.expParam.masking;
-            DAQin      = data.DAQin;
+
             audProcDel = data.params.frameLen*4;
             
             ostF  = round(resample(data.ost_stat,32,1));
             ostF  = ostF(129:end);
-                           
-            AVar.anaWinLenP = round(AVar.anaWinLen*fs);      
-            AVar.preEveLenP = round(AVar.preEveLen*fs);  %Amount of points of observation period before event (onset/offset)
-            AVar.posEveLenP = round(AVar.posEveLen*fs);  %Amount of points of observation period after event (onset/offset)
-            AVar.totEveLenP = AVar.preEveLenP + AVar.posEveLenP; %Total length (points) of observation time
-            
+                                           
             %Determine number of analysis windows and window start indices
             %for frequency analysisover specific period
-            AVar.tStepP     = AVar.anaWinLenP*(1 - AVar.pOverlap); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
-            AVar.tStep      = AVar.tStepP/fs; %time step in seconds between the start of each window
-            AVar.EvalSteps  = 1:AVar.tStepP:(AVar.totEveLenP-AVar.anaWinLenP); %Starting indices for each analysis window
-            AVar.nEvalSteps = length(AVar.EvalSteps); %Number of analysis windows;
+            auAn.EvalSteps  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.anaWinLenP); %Starting indices for each analysis window
+            auAn.nEvalSteps = length(auAn.EvalSteps); %Number of analysis windows;
                         
-            AVar.anaInds(:,1) = AVar.EvalSteps;                       %Start indice for analysis based on EvalStep 
-            AVar.anaInds(:,2) = AVar.EvalSteps + AVar.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
-            AVar.anaTimeVec   = mean(AVar.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
+            auAn.anaInds(:,1) = auAn.EvalSteps;                       %Start indice for analysis based on EvalStep 
+            auAn.anaInds(:,2) = auAn.EvalSteps + auAn.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
+            auAn.anaTimeVec   = mean(auAn.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
             
-            AVar.preEveLenQ   = round(AVar.preEveLen*sRateQ);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
-            AVar.posEveLenQ   = round(AVar.posEveLen*sRateQ);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
-            AVar.totEveLenQ   = AVar.preEveLenQ + AVar.posEveLenQ; %Total length (points_NIDAQ) of observation time
-            AVar.QTimeVec     = (0:1:(AVar.totEveLenQ-1))/sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
+            auAn.preEveLenQ   = round(auAn.preEveLen*sRateQ);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
+            auAn.posEveLenQ   = round(auAn.posEveLen*sRateQ);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
+            auAn.totEveLenQ   = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
+            auAn.QTimeVec     = (0:1:(auAn.totEveLenQ-1))/sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
 
 %             fprintf('Analysis will be performed over %2.0f bins of length %2.0f points with a %2.0f%% overlap\n', AVar.nEvalSteps, AVar.anaWinLenP, 100*AVar.pOverlap)
             %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
@@ -144,11 +136,11 @@ for i = AVar.partiInd
             elseif saveT == 1 %Save the Trial!
                 
                 %Start of Pert
-                Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, AVar);
+                Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, auAn);
                 %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, AVar); %When experiment is fixed make this 2!!
+                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, auAn); %When experiment is fixed make this 2!!
                 
-                prePertInd = AVar.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
+                prePertInd = auAn.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
                 f0b = round(mean(Trialf0Raw_St(prePertInd, 1))); % Baseline fundamental frequency of mic data
                 
                 Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized              
@@ -161,11 +153,11 @@ for i = AVar.partiInd
                 
                 res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);    %Baseline fundamental frequencies
                                 
-                TrialForce = forceSensorAnalysis(DAQin, trigsQ(k,1), sRateQ, AVar); %At the moment only voltage
+                TrialForce = forceSensorAnalysis(DAQin, trigsQ(k,1), sRateQ, auAn); %At the moment only voltage
                 res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
                
                 if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
-                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, AVar.ForceLimits, AVar.curRecording, dirs.SavResultsDir)
+                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, auAn.ForceLimits, auAn.curRecording, dirs.SavResultsDir)
                 end
                 
                 if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial
@@ -173,7 +165,7 @@ for i = AVar.partiInd
                 end
             
                 if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
-                    drawIntraTrialf0(AVar.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, AVar.f0Limits, trialType(k), f0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+                    drawIntraTrialf0(auAn.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, auAn.f0Limits, trialType(k), f0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
                 end
             end
         end
@@ -191,28 +183,28 @@ for i = AVar.partiInd
         res.allRunsForce_St = cat(3, res.allRunsForce_St, res.allTrialForce);
         res.allRunsForce_Sp = cat(3, res.allRunsForce_Sp, res.allTrialForce);
         
-        AVar.ForceLimits      = [0 AVar.totEveLen 1 3.5];
+        auAn.ForceLimits      = [0 auAn.totEveLen 1 3.5];
            
         if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
-            drawInterTrialf0(AVar.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, AVar.f0Limits, trialCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialf0(auAn.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, auAn.f0Limits, trialCount, meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterTrial_AudRes == 1  %Average f0 response trace to auditory pert trials of a run 
             wD = length(trialCount);
-            drawInterTrialAudResp(AVar.anaTimeVec, meanTrialf0_St(:,:,wD), meanTrialf0_Sp(:,:,wD), AVar.f0Limits, trialCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialAudResp(auAn.anaTimeVec, meanTrialf0_St(:,:,wD), meanTrialf0_Sp(:,:,wD), auAn.f0Limits, trialCount(wD), meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterTrial_Force == 1
-            drawForceSensorSignal(AVar.QTimeVec, meanTrialForce_St, meanTrialForce_Sp, AVar.ForceLimits, trialCount, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawForceSensorSignal(auAn.QTimeVec, meanTrialForce_St, meanTrialForce_Sp, auAn.ForceLimits, trialCount, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
         end        
     end
     
     %If I decide to analyze more than 1 run at a time. 
     %Saving myself from over analyzing
-    if length(AVar.runsInd) > 1
+    if length(auAn.runsInd) > 1
     
-        AVar.curRecording   = [AVar.participants{i} ' All ' AVar.curExp(1:3) ' Runs']; %Short hand of experiment details    
-        dirs.SavResultsDir = fullfile(dirs.Results, AVar.participants{i}, 'RunsAve'); %Where to save results
+        auAn.curRecording   = [auAn.participants{i} ' All ' auAn.curExp(1:3) ' Runs']; %Short hand of experiment details    
+        dirs.SavResultsDir = fullfile(dirs.Results, auAn.participants{i}, 'RunsAve'); %Where to save results
  
         if exist(dirs.SavResultsDir, 'dir') == 0
             mkdir(dirs.SavResultsDir)
@@ -227,23 +219,23 @@ for i = AVar.partiInd
         %perturbed Trials
 
         if PltTgl.svInflaRespRoute == 1
-            InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0_St, AVar.InflaRespLimits, dirs.SavResultsDir);
-            tStep = AVar.tStep;
-            dirs.InflaRespFile = fullfile(dirs.SavData, AVar.participants{i}, [AVar.participants{i} '_AveInflaResp.mat']);
+            InflaRespRoute = CalcInflationResponse(auAn, meanTrialf0b, meanRunsf0_St, auAn.InflaRespLimits, dirs.SavResultsDir);
+            tStep = auAn.tStep;
+            dirs.InflaRespFile = fullfile(dirs.SavData, auAn.participants{i}, [auAn.participants{i} '_AveInflaResp.mat']);
             save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
         end
 
         if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
-            drawInterTrialf0(AVar.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, AVar.f0Limits, runsCount, meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialf0(auAn.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, auAn.f0Limits, runsCount, meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
             wD = length(runsCount);
-            drawInterTrialAudResp(AVar.anaTimeVec, meanRunsf0_St(:,:,wD), meanRunsf0_Sp(:,:,wD), AVar.f0Limits, runsCount(wD), meanTrialf0b, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawInterTrialAudResp(auAn.anaTimeVec, meanRunsf0_St(:,:,wD), meanRunsf0_Sp(:,:,wD), auAn.f0Limits, runsCount(wD), meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
         end
         
         if PltTgl.InterRun_Force == 1
-            drawForceSensorSignal(AVar.QTimeVec, meanRunsForce_St, meanRunsForce_Sp, AVar.ForceLimits, runsCount, AVar.curExp, AVar.curRecording, dirs.SavResultsDir)
+            drawForceSensorSignal(auAn.QTimeVec, meanRunsForce_St, meanRunsForce_Sp, auAn.ForceLimits, runsCount, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
         end
     end
 end
