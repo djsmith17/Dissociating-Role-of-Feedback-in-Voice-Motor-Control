@@ -51,6 +51,12 @@ res.allTrialf0_St = [];
 res.allTrialf0_Sp = [];
 res.allTrialf0b   = [];
 res.allTrialForce = [];
+res.trialCount    = [];
+res.meanTrialf0_St = [];
+res.meanTrialf0_Sp = [];
+res.meanTrialf0b   = [];
+res.meanTrialForce_St = [];
+res.meanTrialForce_Sp = [];
 
 for ii = 1:auAn.numTrial
     data = rawData(ii);
