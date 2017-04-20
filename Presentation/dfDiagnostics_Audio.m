@@ -23,6 +23,7 @@ sv2F                   = 1; %Boolean
 expParam.project       = 'Diagnostics_Audio';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.run           = 'Run1';
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
@@ -153,7 +154,7 @@ else
     load(dirs.RecFileDir)
 end
 
-auAn = dfAnalysisAudapter(DA.expParam, DA.rawData, DA.DAQin);
+[auAn, res]= dfAnalysisAudapter(DA.expParam, DA.rawData, DA.DAQin);
 
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 

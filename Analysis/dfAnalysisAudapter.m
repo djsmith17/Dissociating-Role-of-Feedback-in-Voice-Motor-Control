@@ -1,4 +1,4 @@
-function auAn = dfAnalysisAudapter(expParam, rawData, DAQin)
+function [auAn, res]= dfAnalysisAudapter(expParam, rawData, DAQin)
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -6,28 +6,10 @@ function auAn = dfAnalysisAudapter(expParam, rawData, DAQin)
 
 %Require the Signal Processing Toolbox
 
-%Plot Toggles. This could eventually become an input variable
-PltTgl.ForceSensor     = 0; %Voltage trace of force sensor signal
-PltTgl.IntraTrial_T    = 0; %SPL trace of individual trial
-PltTgl.IntraTrial_f0   = 0; %f0 trace of individual trial
-PltTgl.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
-PltTgl.InterRun_f0       = 1; %Average f0 trace over all runs analyzed
-PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials of a run
-PltTgl.InterRun_AudRes   = 1; %Average f0 response trace to auditory pert over all runs analyzed
-PltTgl.InterTrial_Force  = 0;
-PltTgl.InterRun_Force    = 0;
-PltTgl.svInflaRespRoute  = 0;
-
-% auAn.runs         = {'Run1', 'Run2', 'Run3', 'Run4', 'offline'}; 
-% auAn.runsInd      = [3 4];
-% auAn.curRecording = [];
-% 
-% dirs = dfDirs(auAn.project);
-% dirs.saveFileSuffix = '_offlinePSR_Sigmoid';
-
 auAn.curExp   = expParam.expType;
 auAn.curSubj  = expParam.subject;
-auAn.curRec   = [ ]; %Short hand of experiment details
+auAn.run      = 'Run1'; %expParam.run;
+auAn.curRec   = [auAn.curSubj ' ' auAn.run]; %Short hand of experiment details
 auAn.sRate    = expParam.sRateAnal;
 auAn.sRateQ   = expParam.sRateQ;
 auAn.numTrial = expParam.numTrial;
@@ -45,200 +27,75 @@ auAn.tStepP  = auAn.winLenP*(1-auAn.pOV); %Number of points between each analysi
 auAn.tStep   = auAn.tStepP/auAn.sRate;            
 
 auAn.preEveLen  = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
-auAn.preEveLenP = round(auAn.preEveLen*auAn.sRate);  %Amount of points of observation period before event (onset/offset)
 auAn.posEveLen  = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
-auAn.posEveLenP = round(auAn.posEveLen*auAn.sRate);  %Amount of points of observation period after event (onset/offset)
 auAn.totEveLen  = auAn.preEveLen + auAn.posEveLen; %Total length (seconds) of observation time
+
+auAn.preEveLenP = round(auAn.preEveLen*auAn.sRate);  %Amount of points of observation period before event (onset/offset)
+auAn.posEveLenP = round(auAn.posEveLen*auAn.sRate);  %Amount of points of observation period after event (onset/offset)
 auAn.totEveLenP = auAn.preEveLenP + auAn.posEveLenP; %Total length (points) of observation time
       
+auAn.preEveLenQ = round(auAn.preEveLen*auAn.sRateQ);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
+auAn.posEveLenQ = round(auAn.posEveLen*auAn.sRateQ);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
+auAn.totEveLenQ = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
+auAn.timeQ      = (0:1:(auAn.totEveLenQ-1))/auAn.sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
+
 auAn.winSts  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.winLenP); %Starting indices for each analysis window
 auAn.numWin  = length(auAn.winSts); %Number of analysis windows;       
 
+auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
+auAn.anaInds(:,2) = auAn.winSts + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
+auAn.time         = mean(auAn.anaInds,2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
+
+res.runTrialOrder = [];
+res.allTrialf0_St = [];
+res.allTrialf0_Sp = [];
+res.allTrialf0b   = [];
+res.allTrialForce = [];
+
 for ii = 1:auAn.numTrial
-    auAn.curRec = [auAn.curSubj ' Run ' num2str(ii)]; %Short hand of experiment details
     data = rawData(ii);
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
+    audProcDel = data.params.frameLen*4;
+    
+    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, audProcDel, auAn.trigsT(ii,1));
 
+    if saveT == 0 %Don't save the trial :(
+        fprintf('%s Trial %d not saved. %s\n', auAn.curRec, ii, saveTmsg)
+    elseif saveT == 1 %Save the Trial
+        fprintf('%s Trial %d saved\n', auAn.curRec, ii)
+        
+        %Start of Pert
+        Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
+        %Stop of Pert
+        Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,2), auAn.sRate, auAn); %When experiment is fixed make this 2!!
+
+        prePertInd = auAn.time < 0.5;                    % Grab the first 0.5s, should be no stimulus
+        f0b = round(mean(Trialf0Raw_St(prePertInd, 1))); % Baseline fundamental frequency of mic data
+
+        Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized
+        Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
+        
+        TrialForce = forceSensorAnalysis(DAQin, auAn.trigsQ(ii,1), auAn.sRateQ, auAn); %At the moment only voltage
+
+        res.runTrialOrder = cat(1, res.runTrialOrder, auAn.trialType(ii));
+        res.allTrialf0_St = cat(3, res.allTrialf0_St, Trialf0Norm_St);
+        res.allTrialf0_Sp = cat(3, res.allTrialf0_Sp, Trialf0Norm_Sp);
+        res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);            %Baseline fundamental frequencies
+        res.allTrialForce = cat(3, res.allTrialForce, TrialForce);   %Force sensor values;        
+    end
 end
 
-auAn.anaInds    = []; %Start and Stop indices for analysis based on EvalStep 
-auAn.anaTimeVec = []; %Time points roughly center of start and stop points of analysis
-auAn.preEveLenQ = []; %Amount of points of observation period before event (onset/offset) for NIDAQ signal
-auAn.posEveLenQ = []; %Amount of points of observation period after event (onset/offset) for NIDAQ signal
-auAn.totEveLenQ = []; %Total length (points_NIDAQ) of observation time
-auAn.QTimeVec   = []; %Time points_NIDAQ roughly center of start and stop points of analysis
+%Sort trials within a given run by trial type and find average across trials
+[res.meanTrialf0_St, res.meanTrialForce_St, res.trialCount] = sortTrials(res.allTrialf0_St, res.allTrialForce, res.runTrialOrder);
+[res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0_Sp, res.allTrialForce, res.runTrialOrder);
+res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
 auAn.f0Limits         = [0 auAn.totEveLen -240 180];
 auAn.InflaRespLimits  = [0 0.5 -200 0];
 auAn.ForceLimits      = [0 auAn.totEveLen 1 3.5];
 auAn.PressureLimits   = [0 auAn.totEveLen 20 30];
-
-res.allRunsf0_St    = [];
-res.allRunsf0_Sp    = [];
-res.allTrialsOrder  = [];
-res.allRunsForce_St = [];
-res.allRunsForce_St = [];
-
-for i = auAn.partiInd 
-
-
-    for j = auAn.runsInd
-        
-        
-        dirs.SavFileDir    = fullfile(dirs.SavData, auAn.participants{i}, auAn.runs{j}); %Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, auAn.participants{i}, auAn.runs{j}); %Where to save results
- 
-        if exist(dirs.SavResultsDir, 'dir') == 0
-            mkdir(dirs.SavResultsDir)
-        end
-        
-        %Find total number of files 
-        d = dir([dirs.SavFileDir, '\*.mat']);
-        auAn.fnames = sort_nat({d.name})';       
-        
-        allTrialf0_St  = [];
-        allTrialf0_Sp  = [];
-        runTrialOrder  = [];
-        res.allTrialf0b = [];
-        res.allTrialForce = [];
-        for k = 1:length(auAn.fnames)
-            %open a given Trial and load 'data.mat' structure
-            load([dirs.SavFileDir '\' auAn.fnames{k}]);
-            
-
-            audProcDel = data.params.frameLen*4;
-            
-            ostF  = round(resample(data.ost_stat,32,1));
-            ostF  = ostF(129:end);
-                                           
-            %Determine number of analysis windows and window start indices
-            %for frequency analysisover specific period
-            auAn.EvalSteps  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.anaWinLenP); %Starting indices for each analysis window
-            auAn.nEvalSteps = length(auAn.EvalSteps); %Number of analysis windows;
-                        
-            auAn.anaInds(:,1) = auAn.EvalSteps;                       %Start indice for analysis based on EvalStep 
-            auAn.anaInds(:,2) = auAn.EvalSteps + auAn.anaWinLenP - 1; %Stop indice for analysis based on EvalStep
-            auAn.anaTimeVec   = mean(auAn.anaInds,2)/fs;              %Vector of time points roughly centered on start and stop points of analysis
-            
-            auAn.preEveLenQ   = round(auAn.preEveLen*sRateQ);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
-            auAn.posEveLenQ   = round(auAn.posEveLen*sRateQ);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
-            auAn.totEveLenQ   = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
-            auAn.QTimeVec     = (0:1:(auAn.totEveLenQ-1))/sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
-
-%             fprintf('Analysis will be performed over %2.0f bins of length %2.0f points with a %2.0f%% overlap\n', AVar.nEvalSteps, AVar.anaWinLenP, 100*AVar.pOverlap)
-            %saveT decides IF to throw away trial. %base it off of mic data (cleaner)  
-            [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, fs, audProcDel, trigsT(k,1));           
-                       
-            if saveT == 0 %Don't save the trial :(
-                fprintf('Run %d Trial %d not saved. %s\n', j, k, saveTmsg)
-            elseif saveT == 1 %Save the Trial!
-                
-                %Start of Pert
-                Trialf0Raw_St = signalFrequencyAnalysis(mic, head, trigsA(k,1), fs, auAn);
-                %Stop of Pert
-                Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, trigsA(k,2), fs, auAn); %When experiment is fixed make this 2!!
-                
-                prePertInd = auAn.anaTimeVec < 0.5;      % Grab the first 0.5s, should be no stimulus
-                f0b = round(mean(Trialf0Raw_St(prePertInd, 1))); % Baseline fundamental frequency of mic data
-                
-                Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized              
-                Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
-                
-                fprintf('Run %d Trial %d saved\n', j, k)              
-                allTrialf0_St  = cat(3, allTrialf0_St, Trialf0Norm_St);
-                allTrialf0_Sp  = cat(3, allTrialf0_Sp, Trialf0Norm_Sp);
-                runTrialOrder  = cat(1, runTrialOrder, trialType(k));
-                
-                res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);    %Baseline fundamental frequencies
-                                
-                TrialForce = forceSensorAnalysis(DAQin, trigsQ(k,1), sRateQ, auAn); %At the moment only voltage
-                res.allTrialForce = cat(3, res.allTrialForce, TrialForce);%Force sensor values;
-               
-                if PltTgl.ForceSensor == 1; %Voltage trace of force sensor signal
-                    drawDAQsignal(sRateQ, trigsQ(k,:), DAQin, auAn.ForceLimits, auAn.curRecording, dirs.SavResultsDir)
-                end
-                
-                if PltTgl.IntraTrial_T == 1; %SPL trace of individual trial
-                    drawIntralTrialT(Mraw, Hraw, fs, trigsA(k,:))
-                end
-            
-                if PltTgl.IntraTrial_f0 == 1 %f0 trace of individual trial
-                    drawIntraTrialf0(auAn.anaTimeVec, Trialf0Norm_St, Trialf0Norm_Sp, auAn.f0Limits, trialType(k), f0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
-                end
-            end
-        end
-        
-        %Sort trials within a given run by trial type and find averages
-        %across trials
-        [meanTrialf0_St, meanTrialForce_St, trialCount] = sortTrials(allTrialf0_St, res.allTrialForce, runTrialOrder);
-        [meanTrialf0_Sp, meanTrialForce_Sp, trialCount] = sortTrials(allTrialf0_Sp, res.allTrialForce, runTrialOrder);
-        meanTrialf0b = round(mean(res.allTrialf0b,1));
-        
-        allRunsf0_St   = cat(3, allRunsf0_St, allTrialf0_St);
-        allRunsf0_Sp   = cat(3, allRunsf0_Sp, allTrialf0_Sp);
-        allTrialsOrder = cat(1, allTrialsOrder, runTrialOrder);
-        
-        res.allRunsForce_St = cat(3, res.allRunsForce_St, res.allTrialForce);
-        res.allRunsForce_Sp = cat(3, res.allRunsForce_Sp, res.allTrialForce);
-        
-        auAn.ForceLimits      = [0 auAn.totEveLen 1 3.5];
-           
-        if PltTgl.InterTrial_f0 == 1  %Average f0 trace over all trials of a run 
-            drawInterTrialf0(auAn.anaTimeVec, meanTrialf0_St, meanTrialf0_Sp, auAn.f0Limits, trialCount, meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
-        end
-        
-        if PltTgl.InterTrial_AudRes == 1  %Average f0 response trace to auditory pert trials of a run 
-            wD = length(trialCount);
-            drawInterTrialAudResp(auAn.anaTimeVec, meanTrialf0_St(:,:,wD), meanTrialf0_Sp(:,:,wD), auAn.f0Limits, trialCount(wD), meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
-        end
-        
-        if PltTgl.InterTrial_Force == 1
-            drawForceSensorSignal(auAn.QTimeVec, meanTrialForce_St, meanTrialForce_Sp, auAn.ForceLimits, trialCount, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
-        end        
-    end
-    
-    %If I decide to analyze more than 1 run at a time. 
-    %Saving myself from over analyzing
-    if length(auAn.runsInd) > 1
-    
-        auAn.curRecording   = [auAn.participants{i} ' All ' auAn.curExp(1:3) ' Runs']; %Short hand of experiment details    
-        dirs.SavResultsDir = fullfile(dirs.Results, auAn.participants{i}, 'RunsAve'); %Where to save results
- 
-        if exist(dirs.SavResultsDir, 'dir') == 0
-            mkdir(dirs.SavResultsDir)
-        end
-
-        %Sort trials of all sessions by pert type and find averages
-        [meanRunsf0_St, meanRunsForce_St, runsCount] = sortTrials(allRunsf0_St, res.allRunsForce_St, allTrialsOrder); 
-        [meanRunsf0_Sp, meanRunsForce_Sp, runsCount] = sortTrials(allRunsf0_Sp, res.allRunsForce_Sp, allTrialsOrder);
-
-        %Calculate the response to inflation of the collar. To be used in the
-        %Auditory Perturbation Experiment. Only need to use the Average of
-        %perturbed Trials
-
-        if PltTgl.svInflaRespRoute == 1
-            InflaRespRoute = CalcInflationResponse(auAn, meanTrialf0b, meanRunsf0_St, auAn.InflaRespLimits, dirs.SavResultsDir);
-            tStep = auAn.tStep;
-            dirs.InflaRespFile = fullfile(dirs.SavData, auAn.participants{i}, [auAn.participants{i} '_AveInflaResp.mat']);
-            save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
-        end
-
-        if PltTgl.InterRun_f0 == 1 %Average f0 trace over all runs analyzed
-            drawInterTrialf0(auAn.anaTimeVec, meanRunsf0_St, meanRunsf0_Sp, auAn.f0Limits, runsCount, meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
-        end
-        
-        if PltTgl.InterRun_AudRes == 1 %Average f0 response trace to auditory pert over all runs analyzed
-            wD = length(runsCount);
-            drawInterTrialAudResp(auAn.anaTimeVec, meanRunsf0_St(:,:,wD), meanRunsf0_Sp(:,:,wD), auAn.f0Limits, runsCount(wD), meanTrialf0b, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
-        end
-        
-        if PltTgl.InterRun_Force == 1
-            drawForceSensorSignal(auAn.QTimeVec, meanRunsForce_St, meanRunsForce_Sp, auAn.ForceLimits, runsCount, auAn.curExp, auAn.curRecording, dirs.SavResultsDir)
-        end
-    end
-end
 end
 
 function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)
@@ -341,7 +198,7 @@ else
 end
 end
 
-function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
+function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, auAn)
 %Finds the change in fundamental frequency of windowed signal
 
 %Inputs
@@ -358,8 +215,8 @@ function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, AVar)
 %third column is the fundamental frequency of the windowed headphone
 %signal.
 
-St = trig - AVar.preEveLenP; 
-Sp = trig + AVar.posEveLenP - 1;
+St = trig - auAn.preEveLenP; 
+Sp = trig + auAn.posEveLenP - 1;
 
 %Grab a big chuck of the signal centered around the event
 try
@@ -373,9 +230,9 @@ catch
 end   
 
 Trialf0ResultsRaw = [];
-for ii = 1:AVar.nEvalSteps
-    startPt  = AVar.anaInds(ii,1);
-    stopPt   = AVar.anaInds(ii,2);
+for ii = 1:auAn.numWin
+    startPt  = auAn.anaInds(ii,1);
+    stopPt   = auAn.anaInds(ii,2);
 
     mic_win   = mic(startPt:stopPt);
     head_win  = head(startPt:stopPt);
