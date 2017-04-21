@@ -147,8 +147,10 @@ for ii = 1:expParam.numTrial
     set(H2,'Visible','off'); 
     
     %Save the data
-    data = svData(expParam, dirs, p, audStimP, dataDAQ);
-
+    data = dfSaveRawData(expParam, dirs);
+    DAQin = cat(3, DAQin, dataDAQ);
+    rawData = cat(1, rawData, data);
+    
     %Grab smooth RMS trace from 'data' structure, compare against baseline
     [color, newPos] = dfUpdateVisFB(anMsr, data.rms(:,1));
     
@@ -163,31 +165,19 @@ for ii = 1:expParam.numTrial
 end
 close all
 
+DRF.dirs        = dirs;
+DRF.expParam    = expParam;
+DRF.p           = p;
+DRF.audStimP    = audStimP;
+DRF.DAQin       = DAQin;
+DRF.rawData     = rawData; 
+
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curExp dirs.saveFileSuffix '.mat']);
+save(dirs.RecFileDir, 'DRF')
+
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
-end
-end
-
-function data = svData(expParam, dirs, p, audStimP, dataDAQ)
-%Package all the data into something that is useful for analysis
-
-try
-    data = AudapterIO('getData');
-    
-    data.expParam    = expParam; %Experimental Parameters
-    data.dirs        = dirs;     %Directories
-    data.p           = p;        %Audapter Parameters
-    data.audStimP    = audStimP; %auditory stimulus Parameters
-    data.DAQin       = dataDAQ;  %NIDAQ recordings ('Force Sensors')
-    save(fullfile(dirs.RecFileDir, [expParam.curSubCond dirs.saveFileSuffix]), 'data')
-
-    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
-    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
-catch
-    disp('Audapter decided not to show up today')
-    data = [];
-    return
 end
 end
 
