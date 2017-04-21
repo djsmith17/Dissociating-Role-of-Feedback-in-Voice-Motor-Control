@@ -29,6 +29,7 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run3';
+expParam.curExp        = [expParam.subject expParam.run];
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curSubCond    = [];
@@ -104,11 +105,13 @@ fprintf('Hit Spacebar when ready\n')
 [anMsr, H1, H2, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
 pause()
 
+DAQin   = [];
+rawData = [];
 %Close the curtains
 pause(1.0) %Let them breathe a sec
 for ii = 1:expParam.numTrial
     expParam.curTrial   = ['Trial' num2str(ii)];
-    expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
+    expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from 
     audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);

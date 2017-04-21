@@ -5,8 +5,8 @@ function data = dfSaveRawData(expParam, dirs)
 try
     data = AudapterIO('getData');
     
-    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
-    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curSubCond dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curExpTrial dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
+    audiowrite(fullfile(dirs.RecWaveDir,[expParam.curExpTrial dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
 catch
     disp('Audapter decided not to show up today')
     data = [];

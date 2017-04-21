@@ -24,6 +24,7 @@ expParam.project       = 'Diagnostics_Audio';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
+expParam.curExp        = [expParam.subject expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
@@ -84,11 +85,11 @@ if collectNewData == 1
     %Close the curtains
     [anMsr, H1, H2, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
     
-    DAQin = [];
+    DAQin   = [];
     rawData = [];
     for ii = 1:expParam.numTrial
         expParam.curTrial   = ['Trial' num2str(ii)];
-        expParam.curSubCond = [expParam.subject expParam.curTrial];
+        expParam.curExpTrial = [expParam.curExp expParam.curTrial];
           
         %Level of f0 change based on results from 
         audStimP = []; %dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
