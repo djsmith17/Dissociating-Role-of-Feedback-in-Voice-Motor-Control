@@ -32,7 +32,6 @@ expParam.run           = 'Run3';
 expParam.curExp        = [expParam.subject expParam.run];
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
-expParam.curSubCond    = [];
 expParam.perCatch      = 0.25;
 expParam.gender        = 'male';
 expParam.masking       = 0;
