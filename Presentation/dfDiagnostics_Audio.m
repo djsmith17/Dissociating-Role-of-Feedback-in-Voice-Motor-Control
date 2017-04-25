@@ -17,19 +17,20 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'Diagnostics_Audio';
-expParam.expType       = 'Somatosensory Perturbation_Perceptual';
+expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
-expParam.run           = 'Run1';
+expParam.run           = 'Run_200Hz_Perturb';
 expParam.curExp        = [expParam.subject expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
-expParam.masking       = 0;
+expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
+expParam.stimType      = 1;
 
 dirs = dfDirs(expParam.project);
 
@@ -62,7 +63,7 @@ if collectNewData == 1
     Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
     p = getAudapterDefaultParams(expParam.gender);
 
-    [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
+    [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev2');
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
     
@@ -73,8 +74,17 @@ if collectNewData == 1
     [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... ;
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 'Somatosensory Perturbation_Perceptual');
 
+    %Should give variable of InflaRespRoute. Recorded from previous
+    %experimentation
+    dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
+    try
+        load(dirs.InflaRespFile);
+    catch me
+        fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
+    end
+    
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
     
@@ -154,6 +164,7 @@ else
     dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagAud.mat']);
     load(dirs.RecFileDir)
 end
+close all
 
 [auAn, res]= dfAnalysisAudapter(DA.expParam, DA.rawData, DA.DAQin);
 
