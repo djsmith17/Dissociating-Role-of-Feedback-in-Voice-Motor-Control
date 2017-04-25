@@ -63,7 +63,7 @@ Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
-[s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
+[s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev2');
 expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 
