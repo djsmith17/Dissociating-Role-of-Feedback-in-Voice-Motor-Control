@@ -1,4 +1,4 @@
-function [auAn, res]= dfAnalysisAudapter(expParam, rawData, DAQin)
+function [auAn, res] = dfAnalysisAudapter(expParam, rawData, DAQin)
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -245,6 +245,10 @@ for ii = 1:auAn.numWin
     
     f0_M = calcf0(mic_win,fs);
     f0_H = calcf0(head_win,fs);
+    
+    
+    [f0_time,f0_value,SHR,f0_candidates] = shrp(mic_win,fs,F0MinMax,frame_length,timestep,SHR_Threshold,ceiling,med_smooth,CHECK_VOICING)
+
     
     if f0_M < 50 || f0_M > 300
         disp('I had some difficulty calculating f0_M')
