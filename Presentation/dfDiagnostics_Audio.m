@@ -17,7 +17,7 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'Diagnostics_Audio';
@@ -102,7 +102,7 @@ if collectNewData == 1
         expParam.curExpTrial = [expParam.curExp expParam.curTrial];
           
         %Level of f0 change based on results from 
-        audStimP = []; %dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
+        audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
         
         %Set the OST and PCF functions
         Audapter('ost', expParam.ostFN, 0);
@@ -171,6 +171,7 @@ close all
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 
 drawDAQAll(niAn, 2, dirs.SavResultsDir, sv2F)
+drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
 % drawDAQsignal(niAn, 2, dirs.SavResultsDir, sv2F)
 % drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
 end

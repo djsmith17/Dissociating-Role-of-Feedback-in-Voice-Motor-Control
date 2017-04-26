@@ -53,9 +53,9 @@ for ii = 1:numTrial
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on
     plot(time, pertSig(:,ii))
-    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('-', 'FontSize', 18, 'FontWeight', 'bold')
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
     title('Perturbation Signal', 'FontSize', 18, 'FontWeight', 'bold')
-    axis([0 4 0 2]); box off
+    axis([0 4 0 3.5]); box off
     
     axes(ha(2))
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
@@ -87,7 +87,7 @@ for ii = 1:numTrial
     plot(time, audioM(:,ii))
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
     title('Microphone', 'FontSize', 18, 'FontWeight', 'bold')
-    axis([0 4 -2 2]); box off
+    axis([0 4 -0.01 0.01]); box off
     
     axes(ha(6))
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
@@ -95,7 +95,7 @@ for ii = 1:numTrial
     plot(time, audioH(:,ii))
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
     title('Headphones', 'FontSize', 18, 'FontWeight', 'bold')
-    axis([0 4 -2 2]); box off
+    axis([0 4 -0.01 0.01]); box off
     
     axes(ha(7))
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);

@@ -46,6 +46,7 @@ auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis
 auAn.anaInds(:,2) = auAn.winSts + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
 auAn.time         = mean(auAn.anaInds,2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
 
+res.time          = auAn.time;
 res.runTrialOrder = [];
 res.allTrialf0_St = [];
 res.allTrialf0_Sp = [];
@@ -98,10 +99,10 @@ end
 [res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0_Sp, res.allTrialForce, res.runTrialOrder);
 res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
-auAn.f0Limits         = [0 auAn.totEveLen -240 180];
-auAn.InflaRespLimits  = [0 0.5 -200 0];
-auAn.ForceLimits      = [0 auAn.totEveLen 1 3.5];
-auAn.PressureLimits   = [0 auAn.totEveLen 20 30];
+res.f0Limits         = [0 auAn.totEveLen -50 50];
+res.InflaRespLimits  = [0 0.5 -200 0];
+res.ForceLimits      = [0 auAn.totEveLen 1 3.5];
+res.PressureLimits   = [0 auAn.totEveLen 20 30];
 end
 
 function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)
