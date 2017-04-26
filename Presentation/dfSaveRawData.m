@@ -8,7 +8,7 @@ try
     audiowrite(fullfile(dirs.RecWaveDir,[expParam.curExpTrial dirs.saveFileSuffix '_headOut.wav']), data.signalOut, expParam.sRateAnal)
     audiowrite(fullfile(dirs.RecWaveDir,[expParam.curExpTrial dirs.saveFileSuffix '_micIn.wav']), data.signalIn, expParam.sRateAnal)
 catch
-    disp('\nAudapter decided not to show up today')
+    sprintf('\nAudapter decided not to show up today')
     data = [];
     return
 end

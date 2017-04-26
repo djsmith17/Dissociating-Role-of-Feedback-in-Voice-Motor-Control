@@ -68,8 +68,8 @@ if collectNewData == 1
     expParam.niCh   = niCh;
     
     %Set up OST and PCF Files
-    expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
-    expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+    expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
+    expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
     [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... ;
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);

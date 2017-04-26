@@ -48,7 +48,7 @@ suptitle({[curExp ': ' num2str(counts) ' Perturbed Trials']; [curRecording '   f
 
 plots = {'InterTrialf0_AudResp'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '.png'];
+    plTitle = [curRecording '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
