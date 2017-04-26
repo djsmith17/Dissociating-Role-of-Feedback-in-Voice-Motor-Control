@@ -24,7 +24,7 @@ expParam.project       = 'Diagnostics_Audio';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
 expParam.run           = 'Run_200Hz_Perturb';
-expParam.curExp        = [expParam.subject expParam.run];
+expParam.curExp        = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.perCatch      = 1;
 expParam.gender        = 'male';
@@ -170,7 +170,7 @@ close all
 
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 
-drawDAQAll(niAn, 2, saveResultsDir, sv2F)
+drawDAQAll(niAn, 2, dirs.SavResultsDir, sv2F)
 % drawDAQsignal(niAn, 2, dirs.SavResultsDir, sv2F)
 % drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
 end

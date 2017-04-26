@@ -8,29 +8,36 @@ curExp   = niAn.curExp;   %The current experiment detials (Subject/Run)
 numTrial = niAn.numTrial; %Number of Trials
 trigs    = niAn.pertTrig; %Where the perturbations occur
 
-time     = niAn.time_DN;
+time     = niAn.time;
+pertSig  = niAn.pertSig;
+sensorFC = niAn.sensorFC;
+sensorFN = niAn.sensorFN;
+sensorP  = niAn.sensorP;
+audioM   = niAn.audioM;
+audioH   = niAn.audioH;
+sensorO  = niAn.sensorO;
 
-sensorP        = niAn.sensorP_DN;
-lagTimeP       = niAn.lagsPres;
-riseTimeP      = niAn.riseTimeP;
-rangePressures = niAn.rangePressures;
-pLimits        = niAn.pLimits;
-
-sensorFC   = niAn.sensorFC_DN;
-sensorFN   = niAn.sensorFN_DN;
-lagTimeFC  = niAn.lagsFC;
-lagTimeFN  = niAn.lagsFN;
-fLimits    = niAn.fLimits;
-
-time_audio = niAn.time_audio;
-micf0     = niAn.audioMf0_norm;
-headf0    = niAn.audioHf0_norm;
-aLimits   = niAn.aLimits;
+% sensorP        = niAn.sensorP_DN;
+% lagTimeP       = niAn.lagsPres;
+% riseTimeP      = niAn.riseTimeP;
+% rangePressures = niAn.rangePressures;
+% pLimits        = niAn.pLimits;
+% 
+% sensorFC   = niAn.sensorFC_DN;
+% sensorFN   = niAn.sensorFN_DN;
+% lagTimeFC  = niAn.lagsFC;
+% lagTimeFN  = niAn.lagsFN;
+% fLimits    = niAn.fLimits;
+% 
+% time_audio = niAn.time_audio;
+% micf0     = niAn.audioMf0_norm;
+% headf0    = niAn.audioHf0_norm;
+% aLimits   = niAn.aLimits;
 
 curExp(strfind(curExp, '_')) = ' ';
 
-plotpos = [500 300];
-plotdim = [800 600];
+plotpos = [150 150];
+plotdim = [1200 600];
 pertColor = [0.8 0.8 0.8];
 
 for ii = 1:numTrial
@@ -40,70 +47,67 @@ for ii = 1:numTrial
     pertAx  = [trigs(ii,1), trigs(ii,2)];
     pertAy  = [200 200];
     
+    ha = tight_subplot(2,4,[0.15 0.05],[0.12 0.15],[0.05 0.01]);
+
+    axes(ha(1))
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on
-
-    if plotFlag == 1
-        [aX, fS, pS] = plotyy([time time], [sensorFC(:,ii) sensorFN(:,ii)], time, sensorP(:,ii));
+    plot(time, pertSig(:,ii))
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('-', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Perturbation Signal', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 0 2]); box off
     
-        set(pS, 'LineWidth', 2,... 
-            'Color', 'k');
+    axes(ha(2))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, sensorFC(:,ii))
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Force Sensor: Collar', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 0 5]); box off
     
-        set(fS(1), 'LineWidth', 2,... 
-                   'Color', 'b');      
-        set(fS(2), 'LineWidth', 2,... 
-                   'Color', 'r');
+    axes(ha(3))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, sensorFN(:,ii))
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Force Sensor: Neck', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 0 5]); box off
     
-        xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
-        ylabel(aX(1), 'Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k')
-        ylabel(aX(2), 'Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
-        title({'Sensors Measurements due to Balloon Inflation';
-                curExp}, 'FontSize', 12, 'FontWeight', 'bold')
-        axis(aX(1), fLimits); 
-        axis(aX(2), pLimits);
-        box off
+    axes(ha(4))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, sensorP(:,ii))
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Pressure Sensor', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 0 4]); box off
     
-        set(aX, {'ycolor'}, {'k';'k'},...
-                 'FontSize', 12,...
-                 'FontWeight', 'bold')
-        
-        pltlgd = legend([pA pS fS(1) fS(2)], 'Perturbation Period', 'Pressure Sensor', 'Force Sensor: Collar', 'Force Sensor: Neck');
-        set(pltlgd, 'box', 'off',...
-                'location', 'NorthWest'); 
-            
-        t = annotation('textbox',[0.60 0.82 0.40 0.1],...
-                       'string', {['Pressure Onset Lag: ' num2str(1000*lagTimeP(ii,1)) 'ms'];...
-                                  ['Pressure Rise Time: ' num2str(1000*riseTimeP(ii,1)) 'ms'];...
-                                  ['Collar Force Onset Lag: ' num2str(1000*lagTimeFC(ii,1)) 'ms'];...
-                                  ['Neck Force Onset Lag: ' num2str(1000*lagTimeFN(ii,1)) 'ms'];...
-                                  ['Onset/Offset Pressure Values: ' num2str(rangePressures(ii,1), '%1.2f') 'psi, ' num2str(rangePressures(ii,2), '%1.2f') 'psi']},...
-                        'LineStyle','none',...
-                        'FontWeight','bold',...
-                        'FontSize',8,...
-                        'FontName','Arial');
-        plotTitle =  '_DAQSignalOutput ';
-    else
-        aM = plot(time_audio, micf0(:,ii), 'r');
-        hold on
-        aH = plot(time_audio, headf0(:,ii), 'b');
-        
-        xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
-        ylabel('f0 (Cents)', 'FontSize', 18, 'FontWeight', 'bold')
-        title({'Audio Measurements due to Audapter Pertrubations';
-                curExp}, 'FontSize', 12, 'FontWeight', 'bold')
-        axis(aLimits);
-        box off
-        
-        set(gca, 'FontSize', 12,...
-                 'FontWeight', 'bold');
-        
-        pltlgd = legend([pA aM aH], 'Perturbation Period', 'Microphone', 'Headphones');
-        set(pltlgd, 'box', 'off',...
-                'location', 'NorthWest'); 
-            
-        plotTitle =  '_DAQAudioInput ';
-    end
-   
+    axes(ha(5))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, audioM(:,ii))
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Microphone', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 -2 2]); box off
+    
+    axes(ha(6))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, audioH(:,ii))
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Headphones', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 -2 2]); box off
+    
+    axes(ha(7))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, sensorO(:,ii))
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('-', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Optical TriggerBox', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 0 2]); box off
+    
+    suptitle([curExp ': All NIDAQ Channels'])    
+    
+    plotTitle = 'DAQAll';
     if sv2F == 1
         plTitle = [curExp  plotTitle num2str(ii) '.jpg'];     
         saveFileName = fullfile(saveResultsDir, plTitle);

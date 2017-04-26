@@ -6,10 +6,10 @@ function [auAn, res] = dfAnalysisAudapter(expParam, rawData, DAQin)
 
 %Require the Signal Processing Toolbox
 
-auAn.curExp   = expParam.expType;
+auAn.curType  = expParam.expType;
 auAn.curSubj  = expParam.subject;
-auAn.run      = 'Run1'; %expParam.run;
-auAn.curRec   = [auAn.curSubj ' ' auAn.run]; %Short hand of experiment details
+auAn.run      = expParam.run;
+auAn.curExp   = expParam.curExp; %Short hand of experiment details
 auAn.sRate    = expParam.sRateAnal;
 auAn.sRateQ   = expParam.sRateQ;
 auAn.numTrial = expParam.numTrial;
@@ -68,9 +68,9 @@ for ii = 1:auAn.numTrial
     [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, audProcDel, auAn.trigsT(ii,1));
 
     if saveT == 0 %Don't save the trial :(
-        fprintf('%s Trial %d not saved. %s\n', auAn.curRec, ii, saveTmsg)
+        fprintf('%s Trial %d not saved. %s\n', auAn.curExp, ii, saveTmsg)
     elseif saveT == 1 %Save the Trial
-        fprintf('%s Trial %d saved\n', auAn.curRec, ii)
+        fprintf('%s Trial %d saved\n', auAn.curExp, ii)
         
         %Start of Pert
         Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
@@ -247,7 +247,7 @@ for ii = 1:auAn.numWin
     f0_H = calcf0(head_win,fs);
     
     
-    [f0_time,f0_value,SHR,f0_candidates] = shrp(mic_win,fs,F0MinMax,frame_length,timestep,SHR_Threshold,ceiling,med_smooth,CHECK_VOICING)
+%     [f0_time,f0_value,SHR,f0_candidates] = shrp(mic_win,fs,F0MinMax,frame_length,timestep,SHR_Threshold,ceiling,med_smooth,CHECK_VOICING)
 
     
     if f0_M < 50 || f0_M > 300
