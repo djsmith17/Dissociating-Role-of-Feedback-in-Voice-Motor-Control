@@ -7,7 +7,7 @@ if isempty(varargin)
 else
 end
 
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 sv2F                   = 1; %Boolean
 
 %Experiment Configurations
@@ -33,8 +33,8 @@ dirs = dfDirs(expParam.project);
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline');
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
-dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, 'offline');
-dirs.SavResultsDir = dirs.SavFileDir;
+dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
+dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
 dirs.saveFileSuffix = '_offlinePSR';
 
 if exist(dirs.RecFileDir, 'dir') == 0
@@ -148,7 +148,7 @@ if collectNewData == 1
     dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud.mat']);
     save(dirs.RecFileDir, 'OA')
 else
-    dirs.RecFileDir = fullfile(dirs.SavFileDir, [expParam.subject '_OfflineAud.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud.mat']);
     load(dirs.RecFileDir)
 end
 
