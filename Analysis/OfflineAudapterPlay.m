@@ -22,7 +22,7 @@ expParam.trialLen      = 4; %Seconds
 expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
 expParam.bPlay         = 0;
-expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
@@ -59,7 +59,7 @@ Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
-s = initNIDAQ;
+s = initNIDAQ(expParam.trialLen, 'Dev2');
 expParam.sRateQ = s.Rate; %save the sampling rate of the NIDAQ
 
 %Set up OST and PCF Files
@@ -124,29 +124,6 @@ for ii = 1:expParam.numTrial
     [dataDAQ, time] = s.startForeground;
     
     data_off = svData(expParam, dirs, p, audStimP, dataDAQ);
-    
-%     Mraw_off = data_off.signalIn(1:(end-128));  % Microphone
-%     Hraw_off = data_off.signalOut(129:end);     % Headphones
-%     fs_off   = round(data_off.params.sRate);    % Sampling Rate
-%     pert  = expParam.trialType(ii); 
-%     
-%     span = find(data_off.ost_stat > 0);
-%      
-%     span = fs*0.5+1; winL = 0.05; pOve = 0.30;
-%     [plotf0pts, numPoints, f0_baseline] = sampleParser(Mraw_off, Hraw_off, span, fs_off, winL, pOve);
-%      
-%     plotf0pts(:,2) = normf0(plotf0pts(:,2), f0_baseline);
-%     plotf0pts(:,3) = normf0(plotf0pts(:,3), f0_baseline);
-%     
-%     if expParam.bf0Vis
-%         limits = [0 0 0 0];
-%         drawInterTrialf0(plotf0pts, pert)
-%     end
-%     
-%     if expParam.bVis 
-%         OST_MULT = 500;
-%         visSignals(data_off, fs, OST_MULT, dirs.saveResultsDir)
-%     end
 
     if expParam.bPlay; soundsc(data_off.signalIn, data_off.expParam.sRateAnal); end
     
