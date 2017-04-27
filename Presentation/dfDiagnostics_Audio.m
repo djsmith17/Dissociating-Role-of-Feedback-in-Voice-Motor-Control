@@ -166,7 +166,7 @@ else
 end
 close all
 
-[auAn, res]= dfAnalysisAudapter(DA.expParam, DA.rawData, DA.DAQin);
+[auAn, res] = dfAnalysisAudapter(DA.expParam, DA.rawData, DA.DAQin);
 
 niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
 

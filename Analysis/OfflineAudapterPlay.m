@@ -33,8 +33,8 @@ dirs = dfDirs(expParam.project);
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline');
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
-dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
-dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
+dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, 'offline');
+dirs.SavResultsDir = dirs.SavFileDir;
 dirs.saveFileSuffix = '_offlinePSR';
 
 if exist(dirs.RecFileDir, 'dir') == 0
@@ -46,6 +46,7 @@ end
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
+
 if collectNewData == 1
     %Paradigm Configurations
     expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
@@ -147,7 +148,14 @@ if collectNewData == 1
     dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud.mat']);
     save(dirs.RecFileDir, 'OA')
 else
+    dirs.RecFileDir = fullfile(dirs.SavFileDir, [expParam.subject '_OfflineAud.mat']);
+    load(dirs.RecFileDir)
 end
+
+[auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
+
+drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
+
 end
 
 function [plotf0pts, numPoints, f0_baseline] = sampleParser(mic, head, span, fs, win, oL)
