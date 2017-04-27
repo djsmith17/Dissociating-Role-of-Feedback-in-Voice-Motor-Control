@@ -7,7 +7,7 @@ if isempty(varargin)
 else
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 %Experiment Configurations
@@ -15,9 +15,10 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
 expParam.run           = 'Run3';
+expParam.curExp        = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = 4; %Experimental trials = 40
 expParam.curTrial      = [];
-expParam.curSubCond    = [];
+expParam.curExpTrial   = [];
 expParam.perCatch      = 1.00;
 expParam.gender        = 'female';
 expParam.masking       = 0;
@@ -103,7 +104,7 @@ if collectNewData == 1
     rawData = [];
     for ii = 1:expParam.numTrial
         expParam.curTrial   = ['Trial' num2str(ii)];
-        expParam.curSubCond = [expParam.subject expParam.run expParam.curTrial];
+        expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
         audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
 
