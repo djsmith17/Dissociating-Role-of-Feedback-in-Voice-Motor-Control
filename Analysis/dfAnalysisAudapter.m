@@ -99,7 +99,7 @@ end
 [res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0_Sp, res.allTrialForce, res.runTrialOrder);
 res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
-res.f0Limits         = [0 auAn.totEveLen -50 50];
+res.f0Limits         = [0 auAn.totEveLen -100 100];
 res.InflaRespLimits  = [0 0.5 -200 0];
 res.ForceLimits      = [0 auAn.totEveLen 1 3.5];
 res.PressureLimits   = [0 auAn.totEveLen 20 30];

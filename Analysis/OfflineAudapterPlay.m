@@ -155,7 +155,7 @@ end
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 
-drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
+drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline3', dirs.SavResultsDir)
 
 end
 
