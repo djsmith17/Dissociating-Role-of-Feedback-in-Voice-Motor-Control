@@ -26,12 +26,12 @@ expParam.trialLen      = 4; %Seconds
 expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
 expParam.bPlay         = 0;
-expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
 
-dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline');
+dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline2');
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
 dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
@@ -155,151 +155,6 @@ end
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 
-drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline3', dirs.SavResultsDir)
-
-end
-
-function [plotf0pts, numPoints, f0_baseline] = sampleParser(mic, head, span, fs, win, oL)
-%Finds the value of f0 over windows of the signal 
-% St = span - fs*0.5;
-% Sp = span + fs*0.7 -1;
-% 
-
-St = span(1);
-
-mic = mic(St:end);
-head = head(St:end);
-
-numSamp     = length(mic);
-AnalysisWin = round(fs*win);
-starting    = 1;
-noverLap    = AnalysisWin*(1 - oL);
-
-evalSteps = starting:noverLap:(numSamp-AnalysisWin);
-numPoints = length(evalSteps);
-
-plotf0pts = [];
-for ii = 1:numPoints
-    startPt  = evalSteps(ii);
-    stopPt   = evalSteps(ii) + AnalysisWin - 1;
-    middlePt = round(mean([startPt stopPt]));
-    timePt   = (middlePt - 1)/fs;
-    
-    mic_now  = mic(startPt:stopPt);
-    head_now = head(startPt:stopPt);
-    
-    f0_M = calcf0(mic_now,fs);
-    f0_H = calcf0(head_now,fs);
-    if f0_M < 50 || f0_M > 300
-        f0_M = plotf0pts(ii-1,2);
-        disp('Hit')
-    end
-    
-    plotf0pts  = cat(1, plotf0pts, [timePt f0_M f0_H]);
-end
-f0_baseline = mean(plotf0pts(1:14,2));
-end
-
-function f0 = calcf0(x,fs)
-% Created by Gabriel Galindo
-% Formatted by Dante Smith -12/11/15
-
-lim_inf = ceil(fs/(500));
-lim_sup = floor(fs/(50));
-U = xcov(x,'unbias');
-U = U(ceil(end/2):end);
-U = (U(lim_inf:lim_sup)-min(U(lim_inf:lim_sup)))/(max(U(lim_inf:lim_sup)) - min(U(lim_inf:lim_sup)));
-[M,P] = findpeaks(U);
-
-if isempty(P)
-    f0 = NaN;
-else
-    P = P(find(M >= 0.9,1,'first'));
-    if isempty(P)
-        f0 = NaN;
-    else
-        f0 = fs/(P + lim_inf);
-    end
-
-    NFFT = pow2(nextpow2(length(x)/4));
-    [Pxx,Fxx] = pwelch(x,NFFT,[],[],fs,'onesided');
-
-    if ~isnan(f0)
-        H = Pxx(find(Fxx>=f0,1,'first'));
-        if (10*log10(max(Pxx)/H) > 80)
-            f0 = NaN;
-        end
-    end   
-end
-end
- 
-function [normf0pts] = normf0(plotf0pts, Fb)
-
-normf0pts = zeros(size(plotf0pts));
-for i = 1:length(plotf0pts)
-
-    F = plotf0pts(i);
-    normf0pts(i) = (1200*log2(F/Fb));
-end
-end
-
-function drawInterTrialf0(plotf0pts, pert)
-plotpos = [400 400];
-plotdim = [1000 600];
-InterTrialNHR = figure('Color', [1 1 1]);
-set(InterTrialNHR, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-subplot(2,1,1)
-plot(plotf0pts(:,1), plotf0pts(:,2))
-xlabel('Time (s)')
-ylabel('cents (-)')
-title('Pitch_Microphone', 'FontSize', 10, 'FontWeight', 'bold')
-axis([0 4 -100 100])
-box off   
-
-subplot(2,1,2)
-plot(plotf0pts(:,1), plotf0pts(:,3))
-xlabel('Time (s)')
-ylabel('cents (-)')
-title('Pitch_Headphones', 'FontSize', 10, 'FontWeight', 'bold')
-axis([0 4 -100 100])
-box off
-
-suptitle(['Trial Type: ' num2str(pert)])
-                
-pause(2)
-% close all
-end
-
-function visSignals(data, fs, OST_MULT, savedResdir)
-plotpos = [200 100];
-plotdim = [1000 700];
-spectComp = figure('Color', [1 1 1]);
-set(spectComp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-frameDur = data.params.frameLen / data.params.sr;
-tAxis = 0:frameDur:frameDur * (size(data.rms, 1) - 1);
-
-subplot(2,1,1)
-show_spectrogram(data.signalIn, fs, 'noFig');
-xlabel('Time (s)');
-ylabel('Frequency (Hz)');
-title('Microphone In')
-box off
-plot(tAxis, data.ost_stat * OST_MULT, 'k-');
-legend({sprintf('OST status * %d', OST_MULT)});
-
-subplot(2,1,2)
-show_spectrogram(data.signalOut, fs, 'noFig');
-xlabel('Time (s)');
-ylabel('Frequency (Hz)');
-title('Headphone Out')
-box off
-
-suptitle('OFFLINE ''AFA'' TIME WARP SPECTRUM')
-
-plTitle = 'Offline AFA Time Warp Spectrum';
-saveFileName = [savedResdir plTitle '.png'];
-export_fig(saveFileName)
+drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline2', dirs.SavResultsDir)
 
 end
