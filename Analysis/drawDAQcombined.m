@@ -54,7 +54,7 @@ t = annotation('textbox',[0.70 0.7 0.45 0.1],...
                 'FontName','Arial');
 
 if sv2F == 1
-    plTitle = [curExp  '_CombinedDAQSignalOutput.png'];     
+    plTitle = [curExp  '_CombinedDAQSignalOutput.jpg'];     
     saveFileName = fullfile(saveResultsDir, plTitle);
     export_fig(saveFileName) 
 end

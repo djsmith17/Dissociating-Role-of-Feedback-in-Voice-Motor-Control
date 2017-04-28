@@ -23,6 +23,8 @@ sv2F                   = 1; %Boolean
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.run           = 'Run1';
+expParam.curExp        = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;
@@ -45,7 +47,7 @@ if collectNewData == 1
     expParam.downFact    = 3;
     expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 
-    [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev3');
+    [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev2');
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 
@@ -81,4 +83,6 @@ niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 
 drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
+
+drawDAQAll(niAn, 1, dirs.SavResultsDir, sv2F)
 end

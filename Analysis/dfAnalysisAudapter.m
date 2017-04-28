@@ -26,6 +26,9 @@ auAn.winLenP = auAn.winLen*auAn.sRate;    %analysis window length in points
 auAn.tStepP  = auAn.winLenP*(1-auAn.pOV); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
 auAn.tStep   = auAn.tStepP/auAn.sRate;            
 
+auAn.recLen  = expParam.trialLen;
+auAn.recLenP = expParam.trialLen*auAn.sRate;
+
 auAn.preEveLen  = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
 auAn.posEveLen  = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
 auAn.totEveLen  = auAn.preEveLen + auAn.posEveLen; %Total length (seconds) of observation time
@@ -39,7 +42,7 @@ auAn.posEveLenQ = round(auAn.posEveLen*auAn.sRateQ);  %Amount of points of obser
 auAn.totEveLenQ = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
 auAn.timeQ      = (0:1:(auAn.totEveLenQ-1))/auAn.sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
 
-auAn.winSts  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.winLenP); %Starting indices for each analysis window
+auAn.winSts  = 1:auAn.tStepP:(auAn.recLenP-auAn.winLenP); %Starting indices for each analysis window
 auAn.numWin  = length(auAn.winSts); %Number of analysis windows;       
 
 auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
@@ -72,6 +75,10 @@ for ii = 1:auAn.numTrial
         fprintf('%s Trial %d not saved. %s\n', auAn.curExp, ii, saveTmsg)
     elseif saveT == 1 %Save the Trial
         fprintf('%s Trial %d saved\n', auAn.curExp, ii)
+        
+        Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
+        
+        
         
         %Start of Pert
         Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
@@ -226,15 +233,15 @@ St = trig - auAn.preEveLenP;
 Sp = trig + auAn.posEveLenP - 1;
 
 %Grab a big chuck of the signal centered around the event
-try
-    mic = mic(St:Sp);
-    head = head(St:Sp);
-catch
-    disp('Sp was too long yo!')
-    numSamp = length(mic);
-    mic = mic(St:numSamp);
-    head = head(St:numSamp);
-end   
+% try
+%     mic = mic(St:Sp);
+%     head = head(St:Sp);
+% catch
+%     disp('Sp was too long yo!')
+%     numSamp = length(mic);
+%     mic = mic(St:numSamp);
+%     head = head(St:numSamp);
+% end   
 
 Trialf0ResultsRaw = [];
 for ii = 1:auAn.numWin
