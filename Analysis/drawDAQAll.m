@@ -47,7 +47,7 @@ for ii = 1:numTrial
     pertAx  = [trigs(ii,1), trigs(ii,2)];
     pertAy  = [200 200];
     
-    ha = tight_subplot(2,4,[0.15 0.05],[0.12 0.15],[0.05 0.01]);
+    ha = tight_subplot(2,3,[0.15 0.05],[0.12 0.15],[0.05 0.01]);
 
     axes(ha(1))
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
@@ -79,7 +79,7 @@ for ii = 1:numTrial
     plot(time, sensorP(:,ii))
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold')
     title('Pressure Sensor', 'FontSize', 18, 'FontWeight', 'bold')
-    axis([0 4 0 4]); box off
+    axis([0 4 0 5]); box off
     
     axes(ha(5))
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
@@ -87,7 +87,7 @@ for ii = 1:numTrial
     plot(time, audioM(:,ii))
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
     title('Microphone', 'FontSize', 18, 'FontWeight', 'bold')
-    axis([0 4 -0.01 0.01]); box off
+    axis([0 4 -0.1 0.1]); box off
     
     axes(ha(6))
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
@@ -97,13 +97,13 @@ for ii = 1:numTrial
     title('Headphones', 'FontSize', 18, 'FontWeight', 'bold')
     axis([0 4 -0.01 0.01]); box off
     
-    axes(ha(7))
-    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
-    hold on
-    plot(time, sensorO(:,ii))
-    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('-', 'FontSize', 18, 'FontWeight', 'bold')
-    title('Optical TriggerBox', 'FontSize', 18, 'FontWeight', 'bold')
-    axis([0 4 0 2]); box off
+%     axes(ha(7))
+%     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+%     hold on
+%     plot(time, sensorO(:,ii))
+%     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('-', 'FontSize', 18, 'FontWeight', 'bold')
+%     title('Optical TriggerBox', 'FontSize', 18, 'FontWeight', 'bold')
+%     axis([0 4 0 2]); box off
     
     suptitle([curExp ': All NIDAQ Channels'])    
     

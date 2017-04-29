@@ -152,6 +152,7 @@ else
     dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud.mat']);
     load(dirs.RecFileDir)
 end
+close all
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 

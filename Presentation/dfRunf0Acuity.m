@@ -15,6 +15,8 @@ end
 
 acuVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 
+%dfDirs is a separate function that regulates my dirs and paths. 
+%dirs is a structure with my relevant paths for data files. 
 dirs = dfDirs(acuVar.project);
 dirs.RecFileDir = fullfile(dirs.RecData, participant);
 
@@ -51,7 +53,8 @@ changeDirection = 1; %Placeholder to remember "direction" of delta changes to co
 correctInARow   = 0; %Tracks # of consecutively correct trials (regardless of catch or different)
                      %Resets after 2 correct in a row
 
-s = RandStream.create('mt19937ar', 'seed', sum(100*clock)); %make it so randperm doesn't call the same thing everytime when matlab is opened
+%Make it so randperm doesn't call the same thing everytime when matlab is opened
+s = RandStream.create('mt19937ar', 'seed', sum(100*clock)); 
 RandStream.setGlobalStream(s);
 
 %Start her up
@@ -73,8 +76,8 @@ while reversals < MaxReversals
         trialType  = 3; 
         distVal    = 0;
     end
-    trialTypes = cat(1, trialTypes, trialType); %Will be saved in Results
-    distVals   = cat(1, distVals, distVal);     %Will be saved in Results
+    trialTypes = cat(1, trialTypes, trialType); %Save trialTypes
+    distVals   = cat(1, distVals, distVal);     %Save the distVal
     
     %Set up the audio tokens to be played
     freqNew = freqDef*2^(dist/12);
@@ -89,7 +92,7 @@ while reversals < MaxReversals
         token2 = soundwav_Def;
     end
     
-    %Process the audio tokens for easy perception
+    %Process the audio tokens for easy perception. Func is below
     token1_proc = preProcessToken(token1, taper); 
     token2_proc = preProcessToken(token2, taper);
     
@@ -110,11 +113,11 @@ while reversals < MaxReversals
     elseif YourAnswer == 48 % key press = 0
         response = 0; %the response was 0 (same)
     end
-    responses = cat(1, responses, response); %Will be saved in Results
+    responses = cat(1, responses, response); %Save response results
     
     %Determine if the subject was correct
     match = isequal(diffTokens, response); %Was the subject correct?
-    matches = cat(1, matches, match);      %Will be saved in Results
+    matches = cat(1, matches, match);      %Save match results
 
     if dist < 0
         dist   = 0.02;
@@ -180,9 +183,9 @@ token_tape = token .* taper';
 token_proc = A*token_tape*10^(xp);
 end
 
-function adjustDist(trial, match, correctInARow, changeDirection, reversals, revValues, dist)
-
-end
+% function adjustDist(trial, match, correctInARow, changeDirection, reversals, revValues, dist)
+% 
+% end
 
 % function drawJNDResults()
 % figure;
