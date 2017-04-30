@@ -31,7 +31,7 @@ expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
 
-dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline2');
+dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline');
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
 dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
