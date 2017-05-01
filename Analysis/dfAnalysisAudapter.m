@@ -17,7 +17,7 @@ auAn.trigsT   = expParam.trigs(:,:,1);  %Pregenerated start and stop times for t
 auAn.trigsA   = expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
 auAn.trigsQ   = expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
 auAn.trialType = expParam.trialType;    %List of trial Order
-auAn.mask      = expParam.masking;        
+auAn.mask      = expParam.masking;
 
 auAn.dnSamp  = 10;
 auAn.winLen  = 0.05; %analysis window length in seconds
@@ -25,6 +25,9 @@ auAn.pOV     = 0.60;  %window overlap percentage as decimial
 auAn.winLenP = auAn.winLen*auAn.sRate;    %analysis window length in points
 auAn.tStepP  = auAn.winLenP*(1-auAn.pOV); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
 auAn.tStep   = auAn.tStepP/auAn.sRate;            
+
+auAn.actualRecLen = length(rawData(1).signalIn)/auAn.sRate;
+auAn.frameT       = linspace(0,auAn.actualRecLen,2053);
 
 auAn.recLen  = expParam.trialLen;
 auAn.recLenP = expParam.trialLen*auAn.sRate;
@@ -42,7 +45,7 @@ auAn.posEveLenQ = round(auAn.posEveLen*auAn.sRateQ);  %Amount of points of obser
 auAn.totEveLenQ = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
 auAn.timeQ      = (0:1:(auAn.totEveLenQ-1))/auAn.sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
 
-auAn.winSts  = 1:auAn.tStepP:(auAn.recLenP-auAn.winLenP); %Starting indices for each analysis window
+auAn.winSts  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.winLenP); %Starting indices for each analysis window
 auAn.numWin  = length(auAn.winSts); %Number of analysis windows;       
 
 auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
@@ -67,6 +70,7 @@ for ii = 1:auAn.numTrial
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
+    OST  = data.ost_stat;
     audProcDel = data.params.frameLen*4;
     
     [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, audProcDel, auAn.trigsT(ii,1));
@@ -76,7 +80,7 @@ for ii = 1:auAn.numTrial
     elseif saveT == 1 %Save the Trial
         fprintf('%s Trial %d saved\n', auAn.curExp, ii)
         
-        Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
+%         Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
         
         
         
@@ -84,6 +88,18 @@ for ii = 1:auAn.numTrial
         Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
         %Stop of Pert
         Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,2), auAn.sRate, auAn); %When experiment is fixed make this 2!!
+        
+        trig = auAn.trigsT(ii,1);
+        trigSt = trig - 0.5;
+        trigSp = trig + 1.0; 
+        tFramesSt = find(trigSt >= auAn.frameT); tFrameSt = tFramesSt(end);
+        tFramesSp = find(trigSp >= auAn.frameT); tFrameSp = tFramesSp(end);
+        frameT_Start = auAn.frameT(tFrameSt:tFrameSp);
+        OST_Start = OST(tFrameSt:tFrameSp);
+        headedup = find(OST_Start == 3); headUp = headedup(1);
+        whenitactuallystarted = frameT_Start(headUp);
+        whatTHEDIFF = whenitactuallystarted - trig
+        
 
         prePertInd = auAn.time < 0.5;                    % Grab the first 0.5s, should be no stimulus
         f0b = round(mean(Trialf0Raw_St(prePertInd, 1))); % Baseline fundamental frequency of mic data
@@ -212,6 +228,16 @@ else
 end
 end
 
+function f0 = calcf02(x, fs)
+NFFT = pow2(nextpow2(length(x)/4));
+
+[Pmic, f] = pwelch(x, [], [], [], fs, 'onesided');
+    
+[val, ind] = max(Pmic);
+f0 = f(ind);
+
+end
+
 function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, auAn)
 %Finds the change in fundamental frequency of windowed signal
 
@@ -233,15 +259,15 @@ St = trig - auAn.preEveLenP;
 Sp = trig + auAn.posEveLenP - 1;
 
 %Grab a big chuck of the signal centered around the event
-% try
-%     mic = mic(St:Sp);
-%     head = head(St:Sp);
-% catch
-%     disp('Sp was too long yo!')
-%     numSamp = length(mic);
-%     mic = mic(St:numSamp);
-%     head = head(St:numSamp);
-% end   
+try
+    mic = mic(St:Sp);
+    head = head(St:Sp);
+catch
+    disp('Sp was too long yo!')
+    numSamp = length(mic);
+    mic = mic(St:numSamp);
+    head = head(St:numSamp);
+end   
 
 Trialf0ResultsRaw = [];
 for ii = 1:auAn.numWin
@@ -254,12 +280,11 @@ for ii = 1:auAn.numWin
     f0_M = calcf0(mic_win,fs);
     f0_H = calcf0(head_win,fs);
     
-    
-%     [f0_time,f0_value,SHR,f0_candidates] = shrp(mic_win,fs,F0MinMax,frame_length,timestep,SHR_Threshold,ceiling,med_smooth,CHECK_VOICING)
+%     [f0_time, f0_value, SHR, f0_candidates] = shrp(mic_win, fs);
 
     
     if f0_M < 50 || f0_M > 300
-        disp('I had some difficulty calculating f0_M')
+        fprintf('I calculated a f0 of %d. Replacing it.\n', f0_M)
         f0_M = Trialf0ResultsRaw(ii-1,2);
     end
     
