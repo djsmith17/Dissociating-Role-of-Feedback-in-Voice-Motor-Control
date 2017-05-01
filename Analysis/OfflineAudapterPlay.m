@@ -16,7 +16,7 @@ expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
 expParam.run           = 'Run3';
 expParam.curExp        = [expParam.subject ' ' expParam.run];
-expParam.numTrial      = 4; %Experimental trials = 40
+expParam.numTrial      = 10; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curExpTrial   = [];
 expParam.perCatch      = 1.00;
@@ -26,7 +26,7 @@ expParam.trialLen      = 4; %Seconds
 expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
 expParam.bPlay         = 0;
-expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
@@ -35,8 +35,8 @@ dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline');
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
 dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
-dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
-dirs.saveFileSuffix = '_offlinePSR';
+dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
+dirs.saveFileSuffix = '_offlinePSR1';
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -124,7 +124,7 @@ if collectNewData == 1
         for n = 1:length(Mraw_frames)
             Audapter('runFrame', Mraw_frames{n});
         end
-
+        
         NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
         queueOutputData(s, NIDAQsig);
 
@@ -146,16 +146,16 @@ if collectNewData == 1
     OA.DAQin       = DAQin;
     OA.rawData     = rawData;      
 
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud1.mat']);
     save(dirs.RecFileDir, 'OA')
 else
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud1.mat']);
     load(dirs.RecFileDir)
 end
 close all
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 
-drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline2', dirs.SavResultsDir)
+drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline_Stim1', dirs.SavResultsDir)
 
 end

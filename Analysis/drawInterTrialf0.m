@@ -5,6 +5,7 @@ InterTrialf0 = figure('Color', [1 1 1]);
 set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 curExp(strfind(curExp, '_')) = ' ';
+curRecording(strfind(curRecording, '_')) = ' ';
 
 dottedStartx = [0.5 0.5];
 dottedy      = [-300 300];
@@ -48,7 +49,7 @@ suptitle({[curExp ': Mic Recording']; [curRecording '   f0: ' num2str(meanTrialf
 
 plots = {'InterTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '.png'];
+    plTitle = [curRecording '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
