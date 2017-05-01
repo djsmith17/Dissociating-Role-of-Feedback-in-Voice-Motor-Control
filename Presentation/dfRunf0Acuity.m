@@ -20,11 +20,18 @@ acuVar.run          = 'Run1';
 %dirs is a structure with my relevant paths for data files. 
 dirs = dfDirs(acuVar.project);
 dirs.RecFileDir = fullfile(dirs.RecData, participant);
+dirs.SavFileDir = fullfile(dirs.RecData, participant, 'Run3', [participant 'Run3.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir);
 end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity' acuVar.run '.mat']);
+
+%This should return DRF
+load(dirs.SavFileDir);
+thisData = DRF.rawData(8);
+speech   = thisData.signalIn;
+token    = speech(16000:31999);
 
 % Standardized values
 fs           = 44100;
