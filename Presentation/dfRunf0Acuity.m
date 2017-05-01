@@ -1,4 +1,4 @@
-function dfRunf0Acuity(varargin)
+function meanJNDVal = dfRunf0Acuity(varargin)
 %Edit 08-15-2013: Cara Stepp, amplitude changes
 %Edit 06-13-2014: Liz Heller Murray
 %Edit 04-07-2015: Defne Abur, normalized sound, 65dB on MOTU
@@ -14,6 +14,7 @@ else
 end
 
 acuVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+acuVar.run          = 'Run1';
 
 %dfDirs is a separate function that regulates my dirs and paths. 
 %dirs is a structure with my relevant paths for data files. 
@@ -23,7 +24,7 @@ dirs.RecFileDir = fullfile(dirs.RecData, participant);
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir);
 end
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity.mat']);
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity' acuVar.run '.mat']);
 
 % Standardized values
 fs           = 44100;
@@ -38,7 +39,7 @@ upstep   = .2; %initial setting that dist will go up by if user answers 'same'. 
 udRatio  = 2.4483; %MacMillan 2004
 downstep = upstep/udRatio; %initial setting that dist will go down by if user answers 'different'. These values change later based on trial number
 
-MaxReversals = 18;% number of answer switches the user must make before the game ends
+MaxReversals = 5;% number of answer switches the user must make before the game ends
 reversals    = 0; % counter for number of changes (reversals) over time
 trial        = 0; % counter for each trial 
 randdiff     = 8; % 1 in 8 trials are a catch trial
@@ -169,10 +170,10 @@ while reversals < MaxReversals
     end
 end
 
-f0AcuityResults = [trialTypes', distVals', responses', matches'];
-save(dirs.SavFileDir, 'f0AcuityResults', 'revValues');
+f0AcuityResults = [trialTypes, distVals, responses, matches];
+save(dirs.RecFileDir, 'f0AcuityResults', 'revValues');
 
-Last5Mean = mean(revValues(end-5:end));
+meanJNDVal = mean(revValues);
 end
 
 function token_proc = preProcessToken(token, taper)
