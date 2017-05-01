@@ -29,9 +29,11 @@ dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity' acuVar.run 
 
 %This should return DRF
 load(dirs.SavFileDir);
-thisData = DRF.rawData(8);
-speech   = thisData.signalIn;
-token    = speech(16000:31999);
+thisData  = DRF.rawData(8);      % Take the 8th trial. It will be a control trial
+speech    = thisData.signalIn;   % Grab the microphone channel.
+baseToken = speech(16000:47999); % 
+
+tokens = generateSpeechTokens(dirs, baseToken);
 
 % Standardized values
 fs           = 44100;
@@ -181,6 +183,8 @@ f0AcuityResults = [trialTypes, distVals, responses, matches];
 save(dirs.RecFileDir, 'f0AcuityResults', 'revValues');
 
 meanJNDVal = mean(revValues);
+
+drawJNDResults(dirs, acuVar, f0AcuityResults, revValues, meanJNDVal)
 end
 
 function token_proc = preProcessToken(token, taper)
@@ -191,17 +195,23 @@ token_tape = token .* taper';
 token_proc = A*token_tape*10^(xp);
 end
 
-% function adjustDist(trial, match, correctInARow, changeDirection, reversals, revValues, dist)
-% 
-% end
+function tokens = generateSpeechTokens(dirs, baseToken)
+tokens = [];
 
-% function drawJNDResults()
-% figure;
-% plot(delta,'-o');
-% xlabel('Trial number');
-% ylabel('\Delta f (Hz)','Interpreter','Tex');
-% 
-% Calculate the average delta over the last nJNDTrials trials
-% JND = mean(delta(end-nJNDTrials:end));
-% msgbox(sprintf('JND estimate is %2.2f Hz',JND));
-% end
+
+end
+
+function drawJNDResults(dirs, acuVar, f0AcuityResults, revValues, meanJNDVal)
+
+numTrial = length(f0AcuityResults);
+trialVec = 1:numTrial;
+distVec  = f0AcuityResults(:,2);
+
+f0AcuityFig = figure('Color', [1 1 1]);
+plot(trialVec, distVec)
+xlabel('Trial #', 'FontSize', 18, 'FontWeight', 'bold')
+ylabel('Distortion Val', 'FontSize', 18, 'FontWeight', 'bold')
+title(['f0 Acuity Results for ' acuVar.participant ' ' acuVar.run], 'FontSize', 18, 'FontWeight', 'bold')
+box off
+
+end
