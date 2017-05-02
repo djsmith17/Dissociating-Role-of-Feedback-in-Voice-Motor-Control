@@ -16,6 +16,9 @@ close all
 
 pause(1.0)
 set(H1,'Visible','off');
+set(H2,'Visible','on');
+pause(1.0)
+set(H2,'Visible','off');
 
 [color, newPos] = dfUpdateVisFB(anMsr, recordedRMS);
 

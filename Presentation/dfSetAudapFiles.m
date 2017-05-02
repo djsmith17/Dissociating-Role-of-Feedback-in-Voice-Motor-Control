@@ -19,6 +19,7 @@ end
 function audStimP = organizeStimulus(trialType, stimType, trigs, InflaRespRoute, tStep)
 
 audStimP.trialType = trialType; % 0: Control 1: Catch
+audStimP.stimType  = stimType;
 audStimP.AudFs     = 48000;     % Hardset
 audStimP.lenTrialT = 4;                                         %Trial Length (Seconds) %Hardset
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs;         %Trial Length (Points)
@@ -238,6 +239,9 @@ end
 
 function drawStimulus(audStimP)
 close all
+
+types = {'Somatosensory Feedback Task Trace', 'Sinusoid ramp with base matching SF Perturb response', '100 cent ramp evenly spaced'};
+
 plotpos = [200 100];
 plotdim = [1300 500];
 AudStim = figure('Color', [1 1 1]);
@@ -246,7 +250,7 @@ set(AudStim, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 plot(audStimP.time, audStimP.stim)
 xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold')
 ylabel('Fundamental Frequency Shift (st)', 'FontSize', 12, 'FontWeight', 'bold')
-title('Pitch-Shift Reflex Experiment Stimulus', 'FontSize', 16, 'FontWeight', 'bold')
+title({'Pitch-Shift Reflex Experiment Stimulus'; types{audStimP.stimType}}, 'FontSize', 16, 'FontWeight', 'bold')
 axis([0 4 -101 1]); box off;
 
 set(gca, 'FontSize', 16,...
