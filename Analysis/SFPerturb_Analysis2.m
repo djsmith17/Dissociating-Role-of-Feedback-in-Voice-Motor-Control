@@ -17,11 +17,11 @@ PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials
 PltTgl.InterRun_AudRes   = 1; %Average f0 response trace to auditory pert over all runs analyzed
 PltTgl.InterTrial_Force  = 0;
 PltTgl.InterRun_Force    = 0;
-PltTgl.svInflaRespRoute  = 0;
+PltTgl.svInflaRespRoute  = 1;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participant  = 'Pilot0'; %List of multiple participants.
-AVar.run          = 'Run1';
+AVar.run          = 'Run2';
 
 dirs = dfDirs(AVar.project);
 
@@ -36,14 +36,14 @@ end
 load(dirs.SavFileDir)
 
 [auAn, res] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
-niAn = dfAnalysisNIDAQ(DA.expParam, DA.DAQin);
+% niAn = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
 
-drawDAQAll(niAn, 2, dirs.SavResultsDir, sv2F)
+% drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
 drawInterTrialf0(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp,auAn.curExp, dirs.SavResultsDir)
-drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
+% drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
           
 if PltTgl.svInflaRespRoute == 1
-    InflaRespRoute = CalcInflationResponse(auAn, res.meanTrialf0b, res.meanRunsf0_St, res.InflaRespLimits, dirs.SavResultsDir);
+    InflaRespRoute = CalcInflationResponse(auAn, res.meanTrialf0b, res.meanTrialf0_St, res.InflaRespLimits, dirs.SavResultsDir);
     tStep = auAn.tStep;
     save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
 end
@@ -83,7 +83,7 @@ axis(limits); box off
 set(gca, 'FontSize', 16,...
          'FontWeight','bold');
 
-plTitle = [curExp '_Inflation Response Route.png'];
+plTitle = [curExp '_Inflation Response Route.jpg'];
 saveFileName = fullfile(plotFolder, plTitle);
 export_fig(saveFileName)
 end

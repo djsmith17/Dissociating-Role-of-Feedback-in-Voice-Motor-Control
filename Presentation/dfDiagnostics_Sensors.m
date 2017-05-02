@@ -12,17 +12,17 @@ function dfDiagnostics_Sensors(varargin)
 close all;
 
 if isempty(varargin)
-    numTrial = 10; 
+    numTrial = 2; 
 else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'null'; %Subject#, Pilot#, null
+expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
 expParam.curExp        = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40

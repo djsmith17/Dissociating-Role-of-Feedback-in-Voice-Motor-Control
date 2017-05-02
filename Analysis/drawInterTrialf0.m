@@ -10,7 +10,7 @@ curRecording(strfind(curRecording, '_')) = ' ';
 dottedStartx = [0.5 0.5];
 dottedy      = [-300 300];
 
-ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.03]);
+ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
 
 axes(ha(1))
 uH = shadedErrorBar(time, meanTrialf0_St(:,1,1), meanTrialf0_St(:,2,1), 'b', 1); %Unperturbed

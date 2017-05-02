@@ -89,16 +89,16 @@ for ii = 1:auAn.numTrial
         %Stop of Pert
         Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,2), auAn.sRate, auAn); %When experiment is fixed make this 2!!
         
-        trig = auAn.trigsT(ii,1);
-        trigSt = trig - 0.5;
-        trigSp = trig + 1.0; 
-        tFramesSt = find(trigSt >= auAn.frameT); tFrameSt = tFramesSt(end);
-        tFramesSp = find(trigSp >= auAn.frameT); tFrameSp = tFramesSp(end);
-        frameT_Start = auAn.frameT(tFrameSt:tFrameSp);
-        OST_Start = OST(tFrameSt:tFrameSp);
-        headedup = find(OST_Start == 3); headUp = headedup(1);
-        whenitactuallystarted = frameT_Start(headUp);
-        whatTHEDIFF = whenitactuallystarted - trig
+%         trig = auAn.trigsT(ii,1);
+%         trigSt = trig - 0.5;
+%         trigSp = trig + 1.0; 
+%         tFramesSt = find(trigSt >= auAn.frameT); tFrameSt = tFramesSt(end);
+%         tFramesSp = find(trigSp >= auAn.frameT); tFrameSp = tFramesSp(end);
+%         frameT_Start = auAn.frameT(tFrameSt:tFrameSp);
+%         OST_Start = OST(tFrameSt:tFrameSp);
+%         headedup = find(OST_Start == 3); headUp = headedup(1);
+%         whenitactuallystarted = frameT_Start(headUp);
+%         whatTHEDIFF = whenitactuallystarted - trig
         
 
         prePertInd = auAn.time < 0.5;                    % Grab the first 0.5s, should be no stimulus
@@ -123,7 +123,7 @@ end
 res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
 res.f0Limits         = [0 auAn.totEveLen -100 100];
-res.InflaRespLimits  = [0 0.5 -200 0];
+res.InflaRespLimits  = [0 0.3 -80 10];
 res.ForceLimits      = [0 auAn.totEveLen 1 3.5];
 res.PressureLimits   = [0 auAn.totEveLen 20 30];
 end

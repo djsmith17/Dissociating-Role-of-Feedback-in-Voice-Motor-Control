@@ -10,7 +10,7 @@ expParam.gender     = 'male';
 expParam.masking    = 1; %Masking Noise
 expParam.trialLen   = 4; %Seconds
 
-dirs = dfDirs(expParam.project, expParam.expType);
+dirs = dfDirs(expParam.project);
 
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
