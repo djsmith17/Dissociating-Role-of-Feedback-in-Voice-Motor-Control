@@ -285,7 +285,7 @@ for ii = 1:auAn.numWin
     
     if f0_M < 50 || f0_M > 300
         fprintf('I calculated a f0 of %d. Replacing it.\n', f0_M)
-        f0_M = Trialf0ResultsRaw(ii-1,2);
+        f0_M = 0; %Trialf0ResultsRaw(ii-1,2);
     end
     
     if f0_H < 50 || f0_H > 300

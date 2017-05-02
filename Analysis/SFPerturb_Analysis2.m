@@ -17,11 +17,11 @@ PltTgl.InterTrial_AudRes = 1; %Average f0 response trace to auditory pert trials
 PltTgl.InterRun_AudRes   = 1; %Average f0 response trace to auditory pert over all runs analyzed
 PltTgl.InterTrial_Force  = 0;
 PltTgl.InterRun_Force    = 0;
-PltTgl.svInflaRespRoute  = 1;
+PltTgl.svInflaRespRoute  = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participant  = 'Pilot0'; %List of multiple participants.
-AVar.run          = 'Run2';
+AVar.run          = 'Run4';
 
 dirs = dfDirs(AVar.project);
 
@@ -40,7 +40,7 @@ load(dirs.SavFileDir)
 
 % drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
 drawInterTrialf0(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp,auAn.curExp, dirs.SavResultsDir)
-% drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
+drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
           
 if PltTgl.svInflaRespRoute == 1
     InflaRespRoute = CalcInflationResponse(auAn, res.meanTrialf0b, res.meanTrialf0_St, res.InflaRespLimits, dirs.SavResultsDir);
