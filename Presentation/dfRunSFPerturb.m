@@ -25,8 +25,8 @@ end
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'null'; %Subject#, Pilot#, null
-expParam.run           = 'Run2';
+expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
+expParam.run           = 'Run1';
 expParam.curExp        = [expParam.subject expParam.run];
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
@@ -35,7 +35,7 @@ expParam.gender        = 'male';
 expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
-
+expParam.stimType      = 1; %Always 1. Mirroring the AFPerturb
 dirs = dfDirs(expParam.project);
 
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
@@ -98,7 +98,7 @@ rawData = [];
 pause(1.0) %Let them breathe a sec
 for ii = 1:expParam.numTrial
     expParam.curTrial    = ['Trial' num2str(ii)];
-    expParam.curExpTrial = [expParam.curExp expParam.curTrial];
+    expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Used later in audio version
     audStimP = [];
@@ -136,7 +136,7 @@ for ii = 1:expParam.numTrial
     
     %Save the data
     data = dfSaveRawData(expParam, dirs);
-    DAQin = cat(3, DAQin, dataDAQ);
+    DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
        
     %Grab smooth RMS trace from 'data' structure, compare against baseline
@@ -160,7 +160,7 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curExp dirs.saveFileSuffix '.mat']);
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
 if expParam.bVis == 1

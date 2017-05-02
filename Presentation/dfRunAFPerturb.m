@@ -147,7 +147,7 @@ for ii = 1:expParam.numTrial
     
     %Save the data
     data = dfSaveRawData(expParam, dirs);
-    DAQin = cat(3, DAQin, dataDAQ);
+    DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
     
     %Grab smooth RMS trace from 'data' structure, compare against baseline
@@ -171,7 +171,7 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curExp dirs.saveFileSuffix '.mat']);
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
 if expParam.bVis == 1
