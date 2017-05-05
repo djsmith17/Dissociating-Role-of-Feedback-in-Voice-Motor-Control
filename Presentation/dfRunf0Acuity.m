@@ -14,6 +14,7 @@ else
 end
 
 acuVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+acuVar.participant = participant;
 acuVar.run          = 'Run1';
 
 %dfDirs is a separate function that regulates my dirs and paths. 
@@ -203,9 +204,11 @@ end
 
 function drawJNDResults(dirs, acuVar, f0AcuityResults, revValues, meanJNDVal)
 
-numTrial = length(f0AcuityResults);
+ind = find(f0AcuityResults(:,2) ~= 0);
+butts = f0AcuityResults(ind,:);
+numTrial = length(butts);
 trialVec = 1:numTrial;
-distVec  = f0AcuityResults(:,2);
+distVec  = butts(:,2);
 
 f0AcuityFig = figure('Color', [1 1 1]);
 plot(trialVec, distVec)
