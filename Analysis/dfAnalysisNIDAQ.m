@@ -21,7 +21,7 @@ niAn.numTrial = n;
 niAn.numCh    = c;
 niAn.dnSamp   = 10;
 
-niAn.win = 0.05; %seconds
+niAn.win = 0.05;  %seconds
 niAn.pOV = 0.60;  %60% overlap
 niAn.winP   = niAn.win*niAn.sRate;
 niAn.tStepP = niAn.winP*(1-niAn.pOV);
@@ -43,8 +43,8 @@ niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, 
 niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.f0b      = (mean(mean(niAn.audioMf0(1:45,:),1)));
 
-niAn.audioMf0_norm = 1200*log2(niAn.audioMf0/niAn.f0b);
-niAn.audioHf0_norm = 1200*log2(niAn.audioHf0/niAn.f0b);
+niAn.audioMf0_norm = 1200*log2(niAn.audioMf0/niAn.f0b); %Normalize the f0 mic and convert to cents
+niAn.audioHf0_norm = 1200*log2(niAn.audioHf0/niAn.f0b); %Normalize the f0 head and convert to cents
 
 niAn.aLimits = [0 4 -100 100];
 
@@ -52,8 +52,8 @@ niAn.aLimits = [0 4 -100 100];
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
-niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);
-niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp);
+niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp); %downSampled Time
+niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); %downSampled Perturbation Signal
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
@@ -68,20 +68,24 @@ niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.rangePressures = [];
-niAn.maxTimesP      = [];
+niAn.timePressures  = [];
 for ii = 1:niAn.numTrial
-    [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
-    [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);      
+    [dxSmooth, endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.tStepP);
     
-    onsetPressure  = round(100*maxP)/100;
-    offsetPressure = round(100*minP)/100;
-    maxTime = round(100*niAn.time_DN(maxInd))/100;
-    niAn.maxTimesP      = cat(1, niAn.maxTimesP, maxTime);
+%     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
+%     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
+
+    onsetPressure  = round(100*niAn.sensorP_DN(endRiseInd,1))/100;
+    offsetPressure = round(100*niAn.sensorP_DN(startFallInd,1))/100;
+    onsetTime = round(100*niAn.time_DN(endRiseInd))/100;
+    offsetTime = round(100*niAn.time_DN(startFallInd))/100;
+    
+    niAn.timePressures  = cat(1, niAn.timePressures, [onsetTime offsetTime]);
     niAn.rangePressures = cat(1, niAn.rangePressures, [onsetPressure offsetPressure]);
 end
 niAn.meanRangePressure = mean(niAn.rangePressures, 1);
 
-niAn.riseTimeP = niAn.maxTimesP - niAn.presTrig(:,1);
+niAn.riseTimeP = niAn.timePressures(:,1) - niAn.presTrig(:,1);
 niAn.meanRiseTimeP = mean(niAn.riseTimeP);
 niAn.pLimits = [0 4 0 5];
 niAn.fLimits = [0 4 1 5];
@@ -89,6 +93,8 @@ niAn.fLimits = [0 4 1 5];
 niAn.sensorP_Al = alignSensorData(niAn.sRateDN , niAn.numTrial, niAn.idxPert, niAn.sensorP_DN);
 niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN;
 niAn.pLimits_Al = [0 3.5 0 5];
+
+
 end
 
 function [trigs, idx] = findPertTrigs(time, sensor, fs)
@@ -206,4 +212,22 @@ for ii = 1:numTrial
     
     sensorAl = cat(2, sensorAl, sensor(St:Sp,ii));
 end
+end
+
+function [dxSmooth, endRiseInd, startFallInd] = findCrossings(sensor, tStep)
+
+dx = zeros(size(sensor));
+for gg = 2:length(sensor)
+    dx(gg) = 10000*(sensor(gg) - sensor(gg-1))/tStep;
+end
+dxSmooth = smooth(dx);
+incInds = find(dxSmooth > 0.1);
+decInds = find(dxSmooth < -0.2);
+
+incNonIncre = find((diff(incInds) == 1) == 0); %The indices where the values stop increasing
+endRiseInd = incInds(incNonIncre(1));
+
+decNonIncre = find((diff(decInds) == 1) == 1); %The indices where the values start decreasing
+startFallInd = decInds(decNonIncre(1));
+
 end

@@ -22,7 +22,9 @@ sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'nullLong'; %Subject#, Pilot#, null
+expParam.subject       = 'BalloonD_EmptyAirLong'; %Subject#, Pilot#, null
+expParam.run           = 'Run1';
+expParam.curExp        = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;
@@ -49,7 +51,7 @@ if collectNewData == 1
     %New!
     expParam.trialLenLong = expParam.numTrial*(expParam.trialLen + expParam.resPause);
     
-    [s, niCh, nVS]  = initNIDAQ(expParam.trialLenLong, 'Dev3');
+    [s, niCh, nVS]  = initNIDAQ(expParam.trialLenLong, 'Dev2');
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 
@@ -82,5 +84,5 @@ niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 
 niAn.pLimits = [0 50 0 5];
 niAn.fLimits = [0 50 1 5];
-drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
+drawDAQsignal_Long(niAn, 1, dirs.SavResultsDir, sv2F)
 end

@@ -12,17 +12,17 @@ function dfDiagnostics_Sensors(varargin)
 close all;
 
 if isempty(varargin)
-    numTrial = 2; 
+    numTrial = 10; 
 else
     numTrial = varargin{1};
 end
 
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
+expParam.subject       = 'BalloonD_EmptyAir'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
 expParam.curExp        = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
@@ -80,9 +80,9 @@ end
 
 niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 
-% sdrawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
+drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 
 % drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
 
-drawDAQAll(niAn, 1, dirs.SavResultsDir, sv2F)
+% drawDAQAll(niAn, 1, dirs.SavResultsDir, sv2F)
 end
