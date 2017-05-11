@@ -21,7 +21,7 @@ PltTgl.svInflaRespRoute  = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participant  = 'Pilot0'; %List of multiple participants.
-AVar.run          = 'Run4';
+AVar.run          = 'Run2';
 
 dirs = dfDirs(AVar.project);
 
@@ -40,7 +40,7 @@ load(dirs.SavFileDir)
 
 % drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
 drawInterTrialf0(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp,auAn.curExp, dirs.SavResultsDir)
-drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
+drawInterTrialAudResp(res.time, res.meanTrialf0_St(:,:,2), res.meanTrialf0_Sp(:,:,2), res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
           
 if PltTgl.svInflaRespRoute == 1
     InflaRespRoute = CalcInflationResponse(auAn, res.meanTrialf0b, res.meanTrialf0_St, res.InflaRespLimits, dirs.SavResultsDir);
