@@ -71,7 +71,7 @@ niAn.indPressures   = [];
 niAn.rangePressures = [];
 niAn.timePressures  = [];
 for ii = 1:niAn.numTrial
-    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.tStepP);
+    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.sRateDN);
     
 %     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
 %     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
