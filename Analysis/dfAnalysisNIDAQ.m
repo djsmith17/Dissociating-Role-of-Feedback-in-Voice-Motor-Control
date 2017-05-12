@@ -67,10 +67,11 @@ niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
+niAn.indPressures   = [];
 niAn.rangePressures = [];
 niAn.timePressures  = [];
 for ii = 1:niAn.numTrial
-    [dxSmooth, endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.tStepP);
+    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.tStepP);
     
 %     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
 %     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
@@ -80,6 +81,7 @@ for ii = 1:niAn.numTrial
     onsetTime = round(100*niAn.time_DN(endRiseInd))/100;
     offsetTime = round(100*niAn.time_DN(startFallInd))/100;
     
+    niAn.indPressures   = cat(1, niAn.indPressures, [endRiseInd, startFallInd]);
     niAn.timePressures  = cat(1, niAn.timePressures, [onsetTime offsetTime]);
     niAn.rangePressures = cat(1, niAn.rangePressures, [onsetPressure offsetPressure]);
 end
@@ -214,13 +216,14 @@ for ii = 1:numTrial
 end
 end
 
-function [dxSmooth, endRiseInd, startFallInd] = findCrossings(sensor, tStep)
+function [endRiseInd, startFallInd] = findCrossings(sensor, fs)
 
-dx = zeros(size(sensor));
-for gg = 2:length(sensor)
-    dx(gg) = 10000*(sensor(gg) - sensor(gg-1))/tStep;
-end
-dxSmooth = smooth(dx);
+[B, A] = butter(8, (80/(fs/2)), 'low'); 
+sensorFilt = filtfilt(B,A, sensor);
+
+sensDiff= diff(sensorFilt);
+sensDiff2= diff(sensDiff);
+
 incInds = find(dxSmooth > 0.1);
 decInds = find(dxSmooth < -0.2);
 

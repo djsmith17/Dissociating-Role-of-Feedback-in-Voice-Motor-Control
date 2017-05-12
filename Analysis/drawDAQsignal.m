@@ -44,6 +44,12 @@ for ii = 1:numTrial
     if plotFlag == 1
         [aX, fS, pS] = plotyy([time time], [sensorFC(:,ii) sensorFN(:,ii)], time, sensorP(:,ii));
     
+        hold on
+        plot(niAn.timePressures(ii,1), niAn.rangePressures(ii, 1), 'g*')
+        
+        hold on
+        plot(niAn.timePressures(ii,2), niAn.rangePressures(ii, 2), 'm*')
+        
         set(pS, 'LineWidth', 2,... 
             'Color', 'k');
     
