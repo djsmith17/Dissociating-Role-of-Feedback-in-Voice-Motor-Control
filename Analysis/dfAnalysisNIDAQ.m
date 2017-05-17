@@ -221,16 +221,15 @@ function [endRiseInd, startFallInd] = findCrossings(sensor, fs)
 [B, A] = butter(8, (80/(fs/2)), 'low'); 
 sensorFilt = filtfilt(B,A, sensor);
 
-sensDiff= diff(sensorFilt);
-sensDiff2= diff(sensDiff);
+sensDiff = 1 + [0; diff(sensorFilt)]*10;
+sensDiff2= 1 + [0; diff(sensDiff)]*10;
 
-incInds = find(dxSmooth > 0.1);
-decInds = find(dxSmooth < -0.2);
+incInds = find(sensDiff > 1.1);
+decInds = find(sensDiff < -0.2);
 
 incNonIncre = find((diff(incInds) == 1) == 0); %The indices where the values stop increasing
 endRiseInd = incInds(incNonIncre(1));
 
 decNonIncre = find((diff(decInds) == 1) == 1); %The indices where the values start decreasing
 startFallInd = decInds(decNonIncre(1));
-
 end
