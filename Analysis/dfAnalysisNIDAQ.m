@@ -71,7 +71,8 @@ niAn.indPressures   = [];
 niAn.rangePressures = [];
 niAn.timePressures  = [];
 for ii = 1:niAn.numTrial
-    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.sRateDN);
+%     [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.sRateDN);
+    [endRiseInd, startFallInd] = findCrossingsManual(niAn.sensorP_DN(:,ii), niAn.sRateDN);
     
 %     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
 %     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
@@ -218,18 +219,41 @@ end
 
 function [endRiseInd, startFallInd] = findCrossings(sensor, fs)
 
-[B, A] = butter(8, (80/(fs/2)), 'low'); 
+[B, A] = butter(8, (50/(fs/2)), 'low'); 
 sensorFilt = filtfilt(B,A, sensor);
 
-sensDiff = 1 + [0; diff(sensorFilt)]*10;
-sensDiff2= 1 + [0; diff(sensDiff)]*10;
+sensDiff = [0; diff(sensorFilt)]*20;
+sensDiff2= [0; diff(sensDiff)]*20;
 
-incInds = find(sensDiff > 1.1);
-decInds = find(sensDiff < -0.2);
+incInds = find(sensDiff > 0.05);
+decInds = find(sensDiff < -0.05);
 
 incNonIncre = find((diff(incInds) == 1) == 0); %The indices where the values stop increasing
-endRiseInd = incInds(incNonIncre(1));
+endRiseInd = incInds(incNonIncre(end));
 
 decNonIncre = find((diff(decInds) == 1) == 1); %The indices where the values start decreasing
 startFallInd = decInds(decNonIncre(1));
+end
+
+function [endRiseInd, startFallInd] = findCrossingsManual(sensor, fs)
+
+[B, A] = butter(8, (50/(fs/2)), 'low'); 
+sensorFilt = filtfilt(B,A, sensor);
+
+sensDiff = [0; diff(sensorFilt)]*20;
+sensDiff2= [0; diff(sensDiff)]*20;
+
+PresFig = figure;
+plot(sensor, 'k'); hold on
+plot(sensDiff, 'r'); hold on
+plot(sensDiff2, 'g')
+axis([0 3200 3.8 4.5])
+
+[x1, ~] = getpts(PresFig);
+[x2, ~] = getpts(PresFig);
+
+endRiseInd = round(x1);
+startFallInd = round(x2);
+
+close all;
 end
