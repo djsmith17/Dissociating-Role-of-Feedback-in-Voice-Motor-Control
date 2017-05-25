@@ -7,7 +7,7 @@ if isempty(varargin)
 else
 end
 
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 sv2F                   = 1; %Boolean
 
 %Experiment Configurations
@@ -37,7 +37,7 @@ dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
 dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
 dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
-dirs.saveFileSuffix = '_offlinePSR1';
+dirs.saveFileSuffix = '_offlinePSR';
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -149,17 +149,17 @@ if collectNewData == 1
     OA.DAQin       = DAQin;
     OA.rawData     = rawData;      
 
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud2.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject dirs.saveFileSuffix '.mat']);
     save(dirs.RecFileDir, 'OA')
 else
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud2.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject dirs.saveFileSuffix '.mat']);
     load(dirs.RecFileDir)
 end
 close all
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 
-drawAudResp_allTrial(res, auAn.curExp, OA.expParam.curRec, dirs.SavResultsDir)
+drawAudResp_allTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 
 % drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline_Stim1', dirs.SavResultsDir)
 end

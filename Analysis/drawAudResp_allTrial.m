@@ -28,7 +28,7 @@ for ii = 1:numTrial
     pertAx  = [trigs(ii,1), trigs(ii,2)];
     pertAy  = [200 200];
     
-    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor)
     hold on
     tM = plot(time, trialf0_mic(:, ii), 'b', 'LineWidth', 1.5);
     hold on
@@ -38,7 +38,7 @@ for ii = 1:numTrial
         xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
     end
     
-    title(['Offline Trial ' num2str(ii)], 'FontSize', 10, 'FontWeight', 'bold')
+    title(['Trial ' num2str(ii)], 'FontSize', 10, 'FontWeight', 'bold')
     axis(limits); box off
 
     set(gca,'FontSize', 10,...
@@ -48,11 +48,11 @@ l0 = legend([tM tH], 'Microphone', 'Headphones');
 set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
         
 
-suptitle({[curSess]; [curRec '   f0: ' num2str(baselinef0) 'Hz']})
+suptitle({curSess; [curRec '   f0: ' num2str(baselinef0) 'Hz']})
 
 plots = {'AllTrialf0_AudResp'};
 for i = 1:length(plots)
-    plTitle = [curRec '_' plots{i} '.jpg'];
+    plTitle = [curSess '_' plots{i} '_' curRec '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

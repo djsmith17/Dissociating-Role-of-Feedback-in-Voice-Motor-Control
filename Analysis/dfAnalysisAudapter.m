@@ -4,7 +4,9 @@ function [auAn, res] = dfAnalysisAudapter(expParam, rawData, DAQin)
 %given participant. At the end it approximates a general response to
 %inflation to be used in the auditory perturbation experiment
 
-%Require the Signal Processing Toolbox
+%Requires the Signal Processing Toolbox
+
+fprintf('Starting Analysis\n')
 
 auAn.curType  = expParam.expType;
 auAn.curSubj  = expParam.subject;
@@ -79,9 +81,9 @@ for ii = 1:auAn.numTrial
     [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, audProcDel, auAn.trigsT(ii,1));
 
     if saveT == 0 %Don't save the trial :(
-        fprintf('%s Trial %d not saved. %s\n', auAn.curExp, ii, saveTmsg)
+        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
     elseif saveT == 1 %Save the Trial
-        fprintf('%s Trial %d saved\n', auAn.curExp, ii)
+        fprintf('%s Trial %d saved\n', auAn.curSess, ii)
         
         Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
         
