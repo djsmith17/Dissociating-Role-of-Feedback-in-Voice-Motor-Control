@@ -1,51 +1,54 @@
-function drawAudResp_allTrial(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curExp, curRecording, plotFolder)
-plotpos = [200 100];
-plotdim = [1300 500];
+function drawAudResp_allTrial(res, curExp, curRecording, plotFolder)
+
+time = res.time;
+trigs = res.allTrialTrigs;
+trialf0_mic  = res.allTrialf0(:,1,:);
+trialf0_head = res.allTrialf0(:,2,:);
+baselinef0 = res.meanTrialf0b;
+numTrial   = res.trialCount;
+limits     = res.f0Limits;
+
+numColumn = numTrial/2;
+
+plotpos = [100 100];
+plotdim = [1800 800];
 InterTrialAudResp = figure('Color', [1 1 1]);
 set(InterTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 curExp(strfind(curExp, '_')) = ' ';
 curRecording(strfind(curRecording, '_')) = ' ';
 
-dottedStartx = [0.5 0.5];
-dottedy      = [-300 300];
+pertColor = [0.8 0.8 0.8];
 
-ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
+ha = tight_subplot(2, numColumn, [0.1 0.02],[0.05 0.12],[0.05 0.03]);
 
-axes(ha(1))
-mH = shadedErrorBar(time, meanTrialf0_St(:,1), meanTrialf0_St(:,2), 'b', 1); %Pertrubed Microphone
-hold on
-hH = shadedErrorBar(time, meanTrialf0_St(:,3), meanTrialf0_St(:,4), 'r', 1); %Perturbed Headphones
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
+for ii = 1:numTrial      
+    axes(ha(ii))
+        
+    pertAx  = [trigs(ii,1), trigs(ii,2)];
+    pertAy  = [200 200];
+    
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    tM = plot(time, trialf0_mic(:, ii), 'b', 'LineWidth', 1.5);
+    hold on
+    tH = plot(time, trialf0_head(:, ii), 'r', 'LineWidth', 1.5);
 
-title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
-axis(limits); box off
+    if ii == 1
+        xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
+    end
+    
+    title(['Offline Trial ' num2str(ii)], 'FontSize', 10, 'FontWeight', 'bold')
+    axis(limits); box off
 
-set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
-        'FontSize', 16,...
-        'FontWeight','bold')
-
-l0 = legend([mH.mainLine hH.mainLine], 'Microphone', 'Headphones'); 
+    set(gca,'FontSize', 10,...
+            'FontWeight','bold')
+end
+l0 = legend([tM tH], 'Microphone', 'Headphones'); 
 set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
+        
 
-axes(ha(2))
-shadedErrorBar(time, meanTrialf0_Sp(:,1), meanTrialf0_Sp(:,2), 'b', 1)  %Pertrubed Microphone
-hold on
-shadedErrorBar(time, meanTrialf0_Sp(:,3), meanTrialf0_Sp(:,4), 'r', 1) %Perturbed Headphones
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-
-title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
-axis(limits); box off
-set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
-        'FontSize', 16,...
-        'FontWeight','bold',...
-        'YAxisLocation', 'right');
-
-suptitle({[curExp ': ' num2str(counts) ' Perturbed Trials']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
+% suptitle({[curExp ': ' num2str(counts) ' Perturbed Trials']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
 
 plots = {'InterTrialf0_AudResp'};
 for i = 1:length(plots)

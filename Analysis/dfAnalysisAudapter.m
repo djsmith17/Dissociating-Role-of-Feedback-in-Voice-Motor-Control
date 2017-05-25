@@ -60,6 +60,7 @@ res.allTrialf0 = [];
 % res.allTrialf0_Sp = [];
 res.allTrialf0b   = [];
 res.allTrialForce = [];
+res.allTrialTrigs = auAn.trigsT;
 res.trialCount    = [];
 res.meanTrialf0_St = [];
 res.meanTrialf0_Sp = [];
@@ -117,7 +118,7 @@ for ii = 1:auAn.numTrial
         res.allTrialf0 = cat(3, res.allTrialf0, Trialf0Norm);
 %         res.allTrialf0_Sp = cat(3, res.allTrialf0_Sp, Trialf0Norm_Sp);
         res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);            %Baseline fundamental frequencies
-        res.allTrialForce = cat(3, res.allTrialForce, TrialForce);   %Force sensor values;        
+        res.allTrialForce = cat(3, res.allTrialForce, TrialForce);   %Force sensor values;
     end
 end
 
@@ -126,7 +127,7 @@ end
 [res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0, res.allTrialForce, res.runTrialOrder);
 res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
-res.f0Limits         = [0 auAn.totEveLen -100 100];
+res.f0Limits         = [0 auAn.recLen -100 100];
 res.InflaRespLimits  = [0 0.3 -80 10];
 res.ForceLimits      = [0 auAn.totEveLen 1 3.5];
 res.PressureLimits   = [0 auAn.totEveLen 20 30];
