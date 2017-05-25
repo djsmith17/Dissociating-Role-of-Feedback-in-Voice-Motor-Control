@@ -27,7 +27,7 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
-expParam.curExp        = [expParam.subject expParam.run];
+expParam.curSess        = [expParam.subject expParam.run];
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.perCatch      = 0.25;
@@ -98,7 +98,7 @@ rawData = [];
 pause(1.0) %Let them breathe a sec
 for ii = 1:expParam.numTrial
     expParam.curTrial    = ['Trial' num2str(ii)];
-    expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
+    expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Used later in audio version
     audStimP = [];

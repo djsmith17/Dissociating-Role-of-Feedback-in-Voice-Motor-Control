@@ -7,7 +7,7 @@ if isempty(varargin)
 else
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 %Experiment Configurations
@@ -15,7 +15,9 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
 expParam.run           = 'Run2';
-expParam.curExp        = [expParam.subject ' ' expParam.run];
+expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.curRec        = ['Stimulus Type ' num2str(expParam.stimType)];
+expParam.curSess       = [expParam.subject ' ' expParam.run ' offline'];
 expParam.numTrial      = 10; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curExpTrial   = [];
@@ -26,7 +28,6 @@ expParam.trialLen      = 4; %Seconds
 expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
 expParam.bPlay         = 0;
-expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
@@ -158,6 +159,7 @@ close all
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 
+drawAudResp_allTrial(res, auAn.curExp, OA.expParam.curRec, dirs.SavResultsDir)
 
-drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline_Stim1', dirs.SavResultsDir)
+% drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline_Stim1', dirs.SavResultsDir)
 end

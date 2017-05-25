@@ -14,7 +14,7 @@ sRate = expParam.sRateQ;
 
 niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
-niAn.curExp   = expParam.curExp;
+niAn.curSess  = expParam.curSess;
 niAn.sRate    = sRate;
 niAn.numSamp  = r;
 niAn.numTrial = n;

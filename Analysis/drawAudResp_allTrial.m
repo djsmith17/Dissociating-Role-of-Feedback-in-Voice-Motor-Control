@@ -1,4 +1,4 @@
-function drawAudResp_allTrial(res, curExp, curRecording, plotFolder)
+function drawAudResp_allTrial(res, curSess, curRec, plotFolder)
 
 time = res.time;
 trigs = res.allTrialTrigs;
@@ -15,8 +15,8 @@ plotdim = [1800 800];
 InterTrialAudResp = figure('Color', [1 1 1]);
 set(InterTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-curExp(strfind(curExp, '_')) = ' ';
-curRecording(strfind(curRecording, '_')) = ' ';
+curSess(strfind(curSess, '_')) = ' ';
+curRec(strfind(curRec, '_')) = ' ';
 
 pertColor = [0.8 0.8 0.8];
 
@@ -48,11 +48,11 @@ l0 = legend([tM tH], 'Microphone', 'Headphones');
 set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
         
 
-% suptitle({[curExp ': ' num2str(counts) ' Perturbed Trials']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
+suptitle({[curSess]; [curRec '   f0: ' num2str(baselinef0) 'Hz']})
 
-plots = {'InterTrialf0_AudResp'};
+plots = {'AllTrialf0_AudResp'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '.jpg'];
+    plTitle = [curRec '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

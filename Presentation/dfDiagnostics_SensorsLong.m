@@ -24,7 +24,7 @@ expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = 'BalloonD_EmptyAirLong'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
-expParam.curExp        = [expParam.subject ' ' expParam.run];
+expParam.curSess       = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;
