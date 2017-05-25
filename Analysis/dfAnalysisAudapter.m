@@ -51,11 +51,13 @@ auAn.numWin  = length(auAn.winSts); %Number of analysis windows;
 auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
 auAn.anaInds(:,2) = auAn.winSts + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
 auAn.time         = mean(auAn.anaInds,2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
+auAn.baseTimeInd  = auAn.time > 0.5 & auAn.time < 1.0; %The period 0.5s before perturbations
+
 
 res.time          = auAn.time;
 res.runTrialOrder = [];
-res.allTrialf0_St = [];
-res.allTrialf0_Sp = [];
+res.allTrialf0 = [];
+% res.allTrialf0_Sp = [];
 res.allTrialf0b   = [];
 res.allTrialForce = [];
 res.trialCount    = [];
@@ -84,11 +86,11 @@ for ii = 1:auAn.numTrial
         
         
         
-        %Start of Pert
-        Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
-        %Stop of Pert
-        Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,2), auAn.sRate, auAn); %When experiment is fixed make this 2!!
-        
+%         %Start of Pert
+%         Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
+%         %Stop of Pert
+%         Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,2), auAn.sRate, auAn); %When experiment is fixed make this 2!!
+%         
 %         trig = auAn.trigsT(ii,1);
 %         trigSt = trig - 0.5;
 %         trigSp = trig + 1.0; 
@@ -101,25 +103,27 @@ for ii = 1:auAn.numTrial
 %         whatTHEDIFF = whenitactuallystarted - trig
         
 
-        prePertInd = auAn.time < 0.5;                    % Grab the first 0.5s, should be no stimulus
-        f0b = round(mean(Trialf0Raw_St(prePertInd, 1))); % Baseline fundamental frequency of mic data
+%         prePertInd = auAn.time < 0.5;                    % Grab the first 0.5s, should be no stimulus
+        f0b = round(mean(Trialf0Raw(auAn.baseTimeInd, 1))); % Baseline fundamental frequency of mic data
 
-        Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized
-        Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
+        Trialf0Norm = normf0(Trialf0Raw, f0b); %Coverted to cents and normalized
+        
+%         Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized
+%         Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
         
         TrialForce = forceSensorAnalysis(DAQin, auAn.trigsQ(ii,1), auAn.sRateQ, auAn); %At the moment only voltage
 
         res.runTrialOrder = cat(1, res.runTrialOrder, auAn.trialType(ii));
-        res.allTrialf0_St = cat(3, res.allTrialf0_St, Trialf0Norm_St);
-        res.allTrialf0_Sp = cat(3, res.allTrialf0_Sp, Trialf0Norm_Sp);
+        res.allTrialf0 = cat(3, res.allTrialf0, Trialf0Norm);
+%         res.allTrialf0_Sp = cat(3, res.allTrialf0_Sp, Trialf0Norm_Sp);
         res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);            %Baseline fundamental frequencies
         res.allTrialForce = cat(3, res.allTrialForce, TrialForce);   %Force sensor values;        
     end
 end
 
 %Sort trials within a given run by trial type and find average across trials
-[res.meanTrialf0_St, res.meanTrialForce_St, res.trialCount] = sortTrials(res.allTrialf0_St, res.allTrialForce, res.runTrialOrder);
-[res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0_Sp, res.allTrialForce, res.runTrialOrder);
+[res.meanTrialf0_St, res.meanTrialForce_St, res.trialCount] = sortTrials(res.allTrialf0, res.allTrialForce, res.runTrialOrder);
+[res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0, res.allTrialForce, res.runTrialOrder);
 res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
 res.f0Limits         = [0 auAn.totEveLen -100 100];
