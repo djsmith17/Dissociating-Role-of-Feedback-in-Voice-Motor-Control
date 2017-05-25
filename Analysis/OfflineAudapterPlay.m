@@ -13,20 +13,20 @@ sv2F                   = 1; %Boolean
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = 'Pilot7'; %Subject#, Pilot#, null
-expParam.run           = 'Run3';
+expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
+expParam.run           = 'Run2';
 expParam.curExp        = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = 10; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.curExpTrial   = [];
 expParam.perCatch      = 1.00;
-expParam.gender        = 'female';
+expParam.gender        = 'male';
 expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
 expParam.bf0Vis        = 0;
 expParam.bVis          = 0;
 expParam.bPlay         = 0;
-expParam.stimType      = 1; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
@@ -93,10 +93,12 @@ if collectNewData == 1
     expParam.resPause = 2.0;
 
     %Taking the first trial for ease. File out will be 'data'
+    fprintf('Loading Previously Recorded Data Set...\n\n')
     d = dir([dirs.SavFileDir, '\*.mat']);
     fnames = sort_nat({d.name}); 
-    load(fullfile(dirs.SavFileDir, fnames{expParam.offLineTrial})); 
-
+    load(fullfile(dirs.SavFileDir, fnames{1})); 
+    data = DRF.rawData(expParam.offLineTrial);
+    
     Mraw  = data.signalIn; 
     fs    = data.params.sRate;
 
@@ -117,7 +119,7 @@ if collectNewData == 1
         %Split the signal into frames
         Mraw_frames = makecell(Mraw_reSamp, data.params.frameLen * data.params.downFact);
 
-        fprintf('Trial %d\n', ii)
+        fprintf('Running Trial %d\n', ii)
         AudapterIO('init', p);
         Audapter('reset');
 
@@ -146,16 +148,16 @@ if collectNewData == 1
     OA.DAQin       = DAQin;
     OA.rawData     = rawData;      
 
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud1.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud2.mat']);
     save(dirs.RecFileDir, 'OA')
 else
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud1.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_OfflineAud2.mat']);
     load(dirs.RecFileDir)
 end
 close all
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 
-drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline_Stim1', dirs.SavResultsDir)
 
+drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline_Stim1', dirs.SavResultsDir)
 end

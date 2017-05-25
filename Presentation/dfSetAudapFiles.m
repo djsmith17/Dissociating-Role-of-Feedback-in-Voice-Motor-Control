@@ -25,8 +25,8 @@ audStimP.lenTrialT = 4;                                         %Trial Length (S
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs;         %Trial Length (Points)
 audStimP.time      = (0:1:audStimP.lenTrialP-1)/audStimP.AudFs; %Projected recorded time course (Points)
 
-audStimP.StTime    = trigs(1) - 0.46;                        %Seconds
-audStimP.SpTime    = trigs(2) - 0.46;                        %Seconds
+audStimP.StTime    = trigs(1);                        %Seconds
+audStimP.SpTime    = trigs(2);                        %Seconds
 audStimP.StPoint   = round(audStimP.StTime*audStimP.AudFs);  %Points
 audStimP.SpPoint   = round(audStimP.SpTime*audStimP.AudFs);  %Points
 audStimP.lenPerT   = audStimP.SpTime - audStimP.StTime;      %Seconds
