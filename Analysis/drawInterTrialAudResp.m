@@ -1,11 +1,11 @@
-function drawInterTrialAudResp(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curExp, curRecording, plotFolder)
+function drawInterTrialAudResp(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curSess, curRec, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 InterTrialAudResp = figure('Color', [1 1 1]);
 set(InterTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-curExp(strfind(curExp, '_')) = ' ';
-curRecording(strfind(curRecording, '_')) = ' ';
+curSess(strfind(curSess, '_')) = ' ';
+curRec(strfind(curRec, '_')) = ' ';
 
 dottedStartx = [0.5 0.5];
 dottedy      = [-300 300];
@@ -45,11 +45,11 @@ set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
 
-suptitle({[curExp ': ' num2str(counts) ' Perturbed Trials']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
+suptitle({[curSess ': ' num2str(counts) ' Perturbed Trials']; [curRec '   f0: ' num2str(meanTrialf0b) 'Hz']})
 
 plots = {'InterTrialf0_AudResp'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '.jpg'];
+    plTitle = [curSess '_' plots{i} '_' curRec '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

@@ -47,19 +47,29 @@ auAn.posEveLenQ = round(auAn.posEveLen*auAn.sRateQ);  %Amount of points of obser
 auAn.totEveLenQ = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
 auAn.timeQ      = (0:1:(auAn.totEveLenQ-1))/auAn.sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
 
+%For the full analysis
 auAn.winSts  = 1:auAn.tStepP:(auAn.recLenP-auAn.winLenP); %Starting indices for each analysis window
 auAn.numWin  = length(auAn.winSts); %Number of analysis windows;       
 
 auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
 auAn.anaInds(:,2) = auAn.winSts + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
-auAn.time         = mean(auAn.anaInds,2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
+auAn.time         = mean(auAn.anaInds, 2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
 auAn.baseTimeInd  = auAn.time > 0.5 & auAn.time < 1.0; %The period 0.5s before perturbations
 
+%For the Sectioned analysis
+auAn.winStsSec  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.winLenP); %Starting indices for each analysis window
+auAn.numWinSec  = length(auAn.winStsSec); %Number of analysis windows;       
+
+auAn.anaIndsSec(:,1) = auAn.winStsSec;                      %Start indice for analysis based on EvalStep
+auAn.anaIndsSec(:,2) = auAn.winStsSec + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
+auAn.timeSec         = mean(auAn.anaIndsSec, 2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
 
 res.time          = auAn.time;
+res.timeSec       = auAn.timeSec;
 res.runTrialOrder = [];
-res.allTrialf0 = [];
-% res.allTrialf0_Sp = [];
+res.allTrialf0    = [];
+res.allTrialf0_St = [];
+res.allTrialf0_Sp = [];
 res.allTrialf0b   = [];
 res.allTrialForce = [];
 res.allTrialTrigs = auAn.trigsT;
@@ -85,15 +95,13 @@ for ii = 1:auAn.numTrial
     elseif saveT == 1 %Save the Trial
         fprintf('%s Trial %d saved\n', auAn.curSess, ii)
         
-        Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
+        Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.sRate, auAn, [], 0);
+              
+        %Start of Pert
+        Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.sRate, auAn, auAn.trigsA(ii,1), 1);
+        %Stop of Pert
+        Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.sRate, auAn, auAn.trigsA(ii,2), 1); %When experiment is fixed make this 2!!
         
-        
-        
-%         %Start of Pert
-%         Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,1), auAn.sRate, auAn);
-%         %Stop of Pert
-%         Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.trigsA(ii,2), auAn.sRate, auAn); %When experiment is fixed make this 2!!
-%         
 %         trig = auAn.trigsT(ii,1);
 %         trigSt = trig - 0.5;
 %         trigSp = trig + 1.0; 
@@ -111,25 +119,27 @@ for ii = 1:auAn.numTrial
 
         Trialf0Norm = normf0(Trialf0Raw, f0b); %Coverted to cents and normalized
         
-%         Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized
-%         Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
+        Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); %Coverted to cents and normalized
+        Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); %Coverted to cents and normalized
         
         TrialForce = forceSensorAnalysis(DAQin, auAn.trigsQ(ii,1), auAn.sRateQ, auAn); %At the moment only voltage
 
         res.runTrialOrder = cat(1, res.runTrialOrder, auAn.trialType(ii));
         res.allTrialf0 = cat(3, res.allTrialf0, Trialf0Norm);
-%         res.allTrialf0_Sp = cat(3, res.allTrialf0_Sp, Trialf0Norm_Sp);
+        res.allTrialf0_St = cat(3, res.allTrialf0_St, Trialf0Norm_St);
+        res.allTrialf0_Sp = cat(3, res.allTrialf0_Sp, Trialf0Norm_Sp);
         res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);            %Baseline fundamental frequencies
         res.allTrialForce = cat(3, res.allTrialForce, TrialForce);   %Force sensor values;
     end
 end
 
 %Sort trials within a given run by trial type and find average across trials
-[res.meanTrialf0_St, res.meanTrialForce_St, res.trialCount] = sortTrials(res.allTrialf0, res.allTrialForce, res.runTrialOrder);
-[res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0, res.allTrialForce, res.runTrialOrder);
+[res.meanTrialf0_St, res.meanTrialForce_St, res.trialCount] = sortTrials(res.allTrialf0_St, res.allTrialForce, res.runTrialOrder);
+[res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0_Sp, res.allTrialForce, res.runTrialOrder);
 res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
-res.f0Limits         = [0 auAn.recLen -100 100];
+res.f0Limits         = [0 auAn.recLen -120 40];
+res.f0LimitsSec      = [0 auAn.totEveLen -120 40];
 res.InflaRespLimits  = [0 0.3 -80 10];
 res.ForceLimits      = [0 auAn.totEveLen 1 3.5];
 res.PressureLimits   = [0 auAn.totEveLen 20 30];
@@ -245,7 +255,7 @@ f0 = f(ind);
 
 end
 
-function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, auAn)
+function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, fs, auAn, trig, block)
 %Finds the change in fundamental frequency of windowed signal
 
 %Inputs
@@ -262,24 +272,32 @@ function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, trig, fs, auAn)
 %third column is the fundamental frequency of the windowed headphone
 %signal.
 
-% St = trig - auAn.preEveLenP; 
-% Sp = trig + auAn.posEveLenP - 1;
-% 
-% %Grab a big chuck of the signal centered around the event
-% try
-%     mic = mic(St:Sp);
-%     head = head(St:Sp);
-% catch
-%     disp('Sp was too long yo!')
-%     numSamp = length(mic);
-%     mic = mic(St:numSamp);
-%     head = head(St:numSamp);
-% end   
+St = trig - auAn.preEveLenP; 
+Sp = trig + auAn.posEveLenP - 1;
+
+%Grab a big chuck of the signal centered around the event
+if block == 1
+    try
+        mic = mic(St:Sp);
+        head = head(St:Sp);
+    catch
+        disp('Sp was too long yo!')
+        numSamp = length(mic);
+        mic = mic(St:numSamp);
+        head = head(St:numSamp);
+    end
+    
+    numWin  = auAn.numWinSec;
+    anaInds = auAn.anaIndsSec;
+else
+    numWin  = auAn.numWin;
+    anaInds = auAn.anaInds;    
+end
 
 Trialf0ResultsRaw = [];
-for ii = 1:auAn.numWin
-    startPt  = auAn.anaInds(ii,1);
-    stopPt   = auAn.anaInds(ii,2);
+for ii = 1:numWin
+    startPt  = anaInds(ii,1);
+    stopPt   = anaInds(ii,2);
 
     mic_win   = mic(startPt:stopPt);
     head_win  = head(startPt:stopPt);
@@ -288,8 +306,6 @@ for ii = 1:auAn.numWin
     f0_H = calcf0(head_win,fs);
     
 %     [f0_time, f0_value, SHR, f0_candidates] = shrp(mic_win, fs);
-
-    
     if f0_M < 50 || f0_M > 300
         fprintf('I calculated a f0 of %d. Replacing it.\n', f0_M)
         f0_M = 0; %Trialf0ResultsRaw(ii-1,2);

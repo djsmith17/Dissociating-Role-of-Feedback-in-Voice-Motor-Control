@@ -7,7 +7,7 @@ if isempty(varargin)
 else
 end
 
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 sv2F                   = 1; %Boolean
 
 %Experiment Configurations
@@ -15,7 +15,7 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
 expParam.run           = 'Run2';
-expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.curRec        = ['Stimulus Type ' num2str(expParam.stimType)];
 expParam.curSess       = [expParam.subject ' ' expParam.run ' offline'];
 expParam.numTrial      = 10; %Experimental trials = 40
@@ -37,7 +37,7 @@ dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
 dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
 dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
-dirs.saveFileSuffix = '_offlinePSR2';
+dirs.saveFileSuffix = '_offlinePSR';
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -161,5 +161,5 @@ close all
 
 drawAudResp_allTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 
-% drawInterTrialAudResp(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, 'offline_Stim1', dirs.SavResultsDir)
+drawInterTrialAudResp(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 end
