@@ -21,7 +21,7 @@ PltTgl.svInflaRespRoute  = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participant  = 'Pilot0'; %List of multiple participants.
-AVar.run          = 'Run2';
+AVar.run          = 'Run5';
 
 dirs = dfDirs(AVar.project);
 
@@ -39,9 +39,11 @@ load(dirs.SavFileDir)
 % niAn = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
 
 % drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
-drawInterTrialf0(res.time, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp,auAn.curExp, dirs.SavResultsDir)
-drawInterTrialAudResp(res.time, res.meanTrialf0_St(:,:,2), res.meanTrialf0_Sp(:,:,2), res.f0Limits, res.trialCount, res.meanTrialf0b, auAn.curExp, auAn.curExp, dirs.SavResultsDir)
-          
+drawInterTrialf0(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+drawAudResp_AllTrial(res, auAn.curSess, DRF.expParam.curRec, dirs.SavResultsDir)
+
+drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St(:,:,2), res.meanTrialf0_Sp(:,:,2), res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+         
 if PltTgl.svInflaRespRoute == 1
     InflaRespRoute = CalcInflationResponse(auAn, res.meanTrialf0b, res.meanTrialf0_St, res.InflaRespLimits, dirs.SavResultsDir);
     tStep = auAn.tStep;

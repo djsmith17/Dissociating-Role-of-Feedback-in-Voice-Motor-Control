@@ -28,8 +28,10 @@ end
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
-expParam.run           = 'Run4';
-expParam.curSess        = [expParam.subject expParam.run];
+expParam.run           = 'Run5';
+expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.curRec        = ''; %['Stimulus Type ' num2str(expParam.stimType)];
+expParam.curSess       = [expParam.subject expParam.run];
 expParam.numTrial      = 40; %Experimental trials = 40
 expParam.curTrial      = [];
 expParam.perCatch      = 0.25;
@@ -37,7 +39,6 @@ expParam.gender        = 'male';
 expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
-expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
 
 dirs = dfDirs(expParam.project);
 
