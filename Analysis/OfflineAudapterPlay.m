@@ -159,7 +159,7 @@ close all
 
 [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
 
-drawAudResp_allTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
+drawAudResp_AllTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 
-drawInterTrialAudResp(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
+drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 end

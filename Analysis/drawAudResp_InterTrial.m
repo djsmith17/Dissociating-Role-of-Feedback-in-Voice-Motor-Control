@@ -1,4 +1,4 @@
-function drawInterTrialAudResp(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curSess, curRec, plotFolder)
+function drawAudResp_InterTrial(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curSess, curRec, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 InterTrialAudResp = figure('Color', [1 1 1]);
