@@ -8,7 +8,7 @@ baselinef0 = res.meanTrialf0b;
 numTrial   = res.trialCount;
 limits     = res.f0Limits;
 
-numColumn = numTrial/2;
+numRow = numTrial/5;
 
 plotpos = [100 100];
 plotdim = [1800 800];
@@ -20,7 +20,7 @@ curRec(strfind(curRec, '_')) = ' ';
 
 pertColor = [0.8 0.8 0.8];
 
-ha = tight_subplot(2, numColumn, [0.1 0.02],[0.05 0.12],[0.05 0.03]);
+ha = tight_subplot(numRow, 5, [0.1 0.02],[0.05 0.12],[0.05 0.03]);
 
 for ii = 1:numTrial      
     axes(ha(ii))

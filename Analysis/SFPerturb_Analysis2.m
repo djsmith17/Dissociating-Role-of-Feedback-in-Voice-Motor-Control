@@ -21,7 +21,7 @@ PltTgl.svInflaRespRoute  = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participant  = 'Pilot0'; %List of multiple participants.
-AVar.run          = 'Run5';
+AVar.run          = 'Run4';
 
 dirs = dfDirs(AVar.project);
 
