@@ -1,4 +1,4 @@
-function SFPerturb_Analysis2()
+function dfRunSubjAnalysis()
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -36,7 +36,7 @@ end
 load(dirs.SavFileDir)
 
 [auAn, res] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
-% niAn = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
+niAn = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
 
 % drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
 drawInterTrialf0(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
