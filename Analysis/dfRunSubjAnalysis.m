@@ -33,6 +33,7 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
+fprintf('Loading Files\n')
 load(dirs.SavFileDir)
 
 [auAn, res] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
