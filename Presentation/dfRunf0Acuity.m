@@ -14,14 +14,14 @@ else
 end
 
 acuVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-acuVar.participant = participant;
+acuVar.participant  = participant;
 acuVar.run          = 'Run1';
 
 %dfDirs is a separate function that regulates my dirs and paths. 
 %dirs is a structure with my relevant paths for data files. 
 dirs = dfDirs(acuVar.project);
 dirs.RecFileDir = fullfile(dirs.RecData, participant);
-dirs.SavFileDir = fullfile(dirs.RecData, participant, 'Run3', [participant 'Run3.mat']);
+dirs.SavFileDir = fullfile(dirs.RecData, 'Pilot0', 'Run3', ['Pilot0' 'Run3DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir);
