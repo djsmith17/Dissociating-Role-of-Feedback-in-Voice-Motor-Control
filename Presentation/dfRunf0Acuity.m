@@ -32,7 +32,7 @@ dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity' acuVar.run 
 load(dirs.SavFileDir);
 thisData  = DRF.rawData(8);      % Take the 8th trial. It will be a control trial
 speech    = thisData.signalIn;   % Grab the microphone channel.
-baseToken = speech(16000:47999); % 
+baseToken = speech(16000:47999); % 2s long sample
 
 tokens = generateSpeechTokens(dirs, baseToken);
 
@@ -198,6 +198,8 @@ end
 
 function tokens = generateSpeechTokens(dirs, baseToken)
 tokens = [];
+
+
 
 
 end
