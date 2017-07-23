@@ -6,6 +6,9 @@ function modifiedToken = dfGenerateOfflineTokens(baseToken, dirs, gender, level)
 %Paradigm Configurations
 expParam.baseToken          = baseToken;
 expParam.gender             = gender;
+expParam.trialLen           = 2; %seconds
+expParam.numTrial           = 1;
+expParam.per                = 1;
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
@@ -38,7 +41,8 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 
 % [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... 
 
-% expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
+expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.per); %numTrials, percentCatch
+expParam.trigs = [0 expParam.trialLen];
 
 % [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
@@ -65,7 +69,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.
 %     expParam.curTrial   = ['Trial' num2str(ii)];
 %     expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
-audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
+audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType, expParam.trigs(:,:,1), expParam.stimType);
 
 %Set the OST and PCF functions
 Audapter('ost', expParam.ostFN, 0);

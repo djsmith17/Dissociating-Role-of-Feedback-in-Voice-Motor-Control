@@ -13,7 +13,7 @@ function trialType = dfSetTrialOrder(numTrial, per)
 %per:      The percent (in decimal) of total trials that are catch trials.
 
 %trialType: A vector of length trialType of 0s and 1s representing the
-%order of control and catch trials. 
+%           order of control and catch trials.
 
 setSize = 1/per;
 options = setSize - 3 ; %Excluding first and last pos in the set and pos 2. 
