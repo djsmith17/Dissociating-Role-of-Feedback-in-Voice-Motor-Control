@@ -4,6 +4,8 @@ function modifiedToken = dfGenerateOfflineTokens(baseToken, dirs, gender, level)
 %testing.
 
 %Paradigm Configurations
+expParam.baseToken          = baseToken;
+expParam.gender             = gender;
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
@@ -15,7 +17,7 @@ Audapter('deviceName', expParam.audioInterfaceName);
 Audapter('setParam', 'downFact', expParam.downFact, 0);
 Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
 Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
-p = getAudapterDefaultParams(gender);
+p = getAudapterDefaultParams(expParam.gender);
 
 % %Set up Parameters to control NIDAQ and Perturbatron
 % s = initNIDAQ(expParam.trialLen, 'Dev2');
@@ -70,16 +72,16 @@ Audapter('ost', expParam.ostFN, 0);
 Audapter('pcf', expParam.pcfFN, 0);
 
 %Resample at 48000Hz
-Mraw_reSamp = resample(Mraw, data.params.sr * data.params.downFact, fs);
+expParam.baseToken_reSamp = resample(expParam.baseToken, data.params.sr * data.params.downFact, fs);
 %Split the signal into frames
-Mraw_frames = makecell(Mraw_reSamp, data.params.frameLen * data.params.downFact);
+expParam.baseToken_frames = makecell(expParam.baseToken_reSamp, data.params.frameLen * data.params.downFact);
 
 fprintf('Running Trial %d\n', ii)
 AudapterIO('init', p);
 Audapter('reset');
 
-for n = 1:length(Mraw_frames)
-    Audapter('runFrame', Mraw_frames{n});
+for n = 1:length(expParam.baseToken_frames)
+    Audapter('runFrame', expParam.baseToken_frames{n});
 end
 
 % NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
@@ -87,9 +89,19 @@ end
 
 % [dataDAQ, time] = s.startForeground;
 
-data = dfSaveRawData(expParam, dirs);
+try
+    data = AudapterIO('getData');
+    modifiedToken = data.signalOut;
+catch
+    sprintf('\nAudapter decided not to show up today')
+    data = [];
+    modifiedToken = [];
+    return
+end
+
+% data = dfSaveRawData(expParam, dirs);
 % DAQin = cat(3, DAQin, dataDAQ);
-rawData = cat(1, rawData, data);
+% rawData = cat(1, rawData, data);
 
 % if expParam.bPlay; soundsc(data_off.signalIn, data_off.expParam.sRateAnal); end
 
