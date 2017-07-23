@@ -7,7 +7,7 @@ if isempty(varargin)
 else
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 %Experiment Configurations

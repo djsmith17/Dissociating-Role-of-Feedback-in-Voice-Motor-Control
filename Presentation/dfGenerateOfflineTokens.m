@@ -9,11 +9,17 @@ expParam.gender             = gender;
 expParam.trialLen           = 2; %seconds
 expParam.numTrial           = 1;
 expParam.per                = 1;
+
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 expParam.frameLen           = 96;  % Before downsampling
 expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
+
+%Resample at 48000Hz
+expParam.baseToken_reSamp = resample(expParam.baseToken, 48000, 16000);
+%Split the signal into frames
+expParam.baseToken_frames = makecell(expParam.baseToken_reSamp, expParam.frameLen);
 
 %Set up Audapter
 Audapter('deviceName', expParam.audioInterfaceName);
@@ -69,16 +75,11 @@ expParam.trigs = [0 expParam.trialLen];
 %     expParam.curTrial   = ['Trial' num2str(ii)];
 %     expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
-audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType, expParam.trigs(:,:,1), expParam.stimType);
+audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType, expParam.trigs, expParam.stimType);
 
 %Set the OST and PCF functions
 Audapter('ost', expParam.ostFN, 0);
 Audapter('pcf', expParam.pcfFN, 0);
-
-%Resample at 48000Hz
-expParam.baseToken_reSamp = resample(expParam.baseToken, data.params.sr * data.params.downFact, fs);
-%Split the signal into frames
-expParam.baseToken_frames = makecell(expParam.baseToken_reSamp, data.params.frameLen * data.params.downFact);
 
 fprintf('Running Trial %d\n', ii)
 AudapterIO('init', p);
