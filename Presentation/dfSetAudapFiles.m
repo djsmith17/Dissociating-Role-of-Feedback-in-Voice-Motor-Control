@@ -39,7 +39,7 @@ function audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, Infla
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.stimType  = stimType;
 audStimP.AudFs     = 48000;     % Hardset
-audStimP.lenTrialT = trialLen;                                  %Trial Length (Seconds) %Hardset
+audStimP.lenTrialT = trialLen;                                  %Trial Length (Seconds)
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs;         %Trial Length (Points)
 audStimP.time      = (0:1:audStimP.lenTrialP-1)/audStimP.AudFs; %Projected recorded time course (Points)
 
@@ -85,7 +85,7 @@ end
 audStimP.rampFin  = audStimP.ramp(end);
 audStimP.rampStps = length(audStimP.ramp);
 
-audStimP.rampLenT = audStimP.rampStps*audStimP.tStep;       %How long is the ramp (Seconds)
+audStimP.rampLenT = audStimP.rampStps*audStimP.tStep;        %How long is the ramp (Seconds)
 audStimP.rampLenP = round(audStimP.rampLenT*audStimP.AudFs); %How long is the ramp (Points) 
 
 audStimP.rampDNsp = round(audStimP.StPoint + audStimP.rampLenP); %Point when ramp down ends (starts to bottom out)

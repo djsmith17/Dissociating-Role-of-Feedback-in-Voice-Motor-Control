@@ -6,9 +6,8 @@ function modifiedToken = dfGenerateOfflineTokens(baseToken, dirs, gender, level)
 %Paradigm Configurations
 expParam.baseToken          = baseToken;
 expParam.gender             = gender;
+expParam.level              = level; %In semitones
 expParam.trialLen           = 2; %seconds
-expParam.numTrial           = 1;
-expParam.per                = 1;
 
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
@@ -27,32 +26,19 @@ Audapter('setParam', 'downFact', expParam.downFact, 0);
 Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
 Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.gender);
+p.bPitchShift = 1;
 
 %Set up OST and PCF Files
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-% %Should return variables of InflaRespRoute and tStep. 
-% %Recorded from previous experiments
-% dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
-% try
-%     load(dirs.InflaRespFile);
-% catch me
-%     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
-% end
-
-expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.per); %numTrials, percentCatch
-expParam.trigs = [0 expParam.trialLen];
-
-% [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
-
-audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType, expParam.trigs, expParam.trialLen, expParam.stimType, level, tStep);
+setAudapterFilesForTokens(expParam.ostFN, expParam.pcfFN, expParam.trialLen, expParam.level)
 
 %Set the OST and PCF functions
 Audapter('ost', expParam.ostFN, 0);
 Audapter('pcf', expParam.pcfFN, 0);
 
-fprintf('Running Trial %d\n', ii)
+% fprintf('Running Trial %d\n', ii)
 AudapterIO('init', p);
 Audapter('reset');
 
@@ -69,23 +55,59 @@ catch
     modifiedToken = [];
     return
 end
+end
 
-% data = dfSaveRawData(expParam, dirs);
-% DAQin = cat(3, DAQin, dataDAQ);
-% rawData = cat(1, rawData, data);
+function setAudapterFilesForTokens(ost, pcf, trialLen, level)
 
-% if expParam.bPlay; soundsc(data_off.signalIn, data_off.expParam.sRateAnal); end
+OST_tline = writeOSTportions(trialLen);
+PCF_tline = writePCFportions(level);
 
-% pause(expParam.resPause)
-% end
+svPSRLevels(ost, OST_tline);
+svPSRLevels(pcf, PCF_tline);
+end
 
-% OA.dirs        = dirs;
-% OA.expParam    = expParam;
-% OA.p           = p;
-% OA.audStimP    = audStimP;
-% OA.DAQin       = DAQin;
-% OA.rawData     = rawData;      
-% 
-% dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject dirs.saveFileSuffix '.mat']);
-% save(dirs.RecFileDir, 'OA')
+function OST_tline = writeOSTportions(trialLen)
+%The Online Status Tracking file regulates the timing of when actions or
+%changes to the speech occur. The steps between timed actions followed
+%rules outlined in the Audapter Manuel. This has been specifically
+%organized for a simple full recording perturbation.
+
+OST_tline{1} = '# Online status tracking (OST) configuration file';
+OST_tline{2} = 'rmsSlopeWin = 0.030000';
+OST_tline{3} = ' ';
+OST_tline{4} = '# Main section: Heuristic rules for tracking';
+OST_tline{5} = 'n = 3';
+OST_tline{6} = '0 INTENSITY_RISE_HOLD 0.01 0.05 {} # Detect voicing onset';
+OST_tline{7} = ['2 ELAPSED_TIME ' num2str(trialLen) ' NaN {} #The amount of time pre-perturbation']; %Random start between 1.7 and 2.1s
+OST_tline{8} = '3 OST_END NaN NaN {} #End the dang thing';
+end
+
+function PCF_tline = writePCFportions(level)
+%The Pertrubation Configuration file defines the levels for acoustic 
+%variables at each action step defined in the OST. This have been
+%specifically organized for customized Pitch-Shift Reflex experiments. 
+%The PCF expects f0 in units of semitones. Semitones is expected as input.
+
+%Simple pert through whole recording 
+PCF_tline{1} = '# Section 1 (Time warping): tBegin, rate1, dur1, durHold, rate2';
+PCF_tline{2} = '0';
+PCF_tline{3} = ' ';
+PCF_tline{4} = '# Section 2: stat pitchShift(st) gainShift(dB) fmtPertAmp fmtPertPhi(rad)';
+PCF_tline{5} = '4';
+PCF_tline{6} = ['0, ' num2str(level) ', 0.0, 0, 0'];
+PCF_tline{7} = ['1, ' num2str(level) ', 0.0, 0, 0'];
+PCF_tline{8} = ['2, ' num2str(level) ', 0.0, 0, 0'];
+PCF_tline{9} = ['3, ' num2str(level) ', 0.0, 0, 0'];
+end
+
+function tline = svPSRLevels (file, tline)
+fid = fopen(file, 'w');
+for i = 1:length(tline)    
+    if i ~= length(tline)
+        fprintf(fid,'%s\n',tline{i});
+    else
+        fprintf(fid,'%s',tline{i});
+    end
+end 
+fclose(fid);
 end
