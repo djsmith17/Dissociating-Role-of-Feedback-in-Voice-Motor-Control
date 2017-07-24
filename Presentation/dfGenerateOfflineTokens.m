@@ -46,7 +46,7 @@ expParam.trigs = [0 expParam.trialLen];
 
 % [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType, expParam.trigs, expParam.stimType);
+audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType, expParam.trigs, expParam.stimType, InflaRespRoute, tStep);
 
 %Set the OST and PCF functions
 Audapter('ost', expParam.ostFN, 0);
