@@ -3,6 +3,14 @@ function OfflineAudapterPlay(varargin)
 %Pitch-shift to it in a similiar fashion that happens during online
 %testing.
 
+%This script calls the following (8) functions:
+%dfDirs.m
+%initNIDAQ.m
+%dfSetAudFB.m
+%dfTrialOrder.m
+%dfMakePertSignal.m
+%dfSetAudapFiles.m
+
 if isempty(varargin)
 else
 end
@@ -109,7 +117,7 @@ if collectNewData == 1
         expParam.curTrial   = ['Trial' num2str(ii)];
         expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
-        audStimP = dfSetAudapFiles(InflaRespRoute, tStep, expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType);
+        audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType, InflaRespRoute, tStep);
 
         %Set the OST and PCF functions
         Audapter('ost', expParam.ostFN, 0);
