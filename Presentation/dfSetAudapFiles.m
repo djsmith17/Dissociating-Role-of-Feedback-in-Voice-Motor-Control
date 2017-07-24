@@ -1,9 +1,27 @@
-function audStimP = dfSetAudapFiles(ost, pcf, trialType, trigs, stimType, InflaRespRoute, tStep)
+function audStimP = dfSetAudapFiles(ost, pcf, trialType, trigs, varargin)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment recorded in Audapter. The custom 
 %perturbation shape and magnitude is based off a previously recorded 
 %'route' the participant's pitch takes when they're larynx is physically 
 %perturbed.
+
+if isempty(varargin)
+    stimType       = 1;
+    InflaRespRoute = zeros(15,1);
+    tStep          = 0.02;
+elseif length(varargin) == 1
+    stimType       = varargin{1};
+    InflaRespRoute = zeros(15,1);
+    tStep          = 0.02;
+elseif length(varargin) == 2
+    stimType       = varargin{1};
+    InflaRespRoute = varargin{2};
+    tStep          = 0.02;
+else
+    stimType       = varargin{1};
+    InflaRespRoute = varargin{2};
+    tStep          = varargin{3};
+end 
 
 audStimP = organizeStimulus(trialType, stimType, trigs, InflaRespRoute, tStep);
 
