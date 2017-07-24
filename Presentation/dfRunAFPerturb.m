@@ -114,7 +114,7 @@ for ii = 1:expParam.numTrial
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from 
-    audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType, InflaRespRoute, tStep);
+    audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.trialLen, expParam.stimType, InflaRespRoute, tStep);
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);

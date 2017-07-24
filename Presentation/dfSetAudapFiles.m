@@ -1,4 +1,4 @@
-function audStimP = dfSetAudapFiles(ost, pcf, trialType, trigs, varargin)
+function audStimP = dfSetAudapFiles(ost, pcf, trialType, trigs, trialLen, varargin)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment recorded in Audapter. The custom 
 %perturbation shape and magnitude is based off a previously recorded 
@@ -23,7 +23,7 @@ else
     tStep          = varargin{3};
 end 
 
-audStimP = organizeStimulus(trialType, stimType, trigs, InflaRespRoute, tStep);
+audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, InflaRespRoute, tStep);
 
 OST_tline = writeOSTportions(audStimP);
 PCF_tline = writePCFportions(audStimP);
@@ -34,12 +34,12 @@ svPSRLevels(pcf, PCF_tline);
 % drawStimulus(audStimP)
 end
 
-function audStimP = organizeStimulus(trialType, stimType, trigs, InflaRespRoute, tStep)
+function audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, InflaRespRoute, tStep)
 
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.stimType  = stimType;
 audStimP.AudFs     = 48000;     % Hardset
-audStimP.lenTrialT = 4;                                         %Trial Length (Seconds) %Hardset
+audStimP.lenTrialT = trialLen;                                  %Trial Length (Seconds) %Hardset
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs;         %Trial Length (Points)
 audStimP.time      = (0:1:audStimP.lenTrialP-1)/audStimP.AudFs; %Projected recorded time course (Points)
 

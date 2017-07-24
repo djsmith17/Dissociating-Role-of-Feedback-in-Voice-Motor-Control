@@ -117,7 +117,7 @@ if collectNewData == 1
         expParam.curTrial   = ['Trial' num2str(ii)];
         expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
-        audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.stimType, InflaRespRoute, tStep);
+        audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.trialLen, expParam.stimType, InflaRespRoute, tStep);
 
         %Set the OST and PCF functions
         Audapter('ost', expParam.ostFN, 0);
