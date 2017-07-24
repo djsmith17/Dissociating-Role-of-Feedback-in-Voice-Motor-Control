@@ -34,7 +34,9 @@ thisData  = DRF.rawData(8);      % Take the 8th trial. It will be a control tria
 speech    = thisData.signalIn;   % Grab the microphone channel.
 baseToken = speech(16000:47999); % 2s long sample
 
-tokens = generateSpeechTokens(dirs, baseToken);
+
+levels = (1:10)*0.02;
+modTokens = generateSpeechTokens(dirs, baseToken, levels);
 
 % Standardized values
 fs           = 44100;
@@ -196,12 +198,13 @@ token_tape = token .* taper';
 token_proc = A*token_tape*10^(xp);
 end
 
-function tokens = generateSpeechTokens(dirs, baseToken)
-tokens = [];
+function modTokens = generateSpeechTokens(dirs, baseToken, levels)
+modTokens = [];
 
-
-
-
+for n = 1:length(levels)
+    modifiedToken = dfGenerateOfflineTokens(baseToken, dirs, 'male', levels(n));
+    modTokens = cat(1, modTokens, modifiedToken');
+end
 end
 
 function drawJNDResults(dirs, acuVar, f0AcuityResults, revValues, meanJNDVal)
