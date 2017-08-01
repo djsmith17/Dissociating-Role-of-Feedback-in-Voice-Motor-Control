@@ -22,20 +22,26 @@ acuVar.run          = 'Run1';
 dirs = dfDirs(acuVar.project);
 dirs.RecFileDir = fullfile(dirs.RecData, participant);
 dirs.SavFileDir = fullfile(dirs.RecData, 'Pilot0', 'Run3', ['Pilot0' 'Run3DRF.mat']);
+dirs.SavTokenDir =  fullfile(dirs.RecData, 'Pilot0', 'Run3', 'SpeechTokens');
+
+if exist(dirs.SavTokenDir, 'dir') == 0
+    mkdir(dirs.SavTokenDir);
+end
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir);
 end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [participant '_f0Acuity' acuVar.run '.mat']);
 
-%This should return DRF
+%This should return DRF. Make it a try/catch in the future
 load(dirs.SavFileDir);
-thisData  = DRF.rawData(8);      % Take the 8th trial. It will be a control trial
+thisData  = DRF.rawData(9);      % Take the 9th trial. It will be a control trial
+recFS     = DRF.expParam.sRateAnal;
 speech    = thisData.signalIn;   % Grab the microphone channel.
-baseToken = speech(16000:47999); % 2s long sample
+speechLen = 4;
+baseToken = speech(16000:47999); % Grab the middle 2s
 
-
-levels = (1:10)*0.02;
+levels = 0:0.5:2;
 modTokens = generateSpeechTokens(dirs, baseToken, levels);
 
 % Standardized values
@@ -203,6 +209,7 @@ modTokens = [];
 
 for n = 1:length(levels)
     modifiedToken = dfGenerateOfflineTokens(baseToken, dirs, 'male', levels(n));
+%     modifiedTokenReSamp = resample;
     modTokens = cat(1, modTokens, modifiedToken');
 end
 end
