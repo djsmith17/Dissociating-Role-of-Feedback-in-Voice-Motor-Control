@@ -1,4 +1,4 @@
-function audStimP = dfSetAudapFiles(ost, pcf, trialType, trigs, trialLen, varargin)
+function audStimP = dfSetAudapFiles(expParam, dirs, trial)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment recorded in Audapter. The custom 
 %perturbation shape and magnitude is based off a previously recorded 
@@ -47,7 +47,7 @@ tStep          = expParam.tStep;
 %     dirs           = varargin{4};
 % end 
 
-audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, InflaRespRoute, tStep);
+audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, stimName, InflaRespRoute, tStep);
 
 OST_tline = writeOSTportions(audStimP);
 PCF_tline = writePCFportions(audStimP);
@@ -58,10 +58,11 @@ svPSRLevels(pcf, PCF_tline);
 drawStimulus(audStimP, dirs)
 end
 
-function audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, InflaRespRoute, tStep)
+function audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, stimName, InflaRespRoute, tStep)
 
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.stimType  = stimType;
+audStimP.stimName  = stimName;
 audStimP.AudFs     = 48000;     % Hardset
 audStimP.lenTrialT = trialLen;                                  %Trial Length (Seconds)
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs;         %Trial Length (Points)
@@ -106,7 +107,7 @@ elseif stimType == 3 %0 - 100 linearly
     audStimP.tStepP   = round(audStimP.tStep*audStimP.AudFs); %Length of time-step (Points)           
 end
 
-audStimP.rampFin  = audStimP.ramp(end);
+audStimP.rampFin  = round(100*audStimP.ramp(end))/100;
 audStimP.rampStps = length(audStimP.ramp);
 
 audStimP.rampLenT = audStimP.rampStps*audStimP.tStep;        %How long is the ramp (Seconds)
@@ -298,10 +299,10 @@ plot(audStimP.time, audStimP.stim)
 
 xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold')
 ylabel('Fundamental Frequency Shift (st)', 'FontSize', 12, 'FontWeight', 'bold')
-title({'Pitch-Shift Reflex Experiment Stimulus'; types{audStimP.stimType}}, 'FontSize', 16, 'FontWeight', 'bold')
+title({'Pitch-Shift Reflex Experiment Stimulus'; audStimP.stimName}, 'FontSize', 16, 'FontWeight', 'bold')
 axis([0 4 -101 1]); box off;
 
-annotation('textbox',[0.75 0.75 0.40 0.1],...
+annotation('textbox',[0.70 0.75 0.40 0.1],...
            'String', {['Perturbation Magnitude: ' num2str(audStimP.rampFin) ' cents'],...
                     ['Fall/Rise Time: ' num2str(audStimP.routeLenT) ' seconds']},...
                     'LineStyle','none',...
