@@ -5,37 +5,47 @@ function audStimP = dfSetAudapFiles(ost, pcf, trialType, trigs, trialLen, vararg
 %'route' the participant's pitch takes when they're larynx is physically 
 %perturbed.
 
-%I'm sorry this is awkward...It is going to do the iteration within the
-%function. There were just too many variables to pass. I know its ugly.
-%Don't look at it!
+%I'm sorry this is awkward...It is going to do the iteration about 'trial'
+%within the function. There were just too many variables to pass. 
+%I know its ugly. Don't look at it!
 trialType = expParam.trialType(trial);
+trigs     = expParam.trigs(trial,:,1);
 
-if isempty(varargin)
-    stimType       = 1;
-    InflaRespRoute = zeros(15,1);
-    tStep          = 0.02;
-    dirs           = 0;%Nothing to save
-elseif length(varargin) == 1
-    stimType       = varargin{1};
-    InflaRespRoute = zeros(15,1);
-    tStep          = 0.02;
-    dirs           = 0;%Nothing to save
-elseif length(varargin) == 2
-    stimType       = varargin{1};
-    InflaRespRoute = varargin{2};
-    tStep          = 0.02;
-    dirs           = 0;%Nothing to save
-elseif length(varargin) == 3
-    stimType       = varargin{1};
-    InflaRespRoute = varargin{2};
-    tStep          = varargin{3};
-    dirs           = 0;%Nothing to save
-elseif length(varargin) == 3
-    stimType       = varargin{1};
-    InflaRespRoute = varargin{2};
-    tStep          = varargin{3};
-    dirs           = varargin{4};
-end 
+ost       = expParam.ostFN;
+pcf       = expParam.pcfFN;
+trialLen  = expParam.trialLen;
+stimType  = expParam.stimType;
+stimName  = expParam.stimName;
+
+InflaRespRoute = expParam.InflaRespRoute;
+tStep          = expParam.tStep;
+
+% if isempty(varargin)
+%     stimType       = 1;
+%     InflaRespRoute = zeros(15,1);
+%     tStep          = 0.02;
+%     dirs           = 0;%Nothing to save
+% elseif length(varargin) == 1
+%     stimType       = varargin{1};
+%     InflaRespRoute = zeros(15,1);
+%     tStep          = 0.02;
+%     dirs           = 0;%Nothing to save
+% elseif length(varargin) == 2
+%     stimType       = varargin{1};
+%     InflaRespRoute = varargin{2};
+%     tStep          = 0.02;
+%     dirs           = 0;%Nothing to save
+% elseif length(varargin) == 3
+%     stimType       = varargin{1};
+%     InflaRespRoute = varargin{2};
+%     tStep          = varargin{3};
+%     dirs           = 0;%Nothing to save
+% elseif length(varargin) == 3
+%     stimType       = varargin{1};
+%     InflaRespRoute = varargin{2};
+%     tStep          = varargin{3};
+%     dirs           = varargin{4};
+% end 
 
 audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, InflaRespRoute, tStep);
 
@@ -271,8 +281,6 @@ end
 
 function drawStimulus(audStimP, dirs)
 close all
-
-types = {'Somatosensory Feedback Task Trace', 'Sinusoid ramp with base matching SF Perturb response', '100 cent ramp evenly spaced'};
 
 pertAx  = [audStimP.StTime, audStimP.SpTime];
 pertAy  = [200 200];

@@ -87,6 +87,8 @@ if collectNewData == 1
     dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
     try
         load(dirs.InflaRespFile);
+        expParam.InflaRespRoute = InflaRespRoute;
+        expParam.tStep          = tStep;
     catch me
         fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
     end
