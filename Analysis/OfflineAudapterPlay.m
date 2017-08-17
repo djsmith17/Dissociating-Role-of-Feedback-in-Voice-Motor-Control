@@ -24,7 +24,7 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
 expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
 expParam.run           = 'Run2';
-expParam.stimType      = 2; %1 for stamped, %2 for sinusoid %3 for linear
+expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
 expParam.stimName      = stimulusNames{expParam.stimType};
 expParam.curRec        = ['Stimulus Type ' num2str(expParam.stimType)];
 expParam.curSess       = [expParam.subject ' ' expParam.run ' offline'];
@@ -121,7 +121,7 @@ if collectNewData == 1
         expParam.curTrial   = ['Trial' num2str(ii)];
         expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
-        audStimP = dfSetAudapFiles(expParam, dirs, ii);
+        audStimP = dfSetAudapFiles(expParam, dirs, ii, 1);
 
         %Set the OST and PCF functions
         Audapter('ost', expParam.ostFN, 0);

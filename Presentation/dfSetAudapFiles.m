@@ -1,4 +1,4 @@
-function audStimP = dfSetAudapFiles(expParam, dirs, trial)
+function audStimP = dfSetAudapFiles(expParam, dirs, trial, debug)
 %This function will take care of the ost and the pcf function for a custom
 %pitch-shift reflex experiment recorded in Audapter. The custom 
 %perturbation shape and magnitude is based off a previously recorded 
@@ -20,33 +20,6 @@ stimName  = expParam.stimName;
 InflaRespRoute = expParam.InflaRespRoute;
 tStep          = expParam.tStep;
 
-% if isempty(varargin)
-%     stimType       = 1;
-%     InflaRespRoute = zeros(15,1);
-%     tStep          = 0.02;
-%     dirs           = 0;%Nothing to save
-% elseif length(varargin) == 1
-%     stimType       = varargin{1};
-%     InflaRespRoute = zeros(15,1);
-%     tStep          = 0.02;
-%     dirs           = 0;%Nothing to save
-% elseif length(varargin) == 2
-%     stimType       = varargin{1};
-%     InflaRespRoute = varargin{2};
-%     tStep          = 0.02;
-%     dirs           = 0;%Nothing to save
-% elseif length(varargin) == 3
-%     stimType       = varargin{1};
-%     InflaRespRoute = varargin{2};
-%     tStep          = varargin{3};
-%     dirs           = 0;%Nothing to save
-% elseif length(varargin) == 3
-%     stimType       = varargin{1};
-%     InflaRespRoute = varargin{2};
-%     tStep          = varargin{3};
-%     dirs           = varargin{4};
-% end 
-
 audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, stimName, InflaRespRoute, tStep);
 
 OST_tline = writeOSTportions(audStimP);
@@ -55,7 +28,9 @@ PCF_tline = writePCFportions(audStimP);
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
 
-drawStimulus(audStimP, dirs)
+if debug
+    drawStimulus(audStimP, dirs)
+end
 end
 
 function audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, stimName, InflaRespRoute, tStep)
@@ -314,7 +289,7 @@ set(gca, 'FontSize', 16,...
          'FontWeight', 'bold');
      
      
-plTitle = ['PSR_Stim'  '.jpg'];     
+plTitle = ['PSRStim_' audStimP.stimName '.jpg'];     
 saveFileName = fullfile(dirs.SavResultsDir, plTitle);
 export_fig(saveFileName) 
 
