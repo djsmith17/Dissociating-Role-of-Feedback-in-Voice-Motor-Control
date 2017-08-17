@@ -5,22 +5,36 @@ function audStimP = dfSetAudapFiles(ost, pcf, trialType, trigs, trialLen, vararg
 %'route' the participant's pitch takes when they're larynx is physically 
 %perturbed.
 
+%I'm sorry this is awkward...It is going to do the iteration within the
+%function. There were just too many variables to pass. I know its ugly.
+%Don't look at it!
+trialType = expParam.trialType(trial);
+
 if isempty(varargin)
     stimType       = 1;
     InflaRespRoute = zeros(15,1);
     tStep          = 0.02;
+    dirs           = 0;%Nothing to save
 elseif length(varargin) == 1
     stimType       = varargin{1};
     InflaRespRoute = zeros(15,1);
     tStep          = 0.02;
+    dirs           = 0;%Nothing to save
 elseif length(varargin) == 2
     stimType       = varargin{1};
     InflaRespRoute = varargin{2};
     tStep          = 0.02;
-else
+    dirs           = 0;%Nothing to save
+elseif length(varargin) == 3
     stimType       = varargin{1};
     InflaRespRoute = varargin{2};
     tStep          = varargin{3};
+    dirs           = 0;%Nothing to save
+elseif length(varargin) == 3
+    stimType       = varargin{1};
+    InflaRespRoute = varargin{2};
+    tStep          = varargin{3};
+    dirs           = varargin{4};
 end 
 
 audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, InflaRespRoute, tStep);
@@ -31,7 +45,7 @@ PCF_tline = writePCFportions(audStimP);
 svPSRLevels(ost, OST_tline);
 svPSRLevels(pcf, PCF_tline);
 
-% drawStimulus(audStimP)
+drawStimulus(audStimP, dirs)
 end
 
 function audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, InflaRespRoute, tStep)
@@ -255,23 +269,44 @@ fclose(fid);
 
 end
 
-function drawStimulus(audStimP)
+function drawStimulus(audStimP, dirs)
 close all
 
 types = {'Somatosensory Feedback Task Trace', 'Sinusoid ramp with base matching SF Perturb response', '100 cent ramp evenly spaced'};
 
+pertAx  = [audStimP.StTime, audStimP.SpTime];
+pertAy  = [200 200];
+
 plotpos = [200 100];
 plotdim = [1300 500];
+pertColor = [0.8 0.8 0.8];
 AudStim = figure('Color', [1 1 1]);
 set(AudStim, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
+pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+hold on
+
 plot(audStimP.time, audStimP.stim)
+
 xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold')
 ylabel('Fundamental Frequency Shift (st)', 'FontSize', 12, 'FontWeight', 'bold')
 title({'Pitch-Shift Reflex Experiment Stimulus'; types{audStimP.stimType}}, 'FontSize', 16, 'FontWeight', 'bold')
 axis([0 4 -101 1]); box off;
 
+annotation('textbox',[0.75 0.75 0.40 0.1],...
+           'String', {['Perturbation Magnitude: ' num2str(audStimP.rampFin) ' cents'],...
+                    ['Fall/Rise Time: ' num2str(audStimP.routeLenT) ' seconds']},...
+                    'LineStyle','none',...
+                    'FontWeight','bold',...
+                    'FontSize',10,...
+                    'FontName','Arial');
+
 set(gca, 'FontSize', 16,...
          'FontWeight', 'bold');
+     
+     
+plTitle = ['PSR_Stim'  '.jpg'];     
+saveFileName = fullfile(dirs.SavResultsDir, plTitle);
+export_fig(saveFileName) 
 
 end
