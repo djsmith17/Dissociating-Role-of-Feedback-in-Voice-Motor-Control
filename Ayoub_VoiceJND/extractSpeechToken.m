@@ -1,3 +1,5 @@
+function baselineToken = extractSpeechToken(dirs)
+
 %%making voice file for JND from prerecorded stimuli written by EHM
 %%07/01/2017
 %Edited 08/23/2017: Dante Smith
