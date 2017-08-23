@@ -3,35 +3,27 @@ function baselineToken = extractSpeechToken(dirs)
 %%making voice file for JND from prerecorded stimuli written by EHM
 %%07/01/2017
 %Edited 08/23/2017: Dante Smith
-clear all
-close all
-project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-dirs = dfDirs(project);
 dirs.SavFileDir = fullfile(dirs.RecData, 'Pilot0', 'Run3', ['Pilot0' 'Run3DRF.mat']);
 
 load(dirs.SavFileDir);
 thisData  = DRF.rawData(9);      % Take the 9th trial. It will be a control trial
 fs        = DRF.expParam.sRateAnal;
 Y_sample  = thisData.signalIn;   % Grab the microphone channel.
-
-% [Y_sample, fs] = audioread('TestVoice.wav');
   
 StimulusDur = .5; %this is the duration of the stimulus that will be played in the JND
 riseTime    = .05;
 fallTime    = .05;
 recDuration = length(Y_sample)/fs;
-Words       = {'aaa'};
+times       = linspace(0, recDuration, length(Y_sample));
+times       = times';
+
+Words       = {'eee'};
 keepaudio   = [];
-
-figure1 = figure('Color',[1 1 1],'Menubar','none');
-
-drawnow;
 Happy = 0;
    
 while (Happy == 0)
     plotH = figure;
-    times = linspace(0, recDuration, length(Y_sample));
-    times = times';
+
     plot(times, Y_sample, 'b');
     ylim([-1 1])
     % title(sprintf('total Duration is %f',Record_Time));
