@@ -59,9 +59,9 @@ switch num_trials
         UD.totalTrials = 60; %max number of trials if max trials/reversals not reached
 end
 
-expParam.subject = answer{1};
-expParam.run     = answer{2};
-% group =  answer{3};
+subjectID = answer{1};
+session = answer{2};
+group =  answer{3};
 Gender =  answer{4};
 project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 dirs = dfDirs(project);
@@ -71,10 +71,10 @@ dirs = dfDirs(project);
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
 
 % check if the foler exists (to avoid overwrite)
-if ~exist( dirs.RecFileDir , 'dir' )
-    mkdir( dirs.RecFileDir ) ;
-    while exist(dirs.RecFileDir,'dir') ~= 7
-            mkdir(dirs.RecFileDir);
+if ~exist( baseFilename , 'dir' )
+    mkdir( baseFilename ) ;
+    while exist(baseFilename,'dir') ~= 7
+            mkdir(baseFilename);
     end
 else
     overwrite = inputdlg({'File already exists! Do you want to overwrite?'},'Overwrite',1,{'no'});
@@ -343,11 +343,11 @@ UD .audioSignal = audioSignal;
 %CES - To disable saving of reactiontimes (we are doing this to avoid confusion since the investigator is keying in the selection at present)
 UD.reactionTime = ones(size(ReactionTime))*10000;
 
-FileName= [dirs.RecFileDir 'responseResults.mat'];
-dataFileName = [dirs.RecFileDir 'dataFile.mat'];
+FileName= [baseFilename 'responseResults.mat'];
+dataFileName = [baseFilename 'dataFile.mat'];
 save(FileName,'UD');
 
-CueMixSave = [dirs.RecFileDir 'CueMixSettings.mat']; %makes a new .mat file to save 
+CueMixSave = [baseFilename 'CueMixSettings.mat']; %makes a new .mat file to save 
 CueMixSettings.cuemixMic = cuemixMic; %defines saving of user input mic trim
 CueMixSettings.cuemixMainout = cuemixMainout; %defines saving of user input main out value
 save(CueMixSave,'CueMixSettings');%saves data
