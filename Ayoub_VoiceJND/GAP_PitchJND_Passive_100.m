@@ -6,14 +6,14 @@ rng('shuffle');
 %% define experimental parameters
 %edited 10/20/2016 DA
 
-calib_check = input('Has this microphone position been calibrated? (0 = no,1 = yes):');
+calib_check = input('Has this microphone position been calibrated? (0 = no, 1 = yes):');
 
 if calib_check ==0
     errordlg('Run the IntensityCalibration script');
     return
 end
 
-cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no,1 = yes):');
+cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no, 1 = yes):');
 if cue_check == 0
     errordlg('Check CueMix setting!');
     return
