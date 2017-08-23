@@ -3,7 +3,16 @@
 %Edited 08/23/2017: Dante Smith
 clear all
 close all
-[Y_sample, fs] = audioread('TestVoice.wav');
+project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+dirs = dfDirs(project);
+dirs.SavFileDir = fullfile(dirs.RecData, 'Pilot0', 'Run3', ['Pilot0' 'Run3DRF.mat']);
+
+load(dirs.SavFileDir);
+thisData  = DRF.rawData(9);      % Take the 9th trial. It will be a control trial
+fs        = DRF.expParam.sRateAnal;
+Y_sample  = thisData.signalIn;   % Grab the microphone channel.
+
+% [Y_sample, fs] = audioread('TestVoice.wav');
   
 StimulusDur = .5; %this is the duration of the stimulus that will be played in the JND
 riseTime    = .05;
