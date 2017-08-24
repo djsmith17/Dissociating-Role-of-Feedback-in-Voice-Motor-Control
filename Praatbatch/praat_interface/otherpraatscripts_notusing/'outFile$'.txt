@@ -1,0 +1,1 @@
+sound name,segment,start,end,duration,overall_dB,overall_f0,25_cursor,25_dB,25_f0,25_F1,25_F2,25_F3,50_cursor,50_dB,50_f0,50_F1,50_F2,50_F3,75_cursor,75_dB,75_f0,75_F1,75_F2,75_F3,
