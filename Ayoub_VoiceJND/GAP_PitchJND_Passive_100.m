@@ -193,6 +193,7 @@ end
 % % audioSignal = .5 * (audioSignal ./ (max(abs(audioSignal))));
 % audioSignal = .5 * (audioSignal ./ (rms(audioSignal)));
 
+audioSignal = extractSpeechToken(dirs);
 
 %% Setting up the up-down paradigm (modified based on Palam)
 
