@@ -6,14 +6,14 @@ rng('shuffle');
 %% define experimental parameters
 %edited 10/20/2016 DA
 
-calib_check = input('Has this microphone position been calibrated? (0 = no,1 = yes):');
+calib_check = input('Has this microphone position been calibrated? (0 = no, 1 = yes):');
 
 if calib_check ==0
     errordlg('Run the IntensityCalibration script');
     return
 end
 
-cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no,1 = yes):');
+cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no, 1 = yes):');
 if cue_check == 0
     errordlg('Check CueMix setting!');
     return
@@ -59,18 +59,22 @@ switch num_trials
         UD.totalTrials = 60; %max number of trials if max trials/reversals not reached
 end
 
-subjectID = answer{1};
-session = answer{2};
-group =  answer{3};
+expParam.subject = answer{1};
+expParam.run     = answer{2};
+% group =  answer{3};
 Gender =  answer{4};
+project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+dirs = dfDirs(project);
+
 % create the folder path to save the data files
-baseFilename = ['data\' group, '\', subjectID, '\', session, '\',num_trials,'\'];
+% baseFilename = ['data\' group, '\', subjectID, '\', session, '\',num_trials,'\'];
+dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
 
 % check if the foler exists (to avoid overwrite)
-if ~exist( baseFilename , 'dir' )
-    mkdir( baseFilename ) ;
-    while exist(baseFilename,'dir') ~= 7
-            mkdir(baseFilename);
+if ~exist( dirs.RecFileDir , 'dir' )
+    mkdir( dirs.RecFileDir ) ;
+    while exist(dirs.RecFileDir,'dir') ~= 7
+            mkdir(dirs.RecFileDir);
     end
 else
     overwrite = inputdlg({'File already exists! Do you want to overwrite?'},'Overwrite',1,{'no'});
@@ -80,115 +84,116 @@ else
 end
 
 %% recording audio samples
-Words = {'aaa'};
-recDuration = 4; %this is the duration of the audio recording of /a/ production
-StimulusDur = .5; %this is the duration of the stimulus that will be played in the JND
-riseTime = .05; %cosine square (ramp) to avoid click
-fallTime = .05; %cosine square (ramp) to avoid click
-initializeAudapter (Gender); %this does not change anything for pitch but it does for formant
+% Words = {'aaa'};
+% recDuration = 4; %this is the duration of the audio recording of /a/ production
+% StimulusDur = .5; %this is the duration of the stimulus that will be played in the JND
+% riseTime = .05; %cosine square (ramp) to avoid click
+% fallTime = .05; %cosine square (ramp) to avoid click
+% initializeAudapter (Gender); %this does not change anything for pitch but it does for formant
+% 
+% Audapter('reset');
+% Audapter('start');
+% pause(1);
+% Audapter('stop');
+% 
+% figure1 = figure('Color',[0 0 0],'Menubar','none');
+% textBox1 = annotation(figure1,'textbox',...
+%     [0.25 0.65 0.5 0.25],...
+%     'Color',[1 1 1],...
+%     'String','READY',...
+%     'LineStyle','none',...
+%     'HorizontalAlignment','center',...
+%     'VerticalAlignment','middle',...
+%     'FontSize',130,...
+%     'FontName','Arial',...
+%     'FitBoxToText','off',...
+%     'EdgeColor','none',...
+%     'BackgroundColor',[0 0 0],...
+%     'Visible','on');
+% drawnow;
+% Happy =0;
+% pause(5); %to give time to move window to other screen
+% % Present stimuli and collect the results
+% while (Happy ==0)
+%     clf(figure1);
+%     textBox1 = annotation(figure1,'textbox',...
+%         [0.25 0.65 0.5 0.25],...
+%         'Color',[1 1 1],...
+%         'String','READY',...
+%         'LineStyle','none',...
+%         'HorizontalAlignment','center',...
+%         'VerticalAlignment','middle',...
+%         'FontSize',130,...
+%         'FontName','Arial',...
+%         'FitBoxToText','off',...
+%         'EdgeColor','none',...
+%         'BackgroundColor',[0 0 0],...
+%         'Visible','on');
+%     set(textBox1,'String',Words{1})
+%     Audapter('reset');
+%     Audapter('start');
+%     pause(recDuration);
+%     Audapter('stop');
+%     clf(figure1);
+%     % save the data
+%     data1 = AudapterIO('getData');
+%     plotH = figure;
+%     Y_sample = data1.signalIn;
+%     Fs = 16000;
+%     times = linspace(0,recDuration,length(data1.signalIn));
+%     plot(times,Y_sample,'b');
+%     ylim([-1 1])
+%     title(sprintf('total Duration is %f',recDuration));
+%     Happy = input('Are you happy with the signal (0,1):');
+%     if Happy == 1
+%         
+%         Select = 0;
+%         while Select ==0
+%             [x,y] = ginput(4);
+%             ix1 = round(x(2)*16000);
+%             ix2 = round(x(4)*16000);
+%             t1 = ix1/16000;
+%             t2 = ix2/16000;
+%             
+%             if x(4)-x(2) > StimulusDur  %* Fs
+%                 hold on;
+%                 plot(linspace(t1,t2,length(Y_sample(ix1:ix2))),Y_sample(ix1:ix2),'r');
+%                 Good = input('Is the selected signal good enough? (0,1):');
+%                 if Good  ==1
+%                     audioSignal = Y_sample(ix1:ix2-1+StimulusDur*Fs);
+%                     %                     Window = [sin(2*pi*linspace(0,riseTime,round(riseTime*Fs))*((4*riseTime)^-1)).^2  ones(1,round((StimulusDur - riseTime - fallTime) * Fs)) cos(2*pi*linspace(0,fallTime,round(fallTime*Fs))*((4*fallTime)^-1)).^2];
+%                     audioSignal = audioSignal(:);%.*Window(:);
+%                     Select = 1;
+%                     close (plotH);
+%                     %                     plot(audioSignal)
+%                 else
+%                     Good = 0;
+%                     Select = 0;
+%                     plot(times,Y_sample,'b');
+%                     ylim([-1 1])
+%                     title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
+%                 end
+%             else
+%                 plot(times,Y_sample,'b');
+%                 ylim([-1 1])
+%                 title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
+%                 hhError = errordlg('the selected signal is too short!');
+%                 %                 pause(2)
+%                 %                 close(hhError)
+%             end
+%         end
+%     else
+%         close (plotH)
+%     end
+% end
+% close all;
+% % Normfact = sqrt(mean(audioSignal.^2));%ADDED BY CARA TO TRY TO NORMALIZE SOUND AMPLITUDES!
+% % audioSignal = .5* (audioSignal./Normfact);
+% 
+% % audioSignal = .5 * (audioSignal ./ (max(abs(audioSignal))));
+% audioSignal = .5 * (audioSignal ./ (rms(audioSignal)));
 
-Audapter('reset');
-Audapter('start');
-pause(1);
-Audapter('stop');
-
-figure1 = figure('Color',[0 0 0],'Menubar','none');
-textBox1 = annotation(figure1,'textbox',...
-    [0.25 0.65 0.5 0.25],...
-    'Color',[1 1 1],...
-    'String','READY',...
-    'LineStyle','none',...
-    'HorizontalAlignment','center',...
-    'VerticalAlignment','middle',...
-    'FontSize',130,...
-    'FontName','Arial',...
-    'FitBoxToText','off',...
-    'EdgeColor','none',...
-    'BackgroundColor',[0 0 0],...
-    'Visible','on');
-drawnow;
-Happy =0;
-pause(5); %to give time to move window to other screen
-% Present stimuli and collect the results
-while (Happy ==0)
-    clf(figure1);
-    textBox1 = annotation(figure1,'textbox',...
-        [0.25 0.65 0.5 0.25],...
-        'Color',[1 1 1],...
-        'String','READY',...
-        'LineStyle','none',...
-        'HorizontalAlignment','center',...
-        'VerticalAlignment','middle',...
-        'FontSize',130,...
-        'FontName','Arial',...
-        'FitBoxToText','off',...
-        'EdgeColor','none',...
-        'BackgroundColor',[0 0 0],...
-        'Visible','on');
-    set(textBox1,'String',Words{1})
-    Audapter('reset');
-    Audapter('start');
-    pause(recDuration);
-    Audapter('stop');
-    clf(figure1);
-    % save the data
-    data1 = AudapterIO('getData');
-    plotH = figure;
-    Y_sample = data1.signalIn;
-    Fs = 16000;
-    times = linspace(0,recDuration,length(data1.signalIn));
-    plot(times,Y_sample,'b');
-    ylim([-1 1])
-    title(sprintf('total Duration is %f',recDuration));
-    Happy = input('Are you happy with the signal (0,1):');
-    if Happy == 1
-        
-        Select = 0;
-        while Select ==0
-            [x,y] = ginput(4);
-            ix1 = round(x(2)*16000);
-            ix2 = round(x(4)*16000);
-            t1 = ix1/16000;
-            t2 = ix2/16000;
-            
-            if x(4)-x(2) > StimulusDur  %* Fs
-                hold on;
-                plot(linspace(t1,t2,length(Y_sample(ix1:ix2))),Y_sample(ix1:ix2),'r');
-                Good = input('Is the selected signal good enough? (0,1):');
-                if Good  ==1
-                    audioSignal = Y_sample(ix1:ix2-1+StimulusDur*Fs);
-                    %                     Window = [sin(2*pi*linspace(0,riseTime,round(riseTime*Fs))*((4*riseTime)^-1)).^2  ones(1,round((StimulusDur - riseTime - fallTime) * Fs)) cos(2*pi*linspace(0,fallTime,round(fallTime*Fs))*((4*fallTime)^-1)).^2];
-                    audioSignal = audioSignal(:);%.*Window(:);
-                    Select = 1;
-                    close (plotH);
-                    %                     plot(audioSignal)
-                else
-                    Good = 0;
-                    Select = 0;
-                    plot(times,Y_sample,'b');
-                    ylim([-1 1])
-                    title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
-                end
-            else
-                plot(times,Y_sample,'b');
-                ylim([-1 1])
-                title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
-                hhError = errordlg('the selected signal is too short!');
-                %                 pause(2)
-                %                 close(hhError)
-            end
-        end
-    else
-        close (plotH)
-    end
-end
-close all;
-% Normfact = sqrt(mean(audioSignal.^2));%ADDED BY CARA TO TRY TO NORMALIZE SOUND AMPLITUDES!
-% audioSignal = .5* (audioSignal./Normfact);
-
-% audioSignal = .5 * (audioSignal ./ (max(abs(audioSignal))));
-audioSignal = .5 * (audioSignal ./ (rms(audioSignal)));
-
+audioSignal = extractSpeechToken(dirs);
 
 %% Setting up the up-down paradigm (modified based on Palam)
 
@@ -339,11 +344,11 @@ UD .audioSignal = audioSignal;
 %CES - To disable saving of reactiontimes (we are doing this to avoid confusion since the investigator is keying in the selection at present)
 UD.reactionTime = ones(size(ReactionTime))*10000;
 
-FileName= [baseFilename 'responseResults.mat'];
-dataFileName = [baseFilename 'dataFile.mat'];
+FileName= [dirs.RecFileDir 'responseResults.mat'];
+dataFileName = [dirs.RecFileDir 'dataFile.mat'];
 save(FileName,'UD');
 
-CueMixSave = [baseFilename 'CueMixSettings.mat']; %makes a new .mat file to save 
+CueMixSave = [dirs.RecFileDir 'CueMixSettings.mat']; %makes a new .mat file to save 
 CueMixSettings.cuemixMic = cuemixMic; %defines saving of user input mic trim
 CueMixSettings.cuemixMainout = cuemixMainout; %defines saving of user input main out value
 save(CueMixSave,'CueMixSettings');%saves data
