@@ -21,7 +21,7 @@ newmic = [micFolder, '\']; %add a slash to the mic folder
         error( 'file ''get_f0_EET.praat'' not found' )
     end
     
-        %% uncomment to run praat script
+%% uncomment to run praat script
     %Build DOS calls to control praat
     call2 = sprintf( '%s praat "execute %s %s %s %s %f %f %f %f %f"' , ...
         fullfile( pwd , sp_fn ) , ... %location of sendpraat.exe
