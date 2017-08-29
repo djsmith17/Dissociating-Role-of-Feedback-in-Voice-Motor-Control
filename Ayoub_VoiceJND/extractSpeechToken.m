@@ -29,15 +29,15 @@ window(tokenLP-fallTimeP + 1:tokenLP) = cos(2*pi*fallQperiod*linspace(0, fallTim
 if auto == 1
     stT = 2.0;
     ix1 = fs*stT;
-    ix2 = ix1 + tokenLP;
+    ix2 = ix1 + tokenLP - 1;
 else
     figure
     plot(time, sample, 'b'); ylim([-1 1])
     
     [x, y] = ginput(1);
     ix1 = round(x(1)*fs); %Choose a single point on the line with roughly .5s following it
-    ix2 = ix1 + tokenLP;
+    ix2 = ix1 + tokenLP - 1;
 end
 
 baselineToken  = sample(ix1:ix2);
-baselineTokenW = baselineToken.*window;                    
+baselineTokenW = baselineToken.*window';                    
