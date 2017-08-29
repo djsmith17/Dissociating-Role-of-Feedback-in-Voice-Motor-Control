@@ -34,8 +34,6 @@ defaultanswer={'00'}; %input box for cuemix trim setting
 answer=inputdlg(prompt,name,numlines,defaultanswer);
 cuemixMainout = str2num(answer{1});%main out setting 
 
-
-
 prompt={'Subject ID:',...
     'Session ID:',...
     'Group:',...
@@ -84,115 +82,6 @@ else
 end
 
 %% recording audio samples
-% Words = {'aaa'};
-% recDuration = 4; %this is the duration of the audio recording of /a/ production
-% StimulusDur = .5; %this is the duration of the stimulus that will be played in the JND
-% riseTime = .05; %cosine square (ramp) to avoid click
-% fallTime = .05; %cosine square (ramp) to avoid click
-% initializeAudapter (Gender); %this does not change anything for pitch but it does for formant
-% 
-% Audapter('reset');
-% Audapter('start');
-% pause(1);
-% Audapter('stop');
-% 
-% figure1 = figure('Color',[0 0 0],'Menubar','none');
-% textBox1 = annotation(figure1,'textbox',...
-%     [0.25 0.65 0.5 0.25],...
-%     'Color',[1 1 1],...
-%     'String','READY',...
-%     'LineStyle','none',...
-%     'HorizontalAlignment','center',...
-%     'VerticalAlignment','middle',...
-%     'FontSize',130,...
-%     'FontName','Arial',...
-%     'FitBoxToText','off',...
-%     'EdgeColor','none',...
-%     'BackgroundColor',[0 0 0],...
-%     'Visible','on');
-% drawnow;
-% Happy =0;
-% pause(5); %to give time to move window to other screen
-% % Present stimuli and collect the results
-% while (Happy ==0)
-%     clf(figure1);
-%     textBox1 = annotation(figure1,'textbox',...
-%         [0.25 0.65 0.5 0.25],...
-%         'Color',[1 1 1],...
-%         'String','READY',...
-%         'LineStyle','none',...
-%         'HorizontalAlignment','center',...
-%         'VerticalAlignment','middle',...
-%         'FontSize',130,...
-%         'FontName','Arial',...
-%         'FitBoxToText','off',...
-%         'EdgeColor','none',...
-%         'BackgroundColor',[0 0 0],...
-%         'Visible','on');
-%     set(textBox1,'String',Words{1})
-%     Audapter('reset');
-%     Audapter('start');
-%     pause(recDuration);
-%     Audapter('stop');
-%     clf(figure1);
-%     % save the data
-%     data1 = AudapterIO('getData');
-%     plotH = figure;
-%     Y_sample = data1.signalIn;
-%     Fs = 16000;
-%     times = linspace(0,recDuration,length(data1.signalIn));
-%     plot(times,Y_sample,'b');
-%     ylim([-1 1])
-%     title(sprintf('total Duration is %f',recDuration));
-%     Happy = input('Are you happy with the signal (0,1):');
-%     if Happy == 1
-%         
-%         Select = 0;
-%         while Select ==0
-%             [x,y] = ginput(4);
-%             ix1 = round(x(2)*16000);
-%             ix2 = round(x(4)*16000);
-%             t1 = ix1/16000;
-%             t2 = ix2/16000;
-%             
-%             if x(4)-x(2) > StimulusDur  %* Fs
-%                 hold on;
-%                 plot(linspace(t1,t2,length(Y_sample(ix1:ix2))),Y_sample(ix1:ix2),'r');
-%                 Good = input('Is the selected signal good enough? (0,1):');
-%                 if Good  ==1
-%                     audioSignal = Y_sample(ix1:ix2-1+StimulusDur*Fs);
-%                     %                     Window = [sin(2*pi*linspace(0,riseTime,round(riseTime*Fs))*((4*riseTime)^-1)).^2  ones(1,round((StimulusDur - riseTime - fallTime) * Fs)) cos(2*pi*linspace(0,fallTime,round(fallTime*Fs))*((4*fallTime)^-1)).^2];
-%                     audioSignal = audioSignal(:);%.*Window(:);
-%                     Select = 1;
-%                     close (plotH);
-%                     %                     plot(audioSignal)
-%                 else
-%                     Good = 0;
-%                     Select = 0;
-%                     plot(times,Y_sample,'b');
-%                     ylim([-1 1])
-%                     title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
-%                 end
-%             else
-%                 plot(times,Y_sample,'b');
-%                 ylim([-1 1])
-%                 title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
-%                 hhError = errordlg('the selected signal is too short!');
-%                 %                 pause(2)
-%                 %                 close(hhError)
-%             end
-%         end
-%     else
-%         close (plotH)
-%     end
-% end
-% close all;
-% % Normfact = sqrt(mean(audioSignal.^2));%ADDED BY CARA TO TRY TO NORMALIZE SOUND AMPLITUDES!
-% % audioSignal = .5* (audioSignal./Normfact);
-% 
-% % audioSignal = .5 * (audioSignal ./ (max(abs(audioSignal))));
-% audioSignal = .5 * (audioSignal ./ (rms(audioSignal)));
-
 audioSignal = extractSpeechToken(dirs);
 
 %% Setting up the up-down paradigm (modified based on Palam)
@@ -374,8 +263,6 @@ switch num_trials
 end
 end
 
-
-
 function data1 = offline_pitch_JND_passive (dataFile,Pert,genderSubject,StimulusDur,riseTime,fallTime,basetime)
 %% CONFIG
 addpath c:/speechres/commonmcode;
@@ -488,4 +375,3 @@ sound(audioSignal, fs)
 pause(basetime+length(audioSignal)/fs+.01)
 
 end
-
