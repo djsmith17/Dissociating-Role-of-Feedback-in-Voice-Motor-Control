@@ -114,10 +114,10 @@ monitorSize = get(0,'Monitor');
 if size(monitorSize,1) == 1
     figPosition = [1 200 monitorSize(3) monitorSize(4)-200];
 elseif size(monitorSize,1) == 2
-    figPosition = [monitorSize(2,1) monitorSize(2,2)+20 monitorSize(2,3) monitorSize(2,4)];
+    figPosition = [monitorSize(2,1) monitorSize(2,2) monitorSize(1,3) monitorSize(2,4)];
 end
 
-figure1 = figure('Color',[0 0 0],'Menubar','none','Position',[-1280 1050 1281 1026]);
+figure1 = figure('Color',[0 0 0],'Menubar','none','Position', figPosition);
 
 h2 = annotation(figure1,'textbox',...
     [0.38 0.46 0.2 0.2],...
