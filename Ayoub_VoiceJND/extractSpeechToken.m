@@ -1,4 +1,4 @@
-function baselineToken = extractSpeechToken(dirs)
+function baselineTokenW = extractSpeechToken(dirs)
 
 %%making voice file for JND from prerecorded stimuli written by EHM
 %%07/01/2017
@@ -8,23 +8,51 @@ dirs.SavFileDir = fullfile(dirs.RecData, 'Pilot0', 'Run3', ['Pilot0' 'Run3DRF.ma
 load(dirs.SavFileDir);
 thisData  = DRF.rawData(9);      % Take the 9th trial. It will be a control trial
 fs        = DRF.expParam.sRateAnal;
-Y_sample  = thisData.signalIn;   % Grab the microphone channel.
+sample  = thisData.signalIn;   % Grab the microphone channel.
   
-StimulusDur = .5; %this is the duration of the stimulus that will be played in the JND
+auto        = 1;
+tokenL      = .5; %stimulus duration to be played in the JND
+tokenLP     = tokenL*fs;
 riseTime    = .05;
 fallTime    = .05;
-recDuration = length(Y_sample)/fs;
-times       = linspace(0, recDuration, length(Y_sample));
-times       = times';
+riseTimeP   = riseTime*fs;
+fallTimeP   = fallTime*fs;
+riseQperiod = (4*riseTime)^-1;
+fallQperiod = (4*fallTime)^-1;
+sampLen     = length(sample);
+recDuration = sampLen/fs;
+time        = linspace(0, recDuration, sampLen);
 
 Words       = {'eee'};
 keepaudio   = [];
 Happy = 0;
+
+if auto == 1
+    stT = 2.0;
+    ix1 = fs*stT;
+    ix2 = ix1 + tokenLP;
+else
+    figure
+    plot(time, sample, 'b'); ylim([-1 1])
+    
+    [x, y] = ginput(1);
+    ix1 = round(x(1)*fs); %Choose a single point on the line with roughly .5s following it
+    ix2 = ix1 + tokenLP;
+end
+
+baselineToken = sample(ix1:ix2);
+window = ones(1, tokenLP);
+window(1:riseTimeP) = sin(2*pi*riseQperiod*linspace(0, riseTime, riseTimeP)).^2;
+window(tokenLP-fallTimeP + 1:tokenLP) = cos(2*pi*fallQperiod*linspace(0, fallTime, fallTimeP)).^2;
+
+Window = [sin(2*pi*linspace(0,riseTime,floor(riseTime*fs))*((4*riseTime)^-1)).^2  ones(1,floor((tokenL - riseTime - fallTime) * fs)) cos(2*pi*linspace(0,fallTime,floor(fallTime*fs))*((4*fallTime)^-1)).^2];
+baselineTokenW = baselineToken.*Window;                    
+    
    
 while (Happy == 0)
     plotH = figure;
 
-    plot(times, Y_sample, 'b');
+    plot(time, sample, 'b');
     ylim([-1 1])
     % title(sprintf('total Duration is %f',Record_Time));
     Happy = input('Are you happy with the signal (0,1):');
@@ -38,17 +66,17 @@ while (Happy == 0)
             t1 = ix1/fs;
             t2 = ix2/fs;
             
-            if x(2)-x(1) > StimulusDur  %if x(4)-x(2) > StimulusDur
+            if x(2)-x(1) > tokenL  %if x(4)-x(2) > tokenL
                 hold on;
-                plot(linspace(t1,t2,length(Y_sample(ix1:ix2))),Y_sample(ix1:ix2),'r');
+                plot(linspace(t1,t2,length(sample(ix1:ix2))),sample(ix1:ix2),'r');
                 Good = input('Is the selected signal good enough? (0,1):');
-                if Good  ==1
-                    audioSignal = Y_sample(ix1:ix2-1+StimulusDur*fs); %can throw error if signal selected is too long
-                    % audioSignal = Y_sample(ix1:ix2-1+StimulusDur);
+                if Good  == 1
+                    audioSignal = sample(ix1:ix2-1+tokenL*fs); %can throw error if signal selected is too long
+                    % audioSignal = sample(ix1:ix2-1+tokenL);
                     
                     %create a cosine ramp at beginning and end so it doesn't
                     %click
-                    Window = [sin(2*pi*linspace(0,riseTime,floor(riseTime*fs))*((4*riseTime)^-1)).^2  ones(1,floor((StimulusDur - riseTime - fallTime) * fs)) cos(2*pi*linspace(0,fallTime,floor(fallTime*fs))*((4*fallTime)^-1)).^2];
+                    Window = [sin(2*pi*linspace(0,riseTime,floor(riseTime*fs))*((4*riseTime)^-1)).^2  ones(1,floor((tokenL - riseTime - fallTime) * fs)) cos(2*pi*linspace(0,fallTime,floor(fallTime*fs))*((4*fallTime)^-1)).^2];
                     Window = Window(:);%this is a cosine square
                     audioSignal = audioSignal(:);
                     if length(Window) > length(audioSignal)
@@ -72,12 +100,12 @@ while (Happy == 0)
                 else
                     Good = 0;
                     Select = 0;
-                    plot(times,Y_sample,'b');
+                    plot(time,sample,'b');
                     ylim([-1 1])
                     title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
                 end
             else
-                plot(times,Y_sample,'b');
+                plot(time,sample,'b');
                 ylim([-1 1])
                 title(sprintf('total Duration is %f',recDuration),'color',[1 1 1]);
                 hhError = errordlg('the selected signal is too short!');

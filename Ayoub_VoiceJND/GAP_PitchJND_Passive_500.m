@@ -6,14 +6,14 @@ rng('shuffle');
 %% define experimental parameters
 %edited 10/20/2016 DA
 
-calib_check = input('Has this microphone position been calibrated? (0 = no, 1 = yes):');
+calib_check = input('Has this microphone position been calibrated? (0 = no, 1 = yes): ');
 
 if calib_check ==0
     errordlg('Run the IntensityCalibration script');
     return
 end
 
-cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no, 1 = yes):');
+cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no, 1 = yes): ');
 if cue_check == 0
     errordlg('Check CueMix setting!');
     return
@@ -23,7 +23,7 @@ prompt={'CueMix Mic Trim: '}; %ask for cuemix trim settings. Put Trim number see
 name='CueMix';
 numlines=1;
 defaultanswer={'00'}; %input box for cuemix trim setting
-answer=inputdlg(prompt,name,numlines,defaultanswer);
+answer=inputdlg(prompt, name, numlines, defaultanswer);
 
 cuemixMic = str2num(answer{1}); %cue mix trim trim setting
 
@@ -31,19 +31,19 @@ prompt={'CueMix MainOut (100 for max, otherwise clock orientation): '}; %This li
 name='MainOut';
 numlines=1;
 defaultanswer={'00'}; %input box for cuemix trim setting
-answer=inputdlg(prompt,name,numlines,defaultanswer);
+answer=inputdlg(prompt, name, numlines, defaultanswer);
 cuemixMainout = str2num(answer{1});%main out setting 
 
-prompt={'Subject ID:',...
-    'Session ID:',...
-    'Group:',...
-    'Gender ("male" or "female")'};
-name='Subject Information';
-numlines=1;
-defaultanswer={'null','f0_JND','control','female'};
-answer=inputdlg(prompt,name,numlines,defaultanswer);
+prompt = {'Subject ID:',...
+          'Session ID:',...
+          'Group:',...
+          'Gender ("male" or "female")'};
+name = 'Subject Information';
+numlines = 1;
+defaultanswer = {'null','f0_JND','control','female'};
+answer = inputdlg(prompt, name, numlines, defaultanswer);
 
-if isempty( answer )
+if isempty(answer)
     return
 end
 
