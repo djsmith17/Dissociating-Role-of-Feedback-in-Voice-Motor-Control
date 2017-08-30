@@ -42,8 +42,8 @@ call2 = sprintf( '%s praat "execute %s %s %s %s %f %f %f %f %f"' , ...
     
 [s, r] = dos(call2);
 if s ~= 0
-    dos( [ fullfile( pwd , p_fn ) ' &' ] ) ;
-    [ s , r ] = dos( call2 ) ;
+    dos([fullfile(pwd, p_fn) ' &']);
+    [s, r] = dos(call2);
     if s ~= 0
         disp(r)
         error('ERROR: something went wrong')
