@@ -1,4 +1,6 @@
-function generatef0JNDTokens()   
+function generatef0JNDTokens(dirs, baseToken)   
+
+
 newmic = [micFolder, '\']; %add a slash to the mic folder
 ext = '.wav'; %extension of files
 
