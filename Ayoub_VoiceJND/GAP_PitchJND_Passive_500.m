@@ -40,7 +40,7 @@ prompt = {'Subject ID:',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','f0_JND','control','female'};
+defaultanswer = {'null','JNDpitch1','control','female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -67,10 +67,11 @@ dirs = dfDirs(project);
 % create the folder path to save the data files
 % baseFilename = ['data\' group, '\', subjectID, '\', session, '\',num_trials,'\'];
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
 
 % check if the foler exists (to avoid overwrite)
-if ~exist( dirs.RecFileDir , 'dir' )
-    mkdir( dirs.RecFileDir ) ;
+if ~exist(dirs.RecFileDir, 'dir')
+    mkdir(dirs.RecFileDir) ;
     while exist(dirs.RecFileDir,'dir') ~= 7
             mkdir(dirs.RecFileDir);
     end
@@ -81,8 +82,13 @@ else
     end
 end
 
+if ~exist(dirs.tokenDir, 'dir')
+    mkdir(dirs.tokenDir);
+end
+
 %% recording audio samples
-tokenTemplate = extractSpeechToken(dirs);
+baseToken = extractSpeechToken(dirs);
+tokens = generatef0JNDTokens(dirs, baseToken);
 
 %% Setting up the up-down paradigm (modified based on Palam)
 
@@ -124,19 +130,19 @@ while (UD.stop == 0) & tr < UD.totalTrials
     tempVar = randperm(5);
     Pert = UD.xCurrent/100;
     if tempVar(1) == 1 || tempVar(1) == 3   % scenario I (first one is Pert) : % 40% of trials
-        offline_pitch_JND_passive (tokenTemplate,Pert,Gender,StimulusDur,riseTime,fallTime,baseTime);
+        offline_pitch_JND_passive (baseToken,Pert,Gender,StimulusDur,riseTime,fallTime,baseTime);
         %         pause(baseTime);
-        offline_pitch_JND_passive (tokenTemplate,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
+        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         conVar = 1;
     elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
-        offline_pitch_JND_passive (tokenTemplate,0.01,Gender,StimulusDur,riseTime,fallTime,baseTime); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
+        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,baseTime); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         %         pause(baseTime);
-        offline_pitch_JND_passive (tokenTemplate,Pert,Gender,StimulusDur,riseTime,fallTime,0);
+        offline_pitch_JND_passive (baseToken,Pert,Gender,StimulusDur,riseTime,fallTime,0);
         conVar = 1;
     else % Catch trials : 20% of trials
-        offline_pitch_JND_passive (tokenTemplate,0.01,Gender,StimulusDur,riseTime,fallTime,baseTime); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
+        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,baseTime); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         %         pause(baseTime);
-        offline_pitch_JND_passive (tokenTemplate,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
+        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         conVar = 0; %catch trials will be randomly presented but will not be included in the adaptive procedure
         
     end
@@ -183,7 +189,7 @@ while (UD.stop == 0) & tr < UD.totalTrials
     
 end
 close all;
-UD .audioSignal = tokenTemplate;
+UD .audioSignal = baseToken;
 %CES - To disable saving of reactiontimes (we are doing this to avoid confusion since the investigator is keying in the selection at present)
 UD.reactionTime = ones(size(ReactionTime))*10000;
 
