@@ -1,4 +1,4 @@
-   
+function generatef0JNDTokens()   
 newmic = [micFolder, '\']; %add a slash to the mic folder
 ext = '.wav'; %extension of files
 
@@ -48,4 +48,6 @@ if s ~= 0
         disp(r)
         error('ERROR: something went wrong')
     end
+end
+
 end
