@@ -5,18 +5,12 @@
 #  of the specified frequency.  Files are
 #  saved in a specified directory.
 #
-#
-# 
 ############################
 
 
 form Resynthize files to have flat pitch
-	comment Directory of sound files
-	text sound_directory C:\users\djsmith\Desktop
-	sentence Sound_file_extension .wav
-	comment Directory of finished files
-	text end_directory C:\users\djsmith\Desktop\PraatSynthFiles\
-	## comment Resynthesize to this frequency
+	text tokenDir
+	sentence Sound_file_extension
 	## positive Resynthesis_pitch_(Hz) 150
 endform
 
@@ -52,7 +46,7 @@ for iToken to numberOfTokens
 	Replace pitch tier
 	select Manipulation 'sound_one$'
 	Get resynthesis (PSOLA)
-	Write to WAV file... 'end_directory$''iToken''filename$'
+	Write to WAV file... 'tokenDir$''iToken''filename$'
 
 	##select Sound 'sound_one$'
 	##plus Manipulation 'sound_one$'

@@ -23,14 +23,11 @@ if ~exist(gt_fn, 'file')
 end
     
 %Build DOS calls to control praat
-call2 = sprintf('%s praat "execute %s %s %s %s %f %f"', ...
+call2 = sprintf('%s praat "execute %s %f %f"', ...
                 sp_fn, ... %sendpraat.exe
                 gt_fn, ... %saved praat script ('generatef0JNDTokens)
                 tokenDir, ... %file location for saved wav files
-                ext, ... %file extension
-                txtmicFolder, ... %destination where .txt files will stay % where you want your output to save (wav file)
-                pitchFloor, ... %pitch floor indicated %might want to set
-                pitchCeiling, ... %pitch ceiling indicated %might want to set
+                ext ... %file extension
                 );    
     
 [s, r] = dos(call2);

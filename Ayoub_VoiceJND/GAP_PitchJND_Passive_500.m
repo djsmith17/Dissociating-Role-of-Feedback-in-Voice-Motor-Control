@@ -68,6 +68,7 @@ dirs = dfDirs(project);
 % baseFilename = ['data\' group, '\', subjectID, '\', session, '\',num_trials,'\'];
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
+dirs.baseTokenFile = fullfile(dirs.tokenDir,[expParam.subject expParam.run 'BaseToken.wav']);
 
 % check if the foler exists (to avoid overwrite)
 if ~exist(dirs.RecFileDir, 'dir')
@@ -87,7 +88,7 @@ if ~exist(dirs.tokenDir, 'dir')
 end
 
 %% recording audio samples
-baseToken = extractSpeechToken(dirs);
+baseToken = extractSpeechToken(expParam, dirs);
 tokens = generatef0JNDTokens(dirs, baseToken);
 
 %% Setting up the up-down paradigm (modified based on Palam)

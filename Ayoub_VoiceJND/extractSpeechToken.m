@@ -1,4 +1,4 @@
-function baselineTokenW = extractSpeechToken(dirs)
+function bTRS = extractSpeechToken(dirs)
 %%making voice file for JND from prerecorded stimuli written by EHM
 %%07/01/2017
 %Edited 08/23/2017: Dante Smith
@@ -39,5 +39,12 @@ else
     ix2 = ix1 + tokenLP - 1;
 end
 
-baselineToken  = sample(ix1:ix2);
-baselineTokenW = baselineToken.*window';                    
+bT  = sample(ix1:ix2); %baseline Token
+bTW = bT.*window';     %windowed
+
+%resample to 44.1kHz for simplification
+bTRS = resample(bTW, 44100, 16000); %resampled
+
+%See line 71 of GAP-Pitch....
+audiowrite(dirs.baseTokenFile, bTRS, 44100)
+end
