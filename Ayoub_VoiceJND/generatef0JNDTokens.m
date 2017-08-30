@@ -1,4 +1,4 @@
-function generatef0JNDTokens(dirs, baseToken)   
+function tokens = generatef0JNDTokens(dirs, baseToken)   
 
 tokenDir = dirs.tokenDir;
 psDir    = fullfile(dirs.code, presentation);        %Praat scripting

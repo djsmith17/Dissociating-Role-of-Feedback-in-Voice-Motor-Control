@@ -3,30 +3,13 @@ function out = GAP_PitchJND_Passive_500()
 close all;
 ET = tic;
 rng('shuffle');
-%% define experimental parameters
-%edited 10/20/2016 DA
-
-calib_check = input('Has this microphone position been calibrated? (0 = no, 1 = yes): ');
-
-if calib_check ==0
-    errordlg('Run the IntensityCalibration script');
-    return
-end
 
 cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no, 1 = yes): ');
 if cue_check == 0
     errordlg('Check CueMix setting!');
     return
 end
-
-prompt={'CueMix Mic Trim: '}; %ask for cuemix trim settings. Put Trim number seen in Mic inputs. 
-name='CueMix';
-numlines=1;
-defaultanswer={'00'}; %input box for cuemix trim setting
-answer=inputdlg(prompt, name, numlines, defaultanswer);
-
-cuemixMic = str2num(answer{1}); %cue mix trim trim setting
-
+ 
 prompt={'CueMix MainOut (100 for max, otherwise clock orientation): '}; %This line asks for cuemix trim settings for MainOut. MainOut doesn't have values, so max settings is "100", otherwise, specify clock orientation (for example, for the setting level with the "12" on the bar to the left, it would be 9). 
 name='MainOut';
 numlines=1;
@@ -88,7 +71,7 @@ if ~exist(dirs.tokenDir, 'dir')
 end
 
 %% recording audio samples
-baseToken = extractSpeechToken(expParam, dirs);
+baseToken = extractSpeechToken(dirs);
 tokens = generatef0JNDTokens(dirs, baseToken);
 
 %% Setting up the up-down paradigm (modified based on Palam)
