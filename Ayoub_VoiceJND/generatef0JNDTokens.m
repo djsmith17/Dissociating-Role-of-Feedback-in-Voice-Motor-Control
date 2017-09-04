@@ -1,7 +1,7 @@
 function tokens = generatef0JNDTokens(dirs, baseToken)   
 
 tokenDir = dirs.tokenDir;
-psDir    = 'C:\Users\djsmith\Documents\MATLAB\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Analysis';        %Praat scripting
+psDir    = dirs.Code;        %Praat scripting
 pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 tokenDir = [tokenDir, '\']; %add a slash to the mic folder
@@ -39,4 +39,6 @@ if s ~= 0
         error('ERROR: something went wrong')
     end
 end
+
+tokens = [];
 end
