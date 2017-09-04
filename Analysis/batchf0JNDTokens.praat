@@ -16,13 +16,13 @@ endform
 
 # Here, you make a listing of all the sound files in a directory.
 
-Create Strings as file list... list 'sound_directory$'/*'sound_file_extension$'
+Create Strings as file list... list 'tokenDir$'/*'sound_file_extension$'
 numberOfTokens = 5
 
 filename$ = Get string... 1
 # A sound file is opened from the listing:
 
-Read from file... 'sound_directory$'/'filename$'
+Read from file... 'tokenDir$'/'filename$'
 sound_one$ = selected$ ("Sound")
 
 To Manipulation... 0.01 75 600

@@ -20,13 +20,13 @@ host     = deblank(host);
 %% Set appropriate directories for code, data input and output, based on system hostname.
 switch host
     case 'SAR-D-635-1528';
-        dirs.RecData        = fullfile('C:\Users\djsmith\My Documents\DATA', project); % Dir w/ raw datafiles
+        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles
         dirs.SavData        = fullfile('W:\Experiments\', project);
        
-        dirs.Prelim         = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\My Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
+        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
+        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
