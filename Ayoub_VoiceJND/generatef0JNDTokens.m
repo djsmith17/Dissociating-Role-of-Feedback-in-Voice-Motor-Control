@@ -6,6 +6,7 @@ pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 tokenDir = [tokenDir, '\']; %add a slash to the mic folder
 ext = '.wav'; %extension of files
+numTokens = 10;
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
@@ -23,11 +24,12 @@ if ~exist(gt_fn, 'file')
 end
     
 %Build DOS calls to control praat
-call2 = sprintf('%s praat "execute %s %s %s"', ...
+call2 = sprintf('%s praat "execute %s %s %s %f"', ...
                 sp_fn, ... %sendpraat.exe
                 gt_fn, ... %saved praat script ('generatef0JNDTokens)
                 tokenDir, ... %file location for saved wav files
-                ext ... %file extension
+                ext, ... %file extension
+                numTokens ... %Number of Tokens to create
                 );    
     
 [s, r] = dos(call2);

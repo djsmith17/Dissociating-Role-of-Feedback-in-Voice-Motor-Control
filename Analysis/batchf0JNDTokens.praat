@@ -11,13 +11,13 @@
 form Resynthize files to have flat pitch
 	text tokenDir
 	sentence Sound_file_extension
+        positive numTokens
 	## positive Resynthesis_pitch_(Hz) 150
 endform
 
 # Here, you make a listing of all the sound files in a directory.
 
 Create Strings as file list... list 'tokenDir$'/*'sound_file_extension$'
-numberOfTokens = 5
 
 filename$ = Get string... 1
 # A sound file is opened from the listing:
@@ -28,7 +28,7 @@ sound_one$ = selected$ ("Sound")
 To Manipulation... 0.01 75 600
 
 resynthesis_pitch = 110
-for iToken to numberOfTokens
+for iToken to numTokens
 
 	# Create a new pitch tier with the flat pitch:
 
