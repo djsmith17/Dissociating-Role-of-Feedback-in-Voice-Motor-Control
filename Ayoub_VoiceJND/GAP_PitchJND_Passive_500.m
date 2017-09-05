@@ -98,7 +98,7 @@ UD.x = UD.startValue;
 UD.xStaircase = [];
 % UD.totalTrials = 60; %max number of trials if max trials/reversals not reached
 waitForKeyPress = 3 ; % in seconds
-baseTime = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
+ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
@@ -114,28 +114,37 @@ while (UD.stop == 0) & tr < UD.totalTrials
     tempVar = randperm(5);
     Pert = UD.xCurrent/100;
     if tempVar(1) == 1 || tempVar(1) == 3   % scenario I (first one is Pert) : % 40% of trials
-        offline_pitch_JND_passive (baseToken,Pert,Gender,StimulusDur,riseTime,fallTime,baseTime);
+        offline_pitch_JND_passive (baseToken,Pert,Gender,StimulusDur,riseTime,fallTime,ISI);
         %         pause(baseTime);
         offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         conVar = 1;
     elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
-        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,baseTime); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
+        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,ISI); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         %         pause(baseTime);
         offline_pitch_JND_passive (baseToken,Pert,Gender,StimulusDur,riseTime,fallTime,0);
         conVar = 1;
     else % Catch trials : 20% of trials
-        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,baseTime); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
+        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,ISI); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         %         pause(baseTime);
         offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
         conVar = 0; %catch trials will be randomly presented but will not be included in the adaptive procedure
         
     end
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %HERE IS THE MAGIC!!!!
+    sound(Token1, fs)
+    pause(TokenLen1 + 0.1 + ISI)
+    sound(Token2, fs)
+    pause(TokenLen2 + 0.1)
+    %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
     %% Present the YES/NO question
     %     set(h1,'Visible','off');
-    set(h2,'String','PITCH','FontSize',80)%was 'WERE THEY DIFFERENT'
-    set(h3,    'Visible','on');
-    set(h4,    'Visible','on');
+    set(h2, 'String','PITCH','FontSize',80)%was 'WERE THEY DIFFERENT'
+    set(h3, 'Visible','on');
+    set(h4, 'Visible','on');
     drawnow
     keyCorrect = 1;
     while keyCorrect
@@ -158,9 +167,9 @@ while (UD.stop == 0) & tr < UD.totalTrials
         end
         
     end
-    set(h2,'String','','FontSize',120)
-    set(h3,    'Visible','off');
-    set(h4,    'Visible','off');
+    set(h2, 'String','','FontSize',120)
+    set(h3, 'Visible','off');
+    set(h4, 'Visible','off');
     drawnow
     if conVar == 1 % when it is a real trial update the UD structure
         UD = adaptiveUD_Update(UD, response);
@@ -168,11 +177,10 @@ while (UD.stop == 0) & tr < UD.totalTrials
     else % when it is a catch trial do not update UD structure (i.e., do not change the up-down steps based on catch trials)
         UD.catchResponse(tr,1) = response;
     end
-    pause(1) %this is between two trials
-    
-    
+    pause(1) %this is between two trials   
 end
 close all;
+
 UD .audioSignal = baseToken;
 %CES - To disable saving of reactiontimes (we are doing this to avoid confusion since the investigator is keying in the selection at present)
 UD.reactionTime = ones(size(ReactionTime))*10000;
