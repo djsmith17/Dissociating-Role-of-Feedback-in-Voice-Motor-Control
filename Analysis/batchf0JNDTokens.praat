@@ -32,13 +32,11 @@ for iToken to numTokens
 	# Create a new pitch tier with the flat pitch:
 
 	select Sound 'sound_one$'
-
 	Create PitchTier... 'sound_one$' start end
 	Add point... start resynthesis_pitch
 	Add point... end resynthesis_pitch
 
 	# Combine and save the resulting file:
-
 	select Manipulation 'sound_one$'
 	plus PitchTier 'sound_one$'
 	Replace pitch tier

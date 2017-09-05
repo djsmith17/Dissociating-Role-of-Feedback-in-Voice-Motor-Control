@@ -98,7 +98,7 @@ UD.x = UD.startValue;
 UD.xStaircase = [];
 % UD.totalTrials = 60; %max number of trials if max trials/reversals not reached
 waitForKeyPress = 3 ; % in seconds
-baseTime = .5; %this is the interstimulus interval within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
+baseTime = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
@@ -257,9 +257,6 @@ h4 = annotation(figure1,'textbox',...
 
 drawnow;
 end
-
-
-
 
 % function data1 = offline_pitch_JND_passive (dataFile,Pert,genderSubject,StimulusDur,riseTime,fallTime,basetime)
 % %% CONFIG
