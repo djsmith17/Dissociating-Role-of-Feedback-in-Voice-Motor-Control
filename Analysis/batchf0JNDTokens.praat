@@ -1,12 +1,9 @@
 ############################
-#
 #  Resynthesizes all the sound files in the
 #  specified directory to have flat pitch
 #  of the specified frequency.  Files are
 #  saved in a specified directory.
-#
 ############################
-
 
 form Resynthize files to have flat pitch
 	text tokenDir
@@ -15,15 +12,17 @@ form Resynthize files to have flat pitch
 	## positive Resynthesis_pitch_(Hz) 150
 endform
 
-# Here, you make a listing of all the sound files in a directory.
-
+#Here, you make a listing of all the sound files in a directory.
 Create Strings as file list... list 'tokenDir$'/*'sound_file_extension$'
 
 filename$ = Get string... 1
-# A sound file is opened from the listing:
 
+#A sound file is opened from the listing:
 Read from file... 'tokenDir$'/'filename$'
 sound_one$ = selected$ ("Sound")
+
+start = Get start time
+end = Get end time
 
 To Manipulation... 0.01 75 600
 
@@ -33,8 +32,7 @@ for iToken to numTokens
 	# Create a new pitch tier with the flat pitch:
 
 	select Sound 'sound_one$'
-	start = Get start time
-	end = Get end time
+
 	Create PitchTier... 'sound_one$' start end
 	Add point... start resynthesis_pitch
 	Add point... end resynthesis_pitch
