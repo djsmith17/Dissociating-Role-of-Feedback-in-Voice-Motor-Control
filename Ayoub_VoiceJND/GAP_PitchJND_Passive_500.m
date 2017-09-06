@@ -147,7 +147,7 @@ while (UD.stop == 0) & tr < UD.totalTrials
     while keyCorrect
         
         keyCorrect = 0;
-        [bb, ReactionTime(tr)] = GetKey_Ayoub(1,waitForKeyPress);
+        [bb, ReactionTime(tr)] = GetKey_Ayoub(1, waitForKeyPress);
         
         % wait until a correct key is pressed
         if (bb ~= 28) & (bb ~= 29)
@@ -162,13 +162,13 @@ while (UD.stop == 0) & tr < UD.totalTrials
         elseif bb == 29        %29 is "SAME"  | Right ARROW KEY ; was NO
             response = 0;
         end
-        
+       
     end
     set(h2, 'String','','FontSize',120)
     set(h3, 'Visible','off');
     set(h4, 'Visible','off');
     drawnow
-    if conVar == 1 % when it is a real trial update the UD structure
+    if conVar == 1 % update the UD structure on real trials
         UD = adaptiveUD_Update(UD, response);
         UD.catchResponse(tr,1) = NaN;
     else % when it is a catch trial do not update UD structure (i.e., do not change the up-down steps based on catch trials)
