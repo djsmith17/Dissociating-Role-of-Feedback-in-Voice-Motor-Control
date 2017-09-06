@@ -1,4 +1,6 @@
-function tokens = generatef0JNDTokens(dirs, baseToken)   
+function tokens = generatef0JNDTokens(dirs, numTokens, PertFreqs)   
+%This expects that you have calculated f0 elsewhere and have already
+%determined the spacing in (Hz) for each set of stimuli
 
 tokenDir = dirs.tokenDir;
 psDir    = dirs.Code;        %Praat scripting
@@ -6,7 +8,6 @@ pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 tokenDir = [tokenDir, '\']; %add a slash to the mic folder
 ext = '.wav'; %extension of files
-numTokens = 10;
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')

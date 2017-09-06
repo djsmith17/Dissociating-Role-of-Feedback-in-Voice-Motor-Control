@@ -10,9 +10,9 @@ if cue_check == 0
     return
 end
  
-prompt={'CueMix MainOut (100 for max, otherwise clock orientation): '}; %This line asks for cuemix trim settings for MainOut. MainOut doesn't have values, so max settings is "100", otherwise, specify clock orientation (for example, for the setting level with the "12" on the bar to the left, it would be 9). 
-name='MainOut';
-numlines=1;
+prompt = {'CueMix MainOut (100 for max, otherwise clock orientation): '}; %This line asks for cuemix trim settings for MainOut. MainOut doesn't have values, so max settings is "100", otherwise, specify clock orientation (for example, for the setting level with the "12" on the bar to the left, it would be 9). 
+name = 'MainOut';
+numlines = 1;
 defaultanswer={'00'}; %input box for cuemix trim setting
 answer=inputdlg(prompt, name, numlines, defaultanswer);
 cuemixMainout = str2num(answer{1});%main out setting 
@@ -70,10 +70,6 @@ if ~exist(dirs.tokenDir, 'dir')
     mkdir(dirs.tokenDir);
 end
 
-%% recording audio samples
-BaseToken = extractSpeechToken(dirs);
-tokens = generatef0JNDTokens(dirs, BaseToken);
-
 %% Setting up the up-down paradigm (modified based on Palam)
 
 UD.up = 1;    % Number of consecutive responses before an increase
@@ -86,6 +82,8 @@ UD.stopRule = 10;  %stop procedure after this number of trials/reversals
 UD.startValue = 50; % initial difference in cents between speaker's fo and fo of stimulus in headphones
 UD.xMax = 200; %max difference between speaker's fo and fo of stimulus in headphones
 UD.xMin = 0; %min difference between speaker's fo and fo of stimulus in headphones
+UD.xAll = UD.xMin:UD.xMax;
+UD.xLen = length(UD.xAll);
 UD.truncate = 'yes';
 UD.response = [];
 UD.stop = 0;
@@ -99,6 +97,13 @@ UD.xStaircase = [];
 % UD.totalTrials = 60; %max number of trials if max trials/reversals not reached
 waitForKeyPress = 3 ; % in seconds
 ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
+
+%% recording audio samples
+[BaseToken, fs]= extractSpeechToken(dirs);
+subjf0 = calcf0(BaseToken, fs);
+PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin);
+numPertFreqs = length(PertFreqs);
+tokens = generatef0JNDTokens(dirs, numPertFreqs, PertFreqs);
 
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
@@ -262,6 +267,49 @@ h4 = annotation(figure1,'textbox',...
     'Visible','off');
 
 drawnow;
+end
+
+function f0 = calcf0(x,fs)
+% Created by Gabriel Galindo
+% Formatted by Dante Smith -12/11/15
+
+lim_inf = ceil(fs/(500));
+lim_sup = floor(fs/(50));
+U = xcov(x,'unbias');
+U = U(ceil(end/2):end);
+U = (U(lim_inf:lim_sup)-min(U(lim_inf:lim_sup)))/(max(U(lim_inf:lim_sup)) - min(U(lim_inf:lim_sup)));
+[M,P] = findpeaks(U);
+
+if isempty(P)
+    f0 = NaN;
+else
+    P = P(find(M >= 0.9,1,'first'));
+    if isempty(P)
+        f0 = NaN;
+    else
+        f0 = fs/(P + lim_inf);
+    end
+
+    NFFT = pow2(nextpow2(length(x)/4));
+    [Pxx,Fxx] = pwelch(x,NFFT,[],[],fs,'onesided');
+
+    if ~isnan(f0)
+        H = Pxx(find(Fxx>=f0,1,'first'));
+        if (10*log10(max(Pxx)/H) > 80)
+            f0 = NaN;
+        end
+    end   
+end
+end
+
+function freqs = targetf0calc(f0, maxC, minC)
+%calculates all possible freq vals spaced 1 cent apart. 
+
+numCents = maxC - minC;
+
+for i = 1:numCents
+    freqs(i) = f0*2^(i/1200);
+end
 end
 
 function data1 = offline_pitch_JND_passive (dataFile,Pert,genderSubject,StimulusDur,riseTime,fallTime,basetime)
