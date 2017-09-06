@@ -71,15 +71,15 @@ if ~exist(dirs.tokenDir, 'dir')
 end
 
 %% recording audio samples
-baseToken = extractSpeechToken(dirs);
-tokens = generatef0JNDTokens(dirs, baseToken);
+BaseToken = extractSpeechToken(dirs);
+tokens = generatef0JNDTokens(dirs, BaseToken);
 
 %% Setting up the up-down paradigm (modified based on Palam)
 
 UD.up = 1;    % Number of consecutive responses before an increase
 UD.down = 2;  % Number of consecutive responses before a decrease
 stepSize = 4; %This is something to tune; in cents
-UD.stepSizeUp = stepSize / 1; %Levitt (1971) 2/1 rule for 71% in MacMillian Chapter 11 with step per Garcia-Perez (1998); Was: Size of step up ; stepSize/ .5488 ensures 80.35 % correct; see Garcia-Perez 1998
+UD.stepSizeUp = stepSize; %Levitt (1971) 2/1 rule for 71% in MacMillian Chapter 11 with step per Garcia-Perez (1998); Was: Size of step up ; stepSize/ .5488 ensures 80.35 % correct; see Garcia-Perez 1998
 UD.stepSizeDown = stepSize; % Size of step down
 UD.stopCriterion = 'reversals'; % stop the procedure based on number of 'trials' | 'reversals'
 UD.stopRule = 10;  %stop procedure after this number of trials/reversals
@@ -111,8 +111,9 @@ while (UD.stop == 0) & tr < UD.totalTrials
     set(h2,'String','+')
     drawnow;
     
+    PertToken = [];
     tempVar = randperm(5);
-    Pert = UD.xCurrent/100;
+    Pert = UD.xCurrent; %cents
     if tempVar(1) == 1 || tempVar(1) == 3   % scenario I (first one is Pert) : % 40% of trials
         Token1 = PertToken;
         Token2 = BaseToken;
@@ -130,10 +131,10 @@ while (UD.stop == 0) & tr < UD.totalTrials
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
-    sound(Token1, fs)
-    pause(TokenLen1 + 0.1 + ISI)
-    sound(Token2, fs)
-    pause(TokenLen2 + 0.1)
+%     sound(Token1, fs)
+%     pause(TokenLen1 + 0.1 + ISI)
+%     sound(Token2, fs)
+%     pause(TokenLen2 + 0.1)
     %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -178,13 +179,13 @@ while (UD.stop == 0) & tr < UD.totalTrials
 end
 close all;
 
-UD .audioSignal = baseToken;
+UD.BaseToken = BaseToken;
 %CES - To disable saving of reactiontimes (we are doing this to avoid confusion since the investigator is keying in the selection at present)
 UD.reactionTime = ones(size(ReactionTime))*10000;
 
-FileName= [dirs.RecFileDir 'responseResults.mat'];
+FileName = [dirs.RecFileDir 'responseResults.mat'];
 dataFileName = [dirs.RecFileDir 'dataFile.mat'];
-save(FileName,'UD');
+save(FileName, 'UD');
 
 CueMixSave = [dirs.RecFileDir 'CueMixSettings.mat']; %makes a new .mat file to save 
 CueMixSettings.cuemixMic = cuemixMic; %defines saving of user input mic trim
