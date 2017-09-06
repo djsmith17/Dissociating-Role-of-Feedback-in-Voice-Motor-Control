@@ -114,22 +114,19 @@ while (UD.stop == 0) & tr < UD.totalTrials
     tempVar = randperm(5);
     Pert = UD.xCurrent/100;
     if tempVar(1) == 1 || tempVar(1) == 3   % scenario I (first one is Pert) : % 40% of trials
-        offline_pitch_JND_passive (baseToken,Pert,Gender,StimulusDur,riseTime,fallTime,ISI);
-        %         pause(baseTime);
-        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
+        Token1 = PertToken;
+        Token2 = BaseToken;
         conVar = 1;
     elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
-        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,ISI); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
-        %         pause(baseTime);
-        offline_pitch_JND_passive (baseToken,Pert,Gender,StimulusDur,riseTime,fallTime,0);
+        Token1 = BaseToken;
+        Token2 = PertToken;
         conVar = 1;
     else % Catch trials : 20% of trials
-        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,ISI); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
-        %         pause(baseTime);
-        offline_pitch_JND_passive (baseToken,0.01,Gender,StimulusDur,riseTime,fallTime,0); %.01 perturbation has been applied to reference stimulus to eliminate differences in signal quality related to Audapter processing
-        conVar = 0; %catch trials will be randomly presented but will not be included in the adaptive procedure
-        
+        Token1 = BaseToken;      
+        Token2 = BaseToken;
+        conVar = 0; %catch trials will be randomly presented but will not be included in the adaptive procedure        
     end
+    TokenLen1 = length(Token1); TokenLen2 = length(Token2);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
@@ -266,115 +263,115 @@ h4 = annotation(figure1,'textbox',...
 drawnow;
 end
 
-% function data1 = offline_pitch_JND_passive (dataFile,Pert,genderSubject,StimulusDur,riseTime,fallTime,basetime)
-% %% CONFIG
-% addpath c:/speechres/commonmcode;
-%  cds('audapter_matlab');
-% audioInterfaceName = 'ASIO4ALL';%'MOTU MicroBook';%
-% 
-% sRate = 48000;  % Hardware sampling rate (before downsampling)
-% downFact = 3;
-% frameLen = 96;  % Before downsampling
-% noiseWavFN = 'mtbabble48k.wav';
-% % Audapter('deviceName', audioInterfaceName);
-% Audapter('setParam', 'downFact', downFact, 0);
-% Audapter('setParam', 'sRate', sRate / downFact, 0);
-% Audapter('setParam', 'frameLen', frameLen / downFact, 0);
-% 
-% %%
-% ostFN = '../example_data/offline_pitch_JND_passive.ost';
-% pcfFN = '../example_data/offline_pitch_JND_passive.pcf';
-% 
-% write2pcf(pcfFN , Pert)
-% 
-% check_file(ostFN);
-% check_file(pcfFN);
-% Audapter('ost', ostFN, 0);
-% Audapter('pcf', pcfFN, 0);
-% 
-% %%
-% params = getAudapterDefaultParams(lower(genderSubject));
-% 
-% params.f1Min = 0;
-% params.f2Max = 5000;
-% params.f2Min = 0;
-% params.f2Max = 5000;
-% params.pertF2 = linspace(0, 5000, 257);
-% params.pertAmp = 0.0 * ones(1, 257);
-% params.pertPhi = 0.0 * pi * ones(1, 257);
-% params.bTrack = 1;
-% params.bShift = 1;
-% params.bRatioShift = 1;
-% params.bMelShift = 0;
-% maxPBSize = Audapter('getMaxPBLen');
-% check_file(noiseWavFN);
-% [w, fs] = audioread(noiseWavFN);
-% if fs ~= params.sr * params.downFact
-%     w = resample(w, params.sr * params.downFact, fs);
-% end
-% if length(w) > maxPBSize
-%     w = w(1 : maxPBSize);
-% end
-% % Audapter('setParam', 'datapb', w, 1);
-% params.fb3Gain = 0.1;
-% params.fb = 1;
-% params.pertAmp = Pert * ones(1, 257);
-% params.pertPhi = 0.0 * pi * ones(1, 257);
-% params.fb = 1;
-% % AudapterIO('init', params);
-% params.bDetect = 1;
-% params.rmsThresh = 0.01;
-% params.bRatioShift = 1;
-% 
-% params.bBypassFmt = 1; %formant tracking bypassed, flag that not shifting formants during this script
-% params.bTrack =0; %not necesssary because formants are not being shifted in this script
-% %params.bShift = 1;
-% %params.bBypassFmt = 0;
-% 
-% params.bPitchShift = 1;
-% 
-% 
-% fs = 16000;
-% 
-% sigIn = dataFile;
-% sigIn = resample(sigIn, fs * downFact, fs);
-% sigInCell = makecell(sigIn, frameLen);
-% 
-% params.rmsClipThresh=0.01;
-% params.bRMSClip=1;
+function data1 = offline_pitch_JND_passive (dataFile,Pert,genderSubject,StimulusDur,riseTime,fallTime,basetime)
+%% CONFIG
+addpath c:/speechres/commonmcode;
+ cds('audapter_matlab');
+audioInterfaceName = 'ASIO4ALL';%'MOTU MicroBook';%
+
+sRate = 48000;  % Hardware sampling rate (before downsampling)
+downFact = 3;
+frameLen = 96;  % Before downsampling
+noiseWavFN = 'mtbabble48k.wav';
+% Audapter('deviceName', audioInterfaceName);
+Audapter('setParam', 'downFact', downFact, 0);
+Audapter('setParam', 'sRate', sRate / downFact, 0);
+Audapter('setParam', 'frameLen', frameLen / downFact, 0);
+
+%%
+ostFN = '../example_data/offline_pitch_JND_passive.ost';
+pcfFN = '../example_data/offline_pitch_JND_passive.pcf';
+
+write2pcf(pcfFN , Pert)
+
+check_file(ostFN);
+check_file(pcfFN);
+Audapter('ost', ostFN, 0);
+Audapter('pcf', pcfFN, 0);
+
+%%
+params = getAudapterDefaultParams(lower(genderSubject));
+
+params.f1Min = 0;
+params.f2Max = 5000;
+params.f2Min = 0;
+params.f2Max = 5000;
+params.pertF2 = linspace(0, 5000, 257);
+params.pertAmp = 0.0 * ones(1, 257);
+params.pertPhi = 0.0 * pi * ones(1, 257);
+params.bTrack = 1;
+params.bShift = 1;
+params.bRatioShift = 1;
+params.bMelShift = 0;
+maxPBSize = Audapter('getMaxPBLen');
+check_file(noiseWavFN);
+[w, fs] = audioread(noiseWavFN);
+if fs ~= params.sr * params.downFact
+    w = resample(w, params.sr * params.downFact, fs);
+end
+if length(w) > maxPBSize
+    w = w(1 : maxPBSize);
+end
+% Audapter('setParam', 'datapb', w, 1);
+params.fb3Gain = 0.1;
+params.fb = 1;
+params.pertAmp = Pert * ones(1, 257);
+params.pertPhi = 0.0 * pi * ones(1, 257);
+params.fb = 1;
 % AudapterIO('init', params);
-% Audapter('setParam', 'rmsthr', 5e-3, 0);
-% Audapter('reset');
-% for n = 1 : length(sigInCell)
-%     Audapter('runFrame', sigInCell{n});
-% end
-% data1 = AudapterIO('getData');
-% 
-% %% normalize
-% audioSignal = data1.signalOut;
-% RMS_Source = sqrt(mean(dataFile.^2));
-% RMS_Target = sqrt(mean(audioSignal.^2));
-% audioSignal = audioSignal * (RMS_Source/RMS_Target);%this is normalizing the amplitude
-% %Window = [sin(2*pi*linspace(0,riseTime,riseTime*fs)*((4*riseTime)^-1)).^2  ones(1,(StimulusDur - riseTime - fallTime) * fs) cos(2*pi*linspace(0,fallTime,fallTime*fs)*((4*fallTime)^-1)).^2];
-% Window = [sin(2*pi*linspace(0,riseTime,floor(riseTime*fs))*((4*riseTime)^-1)).^2  ones(1,floor((StimulusDur - riseTime - fallTime) * fs)) cos(2*pi*linspace(0,fallTime,floor(fallTime*fs))*((4*fallTime)^-1)).^2];
-% Window = Window(:);%this is a cosine square
-% audioSignal = audioSignal(:);
-% if length(Window) > length(audioSignal)
-%     audioSignal = audioSignal(:) .* Window(1:length(audioSignal));
-% elseif  length(Window) < length(audioSignal)
-%     audioSignal = audioSignal(1:length(Window)) .* Window(:);
-% else
-%     audioSignal = audioSignal(:) .* Window(:);
-% end
-% audioSignal = audioSignal(:);
-% 
-% 
-% audioSignal = audioSignal(:).*Window(:);
-% 
-% audioSignal = .5*audioSignal/rms(audioSignal);
-% % playerObj = audioplayer(audioSignal, fs);
-% % playblocking(playerObj);
-% sound(audioSignal, fs)
-% pause(basetime+length(audioSignal)/fs+.01)
-% 
-% end
+params.bDetect = 1;
+params.rmsThresh = 0.01;
+params.bRatioShift = 1;
+
+params.bBypassFmt = 1; %formant tracking bypassed, flag that not shifting formants during this script
+params.bTrack =0; %not necesssary because formants are not being shifted in this script
+%params.bShift = 1;
+%params.bBypassFmt = 0;
+
+params.bPitchShift = 1;
+
+
+fs = 16000;
+
+sigIn = dataFile;
+sigIn = resample(sigIn, fs * downFact, fs);
+sigInCell = makecell(sigIn, frameLen);
+
+params.rmsClipThresh=0.01;
+params.bRMSClip=1;
+AudapterIO('init', params);
+Audapter('setParam', 'rmsthr', 5e-3, 0);
+Audapter('reset');
+for n = 1 : length(sigInCell)
+    Audapter('runFrame', sigInCell{n});
+end
+data1 = AudapterIO('getData');
+
+%% normalize
+audioSignal = data1.signalOut;
+RMS_Source = sqrt(mean(dataFile.^2));
+RMS_Target = sqrt(mean(audioSignal.^2));
+audioSignal = audioSignal * (RMS_Source/RMS_Target);%this is normalizing the amplitude
+%Window = [sin(2*pi*linspace(0,riseTime,riseTime*fs)*((4*riseTime)^-1)).^2  ones(1,(StimulusDur - riseTime - fallTime) * fs) cos(2*pi*linspace(0,fallTime,fallTime*fs)*((4*fallTime)^-1)).^2];
+Window = [sin(2*pi*linspace(0,riseTime,floor(riseTime*fs))*((4*riseTime)^-1)).^2  ones(1,floor((StimulusDur - riseTime - fallTime) * fs)) cos(2*pi*linspace(0,fallTime,floor(fallTime*fs))*((4*fallTime)^-1)).^2];
+Window = Window(:);%this is a cosine square
+audioSignal = audioSignal(:);
+if length(Window) > length(audioSignal)
+    audioSignal = audioSignal(:) .* Window(1:length(audioSignal));
+elseif  length(Window) < length(audioSignal)
+    audioSignal = audioSignal(1:length(Window)) .* Window(:);
+else
+    audioSignal = audioSignal(:) .* Window(:);
+end
+audioSignal = audioSignal(:);
+
+
+audioSignal = audioSignal(:).*Window(:);
+
+audioSignal = .5*audioSignal/rms(audioSignal);
+% playerObj = audioplayer(audioSignal, fs);
+% playblocking(playerObj);
+sound(audioSignal, fs)
+pause(basetime+length(audioSignal)/fs+.01)
+
+end
