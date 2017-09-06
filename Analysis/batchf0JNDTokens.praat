@@ -8,7 +8,8 @@
 form Resynthize files to have flat pitch
 	text tokenDir
 	sentence Sound_file_extension
-        positive numTokens
+	sentence targetPertName
+        positive targetPert
 	## positive Resynthesis_pitch_(Hz) 150
 endform
 
@@ -27,31 +28,29 @@ end = Get end time
 To Manipulation... 0.01 75 600
 
 resynthesis_pitch = 110
-for iToken to numTokens
 
-	# Create a new pitch tier with the flat pitch:
+# Create a new pitch tier with the flat pitch:
 
-	select Sound 'sound_one$'
-	Create PitchTier... 'sound_one$' start end
-	Add point... start resynthesis_pitch
-	Add point... end resynthesis_pitch
+select Sound 'sound_one$'
+Create PitchTier... 'sound_one$' start end
+Add point... start targetPert
+Add point... end targetPert
 
-	# Combine and save the resulting file:
-	select Manipulation 'sound_one$'
-	plus PitchTier 'sound_one$'
-	Replace pitch tier
-	select Manipulation 'sound_one$'
-	Get resynthesis (PSOLA)
-	Write to WAV file... 'tokenDir$''iToken''filename$'
+# Combine and save the resulting file:
+select Manipulation 'sound_one$'
+plus PitchTier 'sound_one$'
+Replace pitch tier
+select Manipulation 'sound_one$'
+Get resynthesis (PSOLA)
+Write to WAV file... 'tokenDir$''targetPertName$''sound_file_extension$'
 
-	##select Sound 'sound_one$'
-	##plus Manipulation 'sound_one$'
-	select PitchTier 'sound_one$'
-	Remove
+##select Sound 'sound_one$'
+##plus Manipulation 'sound_one$'
+select PitchTier 'sound_one$'
+Remove
 
-	##select Sound 'sound_one$'
-	resynthesis_pitch = resynthesis_pitch + 20
-endfor
+##select Sound 'sound_one$'
+resynthesis_pitch = resynthesis_pitch + 20
 
 select all
 Remove

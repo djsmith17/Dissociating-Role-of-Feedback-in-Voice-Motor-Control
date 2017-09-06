@@ -24,22 +24,28 @@ if ~exist(gt_fn, 'file')
     error('file ''batchf0JNDTokens.praat'' not found')
 end
     
-%Build DOS calls to control praat
-call2 = sprintf('%s praat "execute %s %s %s %f"', ...
-                sp_fn, ... %sendpraat.exe
-                gt_fn, ... %saved praat script ('generatef0JNDTokens)
-                tokenDir, ... %file location for saved wav files
-                ext, ... %file extension
-                numTokens ... %Number of Tokens to create
-                );    
-    
-[s, r] = dos(call2);
-if s ~= 0
-    dos([p_fn ' &']);
+for ii = 1:numTokens
+    targetPert = PertFreqs(ii);
+    targetPertName = ['Cent' num2str(ii)];
+
+    %Build DOS calls to control praat
+    call2 = sprintf('%s praat "execute %s %s %s %s %f"', ...
+                    sp_fn, ... %sendpraat.exe
+                    gt_fn, ... %saved praat script ('generatef0JNDTokens)
+                    tokenDir, ... %file location for saved wav files
+                    ext, ... %file extension
+                    targetPertName, ...
+                    targetPert ... %Number of Tokens to create
+                    );    
+
     [s, r] = dos(call2);
     if s ~= 0
-        disp(r)
-        error('ERROR: something went wrong')
+        dos([p_fn ' &']);
+        [s, r] = dos(call2);
+        if s ~= 0
+            disp(r)
+            error('ERROR: something went wrong')
+        end
     end
 end
 
