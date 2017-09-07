@@ -66,3 +66,4 @@ endfor
 select all
 Remove
 	
+Quit

@@ -213,7 +213,7 @@ switch num_trials
         dataFile.catchTrials = length(UD.catchResponse) - length(UD.reversal);
         dataFile.reversals = max(UD.reversal);
         dataFile.catchCorrect = sum(UD.catchResponse == 0);
-        save(dataFileName,'dataFile');
+        save(dataFileName, 'dataFile');
 end
 end
 
