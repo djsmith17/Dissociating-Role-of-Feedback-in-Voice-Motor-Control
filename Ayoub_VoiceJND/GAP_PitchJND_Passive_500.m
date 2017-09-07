@@ -19,11 +19,11 @@ cuemixMainout = str2num(answer{1});%main out setting
 
 prompt = {'Subject ID:',...
           'Session ID:',...
-          'Group:',...
+          'Baseline Run:',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','JNDpitch1','control','female'};
+defaultanswer = {'null','JNDpitch1','Run3','female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -42,22 +42,24 @@ end
 
 expParam.subject = answer{1};
 expParam.run     = answer{2};
-% group =  answer{3};
+expParam.baseRec = answer{3};
 Gender =  answer{4};
 project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 dirs = dfDirs(project);
 
 % create the folder path to save the data files
 % baseFilename = ['data\' group, '\', subjectID, '\', session, '\',num_trials,'\'];
-dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.SavFileDir = fullfile(dirs.RecData, expParam.subject, expParam.baseRec, [expParam.subject expParam.baseRec '.mat']);
+
 dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
 dirs.baseTokenFile = fullfile(dirs.tokenDir,[expParam.subject expParam.run 'BaseToken.wav']);
 
 % check if the foler exists (to avoid overwrite)
 if ~exist(dirs.RecFileDir, 'dir')
-    mkdir(dirs.RecFileDir) ;
+    mkdir(dirs.RecFileDir);
     while exist(dirs.RecFileDir,'dir') ~= 7
-            mkdir(dirs.RecFileDir);
+        mkdir(dirs.RecFileDir);
     end
 else
     overwrite = inputdlg({'File already exists! Do you want to overwrite?'},'Overwrite',1,{'no'});

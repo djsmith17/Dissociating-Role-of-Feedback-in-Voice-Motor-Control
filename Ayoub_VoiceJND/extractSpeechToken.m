@@ -2,9 +2,10 @@ function [bTRS, fs] = extractSpeechToken(dirs)
 %%making voice file for JND from prerecorded stimuli written by EHM
 %%07/01/2017
 %Edited 08/23/2017: Dante Smith
-dirs.SavFileDir = fullfile(dirs.RecData, 'Pilot0', 'Run3', ['Pilot0' 'Run3DRF.mat']);
+SavFileDir    = dirs.SavFileDir;
+baseTokenFile = dirs.baseTokenFile;
 
-load(dirs.SavFileDir);
+load(SavFileDir);
 thisData  = DRF.rawData(9);      % Take the 9th trial. It will be a control trial
 fsRec     = DRF.expParam.sRateAnal;
 fs        = 44100;
@@ -47,5 +48,5 @@ bTW = bT.*window';     %windowed
 bTRS = resample(bTW, fs, fsRec); %resampled
 
 %See line 71 of GAP-Pitch....
-audiowrite(dirs.baseTokenFile, bTRS, fs)
+audiowrite(baseTokenFile, bTRS, fs)
 end
