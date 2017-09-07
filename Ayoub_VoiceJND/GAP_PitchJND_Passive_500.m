@@ -71,7 +71,6 @@ if ~exist(dirs.tokenDir, 'dir')
 end
 
 %% Setting up the up-down paradigm (modified based on Palam)
-
 UD.up = 1;    % Number of consecutive responses before an increase
 UD.down = 2;  % Number of consecutive responses before a decrease
 stepSize = 4; %This is something to tune; in cents
@@ -94,16 +93,15 @@ UD.reversal = 0;
 UD.xCurrent = UD.startValue;
 UD.x = UD.startValue;
 UD.xStaircase = [];
-% UD.totalTrials = 60; %max number of trials if max trials/reversals not reached
 waitForKeyPress = 3 ; % in seconds
-ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
+UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 
 %% recording audio samples
 [BaseToken, fs]= extractSpeechToken(dirs);
 subjf0 = calcf0(BaseToken, fs);
 PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin);
 numPertFreqs = length(PertFreqs);
-tokens = generatef0JNDTokens(dirs, numPertFreqs, PertFreqs);
+PertTokens = generatef0JNDTokens(dirs, numPertFreqs, PertFreqs);
 
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
@@ -116,9 +114,9 @@ while (UD.stop == 0) & tr < UD.totalTrials
     set(h2,'String','+')
     drawnow;
     
-    PertToken = [];
     tempVar = randperm(5);
     Pert = UD.xCurrent; %cents
+    PertToken = PertTokens(Pert, :);
     if tempVar(1) == 1 || tempVar(1) == 3   % scenario I (first one is Pert) : % 40% of trials
         Token1 = PertToken;
         Token2 = BaseToken;
@@ -132,14 +130,14 @@ while (UD.stop == 0) & tr < UD.totalTrials
         Token2 = BaseToken;
         conVar = 0; %catch trials will be randomly presented but will not be included in the adaptive procedure        
     end
-    TokenLen1 = length(Token1); TokenLen2 = length(Token2);
+    TokenLen1 = length(Token1)/fs; TokenLen2 = length(Token2)/fs;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
-%     sound(Token1, fs)
-%     pause(TokenLen1 + 0.1 + ISI)
-%     sound(Token2, fs)
-%     pause(TokenLen2 + 0.1)
+    sound(Token1, fs)
+    pause(TokenLen1 + 0.1 + UD.ISI)
+    sound(Token2, fs)
+    pause(TokenLen2 + 0.1)
     %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

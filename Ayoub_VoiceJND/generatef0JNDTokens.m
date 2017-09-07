@@ -1,4 +1,4 @@
-function tokens = generatef0JNDTokens(dirs, numTokens, PertFreqs)   
+function PertTokens = generatef0JNDTokens(dirs, numTokens, PertFreqs)   
 %This expects that you have calculated f0 elsewhere and have already
 %determined the spacing in (Hz) for each set of stimuli
 
@@ -23,7 +23,8 @@ gt_fn = fullfile(psDir, 'batchf0JNDTokens.praat');
 if ~exist(gt_fn, 'file')
     error('file ''batchf0JNDTokens.praat'' not found')
 end
-    
+ 
+PertTokens = [];
 for ii = 1:numTokens
     targetPert = PertFreqs(ii);
     targetPertName = ['Cent' num2str(ii)];
@@ -47,7 +48,9 @@ for ii = 1:numTokens
             error('ERROR: something went wrong')
         end
     end
+    
+    [thisToken, fs] = audioread(fullfile(tokenDir, [targetPertName '.wav']));
+    PertTokens = cat(1, PertTokens, thisToken');
 end
 
-tokens = [];
 end
