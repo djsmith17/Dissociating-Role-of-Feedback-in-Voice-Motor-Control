@@ -95,6 +95,7 @@ UD.x = UD.startValue;
 UD.xStaircase = [];
 waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
+UD.cuemixMainout = cuemixMainout;
 
 %% recording audio samples
 [BaseToken, fs]= extractSpeechToken(dirs);
@@ -135,9 +136,9 @@ while (UD.stop == 0) & tr < UD.totalTrials
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
     sound(Token1, fs)
-    pause(TokenLen1 + 0.1 + UD.ISI)
+    pause(TokenLen1 + 0.01 + UD.ISI)
     sound(Token2, fs)
-    pause(TokenLen2 + 0.1)
+    pause(TokenLen2 + 0.01)
     %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -181,25 +182,18 @@ while (UD.stop == 0) & tr < UD.totalTrials
     pause(1) %this is between two trials   
 end
 close all;
+elapsed_time = toc(ET)/60;
+disp (sprintf('Total time: %f (min)',elapsed_time));
 
 UD.BaseToken = BaseToken;
+UD.PertTokens = PertTokens;
 %CES - To disable saving of reactiontimes (we are doing this to avoid confusion since the investigator is keying in the selection at present)
 UD.reactionTime = ones(size(ReactionTime))*10000;
 
-FileName = [dirs.RecFileDir 'responseResults.mat'];
-dataFileName = [dirs.RecFileDir 'dataFile.mat'];
-save(FileName, 'UD');
+expFiles = fullfile(dirs.RecFileDir, 'ExperimentalParameters.mat');
+save(expFiles, 'UD');
 
-CueMixSave = [dirs.RecFileDir 'CueMixSettings.mat']; %makes a new .mat file to save 
-CueMixSettings.cuemixMic = cuemixMic; %defines saving of user input mic trim
-CueMixSettings.cuemixMainout = cuemixMainout; %defines saving of user input main out value
-save(CueMixSave,'CueMixSettings');%saves data
-
-clc;
-
-% thresholdAnalyzeUD(UD, 'reversals',4);
-elapsed_time = toc(ET)/60;
-disp (sprintf('Total time: %f (min)',elapsed_time));
+dataFileName = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'data.mat']);
 switch num_trials
     case 'Practice'
         out = [];
@@ -308,117 +302,4 @@ numCents = maxC - minC;
 for i = 1:numCents
     freqs(i) = f0*2^(i/1200);
 end
-end
-
-function data1 = offline_pitch_JND_passive (dataFile,Pert,genderSubject,StimulusDur,riseTime,fallTime,basetime)
-%% CONFIG
-addpath c:/speechres/commonmcode;
- cds('audapter_matlab');
-audioInterfaceName = 'ASIO4ALL';%'MOTU MicroBook';%
-
-sRate = 48000;  % Hardware sampling rate (before downsampling)
-downFact = 3;
-frameLen = 96;  % Before downsampling
-noiseWavFN = 'mtbabble48k.wav';
-% Audapter('deviceName', audioInterfaceName);
-Audapter('setParam', 'downFact', downFact, 0);
-Audapter('setParam', 'sRate', sRate / downFact, 0);
-Audapter('setParam', 'frameLen', frameLen / downFact, 0);
-
-%%
-ostFN = '../example_data/offline_pitch_JND_passive.ost';
-pcfFN = '../example_data/offline_pitch_JND_passive.pcf';
-
-write2pcf(pcfFN , Pert)
-
-check_file(ostFN);
-check_file(pcfFN);
-Audapter('ost', ostFN, 0);
-Audapter('pcf', pcfFN, 0);
-
-%%
-params = getAudapterDefaultParams(lower(genderSubject));
-
-params.f1Min = 0;
-params.f2Max = 5000;
-params.f2Min = 0;
-params.f2Max = 5000;
-params.pertF2 = linspace(0, 5000, 257);
-params.pertAmp = 0.0 * ones(1, 257);
-params.pertPhi = 0.0 * pi * ones(1, 257);
-params.bTrack = 1;
-params.bShift = 1;
-params.bRatioShift = 1;
-params.bMelShift = 0;
-maxPBSize = Audapter('getMaxPBLen');
-check_file(noiseWavFN);
-[w, fs] = audioread(noiseWavFN);
-if fs ~= params.sr * params.downFact
-    w = resample(w, params.sr * params.downFact, fs);
-end
-if length(w) > maxPBSize
-    w = w(1 : maxPBSize);
-end
-% Audapter('setParam', 'datapb', w, 1);
-params.fb3Gain = 0.1;
-params.fb = 1;
-params.pertAmp = Pert * ones(1, 257);
-params.pertPhi = 0.0 * pi * ones(1, 257);
-params.fb = 1;
-% AudapterIO('init', params);
-params.bDetect = 1;
-params.rmsThresh = 0.01;
-params.bRatioShift = 1;
-
-params.bBypassFmt = 1; %formant tracking bypassed, flag that not shifting formants during this script
-params.bTrack =0; %not necesssary because formants are not being shifted in this script
-%params.bShift = 1;
-%params.bBypassFmt = 0;
-
-params.bPitchShift = 1;
-
-
-fs = 16000;
-
-sigIn = dataFile;
-sigIn = resample(sigIn, fs * downFact, fs);
-sigInCell = makecell(sigIn, frameLen);
-
-params.rmsClipThresh=0.01;
-params.bRMSClip=1;
-AudapterIO('init', params);
-Audapter('setParam', 'rmsthr', 5e-3, 0);
-Audapter('reset');
-for n = 1 : length(sigInCell)
-    Audapter('runFrame', sigInCell{n});
-end
-data1 = AudapterIO('getData');
-
-%% normalize
-audioSignal = data1.signalOut;
-RMS_Source = sqrt(mean(dataFile.^2));
-RMS_Target = sqrt(mean(audioSignal.^2));
-audioSignal = audioSignal * (RMS_Source/RMS_Target);%this is normalizing the amplitude
-%Window = [sin(2*pi*linspace(0,riseTime,riseTime*fs)*((4*riseTime)^-1)).^2  ones(1,(StimulusDur - riseTime - fallTime) * fs) cos(2*pi*linspace(0,fallTime,fallTime*fs)*((4*fallTime)^-1)).^2];
-Window = [sin(2*pi*linspace(0,riseTime,floor(riseTime*fs))*((4*riseTime)^-1)).^2  ones(1,floor((StimulusDur - riseTime - fallTime) * fs)) cos(2*pi*linspace(0,fallTime,floor(fallTime*fs))*((4*fallTime)^-1)).^2];
-Window = Window(:);%this is a cosine square
-audioSignal = audioSignal(:);
-if length(Window) > length(audioSignal)
-    audioSignal = audioSignal(:) .* Window(1:length(audioSignal));
-elseif  length(Window) < length(audioSignal)
-    audioSignal = audioSignal(1:length(Window)) .* Window(:);
-else
-    audioSignal = audioSignal(:) .* Window(:);
-end
-audioSignal = audioSignal(:);
-
-
-audioSignal = audioSignal(:).*Window(:);
-
-audioSignal = .5*audioSignal/rms(audioSignal);
-% playerObj = audioplayer(audioSignal, fs);
-% playblocking(playerObj);
-sound(audioSignal, fs)
-pause(basetime+length(audioSignal)/fs+.01)
-
 end
