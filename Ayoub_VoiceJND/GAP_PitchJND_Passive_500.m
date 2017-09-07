@@ -50,7 +50,7 @@ dirs = dfDirs(project);
 % create the folder path to save the data files
 % baseFilename = ['data\' group, '\', subjectID, '\', session, '\',num_trials,'\'];
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
-dirs.SavFileDir = fullfile(dirs.RecData, expParam.subject, expParam.baseRec, [expParam.subject expParam.baseRec '.mat']);
+dirs.SavFileDir = fullfile(dirs.RecData, expParam.subject, expParam.baseRec, [expParam.subject expParam.baseRec 'DRF.mat']);
 
 dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
 dirs.baseTokenFile = fullfile(dirs.tokenDir,[expParam.subject expParam.run 'BaseToken.wav']);
@@ -66,6 +66,11 @@ else
     if ~strcmp(overwrite,'yes') & ~strcmp(overwrite,'YES') & ~strcmp(overwrite,'Yes')
         return;
     end
+end
+
+if ~exist(dirs.SavFileDir, 'file')
+    disp('ERROR: No baseline file at this location!')
+    return
 end
 
 if ~exist(dirs.tokenDir, 'dir')
