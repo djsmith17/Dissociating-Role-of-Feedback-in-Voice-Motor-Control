@@ -17,7 +17,7 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
