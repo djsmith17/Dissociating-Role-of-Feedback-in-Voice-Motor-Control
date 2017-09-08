@@ -20,11 +20,12 @@ cuemixMainout = str2num(answer{1});%main out setting
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Run:',...
+          'Baseline Trial:',...
           'Direction ("Above" or "Below":',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','JNDpitch1','Run3','Above', 'female'};
+defaultanswer = {'null','JNDpitch1','Run3', '9', 'Above', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -44,8 +45,9 @@ end
 expParam.subject = answer{1};
 expParam.run     = answer{2};
 expParam.baseRec = answer{3};
-expParam.JNDDirection = answer{4};
-Gender =  answer{5};
+expParam.baseTrial = str2double(answer{4});
+expParam.JNDDirection = answer{5};
+Gender =  answer{6};
 project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 dirs = dfDirs(project);
 
@@ -113,7 +115,7 @@ else
 end
 
 %% recording audio samples
-[BaseToken, fs]= dfGenerateBT(dirs); %Extract a Speech Token. Located in JND Folder
+[BaseToken, fs]= dfGenerateBT(dirs, expParam.baseTrial); %Extract a Speech Token. Located in JND Folder
 subjf0 = calcf0(BaseToken, fs);            %Located below
 PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
 numPertFreqs = length(PertFreqs);

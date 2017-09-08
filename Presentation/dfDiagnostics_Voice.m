@@ -11,12 +11,24 @@ function [allrmsMean, finalrmsMean] = dfDiagnostics_Voice()
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
+expParam.subject    = 'Pilot0'; %Subject#, Pilot#, null
+expParam.run        = 'BV1';
 expParam.numTrial   = 3;
 expParam.gender     = 'male';
 expParam.masking    = 0;
 expParam.trialLen   = 4; %Seconds
 
 dirs = dfDirs(expParam.project);
+
+dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
+
+if exist(dirs.RecFileDir, 'dir') == 0
+    mkdir(dirs.RecFileDir)
+end
+if exist(dirs.RecWaveDir, 'dir') == 0
+    mkdir(dirs.RecWaveDir)
+end
 
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
@@ -39,6 +51,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 refSPL  = 0.00002; %20 micropascals
 
+rawData = [];
 allrmsMean = [];
 for ii = 1:expParam.numTrial
     
@@ -59,11 +72,22 @@ for ii = 1:expParam.numTrial
     
     data    = AudapterIO('getData');
     rmsMean = calcMeanRMS(data, refSPL);
+
+    rawData = cat(1, rawData, data);
     
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
 
 finalrmsMean = mean(allrmsMean);
+expParam.finalrmsMean = finalrmsMean;
+
+DRF.dirs        = dirs;
+DRF.expParam    = expParam;
+DRF.p           = p;
+DRF.rawData     = rawData; 
+
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
+save(dirs.RecFileDir, 'DRF')
 
 fprintf('\nThe mean amplitude from each of the three voice recordings were %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
 fprintf('\nThe mean amplitude from all three voice recordings is %4.2f dB\n', finalrmsMean)
