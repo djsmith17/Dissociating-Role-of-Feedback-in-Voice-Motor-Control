@@ -52,5 +52,4 @@ for ii = 1:numTokens
     [thisToken, fs] = audioread(fullfile(tokenDir, [targetPertName '.wav']));
     PertTokens = cat(1, PertTokens, thisToken');
 end
-
 end

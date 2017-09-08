@@ -20,10 +20,11 @@ cuemixMainout = str2num(answer{1});%main out setting
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Run:',...
+          'Direction ("Above" or "Below":',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','JNDpitch1','Run3','female'};
+defaultanswer = {'null','JNDpitch1','Run3','Above', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -43,7 +44,8 @@ end
 expParam.subject = answer{1};
 expParam.run     = answer{2};
 expParam.baseRec = answer{3};
-Gender =  answer{4};
+expParam.JNDDirection = answer{4};
+Gender =  answer{5};
 project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 dirs = dfDirs(project);
 
@@ -104,10 +106,16 @@ waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 UD.cuemixMainout = cuemixMainout;
 
+if strcmp(expParam.JNDDirection, 'Above')
+    sign = 1;
+else
+    sign = -1;
+end
+
 %% recording audio samples
 [BaseToken, fs]= dfGenerateBT(dirs); %Extract a Speech Token. Located in JND Folder
 subjf0 = calcf0(BaseToken, fs);            %Located below
-PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin); %Located Below
+PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
 numPertFreqs = length(PertFreqs);
 PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
 
@@ -301,12 +309,12 @@ else
 end
 end
 
-function freqs = targetf0calc(f0, maxC, minC)
+function freqs = targetf0calc(f0, maxC, minC, sign)
 %calculates all possible freq vals spaced 1 cent apart. 
 
 numCents = maxC - minC;
 
 for i = 1:numCents
-    freqs(i) = f0*2^(i/1200);
+    freqs(i) = f0*2^(sign*i/1200);
 end
 end

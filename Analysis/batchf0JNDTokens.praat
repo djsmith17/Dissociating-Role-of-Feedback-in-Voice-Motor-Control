@@ -54,5 +54,3 @@ resynthesis_pitch = resynthesis_pitch + 20
 
 select all
 Remove
-	
-Quit
