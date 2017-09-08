@@ -196,6 +196,10 @@ while (UD.stop == 0) && tr < UD.totalTrials
     else % when it is a catch trial do not update UD structure (i.e., do not change the up-down steps based on catch trials)
         UD.catchResponse(tr,1) = response;
     end
+    
+    msg = JNDMessage(tr, conVar, response);
+    disp(msg)
+    
     pause(1) %this is between two trials   
 end
 close all;
@@ -319,4 +323,20 @@ numCents = maxC - minC;
 for i = 1:numCents
     freqs(i) = f0*2^(sign*i/1200);
 end
+end
+
+function msg = JNDMessage(tr, conVar, response)
+
+msg = ['Trial ' num2str(tr) ': '];
+
+if conVar == 1 && response == 1
+    msg = [msg 'Was Diff, Answered Diff'];
+elseif conVar == 1 && response == 0
+    msg = [msg 'Was Diff, Answered Same'];
+elseif conVar == 0 && response == 1
+    msg = [msg 'Was Same, Answered Diff'];
+elseif conVar == 0 && response == 0
+    msg = [msg 'Was Same, Answered Same'];
+end
+
 end

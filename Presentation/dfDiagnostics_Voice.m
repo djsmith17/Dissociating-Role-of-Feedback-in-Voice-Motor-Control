@@ -17,6 +17,7 @@ expParam.numTrial   = 3;
 expParam.gender     = 'male';
 expParam.masking    = 0;
 expParam.trialLen   = 4; %Seconds
+expParam.CueMixTrimMic = 38;
 
 dirs = dfDirs(expParam.project);
 
