@@ -55,6 +55,8 @@ refSPL  = 0.00002; %20 micropascals
 rawData = [];
 allrmsMean = [];
 for ii = 1:expParam.numTrial
+    expParam.curTrial     = ['Trial' num2str(ii)];
+    expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     fprintf('Ready to Record?\n')
     pause()
@@ -74,6 +76,7 @@ for ii = 1:expParam.numTrial
     data    = AudapterIO('getData');
     rmsMean = calcMeanRMS(data, refSPL);
 
+    data = dfSaveRawData(expParam, dirs);
     rawData = cat(1, rawData, data);
     
     allrmsMean = cat(1, allrmsMean, rmsMean); 
