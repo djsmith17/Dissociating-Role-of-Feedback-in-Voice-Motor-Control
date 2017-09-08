@@ -1,5 +1,6 @@
 function Mean = dfAnalyzeThresholdJND(UD, varargin)
 % modified from Palam
+% Received from Ayoub Daliri
 HighReversal = max(UD.reversal);
 NumTrials = length(UD.response);
 
