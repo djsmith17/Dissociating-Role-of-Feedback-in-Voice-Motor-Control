@@ -1,4 +1,4 @@
-function out = GAP_PitchJND_Passive_500()
+function meanScore = GAP_PitchJND_Passive_500()
 
 close all;
 ET = tic;
@@ -203,11 +203,11 @@ save(expFiles, 'UD');
 dataFileName = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'data.mat']);
 switch num_trials
     case 'Practice'
-        out = [];
+        meanScore = [];
     case 'Full'
-        out = thresholdAnalyzeUD(UD, 'reversals',4)*.01;
+        meanScore = thresholdAnalyzeUD(UD, 'reversals',4)*.01;
         dataFile.time = elapsed_time;
-        dataFile.score = out;
+        dataFile.score = meanScore;
         dataFile.totalTrials = length(UD.catchResponse);
         dataFile.JNDTrials = length(UD.reversal);
         dataFile.catchTrials = length(UD.catchResponse) - length(UD.reversal);
