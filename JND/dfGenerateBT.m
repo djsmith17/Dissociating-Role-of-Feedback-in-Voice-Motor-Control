@@ -1,7 +1,7 @@
-function [bTRS, fs] = extractSpeechToken(dirs)
-%%making voice file for JND from prerecorded stimuli written by EHM
-%%07/01/2017
-%Edited 08/23/2017: Dante Smith
+function [bTRS, fs] = dfGenerateBT(dirs)
+%Extract and create a baseline token for use in a JND experiment. Token is
+%created from existing voice data (previous experiments)
+
 SavFileDir    = dirs.SavFileDir;
 baseTokenFile = dirs.baseTokenFile;
 

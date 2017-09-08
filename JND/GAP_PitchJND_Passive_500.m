@@ -105,11 +105,11 @@ UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1
 UD.cuemixMainout = cuemixMainout;
 
 %% recording audio samples
-[BaseToken, fs]= extractSpeechToken(dirs);
-subjf0 = calcf0(BaseToken, fs);
-PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin);
+[BaseToken, fs]= dfGenerateBT(dirs); %Extract a Speech Token. Located in JND Folder
+subjf0 = calcf0(BaseToken, fs);            %Located below
+PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin); %Located Below
 numPertFreqs = length(PertFreqs);
-PertTokens = generatef0JNDTokens(dirs, numPertFreqs, PertFreqs);
+PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
 
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;

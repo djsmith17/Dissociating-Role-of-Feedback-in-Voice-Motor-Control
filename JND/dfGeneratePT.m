@@ -1,4 +1,4 @@
-function PertTokens = generatef0JNDTokens(dirs, numTokens, PertFreqs)   
+function PertTokens = dfGeneratePT(dirs, numTokens, PertFreqs)   
 %This expects that you have calculated f0 elsewhere and have already
 %determined the spacing in (Hz) for each set of stimuli
 
