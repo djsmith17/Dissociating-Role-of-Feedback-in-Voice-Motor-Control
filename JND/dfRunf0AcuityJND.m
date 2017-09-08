@@ -1,4 +1,4 @@
-function meanScore = GAP_PitchJND_Passive_500()
+function meanScore = dfRunf0AcuityJND()
 
 close all;
 ET = tic;
