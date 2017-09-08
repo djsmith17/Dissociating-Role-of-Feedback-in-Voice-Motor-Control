@@ -116,7 +116,7 @@ PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens.
 pause(5);
 
 tr = 0;
-while (UD.stop == 0) & tr < UD.totalTrials
+while (UD.stop == 0) && tr < UD.totalTrials
     tr = tr +1;
     %Present the word
     set(h2,'String','+')
@@ -181,7 +181,7 @@ while (UD.stop == 0) & tr < UD.totalTrials
     set(h4, 'Visible','off');
     drawnow
     if conVar == 1 % update the UD structure on real trials
-        UD = adaptiveUD_Update(UD, response);
+        UD = dfAdaptiveUpdateJND(UD, response);
         UD.catchResponse(tr,1) = NaN;
     else % when it is a catch trial do not update UD structure (i.e., do not change the up-down steps based on catch trials)
         UD.catchResponse(tr,1) = response;
@@ -190,7 +190,7 @@ while (UD.stop == 0) & tr < UD.totalTrials
 end
 close all;
 elapsed_time = toc(ET)/60;
-disp (sprintf('Total time: %f (min)',elapsed_time));
+sprintf('Total time: %f (min)', elapsed_time)
 
 UD.BaseToken = BaseToken;
 UD.PertTokens = PertTokens;
@@ -205,7 +205,7 @@ switch num_trials
     case 'Practice'
         meanScore = [];
     case 'Full'
-        meanScore = thresholdAnalyzeUD(UD, 'reversals',4)*.01;
+        meanScore = dfAnalyzeThresholdJND(UD, 'reversals',4)*.01;
         dataFile.time = elapsed_time;
         dataFile.score = meanScore;
         dataFile.totalTrials = length(UD.catchResponse);

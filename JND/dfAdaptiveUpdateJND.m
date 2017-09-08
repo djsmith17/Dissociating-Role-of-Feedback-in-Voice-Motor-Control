@@ -1,4 +1,4 @@
-function UD = adaptiveUD_Update(UD, response)
+function UD = dfAdaptiveUpdateJND(UD, response)
 % Modified from Palam
 trial = length(UD.x);
 UD.response(trial) = response;

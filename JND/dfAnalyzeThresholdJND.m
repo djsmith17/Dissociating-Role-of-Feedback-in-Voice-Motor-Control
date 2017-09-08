@@ -1,4 +1,4 @@
-function Mean = thresholdAnalyzeUD(UD, varargin)
+function Mean = dfAnalyzeThresholdJND(UD, varargin)
 % modified from Palam
 HighReversal = max(UD.reversal);
 NumTrials = length(UD.response);
