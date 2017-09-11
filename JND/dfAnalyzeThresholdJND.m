@@ -1,4 +1,4 @@
-function Mean = dfAnalyzeThresholdJND(UD, varargin)
+function meanJND = dfAnalyzeThresholdJND(UD, varargin)
 % modified from Palam
 % Received from Ayoub Daliri
 HighReversal = max(UD.reversal);
@@ -38,9 +38,9 @@ else
 end
 
 if strncmpi(criterion,'reversals',4)
-    Mean = sum(UD.xStaircase(UD.reversal >= LowReversal))/(HighReversal-LowReversal+1);
+    meanJND = sum(UD.xStaircase(UD.reversal >= LowReversal))/(HighReversal-LowReversal+1);
 else
-    Mean = sum(UD.xStaircase(LowTrial:NumTrials))/(NumTrials-LowTrial+1);
+    meanJND = sum(UD.xStaircase(LowTrial:NumTrials))/(NumTrials-LowTrial+1);
 end
 
 figure1 = figure('Color',[1 1 1]);
@@ -53,7 +53,7 @@ plot(UD.x,'LineWidth',3);
 hold on;
 plot(find(UD.response==1),UD.x(find(UD.response==1)),'o','MarkerFaceColor',[0 0 1],'MarkerEdgeColor',[0 0 1],'MarkerSize',10);
 plot(find(UD.response==0),UD.x(find(UD.response==0)),'o','MarkerFaceColor',[1 0 0],'MarkerEdgeColor',[1 0 0],'MarkerSize',10);
-line([0 length(UD.response)], [Mean Mean],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1])
+line([0 length(UD.response)], [meanJND meanJND],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1])
 xlabel('Trials','FontSize',20,'FontName','Arial');
 ylabel('Perturbations','FontSize',20,'FontName','Arial');
 
