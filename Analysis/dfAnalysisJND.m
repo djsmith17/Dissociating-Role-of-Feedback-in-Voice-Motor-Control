@@ -24,5 +24,6 @@ for ii = 1:4
     allmeanJND = cat(1, allmeanJND, meanJND);
 end
 
+drawJNDResults(allRunData)
 
 end
