@@ -4,28 +4,15 @@ close all;
 ET = tic;
 rng('shuffle');
 
-cue_check = input('Did you check the CueMix Fx configuration is correct? (0 = no, 1 = yes): ');
-if cue_check == 0
-    errordlg('Check CueMix setting!');
-    return
-end
- 
-prompt = {'CueMix MainOut (100 for max, otherwise clock orientation): '}; %This line asks for cuemix trim settings for MainOut. MainOut doesn't have values, so max settings is "100", otherwise, specify clock orientation (for example, for the setting level with the "12" on the bar to the left, it would be 9). 
-name = 'MainOut';
-numlines = 1;
-defaultanswer={'00'}; %input box for cuemix trim setting
-answer=inputdlg(prompt, name, numlines, defaultanswer);
-cuemixMainout = str2num(answer{1});%main out setting 
-
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Run:',...
           'Baseline Trial:',...
-          'Direction ("Above" or "Below":',...
+          'Direction ("Above" or "Below"):',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','JNDpitch1','Run3', '9', 'Above', 'female'};
+defaultanswer = {'null','JNDpitch1','BV1', '3', 'Above', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
