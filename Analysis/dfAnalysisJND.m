@@ -13,9 +13,9 @@ end
 allRunData = [];
 allmeanJND = [];
 for ii = 1:4
-    JNDa.run         = ['JNDpitch' num2str(ii)];
+    JNDa.run         = ['fA' num2str(ii)];
     
-    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, JNDa.run, ['ExperimentalParameters.mat']); %Where to find data
+    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, JNDa.run, 'DRF.mat'); %Where to find data
     
     load(dirs.SavFileDir)
     meanJND = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents

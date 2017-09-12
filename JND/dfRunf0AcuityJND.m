@@ -171,14 +171,14 @@ while (UD.stop == 0) && tr < UD.totalTrials
         UD.catchResponse(tr,1) = response;
     end
     
-    msg = JNDMessage(tr, conVar, response);
+    msg = JNDMessage(tr, conVar, response, Pert);
     disp(msg)
     
     pause(1) %this is between two trials   
 end
 close all;
 elapsed_time = toc(ET)/60;
-sprintf('Total time: %f (min)', elapsed_time)
+fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 
 UD.subjf0    = subjf0;
 UD.BaseToken = BaseToken;
@@ -290,9 +290,9 @@ for i = 1:numCents
 end
 end
 
-function msg = JNDMessage(tr, conVar, response)
+function msg = JNDMessage(tr, conVar, response, Pert)
 
-msg = ['Trial ' num2str(tr) ': '];
+msg = ['Trial ' num2str(tr) ' at ' num2str(Pert) 'cents: '];
 
 if conVar == 1 && response == 1
     msg = [msg 'Was Diff, Answered Diff'];
