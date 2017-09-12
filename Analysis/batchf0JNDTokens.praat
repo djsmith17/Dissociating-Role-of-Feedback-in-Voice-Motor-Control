@@ -10,7 +10,6 @@ form Resynthize files to have flat pitch
 	sentence Sound_file_extension
 	sentence targetPertName
         positive targetPert
-	## positive Resynthesis_pitch_(Hz) 150
 endform
 
 #Here, you make a listing of all the sound files in a directory.
@@ -26,8 +25,6 @@ start = Get start time
 end = Get end time
 
 To Manipulation... 0.01 75 600
-
-resynthesis_pitch = 110
 
 # Create a new pitch tier with the flat pitch:
 
@@ -48,9 +45,6 @@ Write to WAV file... 'tokenDir$''targetPertName$''sound_file_extension$'
 ##plus Manipulation 'sound_one$'
 select PitchTier 'sound_one$'
 Remove
-
-##select Sound 'sound_one$'
-resynthesis_pitch = resynthesis_pitch + 20
 
 select all
 Remove
