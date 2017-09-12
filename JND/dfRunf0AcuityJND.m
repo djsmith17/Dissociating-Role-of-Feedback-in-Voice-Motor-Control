@@ -52,9 +52,10 @@ if ~exist(dirs.SavFileDir, 'file')
     return
 end
 
-if ~exist(dirs.tokenDir, 'dir')
-    mkdir(dirs.tokenDir);
+if exist(dirs.tokenDir, 'dir')
+    rmdir(dirs.tokenDir, 's')  
 end
+mkdir(dirs.tokenDir);
 
 % Setting up the up-down paradigm (modified based on Palam)
 UD.totalTrials = totalTrials;
