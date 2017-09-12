@@ -1,4 +1,4 @@
-function meanScore = dfRunf0AcuityJND()
+function dfRunf0AcuityJND()
 % Received from Ayoub Daliri
 close all;
 ET = tic;
@@ -22,10 +22,8 @@ end
 num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full') ;
 switch num_trials
     case 'Practice'
-        num_trials = 'Practice';
         totalTrials = 9;
     case 'Full'
-        num_trials = 'Full';
         totalTrials = 60; %max number of trials if max trials/reversals not reached
 end
 
