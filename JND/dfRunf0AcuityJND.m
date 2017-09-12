@@ -23,44 +23,34 @@ num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full') ;
 switch num_trials
     case 'Practice'
         num_trials = 'Practice';
-        UD.totalTrials = 9;
+        totalTrials = 9;
     case 'Full'
         num_trials = 'Full';
-        UD.totalTrials = 60; %max number of trials if max trials/reversals not reached
+        totalTrials = 60; %max number of trials if max trials/reversals not reached
 end
 
-expParam.subject = answer{1};
-expParam.run     = answer{2};
-expParam.baseRec = answer{3};
-expParam.baseTrial = str2double(answer{4});
-expParam.JNDDirection = answer{5};
-Gender =  answer{6};
-project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-dirs = dfDirs(project);
+UD.project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+UD.subject = answer{1};
+UD.run     = answer{2};
+UD.baseRec = answer{3};
+UD.baseTrial = str2double(answer{4});
+UD.JNDDirection = answer{5};
+UD.gender =  answer{6};
 
-% create the folder path to save the data files
-% baseFilename = ['data\' group, '\', subjectID, '\', session, '\',num_trials,'\'];
-dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
-dirs.SavFileDir = fullfile(dirs.RecData, expParam.subject, expParam.baseRec, [expParam.subject expParam.baseRec 'DRF.mat']);
+dirs = dfDirs(UD.project);
+% Folder paths to save data files
+dirs.RecFileDir = fullfile(dirs.RecData, UD.subject, UD.run);
+dirs.SavFileDir = fullfile(dirs.RecData, UD.subject, UD.baseRec, [UD.subject UD.baseRec 'DRF.mat']);
 
 dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
-dirs.baseTokenFile = fullfile(dirs.tokenDir,[expParam.subject expParam.run 'BaseToken.wav']);
+dirs.baseTokenFile = fullfile(dirs.tokenDir,[UD.subject UD.run 'BaseToken.wav']);
 
-% check if the foler exists (to avoid overwrite)
 if ~exist(dirs.RecFileDir, 'dir')
     mkdir(dirs.RecFileDir);
-    while exist(dirs.RecFileDir,'dir') ~= 7
-        mkdir(dirs.RecFileDir);
-    end
-else
-    overwrite = inputdlg({'File already exists! Do you want to overwrite?'},'Overwrite',1,{'no'});
-    if ~strcmp(overwrite,'yes') & ~strcmp(overwrite,'YES') & ~strcmp(overwrite,'Yes')
-        return;
-    end
 end
 
 if ~exist(dirs.SavFileDir, 'file')
-    disp('ERROR: No baseline file at this location!')
+    disp('ERROR: No voice file at this location!')
     return
 end
 
@@ -69,6 +59,7 @@ if ~exist(dirs.tokenDir, 'dir')
 end
 
 %% Setting up the up-down paradigm (modified based on Palam)
+UD.totalTrials = totalTrials;
 UD.up = 1;    % Number of consecutive responses before an increase
 UD.down = 2;  % Number of consecutive responses before a decrease
 stepSize = 4; %This is something to tune; in cents
@@ -93,16 +84,15 @@ UD.x = UD.startValue;
 UD.xStaircase = [];
 waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
-UD.cuemixMainout = cuemixMainout;
 
-if strcmp(expParam.JNDDirection, 'Above')
+if strcmp(UD.JNDDirection, 'Above')
     sign = 1;
 else
     sign = -1;
 end
 
 %% recording audio samples
-[BaseToken, fs]= dfGenerateBT(dirs, expParam.baseTrial); %Extract a Speech Token. Located in JND Folder
+[BaseToken, fs]= dfGenerateBT(dirs, UD.baseTrial); %Extract a Speech Token. Located in JND Folder
 subjf0 = calcf0(BaseToken, fs);            %Located below
 PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
 numPertFreqs = length(PertFreqs);
@@ -201,7 +191,7 @@ UD.reactionTime = ones(size(ReactionTime))*10000;
 expFiles = fullfile(dirs.RecFileDir, 'ExperimentalParameters.mat');
 save(expFiles, 'UD');
 
-dataFileName = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'data.mat']);
+dataFileName = fullfile(dirs.RecFileDir, [UD.subject UD.run 'data.mat']);
 switch num_trials
     case 'Practice'
         meanScore = [];
