@@ -18,12 +18,11 @@ for ii = 1:4
     dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, JNDa.run, ['ExperimentalParameters.mat']); %Where to find data
     
     load(dirs.SavFileDir)
-    meanJND = dfAnalyzeThresholdJND(UD, 'reversals', 4)*.01; %Semitones
+    meanJND = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
     
     allRunData = cat(1, allRunData, UD);
     allmeanJND = cat(1, allmeanJND, meanJND);
 end
 
-drawJNDResults(allRunData)
-
+drawJNDResults(JNDa, dirs, allRunData, allmeanJND)
 end
