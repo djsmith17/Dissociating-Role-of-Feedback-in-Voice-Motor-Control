@@ -96,6 +96,7 @@ PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
 numPertFreqs = length(PertFreqs);
 PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
 
+fprintf('Starting f0 Acuity Task for %s with f0 of %d\n', UD.subject, subjf0)
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
 pause(5);
