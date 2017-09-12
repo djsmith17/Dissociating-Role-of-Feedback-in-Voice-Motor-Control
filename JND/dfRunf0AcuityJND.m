@@ -12,7 +12,7 @@ prompt = {'Subject ID:',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','JNDpitch1','BV1', '3', 'Above', 'female'};
+defaultanswer = {'null','fA1','BV1', '3', 'Above', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -58,7 +58,7 @@ if ~exist(dirs.tokenDir, 'dir')
     mkdir(dirs.tokenDir);
 end
 
-%% Setting up the up-down paradigm (modified based on Palam)
+% Setting up the up-down paradigm (modified based on Palam)
 UD.totalTrials = totalTrials;
 UD.up = 1;    % Number of consecutive responses before an increase
 UD.down = 2;  % Number of consecutive responses before a decrease
@@ -91,7 +91,7 @@ else
     sign = -1;
 end
 
-%% recording audio samples
+% Generate audio tokens
 [BaseToken, fs]= dfGenerateBT(dirs, UD.baseTrial); %Extract a Speech Token. Located in JND Folder
 subjf0 = calcf0(BaseToken, fs);            %Located below
 PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
@@ -136,9 +136,8 @@ while (UD.stop == 0) && tr < UD.totalTrials
     %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    %% Present the YES/NO question
-    %     set(h1,'Visible','off');
-    set(h2, 'String','PITCH','FontSize',80)%was 'WERE THEY DIFFERENT'
+    % Present the YES/NO question
+    set(h2, 'String', 'PITCH', 'FontSize', 80)
     set(h3, 'Visible','on');
     set(h4, 'Visible','on');
     drawnow
@@ -183,29 +182,20 @@ close all;
 elapsed_time = toc(ET)/60;
 sprintf('Total time: %f (min)', elapsed_time)
 
+UD.subjf0    = subjf0;
 UD.BaseToken = BaseToken;
 UD.PertTokens = PertTokens;
-%CES - To disable saving of reactiontimes (we are doing this to avoid confusion since the investigator is keying in the selection at present)
 UD.reactionTime = ones(size(ReactionTime))*10000;
+UD.elapsedTime = elapsed_time;
 
-expFiles = fullfile(dirs.RecFileDir, 'ExperimentalParameters.mat');
+UD.performedTrials = length(UD.catchResponse);
+UD.JNDTrials = length(UD.reversal);
+UD.catchTrials = length(UD.catchResponse) - length(UD.reversal);
+UD.reversals = max(UD.reversal);
+UD.catchCorrect = sum(UD.catchResponse == 0);
+
+expFiles = fullfile(dirs.RecFileDir, [UD.subject UD.run 'DRF.mat']);
 save(expFiles, 'UD');
-
-dataFileName = fullfile(dirs.RecFileDir, [UD.subject UD.run 'data.mat']);
-switch num_trials
-    case 'Practice'
-        meanScore = [];
-    case 'Full'
-        meanScore = dfAnalyzeThresholdJND(UD, 'reversals',4)*.01;
-        dataFile.time = elapsed_time;
-        dataFile.score = meanScore;
-        dataFile.totalTrials = length(UD.catchResponse);
-        dataFile.JNDTrials = length(UD.reversal);
-        dataFile.catchTrials = length(UD.catchResponse) - length(UD.reversal);
-        dataFile.reversals = max(UD.reversal);
-        dataFile.catchCorrect = sum(UD.catchResponse == 0);
-        save(dataFileName, 'dataFile');
-end
 end
 
 function [h2, h3, h4] = JNDVisualPresentation
