@@ -213,7 +213,7 @@ UD.elapsedTime = elapsed_time;
 UD.performedTrials = length(UD.catchResponse);
 UD.JNDTrials = length(UD.reversal);
 UD.catchTrials = length(UD.catchResponse) - length(UD.reversal);
-UD.reversals = maxVal(UD.reversal);
+UD.reversals = max(UD.reversal);
 UD.catchCorrect = sum(UD.catchResponse == 0);
 UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
 
@@ -292,7 +292,7 @@ end
 function JNDMessage(tr, PertVals, PertDist, conVar, response, state)
 
 if state == 1
-    msg = ['Trial ' num2str(tr) ' at ' num2str(PertDist) ' (' num2str(PertVals(1)) ' ,' num2str(PertVals(2)) '): '];
+    msg = ['Trial ' num2str(tr) ' at ' num2str(PertDist) ' (' num2str(PertVals(1)) ', ' num2str(PertVals(2)) '): '];
     
     if conVar == 1
         msg = [msg 'Is Diff, Answered '];
