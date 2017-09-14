@@ -185,10 +185,10 @@ while (UD.stop == 0) && tr < UD.totalTrials
     set(h4, 'Visible','off');
     drawnow
     
-    %Treat a correct same trial the same as a correct different trial for adaption
-    if conVar == 0 && response == 0 
+    %Treat an incorrect same trial the same as an incorrect different trial for adaption
+    if conVar == 0 && response == 1 
         conVar = 1;
-        response = 1;
+        response = 0;
     end    
     
     if conVar == 1 % update the UD structure on real trials
