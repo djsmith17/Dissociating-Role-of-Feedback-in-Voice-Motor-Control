@@ -193,6 +193,7 @@ UD.JNDTrials = length(UD.reversal);
 UD.catchTrials = length(UD.catchResponse) - length(UD.reversal);
 UD.reversals = max(UD.reversal);
 UD.catchCorrect = sum(UD.catchResponse == 0);
+UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
 
 expFiles = fullfile(dirs.RecFileDir, [UD.subject UD.run 'DRF.mat']);
 save(expFiles, 'UD');
