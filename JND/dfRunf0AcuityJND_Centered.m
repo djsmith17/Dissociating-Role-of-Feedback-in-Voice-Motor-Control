@@ -106,32 +106,45 @@ while (UD.stop == 0) && tr < UD.totalTrials
     set(h2,'String','+')
     drawnow;
     
-    tempVar = randperm(4);
+    
     PertDist = UD.xCurrent; %cents
-    
-    
-    
-    rnSt = round((100 - 1)*rand + 1);
-    PertToken = PertTokens(Pert, :);
+    min = 0.5; max = PertDist - min;   
+    PairA = round(2*(max - min)*rand + min)/2;
+
+    tempVar = randperm(4);
     if tempVar(1) == 1 
-        PertVal1 = UD.xAll(rnSt) %Below 0
-        PertVal2 = PertVal1 + PertDist 
+        pertA = PairA;
+        pertB = pertA - PertDist;
         
-        Token1 = PertToken;
-        Token2 = BaseToken;
+        indA = find(UD.xAll == pertA);
+        indB = find(UD.xAll == pertB);
+        
+        Token1 = PertTokens(indA, :);
+        Token2 = PertTokens(indB, :);
         conVar = 1;
     elseif tempVar(1) == 3
-        Token1 = PertToken;
-        Token2 = BaseToken;
+        pertA = -PairA;
+        pertB = pertA + PertDist;
+        
+        indA = find(UD.xAll == pertA);
+        indB = find(UD.xAll == pertB);
+        
+        Token1 = PertTokens(indA, :);
+        Token2 = PertTokens(indB, :);
         conVar = 1;
     elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
-        Token1 = BaseToken;
-        Token2 = BaseToken;
+        sign = round(rand)*2 - 1;
+        pertA = sign*PairA;
+        pertB = pertA;
+        indA = find(UD.xAll == pertA);
+        
+        Token1 = PertTokens(indA, :);
+        Token2 = PertTokens(indA, :);
         conVar = 0;
     end
     TokenLen1 = length(Token1)/fs; TokenLen2 = length(Token2)/fs;
     
-    JNDMessage(tr, Pert, conVar, 0, 1)
+    JNDMessage(tr, [pertA pertB], PertDist, conVar, 0, 1)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
     sound(Token1, fs)
@@ -178,7 +191,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
         UD.catchResponse(tr,1) = response;
     end
     
-    JNDMessage(tr, Pert, conVar, response, 2);
+    JNDMessage(tr, [pertA pertB], PertDist, conVar, response, 2);
     
     pause(1) %this is between two trials   
 end
@@ -271,10 +284,10 @@ for i = 1: FreqLen
 end
 end
 
-function JNDMessage(tr, Pert, conVar, response, state)
+function JNDMessage(tr, PertVals, PertDist, conVar, response, state)
 
 if state == 1
-    msg = ['Trial ' num2str(tr) ' at ' num2str(Pert) ' cents: '];
+    msg = ['Trial ' num2str(tr) ' at ' num2str(PertDist) ' (' num2str(PertVals(1)) ' ,' num2str(PertVals(2)) '): '];
     
     if conVar == 1
         msg = [msg 'Is Diff, Answered '];
