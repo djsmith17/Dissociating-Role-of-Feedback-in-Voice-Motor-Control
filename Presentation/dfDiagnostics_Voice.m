@@ -8,13 +8,26 @@ function [allrmsMean, finalrmsMean] = dfDiagnostics_Voice()
 %3: The microphone gain levels are constant for each participant and through the trials
 %4: The participant phonates a steady-state vowel sound through these recordings
 
+close all;
+ET = tic;
+rng('shuffle');
+
+prompt = {'Subject ID:',...
+          'Session ID:',...
+          'Gender ("male" or "female")',...
+          'Number of Trials:'};
+name = 'Subject Information';
+numlines = 1;
+defaultanswer = {'null', 'BV1', 'female', '3'};
+answer = inputdlg(prompt, name, numlines, defaultanswer);
+
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.subject    = 'Pilot11'; %Subject#, Pilot#, null
-expParam.run        = 'BV1';
-expParam.numTrial   = 3;
-expParam.gender     = 'male';
+expParam.subject    = answer{1}; %Subject#, Pilot#, null
+expParam.run        = answer{2};
+expParam.gender     = answer{3};
+expParam.numTrial   = str2double(answer{4});
 expParam.masking    = 0;
 expParam.trialLen   = 4; %Seconds
 expParam.CueMixTrimMic = 39;
@@ -52,26 +65,35 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 refSPL  = 0.00002; %20 micropascals
 
+%%%%%Visual Presentation
+[h2, h3, h4] = JNDVisualPresentation;
+pause(5);
+
 rawData = [];
 allrmsMean = [];
 for ii = 1:expParam.numTrial
+    set(h2,'String','+')
+    drawnow;
+    pause(1)
+    
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
-    fprintf('Ready to Record?\n')
-    pause()
+    set(h2, 'String', '"EEE"', 'FontSize', 80)
+    drawnow
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
     
-    fprintf('Trial %d\n', ii)
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
 
     pause(expParam.trialLen);
     
-    Audapter('stop');   
+    Audapter('stop');
+    set(h2, 'String','','FontSize', 120)
+    drawnow
     
     data    = AudapterIO('getData');
     rmsMean = calcMeanRMS(data, refSPL);
@@ -81,6 +103,7 @@ for ii = 1:expParam.numTrial
     
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
+close all
 
 finalrmsMean = mean(allrmsMean);
 expParam.finalrmsMean = finalrmsMean;
@@ -101,6 +124,57 @@ function rmsMean = calcMeanRMS(data, refSPL)
 rms   = data.rms(:,1);
 rmsdB = 20*log10(rms/refSPL);
 rmsMean = mean(rmsdB);
+end
+
+function [h2, h3, h4] = JNDVisualPresentation
+monitorSize = get(0,'Monitor');
+if size(monitorSize,1) == 1
+    figPosition = [1 200 monitorSize(3) monitorSize(4)-200];
+elseif size(monitorSize,1) == 2
+    figPosition = [monitorSize(2,1) monitorSize(2,2) monitorSize(1,3) monitorSize(2,4)];
+end
+
+figure1 = figure('Color',[0 0 0],'Menubar','none','Position', figPosition);
+
+h2 = annotation(figure1,'textbox',...
+    [0.38 0.46 0.2 0.2],...
+    'Color',[1 1 1],...
+    'String','READY',...
+    'LineStyle','none',...
+    'HorizontalAlignment','center',...
+    'VerticalAlignment','middle',...
+    'FontSize',130,...
+    'FontName','Arial',...
+    'FitBoxToText','off',...
+    'EdgeColor','none',...
+    'BackgroundColor',[0 0 0],...
+    'Visible','on');
+
+h3 = annotation(figure1,'textbox',...
+    [0.025 0.15 0.45 0.3],...
+    'String',{'< DIFFERENT'},... %was 'YES'
+    'HorizontalAlignment','center',...
+    'VerticalAlignment','middle',...
+    'FontSize',60,...
+    'FontName','Arial',...
+    'LineStyle','none',...
+    'BackgroundColor',[1 1 1],...
+    'Color',[0 0 0],...
+    'Visible','off');
+
+h4 = annotation(figure1,'textbox',...
+    [0.52 0.15 0.45 0.3],...
+    'String',{'SAME >'},... %was 'NO'
+    'HorizontalAlignment','center',...
+    'VerticalAlignment','middle',...
+    'FontSize',60,...
+    'FontName','Arial',...
+    'LineStyle','none',...
+    'BackgroundColor',[1 1 1],...
+    'Color',[0 0 0],...
+    'Visible','off');
+
+drawnow;
 end
 
 function quikFFT(data)
