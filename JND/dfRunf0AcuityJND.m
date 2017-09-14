@@ -98,7 +98,7 @@ PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
 numPertFreqs = length(PertFreqs);
 PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
 
-fprintf('Starting f0 Acuity Task for %s with f0 of %d\n', UD.subject, subjf0)
+fprintf('Starting f0 Acuity Task for %s with f0 of %f\n', UD.subject, subjf0)
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
 pause(5);
@@ -175,7 +175,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
         UD.catchResponse(tr,1) = response;
     end
     
-    JNDMessage(tr, conVar, response, Pert, 2);
+    JNDMessage(tr, Pert, conVar, response, 2);
     
     pause(1) %this is between two trials   
 end
@@ -271,7 +271,7 @@ end
 function JNDMessage(tr, Pert, conVar, response, state)
 
 if state == 1
-    msg = ['Trial ' num2str(tr) ' at ' num2str(Pert) 'cents: '];
+    msg = ['Trial ' num2str(tr) ' at ' num2str(Pert) ' cents: '];
     
     if conVar == 1
         msg = [msg 'Is Diff, Answered '];
