@@ -11,8 +11,8 @@ function [allrmsMean, finalrmsMean] = dfDiagnostics_Voice()
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.subject    = 'Pilot0'; %Subject#, Pilot#, null
-expParam.run        = 'BV2';
+expParam.subject    = 'Pilot11'; %Subject#, Pilot#, null
+expParam.run        = 'BV1';
 expParam.numTrial   = 3;
 expParam.gender     = 'male';
 expParam.masking    = 0;
