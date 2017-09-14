@@ -93,7 +93,7 @@ end
 
 % Generate audio tokens
 [BaseToken, fs]= dfGenerateBT(dirs, UD.baseTrial); %Extract a Speech Token. Located in JND Folder
-subjf0 = calcf0(BaseToken, fs);                    %Located below
+subjf0 = dfcalcf0Praat(dirs);                      %Calculate f0 using praat. Located in JND Folder
 PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
 numPertFreqs = length(PertFreqs);
 PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
@@ -249,39 +249,6 @@ h4 = annotation(figure1,'textbox',...
     'Visible','off');
 
 drawnow;
-end
-
-function f0 = calcf0(x,fs)
-% Created by Gabriel Galindo
-% Formatted by Dante Smith -12/11/15
-
-lim_inf = ceil(fs/(500));
-lim_sup = floor(fs/(50));
-U = xcov(x,'unbias');
-U = U(ceil(end/2):end);
-U = (U(lim_inf:lim_sup)-min(U(lim_inf:lim_sup)))/(max(U(lim_inf:lim_sup)) - min(U(lim_inf:lim_sup)));
-[M,P] = findpeaks(U);
-
-if isempty(P)
-    f0 = NaN;
-else
-    P = P(find(M >= 0.9,1,'first'));
-    if isempty(P)
-        f0 = NaN;
-    else
-        f0 = fs/(P + lim_inf);
-    end
-
-    NFFT = pow2(nextpow2(length(x)/4));
-    [Pxx,Fxx] = pwelch(x,NFFT,[],[],fs,'onesided');
-
-    if ~isnan(f0)
-        H = Pxx(find(Fxx>=f0,1,'first'));
-        if (10*log10(max(Pxx)/H) > 80)
-            f0 = NaN;
-        end
-    end   
-end
 end
 
 function freqs = targetf0calc(f0, maxC, minC, sign)

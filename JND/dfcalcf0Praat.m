@@ -1,4 +1,4 @@
-function dfcalcf0Praat(dirs)
+function f0 = dfcalcf0Praat(dirs)
 %This asks praat to calculate f0 for a given saved wav file. 
 
 tokenDir = dirs.tokenDir;
@@ -7,6 +7,7 @@ pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 tokenDir = [tokenDir, '\']; %add a slash to the mic folder
 ext = '.wav'; %extension of files
+txtFileLoc = [tokenDir, '\pitchCalc.txt'];
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
@@ -23,13 +24,12 @@ if ~exist(gt_fn, 'file')
     error('file ''batchcalcf0.praat'' not found')
 end
  
-call2 = sprintf('%s praat "execute %s %s %s %s %f"', ...
+call2 = sprintf('%s praat "execute %s %s %s %s', ...
                     sp_fn, ... %sendpraat.exe
                     gt_fn, ... %saved praat script ('generatef0JNDTokens)
                     tokenDir, ... %file location for saved wav files
                     ext, ... %file extension
-                    targetPertName, ...
-                    targetPert ... %Number of Tokens to create
+                    txtFileLoc ...
                     );
                 
 [s, r] = dos(call2);
@@ -42,28 +42,8 @@ if s ~= 0
     end
 end
 
+t = readtable(txtFileLoc);
+f0 = [];
 
-PertTokens = [];
-for ii = 1:numTokens
-    targetPert = PertFreqs(ii);
-    targetPertName = ['Cent' num2str(ii)];
-
-    %Build DOS calls to control praat
-    call2 = sprintf('%s praat "execute %s %s %s %s %f"', ...
-                    sp_fn, ... %sendpraat.exe
-                    gt_fn, ... %saved praat script ('generatef0JNDTokens)
-                    tokenDir, ... %file location for saved wav files
-                    ext, ... %file extension
-                    targetPertName, ...
-                    targetPert ... %Number of Tokens to create
-                    );    
-
-
-    
-    [thisToken, fs] = audioread(fullfile(tokenDir, [targetPertName '.wav']));
-    PertTokens = cat(1, PertTokens, thisToken');
-end
-
-
-
+delete(txtFileLoc);
 end
