@@ -20,6 +20,7 @@ for ii = 1:4
     
     load(dirs.SavFileDir)
     UD = setCatchAcc(UD);
+    UD = setDirection(UD, JNDa, ii);
     meanJND = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
     
     allRunData = cat(1, allRunData, UD);
@@ -27,7 +28,7 @@ for ii = 1:4
     allCatchAcc = cat(1, allCatchAcc, UD.catchAccuracy);
 end
 
-drawJNDResults(JNDa, dirs, allRunData, allmeanJND)
+drawJNDResults(JNDa, dirs, allRunData, allmeanJND, allCatchAcc)
 end
 
 function UD = setCatchAcc(UD)
@@ -38,5 +39,23 @@ if ~isfield(UD, 'catchTrials')
     UD.reversals = max(UD.reversal);
     UD.catchCorrect = sum(UD.catchResponse == 0);
     UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
+end
+end
+
+function UD = setDirection(UD, JNDa, ii)
+if ~isfield(UD, 'JNDDirection')
+    if strcmp(JNDa.participant, 'Pilot9')
+        if ii == 1 || ii == 3
+            UD.JNDDirection = 'Above';
+        else
+            UD.JNDDirection = 'Below';
+        end
+    else
+        if ii == 2 || ii == 4
+            UD.JNDDirection = 'Above';
+        else
+            UD.JNDDirection = 'Below';
+        end 
+    end
 end
 end
