@@ -107,40 +107,29 @@ while (UD.stop == 0) && tr < UD.totalTrials
     drawnow;
        
     PertDist = UD.xCurrent; %cents
-    minVal = 0.5; maxVal = PertDist - minVal;   
-    PairA = round(2*(maxVal - minVal)*rand + minVal)/2;
-
+    hPertDist = PertDist/2;
+    
     tempVar = randperm(4);
     if tempVar(1) == 1 
-        pertA = PairA;
-        pertB = pertA - PertDist;
+        pertA = hPertDist;
+        pertB = -hPertDist;
         
-        indA = find(UD.xAll == pertA);
-        indB = find(UD.xAll == pertB);
-        
-        Token1 = PertTokens(indA, :);
-        Token2 = PertTokens(indB, :);
         conVar = 1;
     elseif tempVar(1) == 3
-        pertA = -PairA;
-        pertB = pertA + PertDist;
-        
-        indA = find(UD.xAll == pertA);
-        indB = find(UD.xAll == pertB);
-        
-        Token1 = PertTokens(indA, :);
-        Token2 = PertTokens(indB, :);
+        pertA = -hPertDist;
+        pertB = hPertDist;
+
         conVar = 1;
     elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
         sign = round(rand)*2 - 1;
-        pertA = sign*PairA;
+        pertA = sign*hPertDist;
         pertB = pertA;
-        indA = find(UD.xAll == pertA);
-        
-        Token1 = PertTokens(indA, :);
-        Token2 = PertTokens(indA, :);
+
         conVar = 0;
     end
+    
+    indA = find(UD.xAll == pertA); indB = find(UD.xAll == pertB);
+    Token1 = PertTokens(indA, :); Token2 = PertTokens(indB, :);
     TokenLen1 = length(Token1)/fs; TokenLen2 = length(Token2)/fs;
     
     JNDMessage(tr, [pertA pertB], PertDist, conVar, 0, 1)
