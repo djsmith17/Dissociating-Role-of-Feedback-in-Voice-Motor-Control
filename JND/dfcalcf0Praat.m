@@ -46,7 +46,7 @@ praatResult = fopen(txtFileLoc);
 praatScan = textscan(praatResult, '%f %s');
 f0 = averagePraatf0(praatScan);
 
-fclose(txtFileLoc);
+fclose(praatResult);
 delete(txtFileLoc);
 end
 
