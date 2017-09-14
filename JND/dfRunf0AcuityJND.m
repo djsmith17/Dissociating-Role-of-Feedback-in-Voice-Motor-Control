@@ -128,6 +128,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
     end
     TokenLen1 = length(Token1)/fs; TokenLen2 = length(Token2)/fs;
     
+    JNDMessage(tr, Pert, conVar, 0, 1)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
     sound(Token1, fs)
@@ -174,8 +175,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
         UD.catchResponse(tr,1) = response;
     end
     
-    msg = JNDMessage(tr, conVar, response, Pert);
-    disp(msg)
+    JNDMessage(tr, conVar, response, Pert, 2);
     
     pause(1) %this is between two trials   
 end
@@ -294,18 +294,23 @@ for i = 1:numCents
 end
 end
 
-function msg = JNDMessage(tr, conVar, response, Pert)
+function JNDMessage(tr, Pert, conVar, response, state)
 
-msg = ['Trial ' num2str(tr) ' at ' num2str(Pert) 'cents: '];
-
-if conVar == 1 && response == 1
-    msg = [msg 'Was Diff, Answered Diff'];
-elseif conVar == 1 && response == 0
-    msg = [msg 'Was Diff, Answered Same'];
-elseif conVar == 0 && response == 1
-    msg = [msg 'Was Same, Answered Diff'];
-elseif conVar == 0 && response == 0
-    msg = [msg 'Was Same, Answered Same'];
+if state == 1
+    msg = ['Trial ' num2str(tr) ' at ' num2str(Pert) 'cents: '];
+    
+    if conVar == 1
+        msg = [msg 'Is Diff, Answered '];
+    else
+        msg = [msg 'Is Same, Answered '];
+    end
+else
+    if response == 1
+        msg = 'Diff\n';
+    else
+        msg = 'Same\n';
+    end
 end
 
+fprintf(msg)
 end
