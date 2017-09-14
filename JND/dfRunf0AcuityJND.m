@@ -83,6 +83,7 @@ UD.x = UD.startValue;
 UD.xStaircase = [];
 waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
+UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for accurate ISI and token length
 
 if strcmp(UD.JNDDirection, 'Above')
     sign = 1;
@@ -130,9 +131,9 @@ while (UD.stop == 0) && tr < UD.totalTrials
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
     sound(Token1, fs)
-    pause(TokenLen1 + 0.01 + UD.ISI)
+    pause(TokenLen1 + UD.ISI + UD.measuredDelay)
     sound(Token2, fs)
-    pause(TokenLen2 + 0.01)
+    pause(TokenLen2 + UD.measuredDelay)
     %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
