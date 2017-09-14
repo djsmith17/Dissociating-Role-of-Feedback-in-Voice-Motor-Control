@@ -108,8 +108,8 @@ while (UD.stop == 0) && tr < UD.totalTrials
     
     
     PertDist = UD.xCurrent; %cents
-    min = 0.5; max = PertDist - min;   
-    PairA = round(2*(max - min)*rand + min)/2;
+    minVal = 0.5; maxVal = PertDist - minVal;   
+    PairA = round(2*(maxVal - minVal)*rand + minVal)/2;
 
     tempVar = randperm(4);
     if tempVar(1) == 1 
@@ -208,7 +208,7 @@ UD.elapsedTime = elapsed_time;
 UD.performedTrials = length(UD.catchResponse);
 UD.JNDTrials = length(UD.reversal);
 UD.catchTrials = length(UD.catchResponse) - length(UD.reversal);
-UD.reversals = max(UD.reversal);
+UD.reversals = maxVal(UD.reversal);
 UD.catchCorrect = sum(UD.catchResponse == 0);
 UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
 
