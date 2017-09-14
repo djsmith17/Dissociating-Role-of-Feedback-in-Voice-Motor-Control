@@ -29,7 +29,7 @@ for ii = runs2Analyze
     allCatchAcc = cat(1, allCatchAcc, UD.catchAccuracy);
 end
 
-drawJNDResults(JNDa, dirs, allRunData, allmeanJND, allCatchAcc)
+drawJNDResults(JNDa, dirs, runs2Analyze, allRunData, allmeanJND, allCatchAcc)
 end
 
 function UD = setCatchAcc(UD)

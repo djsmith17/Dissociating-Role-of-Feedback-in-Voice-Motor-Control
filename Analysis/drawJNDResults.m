@@ -1,4 +1,4 @@
-function drawJNDResults(JNDa, dirs, allRunData, allMeanJND, allCatchAcc)
+function drawJNDResults(JNDa, dirs, runs2Analyze, allRunData, allMeanJND, allCatchAcc)
 
 saveResultsDir = dirs.SavResultsDir;
 
@@ -17,7 +17,7 @@ set(AllJND, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 ha = tight_subplot(2,2,[0.15 0.1],[0.1 0.1],[0.1 0.05]);
 
-for ii = 1:4
+for ii = runs2Analyze
     UD = allRunData(ii);
     meanJND = allMeanJND(ii);
     catchAccu = allCatchAcc(ii);
