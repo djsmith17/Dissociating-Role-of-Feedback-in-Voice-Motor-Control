@@ -42,8 +42,18 @@ if s ~= 0
     end
 end
 
-t = readtable(txtFileLoc);
-f0 = [];
+praatResult = fopen(txtFileLoc);
+praatScan = textscan(praatResult, '%f %s');
+f0 = averagePraatf0(praatScan);
 
+fclose(txtFileLoc);
 delete(txtFileLoc);
+end
+
+function meanf0 = averagePraatf0(praatScan)
+%Expects the table is 2 columns, and the f0 values are in column 2
+
+praatf0idx = ~strncmp('--undefined--', praatScan{1,2},3);
+praatf0freq = str2double(praatScan{1,2}(praatf0idx));
+meanf0 = mean(praatf0freq);
 end

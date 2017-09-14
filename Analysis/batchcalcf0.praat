@@ -8,8 +8,7 @@
 form Resynthize files to have flat pitch
 	text tokenDir
 	sentence Sound_file_extension
-	sentence targetPertName
-        positive targetPert
+	text txtFileLoc
 endform
 
 #Here, you make a listing of all the sound files in a directory.
@@ -24,27 +23,21 @@ sound_one$ = selected$ ("Sound")
 start = Get start time
 end = Get end time
 
-To Manipulation... 0.01 75 600
+To Pitch (ac)... 0.005 75 15 off 0.03 0.45 0.01 0.35 0.14 600
 
-# Create a new pitch tier with the flat pitch:
-
-select Sound 'sound_one$'
-Create PitchTier... 'sound_one$' start end
-Add point... start targetPert
-Add point... end targetPert
-
-# Combine and save the resulting file:
-select Manipulation 'sound_one$'
-plus PitchTier 'sound_one$'
-Replace pitch tier
-select Manipulation 'sound_one$'
-Get resynthesis (PSOLA)
-Write to WAV file... 'tokenDir$''targetPertName$''sound_file_extension$'
-
-##select Sound 'sound_one$'
-##plus Manipulation 'sound_one$'
-select PitchTier 'sound_one$'
-Remove
+for i to (end - start)/0.005
+    time = start + i * 0.005
+    select Pitch 'sound_one$'
+    pitch = Get value at time... time Hertz Linear
+    appendInfoLine: fixed$ (time, 2), " ", fixed$ (pitch, 2)
+endfor
+	
+	
+#titleline$ = "Time	F0(Hz)	'newline$'"
+#fileappend 'txtFileLoc$' 'titleline$'
+fappendinfo 'txtFileLoc$'
 
 select all
 Remove
+
+Quit
