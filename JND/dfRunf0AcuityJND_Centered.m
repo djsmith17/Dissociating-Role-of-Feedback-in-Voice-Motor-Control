@@ -83,6 +83,7 @@ UD.reversal = 0;
 UD.xCurrent = UD.startValue;
 UD.x = UD.startValue;
 UD.xStaircase = [];
+UD.allTrialPerts = [];
 waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for accurate ISI and token length
@@ -127,6 +128,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
 
         conVar = 0;
     end
+    trialPerts = [pertA pertB];
     
     indA = find(UD.xAll == pertA); indB = find(UD.xAll == pertB);
     Token1 = PertTokens(indA, :); Token2 = PertTokens(indB, :);
@@ -187,6 +189,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
         UD.catchResponse(tr,1) = response;
     end
       
+    UD.allTrialPerts = cat(1,UD.allTrialPerts, trialPerts);
     pause(1) %this is between two trials   
 end
 close all;
