@@ -68,9 +68,10 @@ UD.stepSizeDown = stepSize; % Size of step down
 UD.stopCriterion = 'reversals'; % stop the procedure based on number of 'trials' | 'reversals'
 UD.stopRule = 10;  %stop procedure after this number of trials/reversals
 UD.startValue = 50; % initial difference in cents between speaker's fo and fo of stimulus in headphones
-UD.xMax = 200; %max difference between speaker's fo and fo of stimulus in headphones
-UD.xMin = -200; %min difference between speaker's fo and fo of stimulus in headphones
-UD.xAll = UD.xMin:UD.xMax;
+UD.xMax = 100; %max difference between speaker's fo and fo of stimulus in headphones
+UD.xMin = -100; %min difference between speaker's fo and fo of stimulus in headphones
+UD.xAll = UD.xMin:0.5:UD.xMax;
+UD.xAll = UD.xAll(~logical(UD.xAll == 0));
 UD.xLen = length(UD.xAll);
 UD.truncate = 'yes';
 UD.response = [];
@@ -89,11 +90,11 @@ UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for ac
 % Generate audio tokens
 [BaseToken, fs]= dfGenerateBT(dirs, UD.baseTrial); %Extract a Speech Token. Located in JND Folder
 subjf0 = dfcalcf0Praat(dirs);                      %Calculate f0 using praat. Located in JND Folder
-PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin); %Located Below
+PertFreqs = targetf0calc(subjf0, UD.xAll, UD.xLen); %Located Below
 numPertFreqs = length(PertFreqs);
 PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
 
-fprintf('Starting f0 Acuity Task for %s with f0 of %f\n', UD.subject, subjf0)
+fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, subjf0)
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
 pause(5);
@@ -106,11 +107,16 @@ while (UD.stop == 0) && tr < UD.totalTrials
     drawnow;
     
     tempVar = randperm(4);
-    Pert = UD.xCurrent; %cents
+    PertDist = UD.xCurrent; %cents
     
     
+    
+    rnSt = round((100 - 1)*rand + 1);
     PertToken = PertTokens(Pert, :);
     if tempVar(1) == 1 
+        PertVal1 = UD.xAll(rnSt) %Below 0
+        PertVal2 = PertVal1 + PertDist 
+        
         Token1 = PertToken;
         Token2 = BaseToken;
         conVar = 1;
@@ -255,13 +261,13 @@ h4 = annotation(figure1,'textbox',...
 drawnow;
 end
 
-function freqs = targetf0calc(f0, maxC, minC)
-%calculates all possible freq vals spaced 1 cent apart. 
+function freqs = targetf0calc(f0, AllFreq, FreqLen)
+%calculates all possible freq vals spaced 0.5 cent apart. 
 
-numCents = maxC - minC;
-
-for i = 1:numCents
-    freqs(i) = f0*2^(i/1200);
+for i = 1: FreqLen
+    if i ~= 0 %I dont want the case of pure baseline
+        freqs(i) = f0*2^(AllFreq(i)/1200);
+    end
 end
 end
 
