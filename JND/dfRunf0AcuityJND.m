@@ -93,7 +93,7 @@ end
 
 % Generate audio tokens
 [BaseToken, fs]= dfGenerateBT(dirs, UD.baseTrial); %Extract a Speech Token. Located in JND Folder
-subjf0 = calcf0(BaseToken, fs);            %Located below
+subjf0 = calcf0(BaseToken, fs);                    %Located below
 PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
 numPertFreqs = length(PertFreqs);
 PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
