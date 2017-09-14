@@ -69,7 +69,7 @@ UD.stopCriterion = 'reversals'; % stop the procedure based on number of 'trials'
 UD.stopRule = 10;  %stop procedure after this number of trials/reversals
 UD.startValue = 50; % initial difference in cents between speaker's fo and fo of stimulus in headphones
 UD.xMax = 200; %max difference between speaker's fo and fo of stimulus in headphones
-UD.xMin = 0; %min difference between speaker's fo and fo of stimulus in headphones
+UD.xMin = -200; %min difference between speaker's fo and fo of stimulus in headphones
 UD.xAll = UD.xMin:UD.xMax;
 UD.xLen = length(UD.xAll);
 UD.truncate = 'yes';
@@ -86,16 +86,10 @@ waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for accurate ISI and token length
 
-if strcmp(UD.JNDDirection, 'Above')
-    sign = 1;
-else
-    sign = -1;
-end
-
 % Generate audio tokens
 [BaseToken, fs]= dfGenerateBT(dirs, UD.baseTrial); %Extract a Speech Token. Located in JND Folder
 subjf0 = dfcalcf0Praat(dirs);                      %Calculate f0 using praat. Located in JND Folder
-PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin, sign); %Located Below
+PertFreqs = targetf0calc(subjf0, UD.xMax, UD.xMin); %Located Below
 numPertFreqs = length(PertFreqs);
 PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
 
@@ -111,21 +105,23 @@ while (UD.stop == 0) && tr < UD.totalTrials
     set(h2,'String','+')
     drawnow;
     
-    tempVar = randperm(5);
+    tempVar = randperm(4);
     Pert = UD.xCurrent; %cents
+    
+    
     PertToken = PertTokens(Pert, :);
-    if tempVar(1) == 1 || tempVar(1) == 3   % scenario I (first one is Pert) : % 40% of trials
+    if tempVar(1) == 1 
+        Token1 = PertToken;
+        Token2 = BaseToken;
+        conVar = 1;
+    elseif tempVar(1) == 3
         Token1 = PertToken;
         Token2 = BaseToken;
         conVar = 1;
     elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
         Token1 = BaseToken;
-        Token2 = PertToken;
-        conVar = 1;
-    else % Catch trials : 20% of trials
-        Token1 = BaseToken;      
         Token2 = BaseToken;
-        conVar = 0; %catch trials will be randomly presented but will not be included in the adaptive procedure        
+        conVar = 0;
     end
     TokenLen1 = length(Token1)/fs; TokenLen2 = length(Token2)/fs;
     
@@ -259,13 +255,13 @@ h4 = annotation(figure1,'textbox',...
 drawnow;
 end
 
-function freqs = targetf0calc(f0, maxC, minC, sign)
+function freqs = targetf0calc(f0, maxC, minC)
 %calculates all possible freq vals spaced 1 cent apart. 
 
 numCents = maxC - minC;
 
 for i = 1:numCents
-    freqs(i) = f0*2^(sign*i/1200);
+    freqs(i) = f0*2^(i/1200);
 end
 end
 
