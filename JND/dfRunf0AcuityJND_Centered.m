@@ -105,8 +105,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
     %Present the word
     set(h2,'String','+')
     drawnow;
-    
-    
+       
     PertDist = UD.xCurrent; %cents
     minVal = 0.5; maxVal = PertDist - minVal;   
     PairA = round(2*(maxVal - minVal)*rand + minVal)/2;
@@ -177,22 +176,28 @@ while (UD.stop == 0) && tr < UD.totalTrials
             response = 1;
         elseif bb == 29        %29 is "SAME"  | Right ARROW KEY ; was NO
             response = 0;
-        end
-       
+        end      
     end
+    JNDMessage(tr, [pertA pertB], PertDist, conVar, response, 2);  
+    
     set(h2, 'String','','FontSize',120)
     set(h3, 'Visible','off');
     set(h4, 'Visible','off');
     drawnow
+    
+    %Treat a correct same trial the same as a correct different trial for adaption
+    if conVar == 0 && response == 0 
+        conVar = 1;
+        response = 1;
+    end    
+    
     if conVar == 1 % update the UD structure on real trials
         UD = dfAdaptiveUpdateJND(UD, response);
         UD.catchResponse(tr,1) = NaN;
     else % when it is a catch trial do not update UD structure (i.e., do not change the up-down steps based on catch trials)
         UD.catchResponse(tr,1) = response;
     end
-    
-    JNDMessage(tr, [pertA pertB], PertDist, conVar, response, 2);
-    
+      
     pause(1) %this is between two trials   
 end
 close all;

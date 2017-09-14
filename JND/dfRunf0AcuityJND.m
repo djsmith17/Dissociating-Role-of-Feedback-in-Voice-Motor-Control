@@ -161,9 +161,10 @@ while (UD.stop == 0) && tr < UD.totalTrials
             response = 1;
         elseif bb == 29        %29 is "SAME"  | Right ARROW KEY ; was NO
             response = 0;
-        end
-       
+        end    
     end
+    JNDMessage(tr, Pert, conVar, response, 2);
+    
     set(h2, 'String','','FontSize',120)
     set(h3, 'Visible','off');
     set(h4, 'Visible','off');
@@ -175,7 +176,6 @@ while (UD.stop == 0) && tr < UD.totalTrials
         UD.catchResponse(tr,1) = response;
     end
     
-    JNDMessage(tr, Pert, conVar, response, 2);
     
     pause(1) %this is between two trials   
 end
