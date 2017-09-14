@@ -197,7 +197,14 @@ UD.catchCorrect = sum(UD.catchResponse == 0);
 UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
 
 expFiles = fullfile(dirs.RecFileDir, [UD.subject UD.run 'DRF.mat']);
-save(expFiles, 'UD');
+
+switch num_trials
+    case 'Practice'
+        return
+    case 'Full'
+        save(expFiles, 'UD'); %Only save if it was a full set of trials
+end
+
 end
 
 function [h2, h3, h4] = JNDVisualPresentation
