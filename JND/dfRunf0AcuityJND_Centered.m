@@ -11,11 +11,10 @@ prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Run:',...
           'Baseline Trial:',...
-          'Direction ("Above" or "Below"):',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','fA1', 'BV1', '3', 'Above', 'female'};
+defaultanswer = {'null','fA1', 'BV1', '3', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -35,8 +34,7 @@ UD.subject = answer{1};
 UD.run     = answer{2};
 UD.baseRec = answer{3};
 UD.baseTrial = str2double(answer{4});
-UD.JNDDirection = answer{5};
-UD.gender =  answer{6};
+UD.gender =  answer{5};
 
 dirs = dfDirs(UD.project);
 % Folder paths to save data files

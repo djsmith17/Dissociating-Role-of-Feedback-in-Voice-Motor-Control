@@ -21,7 +21,11 @@ for ii = 1:4
     UD = allRunData(ii);
     meanJND = allMeanJND(ii);
     catchAccu = allCatchAcc(ii);
-    direction = UD.JNDDirection;
+    if isfield(UD, 'JNDDirection')
+        note = UD.JNDDirection;
+    else
+        note = [];
+    end
     
     axes(ha(ii))
     plot(UD.x, 'LineWidth', 3);
@@ -29,7 +33,7 @@ for ii = 1:4
     plot(find(UD.response==1),UD.x(find(UD.response==1)),'o','MarkerFaceColor',[0 0 1],'MarkerEdgeColor',[0 0 1],'MarkerSize',10);
     plot(find(UD.response==0),UD.x(find(UD.response==0)),'o','MarkerFaceColor',[1 0 0],'MarkerEdgeColor',[1 0 0],'MarkerSize',10);
     line([0 length(UD.response)], [meanJND meanJND],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1])
-    title(['f0 Acuity JND ' num2str(ii) ': ' direction], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
+    title(['f0 Acuity JND ' num2str(ii) ': ' note], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     xlabel('Trials','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     ylabel('f0 Distance (cents)','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     
