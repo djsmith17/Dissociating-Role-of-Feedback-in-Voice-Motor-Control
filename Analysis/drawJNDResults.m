@@ -7,8 +7,8 @@ plotdim = [840 525];
 xyFS    = 12;
 titleFS = 12;
 
-annoPos = [.29 .78;
-           .77 .78;
+annoPos = [.29 .77;
+           .77 .77;
            .29 .31;
            .77 .31]; 
 
@@ -23,8 +23,10 @@ for ii = runs2Analyze
     catchAccu = allCatchAcc(ii);
     if isfield(UD, 'JNDDirection')
         note = UD.JNDDirection;
+        anno2 = ['Catch Accuracy: ' num2str(catchAccu) '%'];
     else
         note = [];
+        anno2 = [];
     end
     
     axes(ha(ii))
@@ -39,7 +41,7 @@ for ii = runs2Analyze
     
     t = annotation('textbox',[annoPos(ii,1) annoPos(ii,2) 0.45 0.1],...
                    'string', {['Mean JND Score: ' num2str(meanJND) ' cents'];...
-                              ['Catch Accuracy: ' num2str(catchAccu) '%']},...
+                                                  anno2},...
                     'LineStyle','none',...
                     'FontWeight','bold',...
                     'FontSize',8,...
