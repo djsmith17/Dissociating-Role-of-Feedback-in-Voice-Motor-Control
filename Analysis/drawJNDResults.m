@@ -26,7 +26,7 @@ for ii = runs2Analyze
         anno2 = ['Catch Accuracy: ' num2str(catchAccu) '%'];
     else
         note = [];
-        anno2 = [];
+        anno2 = ['Trials Performed: ' num2str(UD.performedTrials) '/' num2str(UD.totalTrials)];
     end
     
     axes(ha(ii))
