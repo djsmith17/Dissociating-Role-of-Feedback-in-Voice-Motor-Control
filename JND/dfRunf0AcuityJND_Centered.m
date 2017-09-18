@@ -14,7 +14,7 @@ prompt = {'Subject ID:',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','fA1', 'BV1', '3', 'female'};
+defaultanswer = {'null','fAC1', 'BV1', '3', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
