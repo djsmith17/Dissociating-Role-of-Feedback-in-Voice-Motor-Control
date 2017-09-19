@@ -74,7 +74,7 @@ allrmsMean = [];
 for ii = 1:expParam.numTrial
     set(h2,'String','+')
     drawnow;
-    pause(1)
+    pause(2)
     
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
