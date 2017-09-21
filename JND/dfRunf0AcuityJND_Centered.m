@@ -174,18 +174,13 @@ while (UD.stop == 0) && tr < UD.totalTrials
     set(h2, 'String','','FontSize',120)
     set(h3, 'Visible','off');
     set(h4, 'Visible','off');
-    drawnow
+    drawnow 
     
-    %Treat an incorrect same trial the same as an incorrect different trial for adaption
-    if conVar == 0 && response == 1 
-        conVar = 1;
-        response = 0;
-    end    
-    
-    if conVar == 1 % update the UD structure on real trials
-        UD = dfAdaptiveUpdateJND(UD, response);
+    if conVar == 1
+        UD = dfAdaptiveUpdateJNDDiff(UD, response);
         UD.catchResponse(tr,1) = NaN;
-    else % when it is a catch trial do not update UD structure (i.e., do not change the up-down steps based on catch trials)
+    elseif conVar == 0
+        UD = dfAdaptiveUpdateJNDSame(UD, response);
         UD.catchResponse(tr,1) = response;
     end
       
