@@ -13,7 +13,7 @@ if trial == 1
     end
 end
     
-if response == 1
+if response == 1 %Correct
     UD.d = UD.d + 1;
     if UD.d == UD.down || max(UD.reversal) < 1
         UD.xStaircase(trial+1) = UD.xStaircase(trial)-UD.stepSizeDown;
@@ -32,7 +32,7 @@ if response == 1
     else
         UD.xStaircase(trial+1) = UD.xStaircase(trial);
     end    
-else
+else %Incorrect
     UD.u = UD.u + 1;
     if UD.u == UD.up || max(UD.reversal) < 1
         UD.xStaircase(trial+1) = UD.xStaircase(trial)+UD.stepSizeUp;
