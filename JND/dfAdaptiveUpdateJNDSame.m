@@ -1,4 +1,4 @@
-function UD = dfAdaptiveUpdateJND(UD, response)
+function UD = dfAdaptiveUpdateJNDSame(UD, response)
 % Modified from Palam
 % Received from Ayoub Daliri
 trial = length(UD.x);
