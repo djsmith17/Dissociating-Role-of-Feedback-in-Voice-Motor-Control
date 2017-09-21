@@ -24,9 +24,9 @@ end
 num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full') ;
 switch num_trials
     case 'Practice'
-        totalTrials = 9;
+        totalTrials = 20;
     case 'Full'
-        totalTrials = 60; %max number of trials if max trials/reversals not reached
+        totalTrials = 100; %max number of trials if max trials/reversals not reached
 end
 
 UD.project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
