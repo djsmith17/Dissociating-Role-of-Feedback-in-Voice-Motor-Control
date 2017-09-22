@@ -84,6 +84,7 @@ UD.xCurrent = UD.startValue;
 UD.x = UD.startValue;
 UD.xStaircase = [];
 UD.allTrialPerts = [];
+UD.allTrialTypes = [];
 waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for accurate ISI and token length

@@ -13,26 +13,9 @@ if trial == 1
     end
 end
     
-if response == 1 %Incorrect
-%     UD.d = UD.d + 1;
-%     if UD.d == UD.down || max(UD.reversal) < 1
-%         UD.xStaircase(trial+1) = UD.xStaircase(trial)-UD.stepSizeDown;
-%         if UD.xStaircase(trial+1) < UD.xMin && strcmp(UD.truncate,'yes')
-%             UD.xStaircase(trial+1) = UD.xMin + 1; %Cara added the .1 Hz here because if it is truly xMin, the correct answer isn't really different anymore.
-%         end
-%         UD.u = 0;
-%         UD.d = 0;
-%         UD.reversal(trial) = 0;
-%         if UD.direction == 1
-%             UD.reversal(trial) = sum(UD.reversal~=0) + 1;
-%         else
-%             UD.reversal(trial) = 0;
-%         end
-%         UD.direction = -1;
-%     else
-%         UD.xStaircase(trial+1) = UD.xStaircase(trial);
-%     end    
-% else
+if response == 0 %Correct
+    UD.xStaircase(trial+1) = UD.xStaircase(trial); 
+elseif response == 1 %Incorrect
     UD.u = UD.u + 1;
     if UD.u == UD.up || max(UD.reversal) < 1
         UD.xStaircase(trial+1) = UD.xStaircase(trial)+UD.stepSizeUp;
