@@ -184,9 +184,19 @@ while (UD.stop == 0) && tr < UD.totalTrials
     if conVar == 1
         UD = dfAdaptiveUpdateJNDDiff(UD, response);
         UD.catchResponse(tr,1) = NaN;
+        if response == 1 
+            trialType = 1; %Correct Different
+        else
+            trialType = 2; %Incorrect Different
+        end
     elseif conVar == 0
         UD = dfAdaptiveUpdateJNDSame(UD, response);
         UD.catchResponse(tr,1) = response;
+        if response == 0 
+            trialType = 3; %Correct Same
+        else
+            trialType = 4; %Incorrect Same
+        end
     end
       
     UD.allTrialPerts = cat(1, UD.allTrialPerts, trialPerts);
