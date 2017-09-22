@@ -122,9 +122,13 @@ while (UD.stop == 0) && tr < UD.totalTrials
 
         conVar = 1;
     elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
-        sign = round(rand)*2 - 1;
-        pertA = sign*hPertDist;
-        pertB = pertA;
+        subset = UD.xAll(logical(UD.xAll <= hPertDist & UD.xAll >= -hPertDist));
+        subsetL = length(subset);
+        randSubseti = randperm(subsetL);
+        samePert = subset(randSubseti(1));
+
+        pertA = samePert;
+        pertB = samePert;
 
         conVar = 0;
     end
@@ -184,7 +188,8 @@ while (UD.stop == 0) && tr < UD.totalTrials
         UD.catchResponse(tr,1) = response;
     end
       
-    UD.allTrialPerts = cat(1,UD.allTrialPerts, trialPerts);
+    UD.allTrialPerts = cat(1, UD.allTrialPerts, trialPerts);
+    UD.allTrialTypes = cat(1, UD.allTrialTypes, trialType);
     pause(1) %this is between two trials   
 end
 close all;
