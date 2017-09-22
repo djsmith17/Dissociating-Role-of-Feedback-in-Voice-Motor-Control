@@ -16,6 +16,8 @@ annoPos = [.38 .79;
            .87 .79;
            .38 .32;
            .87 .32]; 
+       
+aH = [0 0 0 0 0];
 
 AllJND = figure('Color', [1 1 1]);
 set(AllJND, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -41,13 +43,12 @@ for ii = 1:numRuns
     iD = plot(find(UD.allTrialTypes==2), UD.x(find(UD.allTrialTypes==2)),'o','MarkerFaceColor',tColors(2,:),'MarkerEdgeColor',tColors(2,:),'MarkerSize',10);
     cS = plot(find(UD.allTrialTypes==3), UD.x(find(UD.allTrialTypes==3)),'o','MarkerFaceColor',tColors(3,:),'MarkerEdgeColor',tColors(3,:),'MarkerSize',10);
     iS = plot(find(UD.allTrialTypes==4), UD.x(find(UD.allTrialTypes==4)),'o','MarkerFaceColor',tColors(4,:),'MarkerEdgeColor',tColors(4,:),'MarkerSize',10);
-    
-    
+       
     aJ = line([0 length(UD.response)], [meanJND meanJND],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1]);
     title(['f0 Acuity JND ' num2str(ii) ': ' revNote triNote timNote], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     xlabel('Trials','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     ylabel('f0 Distance (cents)','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
-    axis([0 80 0 60])
+    axis([0 80 0 70])
     
     t = annotation('textbox',[annoPos(ii,1) annoPos(ii,2) 0.45 0.1],...
                    'string', {['Mean JND Score: ' num2str(meanJND) ' cents'];...
@@ -60,11 +61,27 @@ for ii = 1:numRuns
     set(gca, 'LineWidth',2, 'FontSize',12,...
               'FontName','Arial',...
               'FontWeight','bold')
+    
+    if ~isempty(cD)
+       aH(1) = cD;
+    end
+    if ~isempty(iD)
+       aH(2) = iD;
+    end
+    if ~isempty(rV)
+       aH(3) = rV;
+    end
+    if ~isempty(cS)
+       aH(4) = cS;
+    end
+    if ~isempty(iS)
+       aH(5) = iS;
+    end  
 end
 
 suptitle({JNDa.participant; ['f0: ' num2str(UD.subjf0) ' Hz']})
 
-legend([cD,iD,rV,cS,iS],{'Correct Diff','Incorrect Diff','Reversals','Correct Same','Incorrect Same'},...
+legend(aH,{'Correct Diff','Incorrect Diff','Reversals','Correct Same','Incorrect Same'},...
        'Orientation','Horizontal',...
        'FontSize', 8,...
        'Position', [0.51 0.48 0.01 0.01],...
