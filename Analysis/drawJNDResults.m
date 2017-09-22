@@ -1,50 +1,55 @@
-function drawJNDResults(JNDa, dirs, runs2Analyze, allRunData, allMeanJND, allCatchAcc)
+function drawJNDResults(JNDa, dirs, numRuns, allRunData, allMeanJND, allCatchAcc)
 
 saveResultsDir = dirs.SavResultsDir;
 
-plotpos = [420 263];
-plotdim = [840 525];
+plotpos = [275 150];
+plotdim = [1200 750];
 xyFS    = 12;
 titleFS = 12;
 
-annoPos = [.29 .77;
-           .77 .77;
-           .29 .31;
-           .77 .31]; 
+tColors = [[0 0 1]; %Correct Different
+           [1 0 0]; %Incorrect Different
+           [0.5 0.5 1]; %Correct Same
+           [1 0.5 0.5]];%Incorrect Same
+
+annoPos = [.35 .79;
+           .84 .79;
+           .35 .32;
+           .84 .32]; 
 
 AllJND = figure('Color', [1 1 1]);
 set(AllJND, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-ha = tight_subplot(2,2,[0.15 0.1],[0.1 0.1],[0.1 0.05]);
+ha = tight_subplot(2,2,[0.15 0.06],[0.1 0.1],[0.05 0.03]);
 
-for ii = runs2Analyze
+for ii = 1:numRuns
     UD = allRunData(ii);
     meanJND = allMeanJND(ii);
     catchAccu = allCatchAcc(ii);
-    if isfield(UD, 'JNDDirection')
-        note = UD.JNDDirection;
-        anno2 = ['Catch Accuracy: ' num2str(catchAccu) '%'];
-        anno3 = [];
-    else
-        note = [];
-        anno2 = ['Reversals: ' num2str(UD.reversals)];
-        anno3 = ['Trials Performed: ' num2str(UD.performedTrials) '/' num2str(UD.totalTrials)];
-    end
+    revNote   = [num2str(UD.reversals) ' Reversals, '];
+    triNote   = [num2str(UD.performedTrials) '/' num2str(UD.totalTrials) ' Trials'];
+    
+    anno2 = ['Catch Accuracy: ' num2str(catchAccu) '%'];
     
     axes(ha(ii))
-    plot(UD.x, 'LineWidth', 3);
+    rV = plot(find(UD.reversal~=0), UD.x(find(UD.reversal~=0)),'o','MarkerFaceColor',[1 1 1],'MarkerEdgeColor',[0 0 0],'MarkerSize',12);
     hold on;
-    plot(find(UD.response==1),UD.x(find(UD.response==1)),'o','MarkerFaceColor',[0 0 1],'MarkerEdgeColor',[0 0 1],'MarkerSize',10);
-    plot(find(UD.response==0),UD.x(find(UD.response==0)),'o','MarkerFaceColor',[1 0 0],'MarkerEdgeColor',[1 0 0],'MarkerSize',10);
-    line([0 length(UD.response)], [meanJND meanJND],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1])
-    title(['f0 Acuity JND ' num2str(ii) ': ' note], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
+    plot(UD.x, 'Color', [0.7 0.7 0.7], 'LineWidth', 3);   
+    
+    cD = plot(find(UD.allTrialTypes==1), UD.x(find(UD.allTrialTypes==1)),'o','MarkerFaceColor',tColors(1,:),'MarkerEdgeColor',tColors(1,:),'MarkerSize',10);
+    iD = plot(find(UD.allTrialTypes==2), UD.x(find(UD.allTrialTypes==2)),'o','MarkerFaceColor',tColors(2,:),'MarkerEdgeColor',tColors(2,:),'MarkerSize',10);
+    cS = plot(find(UD.allTrialTypes==3), UD.x(find(UD.allTrialTypes==3)),'o','MarkerFaceColor',tColors(3,:),'MarkerEdgeColor',tColors(3,:),'MarkerSize',10);
+    iS = plot(find(UD.allTrialTypes==4), UD.x(find(UD.allTrialTypes==4)),'o','MarkerFaceColor',tColors(4,:),'MarkerEdgeColor',tColors(4,:),'MarkerSize',10);
+    
+    
+    aJ = line([0 length(UD.response)], [meanJND meanJND],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1]);
+    title(['f0 Acuity JND ' num2str(ii) ': ' revNote triNote], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     xlabel('Trials','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     ylabel('f0 Distance (cents)','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     
     t = annotation('textbox',[annoPos(ii,1) annoPos(ii,2) 0.45 0.1],...
                    'string', {['Mean JND Score: ' num2str(meanJND) ' cents'];...
-                                                  anno2;...
-                                                  anno3},...
+                                                  anno2},...
                     'LineStyle','none',...
                     'FontWeight','bold',...
                     'FontSize',8,...
@@ -55,7 +60,14 @@ for ii = runs2Analyze
               'FontWeight','bold')
 end
 
-suptitle(JNDa.participant)
+suptitle({JNDa.participant; ['f0: ' num2str(UD.subjf0) ' Hz']})
+
+legend([cD,iD,rV,cS,iS],{'Correct Diff','Incorrect Diff','Reversals','Correct Same','Incorrect Same'},...
+       'Orientation','Horizontal',...
+       'FontSize', 8,...
+       'Position', [0.50 0.48 0.01 0.01],...
+       'EdgeColor', [0 0 0])
+
 
 plTitle = [JNDa.participant 'JNDStaircaseResults.jpg'];     
 saveFileName = fullfile(saveResultsDir, plTitle);

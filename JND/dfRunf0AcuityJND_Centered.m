@@ -83,6 +83,7 @@ UD.reversal = 0;
 UD.xCurrent = UD.startValue;
 UD.x = UD.startValue;
 UD.xStaircase = [];
+UD.catchResponse = [];
 UD.allTrialPerts = [];
 UD.allTrialTypes = [];
 waitForKeyPress = 3 ; % in seconds
@@ -215,7 +216,7 @@ UD.elapsedTime = elapsed_time;
 
 UD.performedTrials = length(UD.catchResponse);
 UD.JNDTrials = length(UD.reversal);
-UD.catchTrials = length(UD.catchResponse) - length(UD.reversal);
+UD.catchTrials = sum(~isnan(UD.catchResponse));
 UD.reversals = max(UD.reversal);
 UD.catchCorrect = sum(UD.catchResponse == 0);
 UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);

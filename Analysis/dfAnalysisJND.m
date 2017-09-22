@@ -1,8 +1,9 @@
 function dfAnalysisJND()
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participant  = 'Pilot12'; %List of multiple participants.
-runs2Analyze      = 1:4;
+JNDa.participant  = 'Pilot0'; %List of multiple participants.
+runs2Analyze      = 5;
+numRuns           = length(runs2Analyze);
 
 dirs = dfDirs(JNDa.project);
 dirs.SavResultsDir = fullfile(dirs.Results, JNDa.participant, 'JND'); %Where to save results
@@ -15,7 +16,7 @@ allRunData = [];
 allmeanJND = [];
 allCatchAcc = [];
 for ii = runs2Analyze 
-    JNDa.run         = ['fAC' num2str(ii)];
+    JNDa.run         = ['ABtest' num2str(ii)];
     
     dirs.SavFileDir  = fullfile(dirs.RecData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data
     
@@ -29,7 +30,7 @@ for ii = runs2Analyze
     allCatchAcc = cat(1, allCatchAcc, UD.catchAccuracy);
 end
 
-drawJNDResults(JNDa, dirs, runs2Analyze, allRunData, allmeanJND, allCatchAcc)
+drawJNDResults(JNDa, dirs, numRuns, allRunData, allmeanJND, allCatchAcc)
 end
 
 function UD = setCatchAcc(UD)
