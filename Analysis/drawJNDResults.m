@@ -2,8 +2,8 @@ function drawJNDResults(JNDa, dirs, numRuns, allRunData, allMeanJND, allCatchAcc
 
 saveResultsDir = dirs.SavResultsDir;
 
-plotpos = [275 150];
-plotdim = [1200 750];
+plotpos = [50 150];
+plotdim = [1600 750];
 xyFS    = 12;
 titleFS = 12;
 
@@ -12,10 +12,10 @@ tColors = [[0 0 1]; %Correct Different
            [0.5 0.5 1]; %Correct Same
            [1 0.5 0.5]];%Incorrect Same
 
-annoPos = [.35 .79;
-           .84 .79;
-           .35 .32;
-           .84 .32]; 
+annoPos = [.38 .79;
+           .87 .79;
+           .38 .32;
+           .87 .32]; 
 
 AllJND = figure('Color', [1 1 1]);
 set(AllJND, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -27,7 +27,8 @@ for ii = 1:numRuns
     meanJND = allMeanJND(ii);
     catchAccu = allCatchAcc(ii);
     revNote   = [num2str(UD.reversals) ' Reversals, '];
-    triNote   = [num2str(UD.performedTrials) '/' num2str(UD.totalTrials) ' Trials'];
+    triNote   = [num2str(UD.performedTrials) '/' num2str(UD.totalTrials) ' Trials, '];
+    timNote   = [num2str(round(10*UD.elapsedTime)/10) ' min'];
     
     anno2 = ['Catch Accuracy: ' num2str(catchAccu) '%'];
     
@@ -43,9 +44,10 @@ for ii = 1:numRuns
     
     
     aJ = line([0 length(UD.response)], [meanJND meanJND],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1]);
-    title(['f0 Acuity JND ' num2str(ii) ': ' revNote triNote], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
+    title(['f0 Acuity JND ' num2str(ii) ': ' revNote triNote timNote], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     xlabel('Trials','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     ylabel('f0 Distance (cents)','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
+    axis([0 80 0 60])
     
     t = annotation('textbox',[annoPos(ii,1) annoPos(ii,2) 0.45 0.1],...
                    'string', {['Mean JND Score: ' num2str(meanJND) ' cents'];...
@@ -65,7 +67,7 @@ suptitle({JNDa.participant; ['f0: ' num2str(UD.subjf0) ' Hz']})
 legend([cD,iD,rV,cS,iS],{'Correct Diff','Incorrect Diff','Reversals','Correct Same','Incorrect Same'},...
        'Orientation','Horizontal',...
        'FontSize', 8,...
-       'Position', [0.50 0.48 0.01 0.01],...
+       'Position', [0.51 0.48 0.01 0.01],...
        'EdgeColor', [0 0 0])
 
 
