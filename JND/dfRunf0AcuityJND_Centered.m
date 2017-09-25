@@ -103,6 +103,7 @@ fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, subjf0)
 pause(5);
 
 tr = 0;
+countSD = [0 0];
 while (UD.stop == 0) && tr < UD.totalTrials
     tr = tr +1;
     %Present the word
@@ -112,26 +113,23 @@ while (UD.stop == 0) && tr < UD.totalTrials
     PertDist = UD.xCurrent; %cents
     hPertDist = PertDist/2;
     
-    tempVar = randperm(4);
-    if tempVar(1) == 1 
-        pertA = hPertDist;
-        pertB = -hPertDist;
-        
+    [trialInd, countSD] = pseudoRandomTrialOrder(4, countSD);
+    if trialInd == 1 
+        pertA  = hPertDist;
+        pertB  = -hPertDist;        
         conVar = 1;
-    elseif tempVar(1) == 3
-        pertA = -hPertDist;
-        pertB = hPertDist;
-
+    elseif trialInd == 3
+        pertA  = -hPertDist;
+        pertB  = hPertDist;
         conVar = 1;
-    elseif tempVar(1) == 2 || tempVar(1) == 4 % scenario II (first one is no Pert) : % 40% of trials
-        subset = UD.xAll(logical(UD.xAll <= hPertDist & UD.xAll >= -hPertDist));
-        subsetL = length(subset);
+    elseif trialInd == 2 || trialInd == 4 % scenario II (first one is no Pert) : % 40% of trials
+        subset      = UD.xAll(logical(UD.xAll <= hPertDist & UD.xAll >= -hPertDist));
+        subsetL     = length(subset);
         randSubseti = randperm(subsetL);
-        samePert = subset(randSubseti(1));
+        samePert    = subset(randSubseti(1));
 
-        pertA = samePert;
-        pertB = samePert;
-
+        pertA  = samePert;
+        pertB  = samePert;
         conVar = 0;
     end
     trialPerts = [pertA pertB];
@@ -312,4 +310,28 @@ else
 end
 
 fprintf(msg)
+end
+
+function [trialInd, countSD] = pseudoRandomTrialOrder(nTrialTypes, countSD)
+maxCount = 3;
+
+tempVar = randperm(nTrialTypes);
+trialInd = tempVar(1);
+if trialInd == 1 || trialInd == 3     % Diff Trials
+    countSD(1) = 0;
+    countSD(2) = countSD(2) + 1;
+    if countSD(2) == (maxCount + 1)
+        countSD(1) = countSD(1) + 1;
+        countSD(2) = 0;
+        trialInd = 2*round(rand) + 2;
+    end           
+elseif trialInd == 2 || trialInd == 4 % Same Trials
+    countSD(1) = countSD(1) + 1;
+    countSD(2) = 0;
+    if countSD(1) == (maxCount + 1)
+        countSD(1) = 0;
+        countSD(2) = countSD(2) + 1;
+        trialInd = 2*round(rand) + 1;
+    end     
+end
 end
