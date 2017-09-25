@@ -60,7 +60,7 @@ mkdir(dirs.tokenDir);
 
 % Setting up the up-down paradigm (modified based on Palam)
 UD.totalTrials = totalTrials;
-UD.up = 1;    % Number of consecutive responses before an increase
+UD.up = 2;    % Number of consecutive responses before an increase
 UD.down = 2;  % Number of consecutive responses before a decrease
 stepSize = 4; %This is something to tune; in cents
 UD.stepSizeUp = stepSize; %Levitt (1971) 2/1 rule for 71% in MacMillian Chapter 11 with step per Garcia-Perez (1998); Was: Size of step up ; stepSize/ .5488 ensures 80.35 % correct; see Garcia-Perez 1998
@@ -118,22 +118,22 @@ while (UD.stop == 0) && tr < UD.totalTrials
         pertA  = hPertDist;
         pertX  = hPertDist;
         pertB  = -hPertDist;        
-        conVar = 0;
+        conVar = 1;
     elseif trialInd == 3   %Matches A
         pertA  = -hPertDist;
         pertX  = -hPertDist;
         pertB  = hPertDist;
-        conVar = 0;
+        conVar = 1;
     elseif trialInd == 2   %Matches B
         pertA  = hPertDist;
         pertX  = -hPertDist;
         pertB  = -hPertDist;        
-        conVar = 1;
+        conVar = 0;
     elseif trialInd == 4   %Matches B
         pertA  = -hPertDist;
         pertX  = hPertDist;
         pertB  = hPertDist;
-        conVar = 1;
+        conVar = 0;
     end
     trialPerts = [pertA pertX pertB];
     
@@ -185,21 +185,19 @@ while (UD.stop == 0) && tr < UD.totalTrials
     set(h4, 'Visible','off');
     drawnow 
     
+    dfAdaptiveUpdateJND(UD, response);
+    UD.catchResponse(tr,1) = response;
     if conVar == 1
-        UD = dfAdaptiveUpdateJNDDiff(UD, response);
-        UD.catchResponse(tr,1) = NaN;
         if response == 1 
-            trialType = 1; %Correct Different
+            trialType = 1; %Correct AX
         else
-            trialType = 2; %Incorrect Different
+            trialType = 2; %Incorrect AX
         end
     elseif conVar == 0
-        UD = dfAdaptiveUpdateJNDSame(UD, response);
-        UD.catchResponse(tr,1) = response;
         if response == 0 
-            trialType = 3; %Correct Same
+            trialType = 3; %Correct XB
         else
-            trialType = 4; %Incorrect Same
+            trialType = 4; %Incorrect XB
         end
     end
       
@@ -225,14 +223,12 @@ UD.catchCorrect = sum(UD.catchResponse == 0);
 UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
 
 expFiles = fullfile(dirs.RecFileDir, [UD.subject UD.run 'DRF.mat']);
-
 switch num_trials
     case 'Practice'
         return
     case 'Full'
         save(expFiles, 'UD'); %Only save if it was a full set of trials
 end
-
 end
 
 function [h2, h3, h4] = JNDVisualPresentation
@@ -261,7 +257,7 @@ h2 = annotation(figure1,'textbox',...
 
 h3 = annotation(figure1,'textbox',...
     [0.025 0.15 0.45 0.3],...
-    'String',{'< DIFFERENT'},... %was 'YES'
+    'String',{'< FIRST'},...
     'HorizontalAlignment','center',...
     'VerticalAlignment','middle',...
     'FontSize',60,...
@@ -273,7 +269,7 @@ h3 = annotation(figure1,'textbox',...
 
 h4 = annotation(figure1,'textbox',...
     [0.52 0.15 0.45 0.3],...
-    'String',{'SAME >'},... %was 'NO'
+    'String',{'LAST >'},... 
     'HorizontalAlignment','center',...
     'VerticalAlignment','middle',...
     'FontSize',60,...
