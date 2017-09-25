@@ -105,7 +105,7 @@ pause(5);
 tr = 0;
 countSD = [0 0];
 while (UD.stop == 0) && tr < UD.totalTrials
-    tr = tr +1;
+    tr = tr + 1;
     %Present the word
     set(h2,'String','+')
     drawnow;
@@ -114,22 +114,22 @@ while (UD.stop == 0) && tr < UD.totalTrials
     hPertDist = PertDist/2;
     
     [trialInd, countSD] = pseudoRandomTrialOrder(4, countSD);
-    if trialInd == 1 
+    if trialInd == 1       %Matches A
         pertA  = hPertDist;
         pertX  = hPertDist;
         pertB  = -hPertDist;        
         conVar = 0;
-    elseif trialInd == 2
+    elseif trialInd == 3   %Matches A
         pertA  = -hPertDist;
         pertX  = -hPertDist;
         pertB  = hPertDist;
         conVar = 0;
-    elseif trialInd == 3 
+    elseif trialInd == 2   %Matches B
         pertA  = hPertDist;
         pertX  = -hPertDist;
         pertB  = -hPertDist;        
         conVar = 1;
-    elseif trialInd == 4
+    elseif trialInd == 4   %Matches B
         pertA  = -hPertDist;
         pertX  = hPertDist;
         pertB  = hPertDist;
@@ -141,7 +141,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
     TokenA = PertTokens(indA, :);  TokenX = PertTokens(indX, :);  TokenB = PertTokens(indB, :);
     TokenLenA = length(TokenA)/fs; TokenLenX = length(TokenX)/fs; TokenLenB = length(TokenB)/fs;
     
-    JNDMessage(tr, [pertA pertB], PertDist, conVar, 0, 1)
+    JNDMessage(tr, trialPerts, PertDist, conVar, 0, 1)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
     sound(TokenA, fs)
@@ -172,13 +172,13 @@ while (UD.stop == 0) && tr < UD.totalTrials
             keyCorrect = 1;
         end
         
-        if bb == 28            %28 is DIFFERENT" | Left ARROW KEY ; was YES
+        if bb == 28            %28 is "FIRST" | Left ARROW KEY; 
             response = 1;
-        elseif bb == 29        %29 is "SAME"  | Right ARROW KEY ; was NO
+        elseif bb == 29        %29 is "LAST"  | Right ARROW KEY;
             response = 0;
         end      
     end
-    JNDMessage(tr, [pertA pertB], PertDist, conVar, response, 2);  
+    JNDMessage(tr, trialPerts, PertDist, conVar, response, 2);  
     
     set(h2, 'String','','FontSize',120)
     set(h3, 'Visible','off');
@@ -299,18 +299,18 @@ end
 function JNDMessage(tr, PertVals, PertDist, conVar, response, state)
 
 if state == 1
-    msg = ['Trial ' num2str(tr) ' at ' num2str(PertDist) ' (' num2str(PertVals(1)) ', ' num2str(PertVals(2)) '): '];
+    msg = ['Trial ' num2str(tr) ' at ' num2str(PertDist) ' (' num2str(PertVals(1)) ', ' num2str(PertVals(2)) ', ' num2str(PertVals(3)) '): '];
     
     if conVar == 1
-        msg = [msg 'Is Diff, Answered '];
+        msg = [msg 'Is First, Answered '];
     else
-        msg = [msg 'Is Same, Answered '];
+        msg = [msg 'Is Last, Answered '];
     end
 else
     if response == 1
-        msg = 'Diff\n';
+        msg = 'First\n';
     else
-        msg = 'Same\n';
+        msg = 'Last\n';
     end
 end
 
@@ -322,7 +322,7 @@ maxCount = 3;
 
 tempVar = randperm(nTrialTypes);
 trialInd = tempVar(1);
-if trialInd == 1 || trialInd == 3     % Diff Trials
+if trialInd == 1 || trialInd == 3     % A Trials
     countSD(1) = 0;
     countSD(2) = countSD(2) + 1;
     if countSD(2) == (maxCount + 1)
@@ -330,7 +330,7 @@ if trialInd == 1 || trialInd == 3     % Diff Trials
         countSD(2) = 0;
         trialInd = 2*round(rand) + 2;
     end           
-elseif trialInd == 2 || trialInd == 4 % Same Trials
+elseif trialInd == 2 || trialInd == 4 % B Trials
     countSD(1) = countSD(1) + 1;
     countSD(2) = 0;
     if countSD(1) == (maxCount + 1)
