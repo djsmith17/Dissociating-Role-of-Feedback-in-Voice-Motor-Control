@@ -185,15 +185,17 @@ while (UD.stop == 0) && tr < UD.totalTrials
     set(h4, 'Visible','off');
     drawnow 
     
-    dfAdaptiveUpdateJND(UD, response);
-    UD.catchResponse(tr,1) = response;
     if conVar == 1
+        dfAdaptiveUpdateJNDAX(UD, response);
+        UD.catchResponse(tr,1) = response;
         if response == 1 
             trialType = 1; %Correct AX
         else
             trialType = 2; %Incorrect AX
         end
     elseif conVar == 0
+        dfAdaptiveUpdateJNDBX(UD, response);
+        UD.catchResponse(tr,1) = response;
         if response == 0 
             trialType = 3; %Correct XB
         else
