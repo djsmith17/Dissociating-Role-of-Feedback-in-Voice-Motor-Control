@@ -51,3 +51,4 @@ if ~UD.stop
     end
     UD.xCurrent = UD.x(trial+1);
 end
+end
