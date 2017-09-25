@@ -186,7 +186,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
     drawnow 
     
     if conVar == 1
-        dfAdaptiveUpdateJNDAX(UD, response);
+        UD = dfAdaptiveUpdateJNDAX(UD, response);
         UD.catchResponse(tr,1) = response;
         if response == 1 
             trialType = 1; %Correct AX
@@ -194,7 +194,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
             trialType = 2; %Incorrect AX
         end
     elseif conVar == 0
-        dfAdaptiveUpdateJNDBX(UD, response);
+        UD = dfAdaptiveUpdateJNDBX(UD, response);
         UD.catchResponse(tr,1) = response;
         if response == 0 
             trialType = 3; %Correct XB
