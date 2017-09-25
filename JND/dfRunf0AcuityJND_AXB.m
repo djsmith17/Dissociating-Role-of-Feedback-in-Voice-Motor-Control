@@ -116,35 +116,40 @@ while (UD.stop == 0) && tr < UD.totalTrials
     [trialInd, countSD] = pseudoRandomTrialOrder(4, countSD);
     if trialInd == 1 
         pertA  = hPertDist;
+        pertX  = hPertDist;
+        pertB  = -hPertDist;        
+        conVar = 0;
+    elseif trialInd == 2
+        pertA  = -hPertDist;
+        pertX  = -hPertDist;
+        pertB  = hPertDist;
+        conVar = 0;
+    elseif trialInd == 3 
+        pertA  = hPertDist;
+        pertX  = -hPertDist;
         pertB  = -hPertDist;        
         conVar = 1;
-    elseif trialInd == 3
+    elseif trialInd == 4
         pertA  = -hPertDist;
+        pertX  = hPertDist;
         pertB  = hPertDist;
         conVar = 1;
-    elseif trialInd == 2 || trialInd == 4 % scenario II (first one is no Pert) : % 40% of trials
-        subset      = UD.xAll(logical(UD.xAll <= hPertDist & UD.xAll >= -hPertDist));
-        subsetL     = length(subset);
-        randSubseti = randperm(subsetL);
-        samePert    = subset(randSubseti(1));
-
-        pertA  = samePert;
-        pertB  = samePert;
-        conVar = 0;
     end
-    trialPerts = [pertA pertB];
+    trialPerts = [pertA pertX pertB];
     
-    indA = find(UD.xAll == pertA); indB = find(UD.xAll == pertB);
-    Token1 = PertTokens(indA, :); Token2 = PertTokens(indB, :);
-    TokenLen1 = length(Token1)/fs; TokenLen2 = length(Token2)/fs;
+    indA = find(UD.xAll == pertA); indX = find(UD.xAll == pertX); indB = find(UD.xAll == pertB);
+    TokenA = PertTokens(indA, :);  TokenX = PertTokens(indX, :);  TokenB = PertTokens(indB, :);
+    TokenLenA = length(TokenA)/fs; TokenLenX = length(TokenX)/fs; TokenLenB = length(TokenB)/fs;
     
     JNDMessage(tr, [pertA pertB], PertDist, conVar, 0, 1)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
-    sound(Token1, fs)
-    pause(TokenLen1 + UD.ISI + UD.measuredDelay)
-    sound(Token2, fs)
-    pause(TokenLen2 + UD.measuredDelay)
+    sound(TokenA, fs)
+    pause(TokenLenA + UD.ISI + UD.measuredDelay)
+    sound(TokenX, fs)
+    pause(TokenLenX + UD.ISI + UD.measuredDelay)
+    sound(TokenB, fs)
+    pause(TokenLenB + UD.measuredDelay)
     %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
