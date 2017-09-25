@@ -22,7 +22,7 @@ sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'BalloonD_EmptyAir'; %Subject#, Pilot#, null
+expParam.subject       = 'BalloonA_Dummy'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
 expParam.curSess       = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
@@ -55,7 +55,7 @@ if collectNewData == 1
 
     [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-    expParam.resPause = 1;
+    expParam.resPause = 3;
 
     DAQin = [];
     for ii = 1:expParam.numTrial
