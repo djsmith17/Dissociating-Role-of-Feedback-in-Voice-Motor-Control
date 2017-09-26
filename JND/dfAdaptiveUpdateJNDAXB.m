@@ -1,4 +1,4 @@
-function UD = dfAdaptiveUpdateJNDAX(UD, response)
+function UD = dfAdaptiveUpdateJNDAXB(UD, response, correct)
 % Modified from Palam
 % Received from Ayoub Daliri
 trial = length(UD.x);
@@ -13,7 +13,7 @@ if trial == 1
     end
 end
     
-if response == 1 %Correct
+if correct == 1 %Correct
     UD.d = UD.d + 1;
     if UD.d == UD.down || max(UD.reversal) < 1
         UD.xStaircase(trial+1) = UD.xStaircase(trial)-UD.stepSizeDown;

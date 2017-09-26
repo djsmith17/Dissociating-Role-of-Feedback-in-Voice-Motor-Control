@@ -186,26 +186,25 @@ while (UD.stop == 0) && tr < UD.totalTrials
     drawnow 
     
     if conVar == 1
-        UD = dfAdaptiveUpdateJNDAX(UD, response);
         if response == 1 
             trialType = 1; %Correct AX
-            trialOut  = 1; %Correct
+            correct  = 1; %Correct
         else
             trialType = 2; %Incorrect AX
-            trialOut  = 0; %Incorrect
+            correct  = 0; %Incorrect
         end
-    elseif conVar == 0
-        UD = dfAdaptiveUpdateJNDBX(UD, response);
+    elseif conVar == 0        
         if response == 0 
             trialType = 3; %Correct XB
-            trialOut  = 1; %Correct
+            correct  = 1; %Correct
         else
             trialType = 4; %Incorrect XB
-            trialOut  = 0; %Incorrect
+            correct  = 0; %Incorrect
         end
     end
-      
-    UD.catchResponse(tr,1) = trialOut;
+     
+    UD = dfAdaptiveUpdateJNDAXB(UD, response, correct);
+    UD.catchResponse(tr,1) = correct;
     UD.allTrialPerts = cat(1, UD.allTrialPerts, trialPerts);
     UD.allTrialTypes = cat(1, UD.allTrialTypes, trialType);
     pause(1) %this is between two trials   
