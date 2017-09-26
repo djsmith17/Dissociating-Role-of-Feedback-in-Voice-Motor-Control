@@ -2,6 +2,7 @@ function dfAnalysisJND()
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 JNDa.participant  = 'Pilot15'; %List of multiple participants.
+JNDa.runType      = 'fAC';
 runs2Analyze      = 1:4;
 numRuns           = length(runs2Analyze);
 
@@ -16,7 +17,7 @@ allRunData = [];
 allmeanJND = [];
 allCatchAcc = [];
 for ii = runs2Analyze 
-    JNDa.run         = ['fAC' num2str(ii)];
+    JNDa.run         = [JNDa.runType num2str(ii)];
     
     dirs.SavFileDir  = fullfile(dirs.RecData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data
     
@@ -25,7 +26,12 @@ for ii = runs2Analyze
     UD = setDirection(UD, JNDa, ii);
     meanJND = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
     accuracy = round(UD.catchAccuracy);
-    
+        
+    if strcmp(JNDa.runType, 'fAC')
+        UD.tN = {'Diff'; 'Same'}; 
+    else
+        UD.tN = {'First'; 'Last'}; 
+    end    
     allRunData = cat(1, allRunData, UD);
     allmeanJND = cat(1, allmeanJND, meanJND);
     allCatchAcc = cat(1, allCatchAcc, accuracy);
