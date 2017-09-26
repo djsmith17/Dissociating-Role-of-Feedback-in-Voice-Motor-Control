@@ -30,6 +30,7 @@ if correct == 1 %Correct
         end
         UD.direction = -1;
     else
+        UD.u = 0;
         UD.xStaircase(trial+1) = UD.xStaircase(trial);
     end    
 else %Incorrect
@@ -49,6 +50,7 @@ else %Incorrect
         end
         UD.direction = 1;
     else
+        UD.d = 0;
         UD.xStaircase(trial+1) = UD.xStaircase(trial);
     end    
 end    
