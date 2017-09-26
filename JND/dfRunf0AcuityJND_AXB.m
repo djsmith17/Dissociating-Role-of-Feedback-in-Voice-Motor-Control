@@ -187,22 +187,25 @@ while (UD.stop == 0) && tr < UD.totalTrials
     
     if conVar == 1
         UD = dfAdaptiveUpdateJNDAX(UD, response);
-        UD.catchResponse(tr,1) = response;
         if response == 1 
             trialType = 1; %Correct AX
+            trialOut  = 1; %Correct
         else
             trialType = 2; %Incorrect AX
+            trialOut  = 0; %Incorrect
         end
     elseif conVar == 0
         UD = dfAdaptiveUpdateJNDBX(UD, response);
-        UD.catchResponse(tr,1) = response;
         if response == 0 
             trialType = 3; %Correct XB
+            trialOut  = 1; %Correct
         else
             trialType = 4; %Incorrect XB
+            trialOut  = 0; %Incorrect
         end
     end
       
+    UD.catchResponse(tr,1) = trialOut;
     UD.allTrialPerts = cat(1, UD.allTrialPerts, trialPerts);
     UD.allTrialTypes = cat(1, UD.allTrialTypes, trialType);
     pause(1) %this is between two trials   
@@ -221,7 +224,7 @@ UD.performedTrials = length(UD.catchResponse);
 UD.JNDTrials = length(UD.reversal);
 UD.catchTrials = sum(~isnan(UD.catchResponse));
 UD.reversals = max(UD.reversal);
-UD.catchCorrect = sum(UD.catchResponse == 0);
+UD.catchCorrect = sum(UD.catchResponse);
 UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
 
 expFiles = fullfile(dirs.RecFileDir, [UD.subject UD.run 'DRF.mat']);
