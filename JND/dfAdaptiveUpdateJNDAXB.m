@@ -6,7 +6,7 @@ UD.response(trial) = response;
 
 if trial == 1
     UD.xStaircase(trial) = UD.x(trial);
-    if response == 1
+    if correct == 1
         UD.direction = -1;        
     else
         UD.direction = 1;
@@ -18,7 +18,7 @@ if correct == 1 %Correct
     if UD.d == UD.down || max(UD.reversal) < 1
         UD.xStaircase(trial+1) = UD.xStaircase(trial)-UD.stepSizeDown;
         if UD.xStaircase(trial+1) < UD.xMin && strcmp(UD.truncate,'yes')
-            UD.xStaircase(trial+1) = UD.xMin; %Cara added the .1 Hz here because if it is truly xMin, the correct answer isn't really different anymore.
+            UD.xStaircase(trial+1) = UD.xMin;
         end
         UD.u = 0;
         UD.d = 0;

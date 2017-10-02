@@ -61,7 +61,7 @@ mkdir(dirs.tokenDir);
 % Setting up the up-down paradigm (modified based on Palam)
 UD.totalTrials = totalTrials;
 UD.up = 2;    % Number of consecutive responses before an increase
-UD.down = 2;  % Number of consecutive responses before a decrease
+UD.down = 1;  % Number of consecutive responses before a decrease
 stepSize = 4; %This is something to tune; in cents
 UD.stepSizeUp = stepSize; %Levitt (1971) 2/1 rule for 71% in MacMillian Chapter 11 with step per Garcia-Perez (1998); Was: Size of step up ; stepSize/ .5488 ensures 80.35 % correct; see Garcia-Perez 1998
 UD.stepSizeDown = stepSize; % Size of step down
@@ -188,18 +188,18 @@ while (UD.stop == 0) && tr < UD.totalTrials
     if conVar == 1
         if response == 1 
             trialType = 1; %Correct AX
-            correct  = 1; %Correct
+            correct  = 1;  %Correct
         else
             trialType = 2; %Incorrect AX
-            correct  = 0; %Incorrect
+            correct  = 0;  %Incorrect
         end
     elseif conVar == 0        
         if response == 0 
             trialType = 3; %Correct XB
-            correct  = 1; %Correct
+            correct  = 1;  %Correct
         else
             trialType = 4; %Incorrect XB
-            correct  = 0; %Incorrect
+            correct  = 0;  %Incorrect
         end
     end
      
