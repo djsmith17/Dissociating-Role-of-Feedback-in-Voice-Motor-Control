@@ -48,7 +48,7 @@ for ii = 1:numRuns
     title(['f0 Acuity JND ' num2str(ii) ': ' revNote triNote timNote], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     xlabel('Trials','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     ylabel('f0 Distance (cents)','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
-    axis([0 80 0 70])
+    axis([0 80 0 80])
     
     t = annotation('textbox',[annoPos(ii,1) annoPos(ii,2) 0.45 0.1],...
                    'string', {['Mean JND Score: ' num2str(meanJND) ' cents'];...
@@ -88,7 +88,7 @@ legend(aH,{['Correct ' UD.tN{1}],['Incorrect ' UD.tN{1}],'Reversals',['Correct '
        'EdgeColor', [0 0 0])
 
 
-plTitle = [JNDa.participant 'JNDStaircaseResults.jpg'];     
+plTitle = [JNDa.participant 'JNDStaircaseResults' JNDa.runType num2str(JNDa.runs2Analyze) '.jpg'];     
 saveFileName = fullfile(saveResultsDir, plTitle);
 export_fig(saveFileName) 
 end

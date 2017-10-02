@@ -1,10 +1,10 @@
 function dfAnalysisJND()
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participant  = 'Pilot18'; %List of multiple participants.
+JNDa.participant  = 'Pilot0'; %List of multiple participants.
 JNDa.runType      = 'fAX';
-runs2Analyze      = 1:4;
-numRuns           = length(runs2Analyze);
+JNDa.runs2Analyze = 2;
+numRuns           = length(JNDa.runs2Analyze);
 
 dirs = dfDirs(JNDa.project);
 dirs.SavResultsDir = fullfile(dirs.Results, JNDa.participant, 'JND'); %Where to save results
@@ -16,7 +16,7 @@ end
 allRunData = [];
 allmeanJND = [];
 allCatchAcc = [];
-for ii = runs2Analyze 
+for ii = JNDa.runs2Analyze 
     JNDa.run         = [JNDa.runType num2str(ii)];
     
     dirs.SavFileDir  = fullfile(dirs.RecData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data

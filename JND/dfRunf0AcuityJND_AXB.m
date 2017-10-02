@@ -95,7 +95,7 @@ UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for ac
 subjf0 = dfcalcf0Praat(dirs);                      %Calculate f0 using praat. Located in JND Folder
 PertFreqs = targetf0calc(subjf0, UD.xAll, UD.xLen); %Located Below
 numPertFreqs = length(PertFreqs);
-PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs); %Generate Pert Tokens. Located in JND Folder
+PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs, UD); %Generate Pert Tokens. Located in JND Folder
 
 fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, subjf0)
 %%%%%Visual Presentation
