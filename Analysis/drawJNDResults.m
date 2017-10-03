@@ -30,7 +30,11 @@ for ii = 1:numRuns
     catchAccu = allCatchAcc(ii);
     revNote   = [num2str(UD.reversals) ' Reversals, '];
     triNote   = [num2str(UD.performedTrials) '/' num2str(UD.totalTrials) ' Trials, '];
-    timNote   = [num2str(round(10*UD.elapsedTime)/10) ' min'];
+    timNote   = [num2str(round(10*UD.elapsedTime)/10) ' min, '];
+    
+    if isfield(UD,'inst')
+       timNote   = [timNote 'Instru: ' UD.inst];
+    end
     
     anno2 = ['Catch Accuracy: ' num2str(catchAccu) '%'];
     

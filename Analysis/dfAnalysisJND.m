@@ -1,9 +1,9 @@
 function dfAnalysisJND()
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participant  = 'Pilot0'; %List of multiple participants.
+JNDa.participant  = 'Pilot19'; %List of multiple participants.
 JNDa.runType      = 'fAX';
-JNDa.runs2Analyze = 2;
+JNDa.runs2Analyze = 1:2;
 numRuns           = length(JNDa.runs2Analyze);
 
 dirs = dfDirs(JNDa.project);
