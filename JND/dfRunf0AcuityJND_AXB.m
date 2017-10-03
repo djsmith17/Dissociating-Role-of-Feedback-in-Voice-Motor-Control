@@ -11,10 +11,11 @@ prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Run:',...
           'Baseline Trial:',...
+          'Instruction ("Same" or "Diff):',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','fAX1', 'BV1', '3', 'female'};
+defaultanswer = {'null','fAX1', 'BV1', '3', 'Same', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -34,7 +35,8 @@ UD.subject = answer{1};
 UD.run     = answer{2};
 UD.baseRec = answer{3};
 UD.baseTrial = str2double(answer{4});
-UD.gender =  answer{5};
+UD.inst    = answer{5};
+UD.gender  = answer{6};
 
 dirs = dfDirs(UD.project);
 % Folder paths to save data files
@@ -186,23 +188,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
     set(h4, 'Visible','off');
     drawnow 
     
-    if conVar == 1
-        if response == 1 
-            trialType = 1; %Correct AX
-            correct  = 1;  %Correct
-        else
-            trialType = 2; %Incorrect AX
-            correct  = 0;  %Incorrect
-        end
-    elseif conVar == 0        
-        if response == 0 
-            trialType = 3; %Correct XB
-            correct  = 1;  %Correct
-        else
-            trialType = 4; %Incorrect XB
-            correct  = 0;  %Incorrect
-        end
-    end
+    [trialType, correct] = accuLogic(UD, conVar, response);
      
     UD = dfAdaptiveUpdateJNDAXB(UD, response, correct);
     UD.catchResponse(tr,1) = correct;
@@ -340,4 +326,45 @@ elseif trialInd == 2 || trialInd == 4 % B Trials
         trialInd = 2*round(rand) + 1;
     end     
 end
+end
+
+function [trialType, correct] = accuLogic(UD, conVar, response)
+
+if strcmp(UD.inst, 'Same')
+    if conVar == 1
+        if response == 1 
+            trialType = 1; %Correct AX
+            correct  = 1;  %Correct
+        else
+            trialType = 2; %Incorrect AX
+            correct  = 0;  %Incorrect
+        end
+    elseif conVar == 0        
+        if response == 0 
+            trialType = 3; %Correct XB
+            correct  = 1;  %Correct
+        else
+            trialType = 4; %Incorrect XB
+            correct  = 0;  %Incorrect
+        end
+    end
+else
+    if conVar == 1
+        if response == 0 
+            trialType = 1; %Correct AX
+            correct  = 1;  %Correct
+        else
+            trialType = 2; %Incorrect AX
+            correct  = 0;  %Incorrect
+        end
+    elseif conVar == 0        
+        if response == 1 
+            trialType = 3; %Correct XB
+            correct  = 1;  %Correct
+        else
+            trialType = 4; %Incorrect XB
+            correct  = 0;  %Incorrect
+        end
+    end
+end 
 end
