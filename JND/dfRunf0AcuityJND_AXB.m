@@ -65,6 +65,7 @@ UD.down = 2;  % Number of consecutive responses before a decrease
 stepSize = 4; %This is something to tune; in cents
 UD.stepSizeUp = stepSize; %Levitt (1971) 2/1 rule for 71% in MacMillian Chapter 11 with step per Garcia-Perez (1998); Was: Size of step up ; stepSize/ .5488 ensures 80.35 % correct; see Garcia-Perez 1998
 UD.stepSizeDown = stepSize; % Size of step down
+UD.BIGstep      = 10;
 UD.stopCriterion = 'reversals'; % stop the procedure based on number of 'trials' | 'reversals'
 UD.stopRule = 10;  %stop procedure after this number of trials/reversals
 UD.startValue = 50; % initial difference in cents between speaker's fo and fo of stimulus in headphones

@@ -16,10 +16,6 @@ end
 if correct == 1 %Correct
     UD.d = UD.d + 1;
     if UD.d == UD.down || max(UD.reversal) < 1
-        UD.xStaircase(trial+1) = UD.xStaircase(trial)-UD.stepSizeDown;
-        if UD.xStaircase(trial+1) < UD.xMin && strcmp(UD.truncate,'yes')
-            UD.xStaircase(trial+1) = UD.xMin;
-        end
         UD.u = 0;
         UD.d = 0;
         UD.reversal(trial) = 0;
@@ -29,6 +25,17 @@ if correct == 1 %Correct
             UD.reversal(trial) = 0;
         end
         UD.direction = -1;
+        
+        if max(UD.reversal) < 1
+            UD.ssDown = UD.BIGstep;
+        else
+            UD.ssDown = UD.stepSizeDown;
+        end        
+        
+        UD.xStaircase(trial+1) = UD.xStaircase(trial)-UD.ssDown;
+        if UD.xStaircase(trial+1) < UD.xMin && strcmp(UD.truncate,'yes')
+            UD.xStaircase(trial+1) = UD.xMin;
+        end
     else
         UD.u = 0;
         UD.xStaircase(trial+1) = UD.xStaircase(trial);
@@ -36,10 +43,6 @@ if correct == 1 %Correct
 else %Incorrect
     UD.u = UD.u + 1;
     if UD.u == UD.up || max(UD.reversal) < 1
-        UD.xStaircase(trial+1) = UD.xStaircase(trial)+UD.stepSizeUp;
-        if UD.xStaircase(trial+1) > UD.xMax && strcmp(UD.truncate,'yes')
-            UD.xStaircase(trial+1) = UD.xMax;
-        end
         UD.u = 0;
         UD.d = 0;
         UD.reversal(trial) = 0;
@@ -49,6 +52,11 @@ else %Incorrect
             UD.reversal(trial) = 0;
         end
         UD.direction = 1;
+        
+        UD.xStaircase(trial+1) = UD.xStaircase(trial)+UD.stepSizeUp;
+        if UD.xStaircase(trial+1) > UD.xMax && strcmp(UD.truncate,'yes')
+            UD.xStaircase(trial+1) = UD.xMax;
+        end
     else
         UD.d = 0;
         UD.xStaircase(trial+1) = UD.xStaircase(trial);
