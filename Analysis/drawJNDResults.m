@@ -92,7 +92,7 @@ legend(aH,{['Correct ' UD.tN{1}],['Incorrect ' UD.tN{1}],'Reversals',['Correct '
        'EdgeColor', [0 0 0])
 
 
-plTitle = [JNDa.participant 'JNDStaircaseResults' JNDa.runType num2str(JNDa.runs2Analyze) '.jpg'];     
+plTitle = [JNDa.participant 'JNDStaircaseResults' JNDa.runType '.jpg'];     
 saveFileName = fullfile(saveResultsDir, plTitle);
 export_fig(saveFileName) 
 end

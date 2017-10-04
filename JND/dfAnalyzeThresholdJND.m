@@ -1,4 +1,4 @@
-function meanJND = dfAnalyzeThresholdJND(UD, varargin)
+function [meanJND, lastSetAccu] = dfAnalyzeThresholdJND(UD, varargin)
 % modified from Palam
 % Received from Ayoub Daliri
 HighReversal = max(UD.reversal);
@@ -42,6 +42,8 @@ if strncmpi(criterion,'reversals',4)
     ind = find(UD.reversal == (LowReversal-1))+1;
     lastSet = UD.catchResponse(ind:end);
     lastSetL = length(lastSet);
+    lastSetAccu = 100*sum(lastSet)/lastSetL;
 else
     meanJND = sum(UD.xStaircase(LowTrial:NumTrials))/(NumTrials-LowTrial+1);
+    lastSetAccu =[];
 end

@@ -1,7 +1,7 @@
 function dfAnalysisJND()
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participant  = 'Pilot19'; %List of multiple participants.
+JNDa.participant  = 'Pilot9'; %List of multiple participants.
 JNDa.runType      = 'fAX';
 JNDa.runs2Analyze = 1:2;
 numRuns           = length(JNDa.runs2Analyze);
@@ -19,12 +19,12 @@ allCatchAcc = [];
 for ii = JNDa.runs2Analyze 
     JNDa.run         = [JNDa.runType num2str(ii)];
     
-    dirs.SavFileDir  = fullfile(dirs.RecData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data
+    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data
     
     load(dirs.SavFileDir)
     UD = setCatchAcc(UD);
     UD = setDirection(UD, JNDa, ii);
-    meanJND = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
+    [meanJND, lastSetAccu]= dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
     accuracy = round(UD.catchAccuracy);
         
     if strcmp(JNDa.runType, 'fAC')
@@ -34,7 +34,7 @@ for ii = JNDa.runs2Analyze
     end    
     allRunData = cat(1, allRunData, UD);
     allmeanJND = cat(1, allmeanJND, meanJND);
-    allCatchAcc = cat(1, allCatchAcc, accuracy);
+    allCatchAcc = cat(1, allCatchAcc, lastSetAccu);
 end
 
 drawJNDResults(JNDa, dirs, numRuns, allRunData, allmeanJND, allCatchAcc)
