@@ -5,7 +5,7 @@ prompt = {'Subject ID:',...
           'Runs to Analyze:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','fAX', '1, 2, 3, 4', '3', 'Same', 'female'};
+defaultanswer = {'null','fAX', '1 2 3 4', '3', 'Same', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
