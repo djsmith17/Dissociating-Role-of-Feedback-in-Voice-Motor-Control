@@ -26,10 +26,11 @@ if correct == 1 %Correct
         end
         UD.direction = -1;
         
-        if max(UD.reversal) < 1
-            UD.ssDown = UD.BIGstep;
-        elseif UD.xStaircase(trial) <= 10
+    
+        if UD.xStaircase(trial) <= 10
             UD.ssDown = UD.smallStep;
+        elseif max(UD.reversal) < 1
+            UD.ssDown = UD.BIGstep;
         else
             UD.ssDown = UD.stepSizeDown;
         end        
