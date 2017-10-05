@@ -28,6 +28,8 @@ if correct == 1 %Correct
         
         if max(UD.reversal) < 1
             UD.ssDown = UD.BIGstep;
+        elseif UD.xStaircase(trial) <= 10
+            UD.ssDown = UD.smallStep;
         else
             UD.ssDown = UD.stepSizeDown;
         end        
@@ -53,7 +55,13 @@ else %Incorrect
         end
         UD.direction = 1;
         
-        UD.xStaircase(trial+1) = UD.xStaircase(trial)+UD.stepSizeUp;
+        if UD.xStaircase(trial) <= 10
+            UD.ssUp = UD.smallStep;
+        else
+            UD.ssUp = UD.stepSizeUp;
+        end  
+        
+        UD.xStaircase(trial+1) = UD.xStaircase(trial)+UD.ssUp;
         if UD.xStaircase(trial+1) > UD.xMax && strcmp(UD.truncate,'yes')
             UD.xStaircase(trial+1) = UD.xMax;
         end

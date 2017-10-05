@@ -31,7 +31,7 @@ allCatchAcc = [];
 for ii = JNDa.runs2Analyze 
     JNDa.run         = [JNDa.runType num2str(ii)];
     
-    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data
+    dirs.SavFileDir  = fullfile(dirs.RecData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data
     
     load(dirs.SavFileDir)
     UD = setCatchAcc(UD);
