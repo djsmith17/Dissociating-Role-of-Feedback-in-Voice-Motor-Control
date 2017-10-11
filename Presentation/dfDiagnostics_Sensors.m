@@ -12,7 +12,7 @@ function dfDiagnostics_Sensors(varargin)
 close all;
 
 if isempty(varargin)
-    numTrial = 10; 
+    numTrial = 5; 
 else
     numTrial = varargin{1};
 end
@@ -22,8 +22,8 @@ sv2F                   = 1; %Boolean
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'BalloonA_Dummy'; %Subject#, Pilot#, null
-expParam.run           = 'Run1';
+expParam.subject       = 'Dummy'; %Subject#, Pilot#, null
+expParam.run           = 'BalloonFTestMTC';
 expParam.curSess       = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
 expParam.trialLen      = 4; %Seconds
@@ -31,8 +31,8 @@ expParam.perCatch      = 1;
 
 dirs = dfDirs(expParam.project);
 
-dirs.RecFileDir    = fullfile(dirs.RecData, expParam.subject);
-dirs.SavResultsDir = fullfile(dirs.RecData, expParam.subject); %Where to save results 
+dirs.RecFileDir    = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.SavResultsDir = fullfile(dirs.RecData, expParam.subject, expParam.run); %Where to save results 
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -40,7 +40,7 @@ end
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject '_DiagSensors.mat']);
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'NSD.mat']);
 
 if collectNewData == 1
     expParam.sRate       = 48000;
