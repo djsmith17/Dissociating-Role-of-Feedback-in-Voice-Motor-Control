@@ -290,9 +290,9 @@ if state == 1
     msg = ['Trial ' num2str(tr) ' at ' num2str(PertDist) ' (' num2str(PertVals(1)) ', ' num2str(PertVals(2)) ', ' num2str(PertVals(3)) '): '];
     
     if conVar == 1
-        msg = [msg 'Is First, Answered '];
-    else
         msg = [msg 'Is Last, Answered '];
+    else
+        msg = [msg 'Is First, Answered '];
     end
 else
     if response == 1
