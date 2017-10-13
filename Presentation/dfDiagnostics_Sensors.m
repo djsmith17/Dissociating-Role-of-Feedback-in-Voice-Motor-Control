@@ -53,7 +53,7 @@ if collectNewData == 1
 
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
 
     expParam.resPause = 3;
 

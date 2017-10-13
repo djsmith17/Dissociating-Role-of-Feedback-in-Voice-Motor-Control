@@ -24,7 +24,7 @@ function [sigs, trigs] = dfMakePertSignal(trialLen, numTrial, sRateQ, sRateA, tr
 if isempty(varargin)
     diag = 0;
 else
-    diag = varargin(1);
+    diag = varargin{1};
 end
 
 expChk{1} = 'Somatosensory Perturbation_Perceptual';
