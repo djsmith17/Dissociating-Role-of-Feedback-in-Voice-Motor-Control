@@ -57,15 +57,18 @@ if collectNewData == 1
 
     expParam.resPause = 3;
 
-    DAQin = [];
+    DAQin = []; DAQtime = [];
     for ii = 1:expParam.numTrial
         NIDAQsig = [expParam.sigs(:,ii) nVS];
         queueOutputData(s, NIDAQsig);
         fprintf('Running Trial %d\n', ii)
+        tic
         [data_DAQ, time] = s.startForeground;
+        toc
 
-        DAQin = cat(3, DAQin, data_DAQ);
-
+        DAQin   = cat(3, DAQin, data_DAQ);
+        DAQtime = cat(3, DAQtime, time);
+        
         pause(expParam.resPause)      
     end
     
