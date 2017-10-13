@@ -11,6 +11,7 @@ function [s, niCh, nVS] = initNIDAQ(trialLen, dev)
 
 %outputs:
 %s:        The NIDAQ session for recording
+%niCh:     NIDAQ Channels names (Input/Output)
 %nVS:      Negative Voltage Source. A -1V signal needed for some circuits. 
 
 if isempty(dev)
