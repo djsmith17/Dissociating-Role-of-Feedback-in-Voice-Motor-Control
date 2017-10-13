@@ -143,8 +143,10 @@ end
 [res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0_Sp, res.allTrialForce, res.runTrialOrder);
 res.meanTrialf0b = round(mean(res.allTrialf0b,1));
 
-res.f0Limits         = [0 auAn.recLen -120 40];
-res.f0LimitsSec      = [0 auAn.totEveLen -120 40];
+lims = identifyLimits(res);
+
+res.f0Limits         = [0 auAn.recLen lims.lwBoundSec lims.upBoundSec];
+res.f0LimitsSec      = [0 auAn.totEveLen lims.lwBoundSec lims.upBoundSec];
 res.InflaRespLimits  = [0 0.3 -80 10];
 res.ForceLimits      = [0 auAn.totEveLen 1 3.5];
 res.PressureLimits   = [0 auAn.totEveLen 20 30];
@@ -449,4 +451,41 @@ set(gca, 'FontSize', 16,...
 plTitle = [AVar.curRecording '_Inflation Response Route.png'];
 saveFileName = fullfile(plotFolder, plTitle);
 export_fig(saveFileName)
+end
+
+function lims = identifyLimits(res)
+
+
+%Full trial f0 analysis
+
+
+
+
+
+
+%Sectioned f0 Analysis
+[~, Imax] = max(res.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
+upBound_St = round(res.meanTrialf0_St(Imax,1,2) + res.meanTrialf0_St(Imax,2,2) + 10);
+[~, Imin] = min(res.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
+lwBound_St = round(res.meanTrialf0_St(Imin,1,2) - res.meanTrialf0_St(Imin,2,2) - 10);
+
+[~, Imax] = max(res.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
+upBound_Sp = round(res.meanTrialf0_Sp(Imax,1,2) + res.meanTrialf0_Sp(Imax,2,2) + 10);
+[~, Imin] = min(res.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
+lwBound_Sp = round(res.meanTrialf0_Sp(Imin,1,2) - res.meanTrialf0_Sp(Imin,2,2) - 10);
+
+if upBound_St > upBound_Sp
+    lims.upBoundSec = upBound_St;
+else
+    lims.upBoundSec = upBound_Sp;
+end
+
+if lwBound_St < lwBound_Sp
+    lims.lwBoundSec = lwBound_St;
+else
+    lims.lwBoundSec = lwBound_Sp;
+end
+
+
+
 end
