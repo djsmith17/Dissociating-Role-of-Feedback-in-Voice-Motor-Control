@@ -14,7 +14,12 @@ sRate = expParam.sRateQ;
 
 niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
-niAn.curSess  = expParam.curSess;
+if isfield(expParam, 'curSess')
+    niAn.curSess  = expParam.curSess;  %Short hand of experiment details
+else
+    niAn.curSess  = [expParam.subject expParam.run]; 
+end
+
 niAn.sRate    = sRate;
 niAn.numSamp  = r;
 niAn.numTrial = n;

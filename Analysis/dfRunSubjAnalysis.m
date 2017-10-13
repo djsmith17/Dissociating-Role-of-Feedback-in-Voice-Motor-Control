@@ -21,7 +21,7 @@ PltTgl.svInflaRespRoute  = 0;
 
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participant  = 'Pilot0'; %List of multiple participants.
-AVar.run          = 'Run4';
+AVar.run          = 'Run1';
 
 dirs = dfDirs(AVar.project);
 
@@ -33,7 +33,7 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-fprintf('Loading Files\n')
+fprintf('Loading Files for %s %s\n', AVar.participant, AVar.run)
 load(dirs.SavFileDir)
 
 [auAn, res] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
