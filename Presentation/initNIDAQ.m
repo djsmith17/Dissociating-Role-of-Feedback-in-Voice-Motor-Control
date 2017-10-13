@@ -1,7 +1,10 @@
 function [s, niCh, nVS] = initNIDAQ(trialLen, dev)
 %This function sets up the daq object for the controlling parts of the
-%experiment. The sampling rate is currently hard set at 8000hz, but may
-%eventually become an input variable. 
+%experiment, most specifically the Perturbatron. 
+%The sampling rate is currently hard set at 8000hz, but may eventually
+%become an input variable. 
+%
+%Requires the Data Acquisition Toolbox
 %Check this website if things go wrong: 
 %https://www.mathworks.com/hardware-support/nidaqmx.html
 
