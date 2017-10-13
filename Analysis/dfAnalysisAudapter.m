@@ -197,9 +197,9 @@ pp.voiceOnsetInd = pp.threshIdx(1);
 pp.fallOffLog = pp.xenv(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
 pp.chk4Break = sum(pp.fallOffLog) > 0.3*fs; %Last longer than 300ms
 
-[B,A]    = butter(4,(2000)/(fs/2));
-filtx    = filtfilt(B,A,x); %Low-pass filtered under 2kHz
-filty    = filtfilt(B,A,y); %Low-pass filtered under 2kHz
+[B,A]    = butter(4,(300)/(fs/2));
+filtx    = filtfilt(B,A,x); %Low-pass filtered under 500Hz
+filty    = filtfilt(B,A,y); %Low-pass filtered under 500Hz
  
 micP     = filtx; %Take the whole signal for now
 headP    = filty; %Same indices as for mic 
