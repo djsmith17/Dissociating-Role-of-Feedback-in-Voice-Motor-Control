@@ -38,13 +38,11 @@ trialLenP = trialLen*sRateQ; %Convert from seconds->points for stimulus
 sigs    = zeros(trialLenP, numTrial);
 trigs   = zeros(numTrial,2,3);
 for i = 1:numTrial
-    if diag == 1
-        St_t   = minSt + (i-1)*0.1; %Seconds
-        pLen_t = minLen;            %Seconds
-    else
+    if diag == 0
         St_t   = (minSt + (maxSt-minSt)*rand);    %Seconds
         pLen_t = (minLen + (maxLen-minLen)*rand); %Seconds
-    end
+    else
+        
     Sp_t   = St_t + pLen_t;                   %Seconds
     
     St_p   = round(sRateQ*St_t);   %Points
