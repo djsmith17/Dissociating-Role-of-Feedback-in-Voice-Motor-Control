@@ -22,11 +22,11 @@ GT.gender  = answer{4};
 
 dirs = dfDirs(GT.project);
 % Folder paths to save data files
-dirs.RecFileDir = fullfile(dirs.RecData, GT.subject, GT.run);
+dirs.RecFileDir = fullfile(dirs.RecData, GT.subject);
 dirs.SavFileDir = fullfile(dirs.RecData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
 
 dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
-dirs.baseTokenFile = fullfile(dirs.tokenDir,[GT.subject GT.run 'BaseToken.wav']);
+dirs.baseTokenFile = fullfile(dirs.tokenDir,[GT.subject 'BaseToken.wav']);
 
 if ~exist(dirs.RecFileDir, 'dir')
     mkdir(dirs.RecFileDir);
