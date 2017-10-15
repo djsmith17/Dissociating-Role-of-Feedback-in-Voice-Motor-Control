@@ -13,11 +13,12 @@ function dfGeneratef0AcuityTokens()
 
 close all;
 prompt = {'Subject ID:',...
+          'Session ID:',...
           'Baseline Run:',...
           'Baseline Trial:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'BV1', '3'};
+defaultanswer = {'null', 'GT1', 'BV1', '3'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -26,17 +27,17 @@ end
 
 GT.project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 GT.subject = answer{1};
-GT.run     = 'GT';
-GT.baseRec = answer{2};
-GT.baseTrial = str2double(answer{3});
+GT.run     = answer{2};
+GT.baseRec = answer{3};
+GT.baseTrial = str2double(answer{4});
 
 dirs = dfDirs(GT.project);
 % Folder paths to save data files
-dirs.RecFileDir = fullfile(dirs.RecData, GT.subject);
+dirs.RecFileDir = fullfile(dirs.RecData, GT.subject, GT.run);
 dirs.SavFileDir = fullfile(dirs.RecData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
 
 dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
-dirs.baseTokenFile = fullfile(dirs.tokenDir,[GT.subject 'BaseToken.wav']);
+dirs.baseTokenFile = fullfile(dirs.tokenDir,[GT.subject GT.run 'BaseToken.wav']);
 
 if ~exist(dirs.RecFileDir, 'dir')
     mkdir(dirs.RecFileDir);
