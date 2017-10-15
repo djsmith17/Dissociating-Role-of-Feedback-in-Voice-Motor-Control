@@ -1,13 +1,23 @@
 function dfGeneratef0AcuityTokens()
-close all;
+%dfGeneratef0AcuityTokens() generates both a baseline token and
+%pitch-shifted tokens for JND type pitch perception tasks. This looks for a
+%baseline voice recording made earlier, and saves both wav files and a
+%single MATLAB data structure containing the sound tokens needed for a JND
+%task.
+%
+%This script makes use of the following functions
+%dfDirs.m
+%dfGenerateBF.m
+%dfcalcf0Praat.m
+%dfGeneratePF.m
 
+close all;
 prompt = {'Subject ID:',...
           'Baseline Run:',...
-          'Baseline Trial:',...
-          'Gender ("male" or "female")'};
+          'Baseline Trial:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'BV1', '3', 'female'};
+defaultanswer = {'null', 'BV1', '3'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -16,9 +26,9 @@ end
 
 GT.project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 GT.subject = answer{1};
+GT.run     = 'GT';
 GT.baseRec = answer{2};
 GT.baseTrial = str2double(answer{3});
-GT.gender  = answer{4};
 
 dirs = dfDirs(GT.project);
 % Folder paths to save data files
@@ -60,6 +70,9 @@ GT.pertFreqs  = PertFreqs;
 GT.fs         = fs;
 GT.BaseToken  = BaseToken;
 GT.PertTokens = PertTokens;
+
+GTFiles = fullfile(dirs.RecFileDir, [GT.subject GT.run 'DRF.mat']);
+save(GTFiles, 'GT');
 end
 
 function freqs = targetf0calc(f0, AllFreq, FreqLen)
