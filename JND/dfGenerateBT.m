@@ -1,18 +1,35 @@
-function [bTRS, fs] = dfGenerateBT(dirs, baseTrial)
+function [bTRS, fs] = dfGenerateBT(dirs, baseTrial, varargin)
 %Extract and create a baseline token for use in a JND experiment. Token is
-%created from existing voice data (previous experiments)
+%created from existing voice data (previous experiments; BV1)
+%
+%INPUTS:
+%dirs:      Struc containing where the baseline voice is located and where
+%           we should save the baseline token.
+%baseTrial: Trial number from the baseline recordings to use.
+%varargin:  Currently checks if we want to do an automatice sectioning of
+%           the baseline voice recording or if we want it to be manual. 
 
-SavFileDir    = dirs.SavFileDir;
-baseTokenFile = dirs.baseTokenFile;
+if isempty(varargin)
+    auto = 1;
+else
+    auto = varargin{1};
+end
 
+try
+    SavFileDir    = dirs.SavFileDir;
+    baseTokenFile = dirs.baseTokenFile;
+catch me
+    disp('Check your DIR')
+    return
+end
+    
 load(SavFileDir);
-thisData  = DRF.rawData(baseTrial);      % Take the 9th trial. It will be a control trial
+thisData  = DRF.rawData(baseTrial);
 fsRec     = DRF.expParam.sRateAnal;
-fs        = 44100;
+fs        = 44100;               % HARDSET, but probs ok. 
 sample    = thisData.signalIn;   % Grab the microphone channel.
   
-auto        = 1;
-tokenL      = .5; %stimulus duration to be played in the JND
+tokenL      = .5;                % Duration of speech token
 tokenLP     = tokenL*fsRec;
 riseTime    = .05;
 fallTime    = .05;
