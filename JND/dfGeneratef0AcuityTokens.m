@@ -61,3 +61,13 @@ GT.fs         = fs;
 GT.BaseToken  = BaseToken;
 GT.PertTokens = PertTokens;
 end
+
+function freqs = targetf0calc(f0, AllFreq, FreqLen)
+%calculates all possible freq vals spaced 0.5 cent apart. 
+
+for i = 1: FreqLen
+    if i ~= 0 %I dont want the case of pure baseline
+        freqs(i) = f0*2^(AllFreq(i)/1200);
+    end
+end
+end
