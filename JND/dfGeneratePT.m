@@ -1,11 +1,13 @@
-function PertTokens = dfGeneratePT(dirs, numTokens, PertFreqs, UD)   
+function PertTokens = dfGeneratePT(dirs, GT, PertFreqs)   
 %This expects that you have calculated f0 elsewhere and have already
 %determined the spacing in (Hz) for each set of stimuli
 
-fShifts  = UD.xAll;
-tokenDir = dirs.tokenDir;
-psDir    = dirs.Code;        %Praat scripting
-pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
+subj      = GT.subject;
+run       = GT.run;
+numTokens = length(PertFreqs);
+tokenDir  = dirs.tokenDir;
+psDir     = dirs.Code;        %Praat scripting
+pbDir     = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 tokenDir = [tokenDir, '\']; %add a slash to the mic folder
 ext = '.wav'; %extension of files
@@ -28,7 +30,12 @@ end
 PertTokens = [];
 for ii = 1:numTokens
     targetPert = PertFreqs(ii);
-    targetPertName = ['Cent' num2str(ii)];
+    if GT.xAll(ii) < 0
+        pertStr = sprintf('%0.1f', GT.xAll(ii));
+    else
+        pertStr = sprintf('+%0.1f', GT.xAll(ii));
+    end
+    targetPertName = [subj run pertStr];
 
     %Build DOS calls to control praat
     call2 = sprintf('%s praat "execute %s %s %s %s %f %f %f"', ...
@@ -52,7 +59,7 @@ for ii = 1:numTokens
         end
     end
     
-    [thisToken, fs] = audioread(fullfile(tokenDir, [targetPertName '.wav']));
+    [thisToken, ~] = audioread(fullfile(tokenDir, [targetPertName '.wav']));
     PertTokens = cat(1, PertTokens, thisToken');
 end
 end
