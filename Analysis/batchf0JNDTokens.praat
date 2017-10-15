@@ -10,6 +10,8 @@ form Resynthize files to have flat pitch
 	sentence Sound_file_extension
 	sentence targetPertName
         positive targetPert
+	positive curToken
+	positive numTokens
 endform
 
 #Here, you make a listing of all the sound files in a directory.
@@ -48,3 +50,7 @@ Remove
 
 select all
 Remove
+
+if curToken = numTokens
+Quit
+endif

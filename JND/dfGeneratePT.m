@@ -31,13 +31,15 @@ for ii = 1:numTokens
     targetPertName = ['Cent' num2str(ii)];
 
     %Build DOS calls to control praat
-    call2 = sprintf('%s praat "execute %s %s %s %s %f"', ...
+    call2 = sprintf('%s praat "execute %s %s %s %s %f %f %f"', ...
                     sp_fn, ... %sendpraat.exe
                     gt_fn, ... %saved praat script ('generatef0JNDTokens)
                     tokenDir, ... %file location for saved wav files
                     ext, ... %file extension
                     targetPertName, ...
-                    targetPert ... %Number of Tokens to create
+                    targetPert, ... %Frequency to shift to
+                    ii, ... %current token being created
+                    numTokens ... %Total number of tokens being created
                     );    
 
     [s, r] = dos(call2);
