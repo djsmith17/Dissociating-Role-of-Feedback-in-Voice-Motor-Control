@@ -48,10 +48,10 @@ if ~exist(dirs.SavFileDir, 'file')
     return
 end
 
-if exist(dirs.tokenDir, 'dir')
-    rmdir(dirs.tokenDir, 's')  
+if ~exist(dirs.tokenDir, 'dir')
+    mkdir(dirs.tokenDir);
 end
-mkdir(dirs.tokenDir);
+
 
 GT.xMax = 200; %max difference between speaker's fo and fo of stimulus in headphones
 GT.xMin = 1; %min difference between speaker's fo and fo of stimulus in headphones
