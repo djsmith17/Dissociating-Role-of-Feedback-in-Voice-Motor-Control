@@ -84,6 +84,8 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';  
     otherwise
+        fprintf('\nERROR: Please set directories for this host\n')
+        return
 end
 
 %% Set up path so code is accessible to Matlab
