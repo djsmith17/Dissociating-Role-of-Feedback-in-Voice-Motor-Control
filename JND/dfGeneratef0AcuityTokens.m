@@ -52,7 +52,6 @@ if ~exist(dirs.tokenDir, 'dir')
     mkdir(dirs.tokenDir);
 end
 
-
 GT.xMax = 200; %max difference between speaker's fo and fo of stimulus in headphones
 GT.xMin = 1; %min difference between speaker's fo and fo of stimulus in headphones
 GT.xAll = -100:0.5:100;

@@ -9,13 +9,12 @@ rng('shuffle');
 
 prompt = {'Subject ID:',...
           'Session ID:',...
-          'Baseline Run:',...
-          'Baseline Trial:',...
+          'Tokens File:',...
           'Instruction ("Same" or "Diff):',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','fAX1', 'BV1', '3', 'Diff', 'female'};
+defaultanswer = {'null','fAX1', 'GT1', 'Diff', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -33,32 +32,33 @@ end
 UD.project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 UD.subject = answer{1};
 UD.run     = answer{2};
-UD.baseRec = answer{3};
-UD.baseTrial = str2double(answer{4});
-UD.inst    = answer{5};
-UD.gender  = answer{6};
+UD.tokenFile = answer{3};
+UD.inst    = answer{4};
+UD.gender  = answer{5};
 
 dirs = dfDirs(UD.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, UD.subject, UD.run);
-dirs.SavFileDir = fullfile(dirs.RecData, UD.subject, UD.baseRec, [UD.subject UD.baseRec 'DRF.mat']);
-
-dirs.tokenDir = fullfile(dirs.RecFileDir, 'speechTokens');
-dirs.baseTokenFile = fullfile(dirs.tokenDir,[UD.subject UD.run 'BaseToken.wav']);
+dirs.TokenFile  = fullfile(dirs.RecData, UD.subject, UD.tokenFile, [UD.subject UD.tokenFile 'DRF.mat']);
 
 if ~exist(dirs.RecFileDir, 'dir')
     mkdir(dirs.RecFileDir);
 end
 
-if ~exist(dirs.SavFileDir, 'file')
-    disp('ERROR: No voice file at this location!')
+if ~exist(dirs.TokenFile, 'file')
+    disp('ERROR: No tokens at this location!')
     return
 end
 
-if exist(dirs.tokenDir, 'dir')
-    rmdir(dirs.tokenDir, 's')  
-end
-mkdir(dirs.tokenDir);
+%Token Generation Output;
+load(dirs.TokenFile);
+UD.baseRec    = GT.baseRec;
+UD.baseTrial  = GT.baseTrial;
+UD.subjf0     = GT.subjf0;
+UD.pertFreqs  = GT.pertFreqs;
+UD.fs         = GT.fs;
+UD.BaseToken  = GT.BaseToken;
+UD.PertTokens = GT.PertTokens;
 
 % Setting up the up-down paradigm (modified based on Palam)
 UD.totalTrials = totalTrials;
@@ -70,8 +70,8 @@ UD.stepSizeDown = stepSize; % Size of step down
 UD.BIGstep      = 10;
 UD.smallStep    = 1;
 UD.stopCriterion = 'reversals'; % stop the procedure based on number of 'trials' | 'reversals'
-UD.stopRule = 10;  %stop procedure after this number of trials/reversals
-UD.startValue = 50; % initial difference in cents between speaker's fo and fo of stimulus in headphones
+UD.stopRule      = 10; % stop procedure after this number of trials/reversals
+UD.startValue    = 50; % initial difference in cents between speaker's fo and fo of stimulus in headphones
 UD.xMax = 200; %max difference between speaker's fo and fo of stimulus in headphones
 UD.xMin = 1; %min difference between speaker's fo and fo of stimulus in headphones
 UD.xAll = -100:0.5:100;
@@ -93,13 +93,6 @@ UD.allTrialTypes = [];
 waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for accurate ISI and token length
-
-% Generate audio tokens
-[BaseToken, fs]= dfGenerateBT(dirs, UD.baseTrial); %Extract a Speech Token. Located in JND Folder
-subjf0 = dfcalcf0Praat(dirs);                      %Calculate f0 using praat. Located in JND Folder
-PertFreqs = targetf0calc(subjf0, UD.xAll, UD.xLen); %Located Below
-numPertFreqs = length(PertFreqs);
-PertTokens = dfGeneratePT(dirs, numPertFreqs, PertFreqs, UD); %Generate Pert Tokens. Located in JND Folder
 
 fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, subjf0)
 %%%%%Visual Presentation
@@ -142,17 +135,17 @@ while (UD.stop == 0) && tr < UD.totalTrials
     trialPerts = [pertA pertX pertB];
     
     indA = find(UD.xAll == pertA); indX = find(UD.xAll == pertX); indB = find(UD.xAll == pertB);
-    TokenA = PertTokens(indA, :);  TokenX = PertTokens(indX, :);  TokenB = PertTokens(indB, :);
-    TokenLenA = length(TokenA)/fs; TokenLenX = length(TokenX)/fs; TokenLenB = length(TokenB)/fs;
+    TokenA = UD.PertTokens(indA, :);  TokenX = UD.PertTokens(indX, :);  TokenB = UD.PertTokens(indB, :);
+    TokenLenA = length(TokenA)/UD.fs; TokenLenX = length(TokenX)/UD.fs; TokenLenB = length(TokenB)/UD.fs;
     
     JNDMessage(tr, trialPerts, PertDist, conVar, 0, 1)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
-    sound(TokenA, fs)
+    sound(TokenA, UD.fs)
     pause(TokenLenA + UD.ISI + UD.measuredDelay)
-    sound(TokenX, fs)
+    sound(TokenX, UD.fs)
     pause(TokenLenX + UD.ISI + UD.measuredDelay)
-    sound(TokenB, fs)
+    sound(TokenB, UD.fs)
     pause(TokenLenB + UD.measuredDelay)
     %HERE IS ALL YOU HAVE BEEN WAITING FOR!!! 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -201,11 +194,8 @@ close all;
 elapsed_time = toc(ET)/60;
 fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 
-UD.subjf0    = subjf0;
-UD.BaseToken = BaseToken;
-UD.PertTokens = PertTokens;
 UD.reactionTime = ones(size(ReactionTime))*10000;
-UD.elapsedTime = elapsed_time;
+UD.elapsedTime  = elapsed_time;
 
 UD.performedTrials = length(UD.catchResponse);
 UD.JNDTrials = length(UD.reversal);
@@ -272,16 +262,6 @@ h4 = annotation(figure1,'textbox',...
     'Visible','off');
 
 drawnow;
-end
-
-function freqs = targetf0calc(f0, AllFreq, FreqLen)
-%calculates all possible freq vals spaced 0.5 cent apart. 
-
-for i = 1: FreqLen
-    if i ~= 0 %I dont want the case of pure baseline
-        freqs(i) = f0*2^(AllFreq(i)/1200);
-    end
-end
 end
 
 function JNDMessage(tr, PertVals, PertDist, conVar, response, state)
