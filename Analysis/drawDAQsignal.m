@@ -2,20 +2,20 @@ function drawDAQsignal(niAn, plotFlag, saveResultsDir, sv2F)
 %Plots multiple signals against each other. Creates a new plot for each 
 %trial. Displays relevant information
 
-curExp   = niAn.curSess;   %The current experiment detials (Subject/Run)
-numTrial = niAn.numTrial; %Number of Trials
-trigs    = niAn.pertTrig; %Where the perturbations occur
+curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
+numTrial = niAn.ncTrials; % Number of Trials
+trigs    = niAn.pertTrig; % Where the perturbations occur
 
 time     = niAn.time_DN;
 
-sensorP        = niAn.sensorP_DN;
+sensorP        = niAn.sensorP_C;
 lagTimeP       = niAn.lagsPres;
 riseTimeP      = niAn.riseTimeP;
 rangePressures = niAn.rangePressures;
 pLimits        = niAn.pLimits;
 
-sensorFC   = niAn.sensorFC_DN;
-sensorFN   = niAn.sensorFN_DN;
+sensorFC   = niAn.sensorFC_C;
+sensorFN   = niAn.sensorFN_C;
 lagTimeFC  = niAn.lagsFC;
 lagTimeFN  = niAn.lagsFN;
 fLimits    = niAn.fLimits;

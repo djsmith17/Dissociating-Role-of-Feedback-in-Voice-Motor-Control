@@ -9,6 +9,8 @@ function niAn = dfAnalysisNIDAQ(expParam, DAQin)
 %Trig: Trigger values where onset and offset occur
 %DN:   Down Sampled (and smoothed)
 
+fprintf('\nStarting NIDAQ Analysis\n')
+
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
 
@@ -19,16 +21,20 @@ if isfield(expParam, 'curSess')
 else
     niAn.curSess  = [expParam.subject expParam.run]; 
 end
+niAn.trialType    = expParam.trialType;
 
+niAn.dnSamp   = 10;
 niAn.sRate    = sRate;
 niAn.numSamp  = r;
 niAn.numTrial = n;
 niAn.numCh    = c;
-niAn.dnSamp   = 10;
+niAn.expTrigs = expParam.trigs(:,:,1);
+[niAn.cTrials, niAn.ctIdx] = find(niAn.trialType == 1);
+niAn.ncTrials = sum(niAn.cTrials);
 
-niAn.win = 0.05;  %seconds
-niAn.pOV = 0.60;  %60% overlap
+niAn.win    = 0.05;  %seconds
 niAn.winP   = niAn.win*niAn.sRate;
+niAn.pOV    = 0.60;  %60% overlap
 niAn.tStepP = niAn.winP*(1-niAn.pOV);
 niAn.winSts = 1:niAn.tStepP:(niAn.numSamp-niAn.winP);
 niAn.numWin = length(niAn.winSts);
@@ -43,6 +49,9 @@ niAn.audioM   = squeeze(DAQin(:,5,:));
 niAn.audioH   = squeeze(DAQin(:,6,:));
 niAn.sensorO  = squeeze(DAQin(:,7,:));
 
+niAn.sensorFC_aug = 4*(niAn.sensorFC-2);
+niAn.sensorFN_aug = 4*(niAn.sensorFN-2);
+
 niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
@@ -50,7 +59,6 @@ niAn.f0b      = (mean(mean(niAn.audioMf0(1:45,:),1)));
 
 niAn.audioMf0_norm = 1200*log2(niAn.audioMf0/niAn.f0b); %Normalize the f0 mic and convert to cents
 niAn.audioHf0_norm = 1200*log2(niAn.audioHf0/niAn.f0b); %Normalize the f0 head and convert to cents
-
 niAn.aLimits = [0 4 -100 100];
 
 [B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 40
@@ -63,10 +71,16 @@ niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 
-[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_DN, niAn.sRateDN);
-[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_DN, niAn.sRateDN);
-[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_DN, niAn.sRateDN);  
-[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_DN, niAn.sRateDN); 
+niAn.pertSig_C  = niAn.pertSig_DN(:, niAn.ctIdx);   %Grab all the Catch Trials
+niAn.sensorP_C  = niAn.sensorP_DN(:, niAn.ctIdx);   %Grab all the Catch Trials
+niAn.sensorFC_C = niAn.sensorFC_DN(:, niAn.ctIdx);  %Grab all the Catch Trials
+niAn.sensorFN_C = niAn.sensorFN_DN(:, niAn.ctIdx);  %Grab all the Catch Trials
+
+niAn.expTrigs_C = niAn.expTrigs(niAn.trialType == true, :);
+[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_C, niAn.sRateDN);
+[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_C, niAn.sRateDN);
+[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_C, niAn.sRateDN);  
+[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_C, niAn.sRateDN); 
 
 [niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
@@ -75,15 +89,15 @@ niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 niAn.indPressures   = [];
 niAn.rangePressures = [];
 niAn.timePressures  = [];
-for ii = 1:niAn.numTrial
-    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_DN(:,ii), niAn.sRateDN);
+for ii = 1:niAn.ncTrials
+    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_C(:,ii), niAn.sRateDN);
 %     [endRiseInd, startFallInd] = findCrossingsManual(niAn.sensorP_DN(:,ii), niAn.sRateDN);
     
 %     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
 %     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
 
-    onsetPressure  = round(100*niAn.sensorP_DN(endRiseInd,1))/100;
-    offsetPressure = round(100*niAn.sensorP_DN(startFallInd,1))/100;
+    onsetPressure  = round(100*niAn.sensorP_C(endRiseInd, ii))/100;
+    offsetPressure = round(100*niAn.sensorP_C(startFallInd, ii))/100;
     onsetTime = round(100*niAn.time_DN(endRiseInd))/100;
     offsetTime = round(100*niAn.time_DN(startFallInd))/100;
     
@@ -98,39 +112,9 @@ niAn.meanRiseTimeP = mean(niAn.riseTimeP);
 niAn.pLimits = [0 4 0 5];
 niAn.fLimits = [0 4 1 5];
 
-niAn.sensorP_Al = alignSensorData(niAn.sRateDN , niAn.numTrial, niAn.idxPert, niAn.sensorP_DN);
+niAn.sensorP_Al = alignSensorData(niAn.sRateDN, niAn.idxPert, niAn.sensorP_C);
 niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN;
 niAn.pLimits_Al = [0 3.5 0 5];
-
-
-end
-
-function [trigs, idx] = findPertTrigs(time, sensor, fs)
-[numSamp, numTrial] = size(sensor);
-
-baselineIdx = 1:fs*1;
-
-trigs = [];
-idx   = [];
-for i = 1:numTrial
-    m = [];
-    for j = 2:numSamp
-        m(j) = sensor(j,i) - sensor((j-1),i);
-    end
-    m(baselineIdx) = 0;
-    threshUp = 0.5*max(m);
-    threshDn = 0.5*min(m);
-    ups = find(m > threshUp);
-    dns = find(m < threshDn);
-    
-    idxSt = ups(1); 
-    idxSp = dns(1);       
-    trigSt = round(1000*time(idxSt))/1000;
-    trigSp = round(1000*time(idxSp))/1000;
-
-    trigs = cat(1, trigs, [trigSt trigSp]);
-    idx   = cat(1, idx, [idxSt idxSp]);
-end
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
@@ -199,6 +183,34 @@ else
 end
 end
 
+function [trigs, idx] = findPertTrigs(time, sensor, fs)
+[numSamp, numTrial] = size(sensor);
+
+baselineIdx = 1:fs*1;
+
+trigs = [];
+idx   = [];
+for i = 1:numTrial
+    m = [];
+    for j = 2:numSamp
+        m(j) = sensor(j,i) - sensor((j-1),i);
+    end
+    m(baselineIdx) = 0;
+    threshUp = 0.5*max(m);
+    threshDn = 0.5*min(m);
+    ups = find(m > threshUp);
+    dns = find(m < threshDn);
+    
+    idxSt = ups(1); 
+    idxSp = dns(1);       
+    trigSt = round(1000*time(idxSt))/1000;
+    trigSp = round(1000*time(idxSp))/1000;
+
+    trigs = cat(1, trigs, [trigSt trigSp]);
+    idx   = cat(1, idx, [idxSt idxSp]);
+end
+end
+
 function [lags, lagMeans] = calcMeanLags(pertTrig, sensorTrig)
 
 lags = sensorTrig - pertTrig;
@@ -211,14 +223,15 @@ CIM = 1.96*SEM;
 lagMeans = [lagsMean, CIM];
 end
 
-function sensorAl = alignSensorData(sRate, numTrial, idx, sensor)
+function sensorAl = alignSensorData(sRate, idx, sensor)
+numTrial = length(idx);
 
 sensorAl = [];
 for ii = 1:numTrial
     St = idx(ii,1) - sRate*1;
     Sp = idx(ii,1) + sRate*2.5;
     
-    sensorAl = cat(2, sensorAl, sensor(St:Sp,ii));
+    sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
 end
 end
 

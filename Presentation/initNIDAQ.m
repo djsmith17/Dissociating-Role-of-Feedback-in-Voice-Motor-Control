@@ -24,6 +24,7 @@ end
 s = daq.createSession('ni');
 
 s.Rate = 8000;
+s.DurationInSeconds = trialLen;
 addAnalogOutputChannel(s, dev, 0, 'Voltage'); %Output signal to the Perturbatron
 addAnalogOutputChannel(s, dev, 1, 'Voltage'); %Output voltage to power the Force Sensor
 

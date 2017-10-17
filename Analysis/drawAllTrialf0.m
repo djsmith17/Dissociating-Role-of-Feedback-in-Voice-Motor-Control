@@ -11,7 +11,7 @@ pertRuns = find(runTrialOrder == 1);
 numPertRuns = length(pertRuns);
 pertColor = [0.8 0.8 0.8];
 
-ha = tight_subplot(5,2,[0.07 0.07],[0.10 0.10],[0.05 0.01]);
+ha = tight_subplot(5,2,[0.10 0.07],[0.10 0.10],[0.05 0.01]);
 
 for ii = 1:numPertRuns    
     axes(ha(ii))
@@ -22,9 +22,9 @@ for ii = 1:numPertRuns
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on
     
-    plot(time,allTrialf0(:,1,pertRuns(ii)), 'LineWidth',2)
-    xlabel('Time (s)', 'FontSize', 14, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 14, 'FontWeight', 'bold')
-%     title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
+    fT = plot(time,allTrialf0(:,1,pertRuns(ii)), 'LineWidth',2);
+    xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 12, 'FontWeight', 'bold')
+    title(['Trial ' num2str(ii)], 'FontSize', 14, 'FontWeight', 'bold')
     axis([0 4 -100 100]); box off
     
     set(gca,'FontSize', 14,...
@@ -35,10 +35,15 @@ for ii = 1:numPertRuns
 end
 
 suptitle({[curExp ': Mic Recording, Perturbed Trials']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
+legend([pA fT], {'Perturbation Period', 'f0 Trace'},...
+                'Orientation','Horizontal',...
+                'FontSize', 8,...
+                'Position', [0.77 0.95 0.01 0.01],...
+                'EdgeColor', [0 0 0])
 
 plots = {'AllTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '.jpg'];
+    plTitle = [curExp '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

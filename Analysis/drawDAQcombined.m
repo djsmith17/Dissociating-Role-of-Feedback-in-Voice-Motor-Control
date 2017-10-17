@@ -2,8 +2,8 @@ function drawDAQcombined(niAn, time, sensor, saveResultsDir, sv2F)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
-curExp   = niAn.curExp;   %The current experiment detials (Subject/Run)
-numTrial = niAn.numTrial; %Number of Trials
+curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
+numTrial = niAn.ncTrials; % Number of Catch Trials (Only relevant ones)
 
 meanLagTimeP      = niAn.meanLagTimeP;
 meanRiseTimeP     = niAn.meanRiseTimeP;

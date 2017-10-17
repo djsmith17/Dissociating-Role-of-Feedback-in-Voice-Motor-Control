@@ -6,7 +6,7 @@ function [auAn, res] = dfAnalysisAudapter(expParam, rawData, DAQin)
 
 %Requires the Signal Processing Toolbox
 
-fprintf('Starting Analysis\n')
+fprintf('\nStarting Analysis\n')
 
 auAn.curType  = expParam.expType;
 auAn.curSubj  = expParam.subject;
