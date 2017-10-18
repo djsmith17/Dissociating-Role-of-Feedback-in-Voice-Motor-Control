@@ -1,8 +1,21 @@
 function dfRunf0AcuityJND_AXB()
-% Received from Ayoub Daliri
-%In this version, instead of the difference trials being baseline vs pert,
-%both tokens will be pert, but the difference in pitch of the tokens will
-%be given distance for the given trial. 
+%dfRunf0Acuity_AXB() is an experimental paradigm for testing perceptual
+%acuity to pitch using a AXB method. This program uses a previously
+%generated set of speech tokens to be presented to the participant. On each
+%trial of this task, the participant listens to three tokens of their own
+%voice, and must decide if the pitch of the middle token is different than
+%the pitch of the first token, or the pitch of the last token. Left and
+%Right arrow keys are used as input, and there is visual presentation of
+%the task. The task adaptively changes to find a threshold at which
+%participants can discriminate between two pitches. The core version of the
+%script was received from Ayoub Daliri.
+%
+%The Voice Token Data file will load a structure that is called GT
+%
+%This script makes use of the following outside functions:
+%-dfAdaptiveUpdateJNDAXB.m
+%-GetKey_Ayoub.m
+
 close all;
 ET = tic;
 rng('shuffle');
@@ -51,7 +64,7 @@ if ~exist(dirs.TokenFile, 'file')
 end
 
 %Token Generation Output;
-load(dirs.TokenFile);
+load(dirs.TokenFile); %Should return struct GT. This should become a try statement
 UD.baseRec    = GT.baseRec;
 UD.baseTrial  = GT.baseTrial;
 UD.subjf0     = GT.subjf0;
