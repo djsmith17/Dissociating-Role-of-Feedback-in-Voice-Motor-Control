@@ -85,8 +85,8 @@ UD.smallStep    = 1;
 UD.stopCriterion = 'reversals'; % stop the procedure based on number of 'trials' | 'reversals'
 UD.stopRule      = 10; % stop procedure after this number of trials/reversals
 UD.startValue    = 50; % initial difference in cents between speaker's fo and fo of stimulus in headphones
-UD.xMax = 200; %max difference between speaker's fo and fo of stimulus in headphones
-UD.xMin = 1; %min difference between speaker's fo and fo of stimulus in headphones
+UD.xMax = 200;         % max difference between speaker's fo and fo of stimulus in headphones
+UD.xMin = 1;           % min difference between speaker's fo and fo of stimulus in headphones
 UD.xAll = -100:0.5:100;
 UD.xAll = UD.xAll(~logical(UD.xAll == 0));
 UD.xLen = length(UD.xAll);
