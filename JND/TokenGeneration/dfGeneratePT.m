@@ -6,7 +6,7 @@ subj      = GT.subject;
 run       = GT.run;
 numTokens = length(PertFreqs);
 tokenDir  = dirs.tokenDir;
-psDir     = dirs.Code;        %Praat scripting
+psDir     = dirs.JNDTG;                       %Praat scripting
 pbDir     = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 tokenDir = [tokenDir, '\']; %add a slash to the mic folder

@@ -23,6 +23,7 @@ switch host
         dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles
         dirs.SavData        = fullfile('W:\Experiments\', project);
        
+        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
         dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
         dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
@@ -39,6 +40,7 @@ switch host
         dirs.RecData        = fullfile('C:\Users\djsmith\My Documents\DATA', project); % Dir w/ raw datafiles
         dirs.SavData        = fullfile('W:\Experiments\', project);
        
+        dirs.Project        = fullfile('C:\Users\djsmith\My Documents\MATLAB', project);
         dirs.Prelim         = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
         dirs.Results        = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
@@ -55,6 +57,7 @@ switch host
         dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles
         dirs.SavData        = fullfile('W:\Experiments\', project);
        
+        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
         dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
         dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
@@ -71,6 +74,7 @@ switch host
         dirs.RecData        = fullfile('E:\Documents\DATA', project); % Dir w/ raw datafiles  
         dirs.SavData        = fullfile('W:\Experiments\', project);
         
+        dirs.Project        = fullfile('E:\Documents\MATLAB', project);
         dirs.Prelim         = fullfile('E:\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('E:\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
         dirs.Results        = fullfile('E:\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
@@ -87,6 +91,7 @@ switch host
         dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles  
         dirs.SavData        = fullfile('W:\Experiments\', project);
         
+        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB');
         dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
         dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
