@@ -1,5 +1,5 @@
-function dfGeneratef0AcuityTokens()
-%dfGeneratef0AcuityTokens() generates both a baseline token and
+function dfCreatef0AcuityTokens()
+%dfCreatef0AcuityTokens() generates both a baseline token and
 %pitch-shifted tokens for JND type pitch perception tasks. This looks for a
 %baseline voice recording made earlier, and saves both wav files and a
 %single MATLAB data structure containing the sound tokens needed for a JND

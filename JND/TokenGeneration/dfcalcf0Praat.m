@@ -1,12 +1,12 @@
-function f0 = dfcalcf0Praat(dirs)
+function meanf0 = dfcalcf0Praat(dirs)
 %This asks praat to calculate f0 for a given saved wav file. 
 
 tokenDir = dirs.tokenDir;
 psDir    = dirs.Code;                        %Praat scripting
 pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
-tokenDir = [tokenDir, '\']; %add a slash to the mic folder
-ext = '.wav'; %extension of files
+tokenDir   = [tokenDir, '\']; % add a slash to the mic folder
+ext        = '.wav';          % extension of files
 txtFileLoc = [tokenDir, '\pitchCalc.txt'];
 
 p_fn = fullfile(pbDir, 'praat.exe');
@@ -43,8 +43,8 @@ if s ~= 0
 end
 
 praatResult = fopen(txtFileLoc);
-praatScan = textscan(praatResult, '%f %s');
-f0 = averagePraatf0(praatScan);
+praatScan   = textscan(praatResult, '%f %s');
+meanf0      = averagePraatf0(praatScan);
 
 fclose(praatResult);
 delete(txtFileLoc);
