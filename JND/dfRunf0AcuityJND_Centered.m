@@ -12,7 +12,8 @@ function dfRunf0AcuityJND_Centered()
 %The Voice Token Data file will load a structure that is called GT
 %
 %This script makes use of the following outside functions:
-%-dfAdaptiveUpdateJNDAXB.m
+%-dfAdaptiveUpdateJNDDiff.m
+%-dfAdaptiveUpdateJNDSame.m
 %-GetKey_Ayoub.m
 
 close all;
@@ -143,7 +144,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
     Token1 = PertTokens(indA, :); Token2 = PertTokens(indB, :);
     TokenLen1 = length(Token1)/UD.fs; TokenLen2 = length(Token2)/UD.fs;
     
-    JNDMessage(tr, [pertA pertB], PertDist, conVar, 0, 1)
+    JNDMessage(tr, trialPerts, PertDist, conVar, 0, 1)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %HERE IS THE MAGIC!!!!
     sound(Token1, UD.fs)
@@ -178,7 +179,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
             response = 0;
         end      
     end
-    JNDMessage(tr, [pertA pertB], PertDist, conVar, response, 2);  
+    JNDMessage(tr, trialPerts, PertDist, conVar, response, 2);  
     
     set(h2, 'String','','FontSize',120)
     set(h3, 'Visible','off');
