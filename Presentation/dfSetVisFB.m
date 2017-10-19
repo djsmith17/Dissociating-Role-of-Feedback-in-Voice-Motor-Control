@@ -2,15 +2,13 @@ function [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFB(targRMS, bo
 %Overlays for the experiment.
 %anMsr = annotation Measurements
 
-%Assume we are using Tongue for the moment
-if win == 1                  %ASUS Monitor
-    stX = 0;    stY = 0;
-    fullW = 1920; fullH = 1080;
-else                         %Dell Monitor
-    stX = 1920; stY = 0;
-    fullW = 1680; fullH = 1050;
+monitorSize = get(0, 'Monitor');
+if size(monitorSize,1) == 1
+    figPosition = [1 200 monitorSize(3) monitorSize(4)-200];
+elseif size(monitorSize,1) == 2
+    figPosition = [monitorSize(2,1) monitorSize(2,2) monitorSize(1,3) monitorSize(2,4)];
 end
-anMsr.winPos = [stX stY fullW fullH];
+anMsr.winPos = figPosition;
 
 %Assuming that perfect RMS lies at 50% of the screen, and the acceptable
 %upper and lower bound are set at 45% and 55% of the screen, the edge of
@@ -45,10 +43,10 @@ anMsr.maxLy = [anMsr.drawMaxH anMsr.drawMaxH]; %First Y and Last Y
 anMsr.recPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth anMsr.recHeight];
 
 anMsr.r        = 60;
-anMsr.visTrigX = 0;
+anMsr.visTrigX = 0;   
 anMsr.visTrigY = 0.02;
-anMsr.visTrigW = round(100*anMsr.r/fullW)/100;
-anMsr.visTrigH = round(100*anMsr.r/fullH)/100;
+anMsr.visTrigW = round(100*anMsr.r/anMsr.winPos(3))/100;
+anMsr.visTrigH = round(100*anMsr.r/anMsr.winPos(4))/100;
 
 anMsr.visTrigPos = [anMsr.visTrigX anMsr.visTrigY anMsr.visTrigW anMsr.visTrigH];
 

@@ -113,16 +113,15 @@ expParam.win       = 2;  %which monitor? 1 or 2
 
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
-fprintf('Hit Spacebar when ready\n')
 
 %Close the curtains
 [anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
 
-DAQin   = [];
-rawData = [];
 %Close the curtains
 pause(5); %Let them breathe a sec
 set(H3,'Visible','off');
+
+DAQin = []; rawData = [];
 for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
@@ -178,8 +177,11 @@ for ii = 1:expParam.numTrial
     set(fbLines, 'Visible', 'off');
     set(rec, 'Visible', 'off'); 
 end
-close all
+close all;
+elapsed_time = toc(ET)/60;
+fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 
+expParam.elapsedTime = elapsed_time;
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
 DRF.p           = p;
@@ -188,7 +190,12 @@ DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-save(dirs.RecFileDir, 'DRF')
+switch num_trials
+    case 'Practice'
+        return
+    case 'Full'
+        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
+end
 
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
