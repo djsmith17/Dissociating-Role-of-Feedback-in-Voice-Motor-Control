@@ -1,6 +1,6 @@
 function dfRunSFPerturb(varargin)
-%Laryngeal Perturbation experiment. This script measures acoustic output 
-%from a participant as they have their laryngeal phsyically displaced.
+%Laryngeal Perturbation experiment. This script records acoustic output 
+%from a participant as they have their larynx physically displaced.
 %NIDAQ signal provides Pertrubatron stimulus and Audapter collects and
 %manages the recorded acoustic data.
 
@@ -16,28 +16,55 @@ function dfRunSFPerturb(varargin)
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
 
+close all;
+ET = tic;
+rng('shuffle');
+
 if isempty(varargin)
     targRMS = 55; 
 else
     targRMS = varargin{1};
 end
 
+prompt = {'Subject ID:',...
+          'Session ID:',...
+          'Gender ("male" or "female")'};
+name = 'Subject Information';
+numlines = 1;
+defaultanswer = {'null', 'SF1', 'female'};
+answer = inputdlg(prompt, name, numlines, defaultanswer);
+
+if isempty(answer)
+    return
+end
+
+num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full') ;
+switch num_trials
+    case 'Practice'
+        numTrials = 4;
+        perCatch  = 0.25;
+    case 'Full'
+        numTrials = 40;
+        perCatch  = 0.25;
+end
+
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
-expParam.run           = 'Run1';
-expParam.curSess        = [expParam.subject expParam.run];
-expParam.numTrial      = 40; %Experimental trials = 40
+expParam.subject       = answer{1};
+expParam.run           = answer{2};
+expParam.gender        = answer{3};
+expParam.curSess       = [expParam.subject expParam.run];
+expParam.numTrial      = numTrials;
 expParam.curTrial      = [];
-expParam.perCatch      = 0.25;
-expParam.gender        = 'male';
+expParam.perCatch      = perCatch;
 expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
 expParam.bVis          = 0;
 expParam.stimType      = 1; %Always 1. Mirroring the AFPerturb
-dirs = dfDirs(expParam.project);
 
+dirs = dfDirs(expParam.project);
+% Folder paths to save data files
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
@@ -89,15 +116,15 @@ fprintf('\nStarting Trials\n\n')
 fprintf('Hit Spacebar when ready\n')
 
 %Close the curtains
-[anMsr, H1, H2, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
-pause()
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
 
 DAQin   = [];
 rawData = [];
 %Close the curtains
-pause(1.0) %Let them breathe a sec
+pause(5); %Let them breathe a sec
+set(H3,'Visible','off');
 for ii = 1:expParam.numTrial
-    expParam.curTrial    = ['Trial' num2str(ii)];
+    expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Used later in audio version
