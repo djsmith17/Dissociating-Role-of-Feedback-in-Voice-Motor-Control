@@ -46,7 +46,7 @@ if collectNewData == 1
     expParam.sRate       = 48000;
     expParam.downFact    = 3;
     expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
-    expParam.resPause    = 1;
+    expParam.resPause    = 3;
     
     %New!
     expParam.trialLenLong = expParam.numTrial*(expParam.trialLen + expParam.resPause);

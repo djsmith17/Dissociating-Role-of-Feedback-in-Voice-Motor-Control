@@ -11,23 +11,30 @@ function dfDiagnostics_Sensors(varargin)
 %drawDAQsignal.m
 close all;
 
-if isempty(varargin)
-    numTrial = 5; 
-else
-    numTrial = varargin{1};
-end
+prompt = {'Subject ID:',...
+          'Session ID:',...
+          'Number of Trials:',...
+          'Percent Perturbed (Dec)',...
+          'Collect New Data?:'};
+name = 'Subject Information';
+numlines = 1;
+defaultanswer = {'null', 'DS1', '5', '1', 'yes'};
+answer = inputdlg(prompt, name, numlines, defaultanswer);
 
-collectNewData         = 1; %Boolean
-sv2F                   = 1; %Boolean
+if isempty(answer)
+    return
+end
 
 expParam.project       = 'NIDAQSensorDiagnostics';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = 'Dummy'; %Subject#, Pilot#, null
-expParam.run           = 'BalloonFTestMTC';
+expParam.subject       = answer{1}; %Subject#, Pilot#, null
+expParam.run           = answer{2};
 expParam.curSess       = [expParam.subject ' ' expParam.run];
-expParam.numTrial      = numTrial; %Experimental trials = 40
+expParam.numTrial      = str2double(answer{3}); %Experimental trials = 40
+expParam.perCatch      = str2double(answer{4});
 expParam.trialLen      = 4; %Seconds
-expParam.perCatch      = 1;
+sv2F                   = 1; %Boolean
+collectNewData         = answer{5};
 
 dirs = dfDirs(expParam.project);
 
@@ -42,20 +49,19 @@ if exist(dirs.SavResultsDir, 'dir') == 0
 end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'NSD.mat']);
 
-if collectNewData == 1
+if strcmp(collectNewData, 'yes')
     expParam.sRate       = 48000;
     expParam.downFact    = 3;
     expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
-
+    expParam.resPause    = 3;
+    
     [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev2');
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
-
-    expParam.resPause = 3;
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);  
 
     DAQin = []; DAQtime = [];
     for ii = 1:expParam.numTrial

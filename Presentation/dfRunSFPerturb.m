@@ -161,7 +161,7 @@ for ii = 1:expParam.numTrial
     set(H2,'Visible','off');
     
     %Save the data
-    data = dfSaveRawData(expParam, dirs);
+    data    = dfSaveRawData(expParam, dirs);
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
        
