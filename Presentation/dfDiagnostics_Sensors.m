@@ -30,7 +30,7 @@ expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = answer{1}; %Subject#, Pilot#, null
 expParam.run           = answer{2};
 expParam.curSess       = [expParam.subject ' ' expParam.run];
-expParam.numTrial      = str2double(answer{3}); %Experimental trials = 40
+expParam.numTrial      = str2double(answer{3});
 expParam.perCatch      = str2double(answer{4});
 expParam.trialLen      = 4; %Seconds
 sv2F                   = 1; %Boolean
@@ -68,6 +68,7 @@ if strcmp(collectNewData, 'yes')
         NIDAQsig = [expParam.sigs(:,ii) nVS];
         queueOutputData(s, NIDAQsig);
         fprintf('Running Trial %d\n', ii)
+        
         tic
         [data_DAQ, time] = s.startForeground;
         toc
@@ -89,9 +90,7 @@ end
 
 niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
 
-drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
-
+% drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 % drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
-
 % drawDAQAll(niAn, 1, dirs.SavResultsDir, sv2F)
 end
