@@ -5,10 +5,10 @@ function dfPlayMaskingNoise()
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.numTrial   = 1;
+expParam.numTrial   = 3;
 expParam.gender     = 'male';
 expParam.masking    = 1; %Masking Noise
-expParam.trialLen   = 300; %Seconds
+expParam.trialLen   = 4; %Seconds
 
 dirs = dfDirs(expParam.project);
 
