@@ -10,8 +10,8 @@ trigs    = niAn.pertTrig; %Where the perturbations occur
 
 time     = niAn.time;
 pertSig  = niAn.pertSig;
-sensorFC = niAn.sensorFC_aug;
-sensorFN = niAn.sensorFN_aug;
+sensorFC = niAn.sensorFC;
+sensorFN = niAn.sensorFN;
 sensorP  = niAn.sensorP;
 audioM   = niAn.audioM;
 audioH   = niAn.audioH;
