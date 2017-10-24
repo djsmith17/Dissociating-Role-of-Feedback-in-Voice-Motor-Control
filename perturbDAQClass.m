@@ -18,4 +18,3 @@ classdef perturbDAQClass < handle
         end
     end    
 end
-

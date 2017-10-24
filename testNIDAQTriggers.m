@@ -14,14 +14,14 @@ recordedRMS = (5+rand(1991,1))/1000;
 targRMS   = 50; %dB just to test
 boundsRMS = 3; %+/- dB
 
-[s, sd, niCh, nVS]  = initNIDAQSess('Dev2', expParam.trialLen);
-
-expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
-
+expParam.trialType              = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
 
 close all
 [anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(targRMS, boundsRMS);
+
+%Initialize NIDAQ
+[s, sd, niCh, nVS]  = initNIDAQSess('Dev2', expParam.trialLen);
 
 backgroundVS(expParam, s, niCh, nVS, H2, H3, trigCirc)
 end

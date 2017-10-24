@@ -56,14 +56,15 @@ addTriggerConnection(s, 'External', 'Dev2/PFI0', 'StartTrigger')
 nVS = zeros(s.Rate*trialLen, 1) - 1;
 nVS(1) = 0; nVS(end) = 0;
 
+sd = perturbDAQClass;
+
+
 lrec  = addlistener(s,'DataAvailable', ...
                   @(src,event) updateNIDAQdata(sd, event.TimeStamps, event.Data));
 
 lsend = addlistener(s,'DataRequired', ...
                   @(src,event) src.queueOutputData(NIDAQsig)); % @myFunction(src,evt,NIDAQsig)
 
-
-sd = perturbDAQClass;
 
 disp('NIDAQ has been initialized!')
 end
