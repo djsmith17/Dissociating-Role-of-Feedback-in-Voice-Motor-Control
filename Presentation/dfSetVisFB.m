@@ -1,4 +1,4 @@
-function [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFB(targRMS, bounds, win)
+function [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFB(targRMS, bounds)
 %Overlays for the experiment.
 %anMsr = annotation Measurements
 

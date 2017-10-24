@@ -6,14 +6,13 @@ function RMSFeedback_testbed
 %updateVisualFeed.m
 
 recordedRMS = (5+rand(1991,1))/1000;
-numTrial = 5;
+numTrial = 1;
 
 targRMS   = 50; %dB just to test
 boundsRMS = 3; %+/- dB
-win = 2;
 
 close all
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(targRMS, boundsRMS, win);
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(targRMS, boundsRMS);
 
 % pertParadigm(anMsr, H1, H2, H3, fbLines, rec, trigCirc, recordedRMS)
 triggerTest(anMsr, H1, H2, H3, fbLines, rec, trigCirc, numTrial)
