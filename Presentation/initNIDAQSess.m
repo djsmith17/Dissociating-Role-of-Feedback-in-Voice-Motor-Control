@@ -54,5 +54,14 @@ niCh.ai6 = 'Optical Triggerbox';
 nVS = zeros(s.Rate*trialLen, 1) - 1;
 nVS(1) = 0; nVS(end) = 0;
 
+lrec  = addlistener(s,'DataAvailable', ...
+                  @(src,event) updateNIDAQdata(sd, event.TimeStamps, event.Data));
+
+lsend = addlistener(s,'DataRequired', ...
+                  @(src,event) src.queueOutputData(NIDAQsig)); % @myFunction(src,evt,NIDAQsig)
+
+
+
+
 disp('NIDAQ has been initialized!')
 end
