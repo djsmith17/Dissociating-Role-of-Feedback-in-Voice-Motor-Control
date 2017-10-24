@@ -1,4 +1,4 @@
-function [s, niCh, nVS] = initNIDAQSess(dev, trialLen)
+function [s, sd, niCh, nVS] = initNIDAQSess(dev, trialLen)
 %This function sets up the daq object for the controlling parts of the
 %experiment, most specifically the Perturbatron. 
 %The sampling rate is currently hard set at 8000hz, but may eventually
@@ -51,6 +51,8 @@ niCh.ai4 = 'Microphone';
 niCh.ai5 = 'Headphones';
 niCh.ai6 = 'Optical Triggerbox';
 
+addTriggerConnection(s, 'External', 'Dev2/PFI0', 'StartTrigger')
+
 nVS = zeros(s.Rate*trialLen, 1) - 1;
 nVS(1) = 0; nVS(end) = 0;
 
@@ -61,7 +63,7 @@ lsend = addlistener(s,'DataRequired', ...
                   @(src,event) src.queueOutputData(NIDAQsig)); % @myFunction(src,evt,NIDAQsig)
 
 
-
+sd = perturbDAQClass;
 
 disp('NIDAQ has been initialized!')
 end

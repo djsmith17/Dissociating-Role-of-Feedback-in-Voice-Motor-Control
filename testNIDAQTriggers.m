@@ -7,21 +7,18 @@ expParam.numTrial = 1;
 expParam.perCatch = 1;
 expParam.sRateQ   = 8000;
 expParam.sRateAnal= 16000;
+expParam.resPause = 3;
 
 recordedRMS = (5+rand(1991,1))/1000;
 
 targRMS   = 50; %dB just to test
 boundsRMS = 3; %+/- dB
 
-[s, niCh, nVS]  = initNIDAQSess('Dev2', expParam.trialLen);
+[s, sd, niCh, nVS]  = initNIDAQSess('Dev2', expParam.trialLen);
 
 expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
-
-expParam.resPause = 3;
-
-addTriggerConnection(s, 'External', 'Dev2/PFI0', 'StartTrigger')
 
 close all
 [anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(targRMS, boundsRMS);
@@ -38,7 +35,6 @@ for ii = 1:expParam.numTrial
     ALLnVS  = cat(1,ALLnVS, nVS);
 end
 NIDAQsig = [ALLSIGS ALLnVS];
-sd = saveNIDAQ;
     
 lrec  = addlistener(s,'DataAvailable', ...
                   @(src,event) updateNIDAQdata(sd, event.TimeStamps, event.Data));
