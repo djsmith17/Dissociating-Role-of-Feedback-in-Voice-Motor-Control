@@ -22,7 +22,8 @@ classdef perturbDAQClass < handle
             thisTrial = obj.curTrial;
             PertSig   = obj.PerturbSigs(:, thisTrial);
             NIDAQsig  = [PertSig obj.nVS];
-            s.queueOutputData(NIDAQsig)            
+            fprintf('Data for Trial %d cued\n', thisTrial)
+            s.queueOutputData(NIDAQsig)
         end
         
         function updateNIDAQdata(obj, nTime, nData)
