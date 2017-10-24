@@ -1,4 +1,4 @@
-function [s, sd, niCh, nVS] = initNIDAQSess(dev, trialLen)
+function [s, sd, niCh] = initNIDAQSess(dev, numTrials, trialLen, PerturbSigs)
 %This function sets up the daq object for the controlling parts of the
 %experiment, most specifically the Perturbatron. 
 %The sampling rate is currently hard set at 8000hz, but may eventually
@@ -23,8 +23,8 @@ end
 
 s      = daq.createSession('ni');
 s.Rate = 8000;
-s.IsContinuous = true;
-s.DurationInSeconds = trialLen;
+s.IsContinuous      = true;
+% s.DurationInSeconds = trialLen;
 
 % A0 Channels
 addAnalogOutputChannel(s, dev, 0, 'Voltage'); %Output signal to the Perturbatron
@@ -52,19 +52,17 @@ niCh.ai5 = 'Headphones';
 niCh.ai6 = 'Optical Triggerbox';
 
 addTriggerConnection(s, 'External', 'Dev2/PFI0', 'StartTrigger')
+s.TriggersPerRun = numTrials;
 
 nVS = zeros(s.Rate*trialLen, 1) - 1;
 nVS(1) = 0; nVS(end) = 0;
 
-sd = perturbDAQClass;
+sd = perturbDAQClass(PerturbSigs, nVS);
 
-
-lrec  = addlistener(s,'DataAvailable', ...
-                  @(src,event) updateNIDAQdata(sd, event.TimeStamps, event.Data));
-
-lsend = addlistener(s,'DataRequired', ...
-                  @(src,event) src.queueOutputData(NIDAQsig)); % @myFunction(src,evt,NIDAQsig)
-
+s.addlistener('DataAvailable', ...
+    @(src,event) sd.updateNIDAQdata(sd, event.TimeStamps, event.Data));
+s.addlistener('DataRequired', ...
+    @(src,event) sd.queuePertOutputData(sd, s));
 
 disp('NIDAQ has been initialized!')
 end
