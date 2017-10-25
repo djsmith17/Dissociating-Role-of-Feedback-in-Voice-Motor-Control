@@ -13,10 +13,10 @@ pertColor = [0.8 0.8 0.8];
 
 ha = tight_subplot(5,2,[0.10 0.07],[0.10 0.10],[0.05 0.01]);
 
-for ii = 1:numPertRuns    
+for ii = 1:numPertRuns 
     axes(ha(ii))
     
-    pertAx  = [trigs(ii,1), trigs(ii,2)];
+    pertAx  = [trigs(pertRuns(ii),1), trigs(pertRuns(ii),2)];
     pertAy  = [200 200];
     
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
@@ -24,7 +24,7 @@ for ii = 1:numPertRuns
     
     fT = plot(time,allTrialf0(:,1,pertRuns(ii)), 'LineWidth',2);
     xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 12, 'FontWeight', 'bold')
-    title(['Trial ' num2str(ii)], 'FontSize', 14, 'FontWeight', 'bold')
+    title(['Trial ' num2str(pertRuns(ii))], 'FontSize', 14, 'FontWeight', 'bold')
     axis([0 4 -100 100]); box off
     
     set(gca,'FontSize', 14,...
