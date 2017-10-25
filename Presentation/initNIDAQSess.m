@@ -23,7 +23,7 @@ end
 
 s      = daq.createSession('ni');
 s.Rate = 8000;
-s.IsContinuous      = true;
+% s.IsContinuous      = true;
 % s.DurationInSeconds = trialLen;
 
 % A0 Channels
@@ -39,6 +39,10 @@ addAnalogInputChannel(s, dev, 4, 'Voltage'); %Input signal from Microphone
 addAnalogInputChannel(s, dev, 5, 'Voltage'); %Input signal from Headphones
 addAnalogInputChannel(s, dev, 6, 'Voltage'); %Input signal from Optical Triggerbox
 
+% Triggers
+addTriggerConnection(s, 'External', 'Dev2/PFI0', 'StartTrigger')
+s.TriggersPerRun = numTrials;
+
 %Document which channels are which. Manual hardset at the moment. When more
 %versions are needed, this will be converted to a switch case. 
 niCh.ao0 = 'Perturbatron';
@@ -51,18 +55,19 @@ niCh.ai4 = 'Microphone';
 niCh.ai5 = 'Headphones';
 niCh.ai6 = 'Optical Triggerbox';
 
-addTriggerConnection(s, 'External', 'Dev2/PFI0', 'StartTrigger')
-s.TriggersPerRun = numTrials;
-
 nVS = zeros(s.Rate*trialLen, 1) - 1;
 nVS(1) = 0; nVS(end) = 0;
 
 sd = perturbDAQClass(PerturbSigs, nVS);
 
 s.addlistener('DataAvailable', ...
-    @(src,event) sd.updateNIDAQdata(sd, event.TimeStamps, event.Data));
-s.addlistener('DataRequired', ...
-    @(src,event) sd.queuePertOutputData(sd, s));
+    @(src,event) updateNIDAQdata(sd, s, event.TimeStamps, event.Data));
+% s.addlistener('DataRequired', ...
+%     @(src,event) queuePertOutputData(sd, s));
+s.addlistener('IsLogging', 'PostSet', ... 
+    @(src,event) storeTrialData(sd, s));
+s.addlistener('IsLogging', 'PostSet', ... 
+    @(src,event) queuePertOutputData(sd, s));
 
 disp('NIDAQ has been initialized!')
 end

@@ -5,11 +5,12 @@ function testNIDAQTriggers()
 %dfMakePertSignal
 %initNIDAQSess
 
-close all;
+close all; clc
 expParam.expType  = 'Somatosensory Perturbation_Perceptual';
-expParam.trialLen = 4;
-expParam.numTrial = 1;
+expParam.dev      = 'Dev2';
+expParam.numTrial = 3;
 expParam.perCatch = 1;
+expParam.trialLen = 4;
 expParam.sRateQ   = 8000;
 expParam.sRateAnal= 16000;
 expParam.resPause = 3;
@@ -25,13 +26,14 @@ expParam.trialType              = dfSetTrialOrder(expParam.numTrial, expParam.pe
 [anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(targRMS, boundsRMS);
 
 %Initialize NIDAQ
-[s, sd, niCh]  = initNIDAQSess('Dev2', expParam.numTrial, expParam.trialLen, expParam.sigs);
+[s, sd, niCh]  = initNIDAQSess(expParam.dev, expParam.numTrial, expParam.trialLen, expParam.sigs);
 
 backgroundVS(expParam, s, sd, H2, H3, trigCirc)
 end
 
 function backgroundVS(expParam, s, sd, H2, H3, trigCirc)
 
+queuePertOutputData(sd, s)
 startBackground(s);
 pause(4.0)
 set(H3,'Visible','off');
@@ -47,7 +49,7 @@ close all
 stop(s)
 
 time = sd.recTime;
-data = sd.recData(:,1);
+data = sd.recData;
 
 figure
 plot(time, data)
