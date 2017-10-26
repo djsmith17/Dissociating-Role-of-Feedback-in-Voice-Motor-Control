@@ -33,6 +33,7 @@ expParam.curSess       = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = str2double(answer{3});
 expParam.perCatch      = str2double(answer{4});
 expParam.trialLen      = 4; %Seconds
+expParam.niDev         = 'Dev2';
 sv2F                   = 1; %Boolean
 collectNewData         = answer{5};
 
@@ -55,12 +56,11 @@ if strcmp(collectNewData, 'yes')
     expParam.sRateAnal   = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
     expParam.resPause    = 3;
     
-    [s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev2');
+    [s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLen);
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 
-    expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
-
+    expParam.trialType              = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
     [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);  
 
     DAQin = []; DAQtime = [];

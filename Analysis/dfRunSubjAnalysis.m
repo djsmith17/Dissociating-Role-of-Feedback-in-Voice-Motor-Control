@@ -37,7 +37,7 @@ fprintf('Loading Files for %s %s\n', AVar.participant, AVar.run)
 load(dirs.SavFileDir)
 
 [auAn, res] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
-niAn = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
+niAn        = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
 
 drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
 drawInterTrialf0(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)

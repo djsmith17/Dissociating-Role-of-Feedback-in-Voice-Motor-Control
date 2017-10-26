@@ -219,49 +219,6 @@ pp.saveT    = saveT;
 pp.SaveTmsg = saveTmsg;
 end
 
-function f0 = calcf0(x,fs)
-% Created by Gabriel Galindo
-% Formatted by Dante Smith -12/11/15
-
-lim_inf = ceil(fs/(500));
-lim_sup = floor(fs/(50));
-U = xcov(x,'unbias');
-U = U(ceil(end/2):end);
-U = (U(lim_inf:lim_sup)-min(U(lim_inf:lim_sup)))/(max(U(lim_inf:lim_sup)) - min(U(lim_inf:lim_sup)));
-[M,P] = findpeaks(U);
-
-if isempty(P)
-    f0 = NaN;
-else
-    P = P(find(M >= 0.9,1,'first'));
-    if isempty(P)
-        f0 = NaN;
-    else
-        f0 = fs/(P + lim_inf);
-    end
-
-    NFFT = pow2(nextpow2(length(x)/4));
-    [Pxx,Fxx] = pwelch(x,NFFT,[],[],fs,'onesided');
-
-    if ~isnan(f0)
-        H = Pxx(find(Fxx>=f0,1,'first'));
-        if (10*log10(max(Pxx)/H) > 80)
-            f0 = NaN;
-        end
-    end   
-end
-end
-
-function f0 = calcf02(x, fs)
-NFFT = pow2(nextpow2(length(x)/4));
-
-[Pmic, f] = pwelch(x, [], [], [], fs, 'onesided');
-    
-[val, ind] = max(Pmic);
-f0 = f(ind);
-
-end
-
 function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, fs, auAn, trig, sec)
 %Finds the change in fundamental frequency of windowed signal
 
@@ -312,8 +269,8 @@ for ii = 1:numWin
     mic_win   = mic(startPt:stopPt);
     head_win  = head(startPt:stopPt);
     
-    f0_M = calcf0(mic_win,fs);
-    f0_H = calcf0(head_win,fs);
+    f0_M = dfCalcf0Chile(mic_win,fs);
+    f0_H = dfCalcf0Chile(head_win,fs);
     
 %     [f0_time, f0_value, SHR, f0_candidates] = shrp(mic_win, fs);
     if f0_M < 50 || f0_M > 300

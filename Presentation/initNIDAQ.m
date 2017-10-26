@@ -1,4 +1,4 @@
-function [s, niCh, nVS] = initNIDAQ(trialLen, dev)
+function [s, niCh, nVS] = initNIDAQ(dev, trialLen)
 %This function sets up the daq object for the controlling parts of the
 %experiment, most specifically the Perturbatron. 
 %The sampling rate is currently hard set at 8000hz, but may eventually
@@ -18,7 +18,7 @@ function [s, niCh, nVS] = initNIDAQ(trialLen, dev)
 %nVS:      Negative Voltage Source. A -1V signal needed for some circuits. 
 
 if isempty(dev)
-    dev = 'Dev3';
+    dev = 'Dev2';
 end
 
 s = daq.createSession('ni');

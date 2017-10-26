@@ -53,9 +53,9 @@ niAn.sensorFC_aug = 4*(niAn.sensorFC-2);
 niAn.sensorFN_aug = 4*(niAn.sensorFN-2);
 
 niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
-niAn.audioMf0 = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
-niAn.audioHf0 = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
-niAn.f0b      = (mean(mean(niAn.audioMf0(1:45,:),1)));
+niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
+niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
+niAn.f0b        = (mean(mean(niAn.audioMf0(1:45,:),1)));
 
 niAn.audioMf0_norm = 1200*log2(niAn.audioMf0/niAn.f0b); %Normalize the f0 mic and convert to cents
 niAn.audioHf0_norm = 1200*log2(niAn.audioHf0/niAn.f0b); %Normalize the f0 head and convert to cents
@@ -147,39 +147,6 @@ for i = 1:numWin
         winIdx = winSts(i):winSts(i)+ winP - 1;
         sensorf0(i,j) = (calcf0(sensorHP(winIdx, j), fs));
     end
-end
-end
-
-function f0 = calcf0(x,fs)
-% Created by Gabriel Galindo
-% Formatted by Dante Smith -12/11/15
-
-lim_inf = ceil(fs/(500));
-lim_sup = floor(fs/(50));
-U = xcov(x,'unbias');
-U = U(ceil(end/2):end);
-U = (U(lim_inf:lim_sup)-min(U(lim_inf:lim_sup)))/(max(U(lim_inf:lim_sup)) - min(U(lim_inf:lim_sup)));
-[M,P] = findpeaks(U);
-
-if isempty(P)
-    f0 = NaN;
-else
-    P = P(find(M >= 0.9,1,'first'));
-    if isempty(P)
-        f0 = NaN;
-    else
-        f0 = fs/(P + lim_inf);
-    end
-
-    NFFT = pow2(nextpow2(length(x)/4));
-    [Pxx,Fxx] = pwelch(x,NFFT,[],[],fs,'onesided');
-
-    if ~isnan(f0)
-        H = Pxx(find(Fxx>=f0,1,'first'));
-        if (10*log10(max(Pxx)/H) > 80)
-            f0 = NaN;
-        end
-    end   
 end
 end
 
