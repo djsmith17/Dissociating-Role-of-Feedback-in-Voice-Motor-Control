@@ -145,7 +145,7 @@ sensorf0 = zeros(numWin, numTrial);
 for i = 1:numWin
     for j = 1:numTrial
         winIdx = winSts(i):winSts(i)+ winP - 1;
-        sensorf0(i,j) = (calcf0(sensorHP(winIdx, j), fs));
+        sensorf0(i,j) = (dfCalcf0NFFT(sensorHP(winIdx, j), fs));
     end
 end
 end
