@@ -1,4 +1,4 @@
-function dfRunSFPerturb(varargin)
+function dfRunSFPerturb()
 %Laryngeal Perturbation experiment. This script records acoustic output 
 %from a participant as they have their larynx physically displaced.
 %NIDAQ signal provides Pertrubatron stimulus and Audapter collects and
@@ -20,18 +20,13 @@ close all;
 ET = tic;
 rng('shuffle');
 
-if isempty(varargin)
-    targRMS = 55; 
-else
-    targRMS = varargin{1};
-end
-
 prompt = {'Subject ID:',...
           'Session ID:',...
+          'Baseline Loudness (dB SPL):',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'SF1', 'female'};
+defaultanswer = {'null', 'SF1', '60', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -53,7 +48,8 @@ expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Somatosensory Perturbation_Perceptual';
 expParam.subject       = answer{1};
 expParam.run           = answer{2};
-expParam.gender        = answer{3};
+expParam.targRMS       = str2double(answer{3});
+expParam.gender        = answer{4};
 expParam.curSess       = [expParam.subject expParam.run];
 expParam.numTrial      = numTrials;
 expParam.curTrial      = [];
@@ -108,15 +104,13 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %num
 expParam.cuePause = 1.0;
 expParam.resPause = 2.0;
 
-expParam.targRMS   = targRMS; %dB
 expParam.boundsRMS = 3;  %+/- dB
-expParam.win       = 2;  %which monitor? 1 or 2
 
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 
 %Close the curtains
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
 %Close the curtains
 pause(5); %Let them breathe a sec
@@ -144,8 +138,7 @@ for ii = 1:expParam.numTrial
     
     %Phonation Start
     set(H1,'Visible','off');
-    set(trigCirc,'Visible','on');
-    set(H2,'Visible','on');  
+    set([H2 trigCirc],'Visible','on');
     
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
@@ -158,8 +151,7 @@ for ii = 1:expParam.numTrial
      
     %Phonation End
     Audapter('stop');
-    set(trigCirc,'Visible','off');
-    set(H2,'Visible','off');
+    set([H2 trigCirc],'Visible','off');
     
     %Save the data
     data    = dfSaveRawData(expParam, dirs);
@@ -171,12 +163,10 @@ for ii = 1:expParam.numTrial
 
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
-    set(rec, 'Visible', 'on'); 
-    set(fbLines, 'Visible', 'on');  
+    set([rec fbLines], 'Visible', 'on');
     
     pause(expParam.resPause)
-    set(fbLines, 'Visible', 'off');
-    set(rec, 'Visible', 'off'); 
+    set([rec fbLines], 'Visible', 'off');
 end
 close all;
 elapsed_time = toc(ET)/60;
