@@ -2,6 +2,7 @@ function meanf0 = dfcalcf0Praat(dirs)
 %This asks praat to calculate f0 for a given saved wav file. 
 
 tokenDir = dirs.tokenDir;
+baseTokenFile = dirs.baseTokenFile;
 psDir    = dirs.JNDTG;                       %Praat scripting
 pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
@@ -27,7 +28,7 @@ end
 call2 = sprintf('%s praat "execute %s %s %s %s', ...
                     sp_fn, ... %sendpraat.exe
                     gt_fn, ... %saved praat script ('generatef0JNDTokens)
-                    tokenDir, ... %file location for saved wav files
+                    baseTokenFile, ... %file location for saved wav files
                     ext, ... %file extension
                     txtFileLoc ...
                     );

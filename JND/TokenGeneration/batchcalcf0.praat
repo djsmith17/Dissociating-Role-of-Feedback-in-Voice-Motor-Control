@@ -6,18 +6,18 @@
 ############################
 
 form Resynthize files to have flat pitch
-	text tokenDir
+	text baseTokenFile
 	sentence Sound_file_extension
 	text txtFileLoc
 endform
 
 #Here, you make a listing of all the sound files in a directory.
-Create Strings as file list... list 'tokenDir$'/*'sound_file_extension$'
-
-filename$ = Get string... 1
+#Create Strings as file list... list 'tokenDir$'/*'sound_file_extension$'
+#filename$ = Get string... 1
 
 #A sound file is opened from the listing:
-Read from file... 'tokenDir$'/'filename$'
+#Read from file... 'tokenDir$'/'filename$'
+Read from file... 'baseTokenFile$'
 sound_one$ = selected$ ("Sound")
 
 start = Get start time
