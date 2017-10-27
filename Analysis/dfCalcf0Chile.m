@@ -1,4 +1,4 @@
-function dfCalcf0Chile(x,fs)
+function f0 = dfCalcf0Chile(x,fs)
 % Created by Gabriel Galindo
 % Formatted by Dante Smith -12/11/15
 

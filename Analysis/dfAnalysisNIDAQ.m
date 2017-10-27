@@ -38,7 +38,7 @@ niAn.pOV    = 0.60;  %60% overlap
 niAn.tStepP = niAn.winP*(1-niAn.pOV);
 niAn.winSts = 1:niAn.tStepP:(niAn.numSamp-niAn.winP);
 niAn.numWin = length(niAn.winSts);
-niAn.freqCutOff = 2000;
+niAn.freqCutOff = 400;
 
 niAn.sRateDN  = sRate/niAn.dnSamp;
 niAn.time     = (0:1/sRate:(r-1)/sRate)';
@@ -150,7 +150,7 @@ for j = 1:numTrial %Trial by Trial
     sensorHP = filtfilt(B,A,sensor(:,j));
     for i = 1:numWin
         winIdx = winSts(i):winSts(i)+ winP - 1;
-        sensorf0(i,j) = (dfCalcf0NFFT(sensorHP(winIdx), fs));
+        sensorf0(i,j) = (dfCalcf0Chile(sensorHP(winIdx), fs));
     end
 end
 end
