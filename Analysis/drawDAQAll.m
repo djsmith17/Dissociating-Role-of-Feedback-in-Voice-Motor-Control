@@ -4,9 +4,9 @@ function drawDAQAll(niAn, plotFlag, saveResultsDir, sv2F)
 %happened in this recording. If multiple trials are given, this will either
 %plot each trial, or aligned trials, based on flag
 
-curExp   = niAn.curSess;   %The current experiment detials (Subject/Run)
-numTrial = niAn.ncTrials; %Number of Trials
-trigs    = niAn.pertTrig; %Where the perturbations occur
+curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
+numTrial = niAn.ncTrials; % Number of Trials
+trigs    = niAn.pertTrig; % Where the perturbation occurs
 
 time     = niAn.time;
 pertSig  = niAn.pertSig;
@@ -88,21 +88,21 @@ for ii = 1:numTrial
 %                     'FontSize',8,...
 %                     'FontName','Arial');
     
-%     axes(ha(5))
-%     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
-%     hold on
-%     plot(time, audioM(:,w), 'LineWidth', 3)
-%     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
-%     title('Microphone', 'FontSize', 18, 'FontWeight', 'bold')
-%     axis([0 4 -0.1 0.1]); box off
-%     
-%     axes(ha(6))
-%     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
-%     hold on
-%     plot(time, audioH(:,w), 'LineWidth', 3)
-%     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
-%     title('Headphones', 'FontSize', 18, 'FontWeight', 'bold')
-%     axis([0 4 -0.01 0.01]); box off
+    axes(ha(5))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, audioM(:,w), 'LineWidth', 3)
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Microphone', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 -0.01 0.01]); box off
+    
+    axes(ha(6))
+    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    hold on
+    plot(time, audioH(:,w), 'LineWidth', 3)
+    xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('SPL (dB)', 'FontSize', 18, 'FontWeight', 'bold')
+    title('Headphones', 'FontSize', 18, 'FontWeight', 'bold')
+    axis([0 4 -0.01 0.01]); box off
     
 %     axes(ha(7))
 %     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);

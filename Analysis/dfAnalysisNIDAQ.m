@@ -63,7 +63,7 @@ niAn.audioMf0_norm = 1200*log2(niAn.audioMf0/niAn.f0b); %Normalize the f0 mic an
 niAn.audioHf0_norm = 1200*log2(niAn.audioHf0/niAn.f0b); %Normalize the f0 head and convert to cents
 niAn.aLimits = [0 4 -100 100];
 
-[B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 40
+[B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 10
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
@@ -117,6 +117,8 @@ niAn.fLimits = [0 4 1 5];
 niAn.sensorP_Al = alignSensorData(niAn.sRateDN, niAn.idxPert, niAn.sensorP_C);
 niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN;
 niAn.pLimits_Al = [0 3.5 0 5];
+
+% lims = identifyLimits(niAn);
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
@@ -244,4 +246,40 @@ endRiseInd = round(x1);
 startFallInd = round(x2);
 
 close all;
+end
+
+function lims = identifyLimits(niAn)
+
+
+%Full trial f0 analysis
+
+
+
+
+
+
+%Sectioned f0 Analysis
+[~, Imax] = max(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
+upBound_St = round(niAn.meanTrialf0_St(Imax,1,2) + niAn.meanTrialf0_St(Imax,2,2) + 10);
+[~, Imin] = min(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
+lwBound_St = round(niAn.meanTrialf0_St(Imin,1,2) - niAn.meanTrialf0_St(Imin,2,2) - 10);
+
+[~, Imax] = max(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
+upBound_Sp = round(niAn.meanTrialf0_Sp(Imax,1,2) + niAn.meanTrialf0_Sp(Imax,2,2) + 10);
+[~, Imin] = min(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
+lwBound_Sp = round(niAn.meanTrialf0_Sp(Imin,1,2) - niAn.meanTrialf0_Sp(Imin,2,2) - 10);
+
+if upBound_St > upBound_Sp
+    lims.upBoundSec = upBound_St;
+else
+    lims.upBoundSec = upBound_Sp;
+end
+
+if lwBound_St < lwBound_Sp
+    lims.lwBoundSec = lwBound_St;
+else
+    lims.lwBoundSec = lwBound_Sp;
+end
+
+
 end
