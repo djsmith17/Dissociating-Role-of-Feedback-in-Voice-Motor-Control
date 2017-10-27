@@ -55,7 +55,8 @@ niAn.sensorFN_aug = 4*(niAn.sensorFN-2);
 niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
 niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
-niAn.f0b        = (mean(mean(niAn.audioMf0(1:45,:),1)));
+prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
+niAn.f0b        = mean(mean(niAn.audioMf0(prePert,:),1));
 
 niAn.audioMf0_norm = 1200*log2(niAn.audioMf0/niAn.f0b); %Normalize the f0 mic and convert to cents
 niAn.audioHf0_norm = 1200*log2(niAn.audioHf0/niAn.f0b); %Normalize the f0 head and convert to cents
@@ -138,14 +139,14 @@ end
 
 function sensorf0 = signalFrequencyAnalysis(sensor, fs, numTrial, winP, numWin, winSts)
 
-[B,A] = butter(4, 80/(fs/2), 'high'); %High-pass filter over 60
-sensorHP = filter(B,A,abs(sensor), [], 1);
+[B,A]    = butter(4,(2000)/(fs/2));
 
 sensorf0 = zeros(numWin, numTrial);
-for i = 1:numWin
-    for j = 1:numTrial
+for j = 1:numTrial
+    sensorHP = filtfilt(B,A,sensor(:,j));
+    for i = 1:numWin
         winIdx = winSts(i):winSts(i)+ winP - 1;
-        sensorf0(i,j) = (dfCalcf0NFFT(sensorHP(winIdx, j), fs));
+        sensorf0(i,j) = (dfCalcf0NFFT(sensorHP(winIdx), fs));
     end
 end
 end
