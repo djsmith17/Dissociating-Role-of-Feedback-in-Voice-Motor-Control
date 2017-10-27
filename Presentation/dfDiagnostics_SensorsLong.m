@@ -26,8 +26,9 @@ expParam.subject       = 'BalloonD_EmptyAirLong'; %Subject#, Pilot#, null
 expParam.run           = 'Run1';
 expParam.curSess       = [expParam.subject ' ' expParam.run];
 expParam.numTrial      = numTrial; %Experimental trials = 40
-expParam.trialLen      = 4; %Seconds
 expParam.perCatch      = 1;
+expParam.trialLen      = 4; %Seconds
+expParam.niDev         = 'Dev2';
 
 dirs = dfDirs(expParam.project);
 
@@ -51,7 +52,7 @@ if collectNewData == 1
     %New!
     expParam.trialLenLong = expParam.numTrial*(expParam.trialLen + expParam.resPause);
     
-    [s, niCh, nVS]  = initNIDAQ(expParam.trialLenLong, 'Dev2');
+    [s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLenLong);
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 

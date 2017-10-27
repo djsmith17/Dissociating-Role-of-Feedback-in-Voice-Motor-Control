@@ -60,6 +60,7 @@ expParam.curTrial      = [];
 expParam.perCatch      = perCatch;
 expParam.masking       = 1;
 expParam.trialLen      = 4; %Seconds
+expParam.niDev         = 'Dev2';
 expParam.bVis          = 0;
 expParam.stimType      = 1; %Always 1. Mirroring the AFPerturb
 
@@ -90,7 +91,7 @@ Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
-[s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev2');
+[s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLen);
 expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 

@@ -38,6 +38,7 @@ expParam.perCatch      = 0.25;
 expParam.gender        = 'male';
 expParam.masking       = 0;
 expParam.trialLen      = 4; %Seconds
+expParam.niDev         = 'Dev2';
 expParam.bVis          = 0;
 
 dirs = dfDirs(expParam.project);
@@ -67,7 +68,7 @@ Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
-[s, niCh, nVS]  = initNIDAQ(expParam.trialLen, 'Dev2');
+[s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLen);
 expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 
