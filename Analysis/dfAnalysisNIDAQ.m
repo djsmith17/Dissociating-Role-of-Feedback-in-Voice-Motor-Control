@@ -38,6 +38,7 @@ niAn.pOV    = 0.60;  %60% overlap
 niAn.tStepP = niAn.winP*(1-niAn.pOV);
 niAn.winSts = 1:niAn.tStepP:(niAn.numSamp-niAn.winP);
 niAn.numWin = length(niAn.winSts);
+niAn.freqCutOff = 2000;
 
 niAn.sRateDN  = sRate/niAn.dnSamp;
 niAn.time     = (0:1/sRate:(r-1)/sRate)';
@@ -53,8 +54,8 @@ niAn.sensorFC_aug = 4*(niAn.sensorFC-2);
 niAn.sensorFN_aug = 4*(niAn.sensorFN-2);
 
 niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
-niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
-niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.numTrial, niAn.winP, niAn.numWin, niAn.winSts);
+niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
+niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
 prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
 niAn.f0b        = mean(mean(niAn.audioMf0(prePert,:),1));
 
@@ -137,12 +138,13 @@ for iSt = 1:numWin
 end
 end
 
-function sensorf0 = signalFrequencyAnalysis(sensor, fs, numTrial, winP, numWin, winSts)
+function sensorf0 = signalFrequencyAnalysis(sensor, fs, freqCutOff, numTrial, numWin, winSts, winP)
 
-[B,A]    = butter(4,(2000)/(fs/2));
+%Low-Pass filter for the given cut off frequency
+[B,A]    = butter(4,(freqCutOff)/(fs/2));
 
 sensorf0 = zeros(numWin, numTrial);
-for j = 1:numTrial
+for j = 1:numTrial %Trial by Trial
     sensorHP = filtfilt(B,A,sensor(:,j));
     for i = 1:numWin
         winIdx = winSts(i):winSts(i)+ winP - 1;
