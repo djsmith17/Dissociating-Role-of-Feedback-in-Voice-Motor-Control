@@ -27,10 +27,9 @@ load(dirs.SavFileDir)
 % [auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
 [niAn, niRes] = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
 
-fprintf('Saving Results for %s %s\n', AVar.participant, AVar.run)
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [AVar.participant AVar.run 'ResultsDRF.mat']);
-
 if debug == 0
+    fprintf('Saving Results for %s %s\n', AVar.participant, AVar.run)
     save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
 end
 end
