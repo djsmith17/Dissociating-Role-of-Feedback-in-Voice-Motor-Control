@@ -76,7 +76,7 @@ niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Pertur
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
-niAn.expTrigs_p = niAn.expTrigs(niAn.trialType == true, :);
+%Find Rising and Falling Edges of sensor signals
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
 [niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
 [niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
@@ -92,7 +92,7 @@ niAn.expTrigs_p = niAn.expTrigs(niAn.trialType == true, :);
 analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
 
 %Aligning pressure signal for perturbed trials
-niAn.sensorP_Al = alignSensorData(niAn.sRateDN, niAn.idxPert, niAn.sensorP_p);
+niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.pertIdx);
 niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 
 % Audio Processing
@@ -107,8 +107,9 @@ niAn.f0b        = mean(niAn.trialf0b);
 
 niAn.audioMf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
 niAn.audioHf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
-niAn.audioMf0_p = niAn.audioMf0_norm(:, niAn.pertIdx);
-niAn.audioHf0_p = niAn.audioHf0_norm(:, niAn.pertIdx);
+%Find the Perturbed Trials
+niAn.audioMf0_p = parseTrialTypes(niAn.audioMf0_norm, niAn.pertIdx);
+niAn.audioHf0_p = parseTrialTypes(niAn.audioHf0_norm, niAn.pertIdx);
 
 lims = identifyLimits(niAn);
 res  = packResults(niAn, lims);
@@ -175,17 +176,13 @@ end
 function [OnOfVals, OnOfValsMean, riseTime, riseTimeMean] = analyzeSensorDynamics(time, sensor, fs, sensTrig)
 %Analyzing the dynamics of the sensor during onset and offset of the
 %stimulus signal.
-[~, numTrials] = size(sensor);
+[~, numTrial] = size(sensor);
 
 OnOfInd   = [];
 OnOfTime  = [];
 OnOfVals  = [];
-for ii = 1:numTrials
-    [endRiseInd, startFallInd] = findCrossings(sensor(:,ii), fs);
-%     [endRiseInd, startFallInd] = findCrossingsManual(niAn.sensorP_DN(:,ii), niAn.sRateDN);
-    
-%     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
-%     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
+for ii = 1:numTrial
+    [endRiseInd, startFallInd] = findCrossings(sensor(:,ii), fs, 0);
 
     onsetTime      = round(100*time(endRiseInd))/100;
     offsetTime     = round(100*time(startFallInd))/100;
@@ -202,6 +199,53 @@ OnOfValsMean = mean(OnOfVals, 1);
 riseTime     = OnOfTime(:,1) - sensTrig(:,1);
 riseTimeMean = mean(riseTime);
 end
+
+function [endRiseInd, startFallInd] = findCrossings(sensor, fs, man)
+
+[B, A] = butter(8, (50/(fs/2)), 'low'); 
+sensorFilt = filtfilt(B,A, sensor);
+
+sensDiff = [0; diff(sensorFilt)]*20;
+sensDiff2= [0; diff(sensDiff)]*20;
+
+if man == 0
+    incInds = find(sensDiff > 0.05);
+    decInds = find(sensDiff < -0.05);
+
+    incNonIncre = find((diff(incInds) == 1) == 0); %The indices where the values stop increasing
+    decNonIncre = find((diff(decInds) == 1) == 1); %The indices where the values start decreasing
+    
+    endRiseInd   = incInds(incNonIncre(end));
+    startFallInd = decInds(decNonIncre(1));
+else
+    PresFig = figure;
+    plot(sensor, 'k'); hold on
+    plot(sensDiff, 'r'); hold on
+    plot(sensDiff2, 'g')
+    axis([0 3200 3.8 4.5])
+
+    [x1, ~] = getpts(PresFig);
+    [x2, ~] = getpts(PresFig);
+
+    endRiseInd   = round(x1);
+    startFallInd = round(x2);
+
+    close PresFig;
+end
+end
+
+function sensorAl = alignSensorData(sensor, fs, idx)
+[~, numTrial] = size(sensor);
+
+sensorAl = [];
+for ii = 1:numTrial
+    St = idx(ii,1) - fs*1;
+    Sp = idx(ii,1) + fs*2.5;
+    
+    sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
+end
+end
+
 
 function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
 
@@ -237,58 +281,6 @@ for ii = 1:numTrial
 end
 end
 
-function sensorAl = alignSensorData(sRate, idx, sensor)
-numTrial = length(idx);
-
-sensorAl = [];
-for ii = 1:numTrial
-    St = idx(ii,1) - sRate*1;
-    Sp = idx(ii,1) + sRate*2.5;
-    
-    sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
-end
-end
-
-function [endRiseInd, startFallInd] = findCrossings(sensor, fs)
-
-[B, A] = butter(8, (50/(fs/2)), 'low'); 
-sensorFilt = filtfilt(B,A, sensor);
-
-sensDiff = [0; diff(sensorFilt)]*20;
-sensDiff2= [0; diff(sensDiff)]*20;
-
-incInds = find(sensDiff > 0.05);
-decInds = find(sensDiff < -0.05);
-
-incNonIncre = find((diff(incInds) == 1) == 0); %The indices where the values stop increasing
-endRiseInd = incInds(incNonIncre(end));
-
-decNonIncre = find((diff(decInds) == 1) == 1); %The indices where the values start decreasing
-startFallInd = decInds(decNonIncre(1));
-end
-
-function [endRiseInd, startFallInd] = findCrossingsManual(sensor, fs)
-
-[B, A] = butter(8, (50/(fs/2)), 'low'); 
-sensorFilt = filtfilt(B,A, sensor);
-
-sensDiff = [0; diff(sensorFilt)]*20;
-sensDiff2= [0; diff(sensDiff)]*20;
-
-PresFig = figure;
-plot(sensor, 'k'); hold on
-plot(sensDiff, 'r'); hold on
-plot(sensDiff2, 'g')
-axis([0 3200 3.8 4.5])
-
-[x1, ~] = getpts(PresFig);
-[x2, ~] = getpts(PresFig);
-
-endRiseInd = round(x1);
-startFallInd = round(x2);
-
-close all;
-end
 
 function lims = identifyLimits(niAn)
 
