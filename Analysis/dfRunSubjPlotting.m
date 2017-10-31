@@ -11,8 +11,8 @@ PltVar.sv2File         = 1;
 PltVar.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
 PltVar.IntraTrial_T    = 0; %SPL trace of individual trial
 PltVar.IntraTrial_f0   = 0; %f0 trace for each individual trial
-PltVar.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-PltVar.IntraTrialP_f0  = 1; %f0 trace of pertrubed trials of a run
+PltVar.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
+PltVar.IntraTrialP_f0  = 0; %f0 trace of pertrubed trials of a run
 PltVar.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
 PltVar.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
 PltVar.InterRun_AudRes   = 0; %Average f0 response trace to auditory pert over all runs analyzed
@@ -26,12 +26,12 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PltVar.participant PltVar.ru
 %Load 'auAn' 'auRes' 'niAn' 'niRes'
 load(dirs.SavResultsFile)
 
-if PltVar.NIDAQ_allCh == 1
-    drawDAQAll(niAn, 2, dirs.SavResultsDir, PltVar.sv2File)
-end
-
 if PltVar.InterTrial_f0 == 1
     drawInterTrialf0(auRes.timeSec, auRes.meanTrialf0_St, auRes.meanTrialf0_Sp, auRes.f0LimitsSec, auRes.trialCount, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+end
+
+if PltVar.NIDAQ_allCh == 1
+    drawDAQAll(niAn, 2, dirs.SavResultsDir, PltVar.sv2File)
 end
 
 if PltVar.IntraTrialP_f0 == 1

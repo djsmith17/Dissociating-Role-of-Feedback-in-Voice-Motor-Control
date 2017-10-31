@@ -1,10 +1,10 @@
-function drawInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curExp, curRecording, plotFolder)
+function drawInterTrialf0(time, meanTrialf0_St, meanTrialf0_Sp, limits, counts, meanTrialf0b, curSess, curRecording, plotFolder)
 plotpos = [200 100];
 plotdim = [1300 500];
 InterTrialf0 = figure('Color', [1 1 1]);
 set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-curExp(strfind(curExp, '_')) = ' ';
+curSess(strfind(curSess, '_')) = ' ';
 curRecording(strfind(curRecording, '_')) = ' ';
 
 dottedStartx = [0.5 0.5];
@@ -45,11 +45,11 @@ set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
 
-suptitle({[curExp ': Mic Recording']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
+suptitle({[curSess ': Mic Recording']; [curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']})
 
 plots = {'InterTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curRecording '_' plots{i} '.jpg'];
+    plTitle = [curSess '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
