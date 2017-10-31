@@ -1,6 +1,6 @@
 function drawAudResp_AllTrial(res, curSess, curRec, plotFolder)
 
-time = res.time;
+time  = res.time;
 trigs = res.allTrialTrigs;
 trialf0_mic  = res.allTrialf0(:,1,:);
 trialf0_head = res.allTrialf0(:,2,:);
