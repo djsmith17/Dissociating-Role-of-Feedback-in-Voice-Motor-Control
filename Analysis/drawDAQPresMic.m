@@ -15,8 +15,8 @@ rangePressures = niAn.rangePressures;
 pLimits        = niAn.pLimits;
 
 time_audio     = niAn.time_audio;
-micf0          = niAn.audioMf0_norm;
-headf0         = niAn.audioHf0_norm;
+micf0          = niAn.audioMf0_C;
+headf0         = niAn.audioHf0_C;
 aLimits        = niAn.aLimits;
 
 curSess(strfind(curSess, '_')) = ' ';
@@ -28,7 +28,7 @@ micColor  = [0.1 0.5 0.1];
 
 for ii = 1:numTrial
     DAQPresMic(ii) = figure('Color', [1 1 1]);
-    set(DAQPresMic(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+    set(DAQPresMic(ii), 'Position',[plotpos plotdim],'PaperPositionMode','auto') 
     
     pertAx  = [trigs(ii,1), trigs(ii,2)];
     pertAy  = [200 200];

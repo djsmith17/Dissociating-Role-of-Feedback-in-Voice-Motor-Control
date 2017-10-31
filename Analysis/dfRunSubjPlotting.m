@@ -7,7 +7,7 @@ PltVar.participant  = 'Pilot0'; %List of multiple participants.
 PltVar.run          = 'SF3';
 
 %Plot Toggles. This could eventually become an input variable
-PltVar.sv2File         = 1;
+sv2File                = 1;
 PltVar.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
 PltVar.NIDAQ_PresMic   = 1;
 PltVar.NIDAQ_AligSens  = 1;
@@ -33,15 +33,15 @@ if PltVar.InterTrial_f0 == 1
 end
 
 if PltVar.NIDAQ_PresMic == 1
-    drawDAQPresMic(niAn, dirs.SavResultsDir, PltVar.sv2File)
+    drawDAQPresMic(niAn, dirs.SavResultsDir, sv2File)
 end
 
 if PltVar.NIDAQ_AligSens == 1
-    drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, PltVar.sv2File)
+    drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2File)
 end
 
 if PltVar.NIDAQ_allCh == 1
-    drawDAQAll(niAn, 2, dirs.SavResultsDir, PltVar.sv2File)
+    drawDAQAll(niAn, 2, dirs.SavResultsDir, sv2File)
 end
 
 if PltVar.IntraTrialP_f0 == 1

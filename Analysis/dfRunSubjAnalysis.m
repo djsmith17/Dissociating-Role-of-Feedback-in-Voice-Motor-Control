@@ -28,7 +28,7 @@ load(dirs.SavFileDir)
 [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin);
 
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [AVar.participant AVar.run 'ResultsDRF.mat']);
-if debug == 0
+if AVar.debug == 0
     fprintf('Saving Results for %s %s\n', AVar.participant, AVar.run)
     save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
 end
