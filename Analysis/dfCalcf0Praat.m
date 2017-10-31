@@ -1,4 +1,4 @@
-function meanf0 = dfcalcf0Praat_matVec(dirs)
+function meanf0 = dfCalcf0Praat(dirs)
 %This asks praat to calculate f0 for a given saved wav file. 
 
 resultFolder = dirs.SavResultsDir;
