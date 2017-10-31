@@ -1,4 +1,4 @@
-function [niAn, res] = dfAnalysisNIDAQ(expParam, DAQin)
+function [niAn, res] = dfAnalysisNIDAQ(dirs, expParam, DAQin)
 %A quick reference
 %
 %Pert: Perturbation signal

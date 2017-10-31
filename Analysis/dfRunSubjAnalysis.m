@@ -25,7 +25,7 @@ fprintf('Loading Files for %s %s\n', AVar.participant, AVar.run)
 load(dirs.SavFileDir)
 
 % [auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
-[niAn, niRes] = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin);
 
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [AVar.participant AVar.run 'ResultsDRF.mat']);
 if debug == 0

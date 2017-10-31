@@ -25,7 +25,7 @@ for i to (end - start)/0.005
     time = start + i * 0.005
     select Pitch 'sound_one$'
     pitch = Get value at time... time Hertz Linear
-    appendInfoLine: fixed$ (time, 2), " ", fixed$ (pitch, 2)
+    appendInfoLine: fixed$ (time, 3), " ", fixed$ (pitch, 3)
 endfor
 	
 fappendinfo 'txtFileLoc$'
