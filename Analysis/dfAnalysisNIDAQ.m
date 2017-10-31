@@ -15,6 +15,7 @@ sv2File = 0;
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
 
+%Identify some starting variables
 niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
 if isfield(expParam, 'curSess')
@@ -30,9 +31,12 @@ niAn.numSamp  = r;
 niAn.numTrial = n;
 niAn.numCh    = c;
 niAn.expTrigs = expParam.trigs(:,:,1);
-[niAn.cTrials, niAn.ctIdx] = find(niAn.trialType == 1);
-niAn.ncTrials = sum(niAn.cTrials);
 
+%Find all the pertrubed trials
+[niAn.PertTrials, niAn.pertIdx] = find(niAn.trialType == 1);
+niAn.numPertTrials = sum(niAn.PertTrials);
+
+%Identify a few analysis varaibles
 niAn.win    = 0.05;  %seconds
 niAn.winP   = niAn.win*niAn.sRate;
 niAn.pOV    = 0.60;  %60% overlap
@@ -41,6 +45,7 @@ niAn.winSts = 1:niAn.tStepP:(niAn.numSamp-niAn.winP);
 niAn.numWin = length(niAn.winSts);
 niAn.freqCutOff = 400;
 
+%Unpack the NIDAQ raw data set
 niAn.sRateDN  = sRate/niAn.dnSamp;
 niAn.time     = (0:1/sRate:(r-1)/sRate)';
 niAn.pertSig  = squeeze(DAQin(:,1,:));
@@ -51,44 +56,31 @@ niAn.audioM   = squeeze(DAQin(:,5,:));
 niAn.audioH   = squeeze(DAQin(:,6,:));
 niAn.sensorO  = squeeze(DAQin(:,7,:));
 
+%Preprocessing and downsampling
 niAn.sensorFC_aug = 4*(niAn.sensorFC-2);
 niAn.sensorFN_aug = 4*(niAn.sensorFN-2);
-
-[niAn.time_audio, niAn.audioMf0] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
-[niAn.time_audio, niAn.audioHf0] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
-% niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
-% niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
-% niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
-prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
-niAn.trialf0b   = mean(niAn.audioMf0(prePert,:),1);
-niAn.f0b        = mean(niAn.trialf0b);
-
-niAn.audioMf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
-niAn.audioHf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
-niAn.aLimits = [0 4 -100 100];
 
 [B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 10
 niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
-niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp); %downSampled Time
-niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); %downSampled Perturbation Signal
+niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
+niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbation Signal
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 
-niAn.pertSig_C  = niAn.pertSig_DN(:, niAn.ctIdx);   %Grab all the Catch Trials
-niAn.sensorP_C  = niAn.sensorP_DN(:, niAn.ctIdx);   %Grab all the Catch Trials
-niAn.sensorFC_C = niAn.sensorFC_DN(:, niAn.ctIdx);  %Grab all the Catch Trials
-niAn.sensorFN_C = niAn.sensorFN_DN(:, niAn.ctIdx);  %Grab all the Catch Trials
-niAn.audioMf0_C = niAn.audioMf0_norm(:, niAn.ctIdx);
-niAn.audioHf0_C = niAn.audioHf0_norm(:, niAn.ctIdx);
+%Parse out the pertrubed trials
+niAn.pertSig_p  = niAn.pertSig_DN(:, niAn.pertIdx);   %Grab all the Catch Trials
+niAn.sensorP_p  = niAn.sensorP_DN(:, niAn.pertIdx);   %Grab all the Catch Trials
+niAn.sensorFC_p = niAn.sensorFC_DN(:, niAn.pertIdx);  %Grab all the Catch Trials
+niAn.sensorFN_p = niAn.sensorFN_DN(:, niAn.pertIdx);  %Grab all the Catch Trials
 
-niAn.expTrigs_C = niAn.expTrigs(niAn.trialType == true, :);
-[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_C, niAn.sRateDN);
-[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_C, niAn.sRateDN);
-[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_C, niAn.sRateDN);  
-[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_C, niAn.sRateDN); 
+niAn.expTrigs_p = niAn.expTrigs(niAn.trialType == true, :);
+[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
+[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
+[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
+[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_p, niAn.sRateDN); 
 
 [niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
@@ -97,15 +89,15 @@ niAn.expTrigs_C = niAn.expTrigs(niAn.trialType == true, :);
 niAn.indPressures   = [];
 niAn.rangePressures = [];
 niAn.timePressures  = [];
-for ii = 1:niAn.ncTrials
-    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_C(:,ii), niAn.sRateDN);
+for ii = 1:niAn.numPertTrials
+    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_p(:,ii), niAn.sRateDN);
 %     [endRiseInd, startFallInd] = findCrossingsManual(niAn.sensorP_DN(:,ii), niAn.sRateDN);
     
 %     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
 %     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
 
-    onsetPressure  = round(100*niAn.sensorP_C(endRiseInd, ii))/100;
-    offsetPressure = round(100*niAn.sensorP_C(startFallInd, ii))/100;
+    onsetPressure  = round(100*niAn.sensorP_p(endRiseInd, ii))/100;
+    offsetPressure = round(100*niAn.sensorP_p(startFallInd, ii))/100;
     onsetTime  = round(100*niAn.time_DN(endRiseInd))/100;
     offsetTime = round(100*niAn.time_DN(startFallInd))/100;
     
@@ -120,12 +112,27 @@ niAn.meanRiseTimeP = mean(niAn.riseTimeP);
 niAn.pLimits = [0 4 0 5];
 niAn.fLimits = [0 4 1 5];
 
-niAn.sensorP_Al = alignSensorData(niAn.sRateDN, niAn.idxPert, niAn.sensorP_C);
-niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN;
+niAn.sensorP_Al = alignSensorData(niAn.sRateDN, niAn.idxPert, niAn.sensorP_p);
+niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 niAn.pLimits_Al = [0 3.5 0 5];
 
-res = [];
-% lims = identifyLimits(niAn);
+[niAn.time_audio, niAn.audioMf0] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
+[niAn.time_audio, niAn.audioHf0] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
+% niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
+% niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
+% niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
+prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
+niAn.trialf0b   = mean(niAn.audioMf0(prePert,:),1);
+niAn.f0b        = mean(niAn.trialf0b);
+
+niAn.audioMf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
+niAn.audioHf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
+niAn.audioMf0_p = niAn.audioMf0_norm(:, niAn.pertIdx);
+niAn.audioHf0_p = niAn.audioHf0_norm(:, niAn.pertIdx);
+niAn.aLimits = [0 4 -100 100];
+
+lims = identifyLimits(niAn);
+res  = packResults(niAn, lims);
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
@@ -269,34 +276,73 @@ function lims = identifyLimits(niAn)
 
 
 %Full trial f0 analysis
+lims = [];
 
 
 
 
 
+% %Sectioned f0 Analysis
+% [~, Imax] = max(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
+% upBound_St = round(niAn.meanTrialf0_St(Imax,1,2) + niAn.meanTrialf0_St(Imax,2,2) + 10);
+% [~, Imin] = min(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
+% lwBound_St = round(niAn.meanTrialf0_St(Imin,1,2) - niAn.meanTrialf0_St(Imin,2,2) - 10);
+% 
+% [~, Imax] = max(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
+% upBound_Sp = round(niAn.meanTrialf0_Sp(Imax,1,2) + niAn.meanTrialf0_Sp(Imax,2,2) + 10);
+% [~, Imin] = min(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
+% lwBound_Sp = round(niAn.meanTrialf0_Sp(Imin,1,2) - niAn.meanTrialf0_Sp(Imin,2,2) - 10);
+% 
+% if upBound_St > upBound_Sp
+%     lims.upBoundSec = upBound_St;
+% else
+%     lims.upBoundSec = upBound_Sp;
+% end
+% 
+% if lwBound_St < lwBound_Sp
+%     lims.lwBoundSec = lwBound_St;
+% else
+%     lims.lwBoundSec = lwBound_Sp;
+% end
 
-%Sectioned f0 Analysis
-[~, Imax] = max(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
-upBound_St = round(niAn.meanTrialf0_St(Imax,1,2) + niAn.meanTrialf0_St(Imax,2,2) + 10);
-[~, Imin] = min(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
-lwBound_St = round(niAn.meanTrialf0_St(Imin,1,2) - niAn.meanTrialf0_St(Imin,2,2) - 10);
 
-[~, Imax] = max(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
-upBound_Sp = round(niAn.meanTrialf0_Sp(Imax,1,2) + niAn.meanTrialf0_Sp(Imax,2,2) + 10);
-[~, Imin] = min(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
-lwBound_Sp = round(niAn.meanTrialf0_Sp(Imin,1,2) - niAn.meanTrialf0_Sp(Imin,2,2) - 10);
-
-if upBound_St > upBound_Sp
-    lims.upBoundSec = upBound_St;
-else
-    lims.upBoundSec = upBound_Sp;
 end
 
-if lwBound_St < lwBound_Sp
-    lims.lwBoundSec = lwBound_St;
-else
-    lims.lwBoundSec = lwBound_Sp;
-end
+function res = packResults(niAn, lims)
 
+res.subject = niAn.subject;
+res.run     = niAn.run;
+res.curSess = niAn.curSess;
+
+res.numTrials     = niAn.numTrial;
+res.numPertTrials = niAn.numPertTrials;
+res.pertIdx       = niAn.pertIdx;
+res.pertTrig      = niAn.pertTrig;
+
+res.timeS     = niAn.time_DN;
+res.sensorP   = niAn.sensorP_p; %Individual Processed perturbed trials. 
+res.lagTimeP  = niAn.lagsPres;
+res.riseTimeP = niAn.riseTimeP;
+res.rangeP    = niAn.rangePressures;
+res.limitsP   = niAn.pLimits;
+
+res.timeSAl   = niAn.time_Al;
+res.sensorPAl = niAn.sensorP_Al;
+res.limitsPAl = niAn.pLimits_Al;
+
+res.timeA    = niAn.time_audio;
+res.f0b      = niAn.f0b;
+
+res.audioMf0TrialPert = niAn.audioMf0_p;
+res.audioMf0TrialCont = niAn.audioMf0_c;
+res.audioHf0TrialPert = niAn.audioHf0_p;
+res.audioHf0TrialCont = niAn.audioHf0_c;
+res.limitsA           = niAn.aLimits;
+
+res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanSig 90%CI]
+res.audioMf0MeanCont = niAn.audioMf0_meanc;
+res.audioHf0MeanPert = niAn.audioHf0_meanp;
+res.audioHf0MeanCont = niAn.audioHf0_meanc;
+res.limitsAmean      = niAn.aLimitsMean;
 
 end
