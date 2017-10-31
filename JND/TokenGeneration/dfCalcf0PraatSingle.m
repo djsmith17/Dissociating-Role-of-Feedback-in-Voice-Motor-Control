@@ -20,7 +20,7 @@ if ~exist(sp_fn, 'file')
     error('file ''sendpraat.exe'' not found')
 end
 
-gt_fn = fullfile(psDir, 'batchcalcf0.praat');
+gt_fn = fullfile(psDir, 'batchcalcf0Single.praat');
 if ~exist(gt_fn, 'file')
     error('file ''batchcalcf0.praat'' not found')
 end

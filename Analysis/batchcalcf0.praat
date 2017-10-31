@@ -6,13 +6,14 @@
 ############################
 
 form Resynthize files to have flat pitch
-	text baseTokenFile
-	sentence Sound_file_extension
+	text wavFileLoc
 	text txtFileLoc
+	positive curTrial
+	positive numTrial
 endform
 
 #A sound file is opened from the listing:
-Read from file... 'baseTokenFile$'
+Read from file... 'wavFileLoc$'
 sound_one$ = selected$ ("Sound")
 
 start = Get start time
@@ -32,4 +33,6 @@ fappendinfo 'txtFileLoc$'
 select all
 Remove
 
+if curTrial = numTrial
 Quit
+endif

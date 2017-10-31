@@ -9,7 +9,7 @@ form Resynthize files to have flat pitch
 	text tokenDir
 	sentence Sound_file_extension
 	sentence targetPertName
-    positive targetPert
+        positive targetPert
 	positive curToken
 	positive numTokens
 endform
