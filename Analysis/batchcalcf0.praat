@@ -32,6 +32,7 @@ fappendinfo 'txtFileLoc$'
 
 select all
 Remove
+clearinfo
 
 if curTrial = numTrial
 Quit

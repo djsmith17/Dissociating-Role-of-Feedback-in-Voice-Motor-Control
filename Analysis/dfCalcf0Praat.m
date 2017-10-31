@@ -1,12 +1,12 @@
 function [time, trialsetf0] = dfCalcf0Praat(dirs, trialset, fs)
 %This asks praat to calculate f0 for a given saved wav file. 
 
-resultFolder = dirs.SavResultsDir;
-wavFileLoc   = [resultFolder, '\trialRec.wav'];
-txtFileLoc   = [resultFolder, '\pitchCalc.txt'];
-psDir        = dirs.Code;                        %Praat scripting
-pbDir        = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
-numTrial     = length(trialset);
+resultFolder  = dirs.SavResultsDir;
+wavFileLoc    = [resultFolder, '\trialRec.wav'];
+txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
+psDir         = dirs.Code;                        %Praat scripting
+pbDir         = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
+[~, numTrial] = size(trialset);
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
@@ -50,12 +50,12 @@ for ii = 1:numTrial
 
     praatResult = fopen(txtFileLoc);
     praatScan   = textscan(praatResult, '%f %s');
-    [time, trialf0, ~] = PraatPostProcessing(praatScan);
-    trialsetf0  = cat(2, trialsetf0, trialf0);
-
     fclose(praatResult);
     delete(wavFileLoc);
     delete(txtFileLoc);
+    
+    [time, trialf0, ~] = PraatPostProcessing(praatScan);
+    trialsetf0         = cat(2, trialsetf0, trialf0);
 end
 end
 
