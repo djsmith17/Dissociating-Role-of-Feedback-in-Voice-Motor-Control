@@ -65,16 +65,16 @@ niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
 niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
 
 niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
-niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbation Signal
+niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 
 %Parse out the pertrubed trials
-niAn.pertSig_p  = niAn.pertSig_DN(:, niAn.pertIdx);   %Grab all the Catch Trials
-niAn.sensorP_p  = niAn.sensorP_DN(:, niAn.pertIdx);   %Grab all the Catch Trials
-niAn.sensorFC_p = niAn.sensorFC_DN(:, niAn.pertIdx);  %Grab all the Catch Trials
-niAn.sensorFN_p = niAn.sensorFN_DN(:, niAn.pertIdx);  %Grab all the Catch Trials
+niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
+niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Perturbed Trials
+niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
 niAn.expTrigs_p = niAn.expTrigs(niAn.trialType == true, :);
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
@@ -86,33 +86,16 @@ niAn.expTrigs_p = niAn.expTrigs(niAn.trialType == true, :);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
-niAn.indPressures   = [];
-niAn.rangePressures = [];
-niAn.timePressures  = [];
-for ii = 1:niAn.numPertTrials
-    [endRiseInd, startFallInd] = findCrossings(niAn.sensorP_p(:,ii), niAn.sRateDN);
-%     [endRiseInd, startFallInd] = findCrossingsManual(niAn.sensorP_DN(:,ii), niAn.sRateDN);
-    
-%     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
-%     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
+%Sensor Dynamics of the Pressure Sensor
+[niAn.OnOfValP,  niAn.OnOfValPm, ...
+ niAn.riseTimeP, niAn.riseTimePm] = ...
+analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
 
-    onsetPressure  = round(100*niAn.sensorP_p(endRiseInd, ii))/100;
-    offsetPressure = round(100*niAn.sensorP_p(startFallInd, ii))/100;
-    onsetTime  = round(100*niAn.time_DN(endRiseInd))/100;
-    offsetTime = round(100*niAn.time_DN(startFallInd))/100;
-    
-    niAn.indPressures   = cat(1, niAn.indPressures, [endRiseInd, startFallInd]);
-    niAn.timePressures  = cat(1, niAn.timePressures, [onsetTime offsetTime]);
-    niAn.rangePressures = cat(1, niAn.rangePressures, [onsetPressure offsetPressure]);
-end
-niAn.meanRangePressure = mean(niAn.rangePressures, 1);
-
-niAn.riseTimeP = niAn.timePressures(:,1) - niAn.presTrig(:,1);
-niAn.meanRiseTimeP = mean(niAn.riseTimeP);
-
+%Aligning pressure signal for perturbed trials
 niAn.sensorP_Al = alignSensorData(niAn.sRateDN, niAn.idxPert, niAn.sensorP_p);
 niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 
+% Audio Processing
 [niAn.time_audio, niAn.audioMf0] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
 [niAn.time_audio, niAn.audioHf0] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
 % niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
@@ -141,41 +124,15 @@ for i = 1:numSampDN
 end
 end
 
-function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
+function signalParse = parseTrialTypes(signal, idx)
+%Expects trials to be in columns 
 
-sensorDN = [];
-for iSt = 1:numWin
-    winIdx = winSts(iSt):winSts(iSt) + winP - 1;
-    sensorDN = cat(1, sensorDN, mean(sensor(winIdx, :)));
-end
-end
-
-function sensorf0 = signalFrequencyAnalysis(sensor, fs, freqCutOff, numTrial, numWin, winSts, winP)
-
-%Low-Pass filter for the given cut off frequency
-[B,A]    = butter(4,(freqCutOff)/(fs/2));
-
-sensorf0 = zeros(numWin, numTrial);
-for j = 1:numTrial %Trial by Trial
-    sensorHP = filtfilt(B,A,sensor(:,j));
-    for i = 1:numWin
-        winIdx = winSts(i):winSts(i)+ winP - 1;
-        sensorf0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
-    end
-end
-end
-
-function audio_norm = normalizef0(audio, f0b)
-[~, numTrial] = size(audio);
-
-audio_norm = [];
-for ii = 1:numTrial
-    audio_trial = 1200*log2(audio(:,ii)./f0b(ii));
-    audio_norm  = cat(2, audio_norm, audio_trial);
-end
+signalParse = signal(:, idx); %This is a little lazy I know. Get over it. 
 end
 
 function [trigs, idx] = findPertTrigs(time, sensor, fs)
+%findPertTrigs(time, sensor, fs) finds rising and falling edges in sensor
+%data. It is expected that these signals will be mostly step functions
 [numSamp, numTrial] = size(sensor);
 
 baselineIdx = 1:fs*1;
@@ -213,6 +170,71 @@ SEM = lagsSTD/sqrt(length(lags));
 CIM = 1.96*SEM;
 
 lagMeans = [lagsMean, CIM];
+end
+
+function [OnOfVals, OnOfValsMean, riseTime, riseTimeMean] = analyzeSensorDynamics(time, sensor, fs, sensTrig)
+%Analyzing the dynamics of the sensor during onset and offset of the
+%stimulus signal.
+[~, numTrials] = size(sensor);
+
+OnOfInd   = [];
+OnOfTime  = [];
+OnOfVals  = [];
+for ii = 1:numTrials
+    [endRiseInd, startFallInd] = findCrossings(sensor(:,ii), fs);
+%     [endRiseInd, startFallInd] = findCrossingsManual(niAn.sensorP_DN(:,ii), niAn.sRateDN);
+    
+%     [maxP, maxInd] = max(niAn.sensorP_DN(:,ii));
+%     [minP  ] = niAn.sensorP_DN(niAn.idxPert(ii,2), ii);
+
+    onsetTime      = round(100*time(endRiseInd))/100;
+    offsetTime     = round(100*time(startFallInd))/100;
+    
+    onsetSensorVal  = round(100*sensor(endRiseInd, ii))/100;
+    offsetSensorVal = round(100*sensor(startFallInd, ii))/100;
+  
+    OnOfInd   = cat(1, OnOfInd, [endRiseInd, startFallInd]);
+    OnOfTime  = cat(1, OnOfTime, [onsetTime offsetTime]);
+    OnOfVals  = cat(1, OnOfVals, [onsetSensorVal offsetSensorVal]);
+end
+
+OnOfValsMean = mean(OnOfVals, 1);
+riseTime     = OnOfTime(:,1) - sensTrig(:,1);
+riseTimeMean = mean(riseTime);
+end
+
+function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
+
+sensorDN = [];
+for iSt = 1:numWin
+    winIdx = winSts(iSt):winSts(iSt) + winP - 1;
+    sensorDN = cat(1, sensorDN, mean(sensor(winIdx, :)));
+end
+end
+
+function sensorf0 = signalFrequencyAnalysis(sensor, fs, freqCutOff, numTrial, numWin, winSts, winP)
+
+%Low-Pass filter for the given cut off frequency
+[B,A]    = butter(4,(freqCutOff)/(fs/2));
+
+sensorf0 = zeros(numWin, numTrial);
+for j = 1:numTrial %Trial by Trial
+    sensorHP = filtfilt(B,A,sensor(:,j));
+    for i = 1:numWin
+        winIdx = winSts(i):winSts(i)+ winP - 1;
+        sensorf0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
+    end
+end
+end
+
+function audio_norm = normalizef0(audio, f0b)
+[~, numTrial] = size(audio);
+
+audio_norm = [];
+for ii = 1:numTrial
+    audio_trial = 1200*log2(audio(:,ii)./f0b(ii));
+    audio_norm  = cat(2, audio_norm, audio_trial);
+end
 end
 
 function sensorAl = alignSensorData(sRate, idx, sensor)
@@ -327,9 +349,9 @@ res.sensorP    = niAn.sensorP_p; %Individual Processed perturbed trials.
 res.lagTimeP   = niAn.lagsPres;
 res.lagTimePm  = niAn.meanLagTimeP;
 res.riseTimeP  = niAn.riseTimeP;
-res.riseTimePm = niAn.meanRiseTimeP;
-res.rangeP     = niAn.rangePressures;
-res.rangePm    = niAn.meanRangePressure;
+res.riseTimePm = niAn.riseTimePm;
+res.OnOfValP   = niAn.OnOfValP;
+res.OnOfValPm  = niAn.OnOfValPm;
 res.limitsP    = lims.pressure;
 
 res.timeSAl   = niAn.time_Al;
