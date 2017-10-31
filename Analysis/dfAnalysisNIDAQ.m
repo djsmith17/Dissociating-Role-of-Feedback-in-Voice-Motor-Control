@@ -1,4 +1,4 @@
-function niAn = dfAnalysisNIDAQ(expParam, DAQin)
+function [niAn, res] = dfAnalysisNIDAQ(expParam, DAQin)
 %A quick reference
 %
 %Pert: Perturbation signal
@@ -11,6 +11,7 @@ function niAn = dfAnalysisNIDAQ(expParam, DAQin)
 
 fprintf('\nStarting NIDAQ Analysis\n')
 
+sv2File = 0;
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
 
@@ -118,6 +119,7 @@ niAn.sensorP_Al = alignSensorData(niAn.sRateDN, niAn.idxPert, niAn.sensorP_C);
 niAn.time_Al    = 0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN;
 niAn.pLimits_Al = [0 3.5 0 5];
 
+res = [];
 % lims = identifyLimits(niAn);
 end
 

@@ -36,21 +36,25 @@ end
 fprintf('Loading Files for %s %s\n', AVar.participant, AVar.run)
 load(dirs.SavFileDir)
 
-[auAn, res] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
-niAn        = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
+[auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
+[niAn, niRes] = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
 
-drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
-drawInterTrialf0(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
-drawAllTrialf0(res.time, res.allTrialf0, res.runTrialOrder, auAn.trigsT, res.f0Limits, res.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
-drawAudResp_AllTrial(res, auAn.curSess, DRF.expParam.curSess, dirs.SavResultsDir)
-
-drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St(:,:,2), res.meanTrialf0_Sp(:,:,2), res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
-         
-if PltTgl.svInflaRespRoute == 1
-    InflaRespRoute = CalcInflationResponse(auAn, res.meanTrialf0b, res.meanTrialf0_St, res.InflaRespLimits, dirs.SavResultsDir);
-    tStep = auAn.tStep;
-    save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
-end
+fprintf('Saving Results for %s %s\n', AVar.participant, AVar.run)
+dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [AVar.participant AVar.run 'ResultsDRF.mat']);
+save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
+% 
+% drawDAQAll(niAn, 2, dirs.SavResultsDir, 1)
+% drawInterTrialf0(auRes.timeSec, auRes.meanTrialf0_St, auRes.meanTrialf0_Sp, auRes.f0LimitsSec, auRes.trialCount, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+% drawAllTrialf0(auRes.time, auRes.allTrialf0, auRes.runTrialOrder, auAn.trigsT, auRes.f0Limits, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+% drawAudResp_AllTrial(auRes, auAn.curSess, DRF.expParam.curSess, dirs.SavResultsDir)
+% 
+% drawAudResp_InterTrial(auRes.timeSec, auRes.meanTrialf0_St(:,:,2), auRes.meanTrialf0_Sp(:,:,2), auRes.f0LimitsSec, auRes.trialCount, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+%          
+% if PltTgl.svInflaRespRoute == 1
+%     InflaRespRoute = CalcInflationResponse(auAn, auRes.meanTrialf0b, auRes.meanTrialf0_St, auRes.InflaRespLimits, dirs.SavResultsDir);
+%     tStep = auAn.tStep;
+%     save(dirs.InflaRespFile, 'InflaRespRoute', 'tStep')
+% end
 end
 
 function InflaRespRoute = CalcInflationResponse(auAn, meanTrialf0b, meanRunsf0, limits, plotFolder)
