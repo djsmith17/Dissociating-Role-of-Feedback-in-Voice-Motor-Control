@@ -375,14 +375,18 @@ for i = 1:nPertVals
 end
 end
 
-function InflaRespRoute = CalcInflationResponse(AVar, meanTrialf0b, meanRunsf0, limits, plotFolder)
+function InflaRespRoute = CalcInflationResponse(auAn, meanTrialf0b, meanRunsf0, limits, plotFolder)
 %This calculates the shape of the change in f0 in response to the
 %perturbation onset
+
+time   = auAn.time;
+curExp = auAn.curExp;
+tStep  = auAn.tStep;
 
 disp('Calculating Inflation Response Route')
 
 meanPertMicf0 = meanRunsf0(:,1,2);           %Grabbing the mean mic f0 for all perturbed trials
-postOnset     = find(AVar.anaTimeVec > 0.5); %Trials are centered at 0.5s before inflation. 
+postOnset     = find(time > 0.5); %Trials are centered at 0.5s before inflation. 
 [~, ind]      = min(meanPertMicf0);          %Find the lowest point in whole mean signal
 
 timeFram = postOnset(1):ind;
@@ -393,11 +397,11 @@ plotdim = [600 600];
 InflaRespFig = figure('Color',[1 1 1]);
 set(InflaRespFig, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-t = 0:AVar.tStep:(AVar.tStep*(length(timeFram)-1)); %meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
+t = 0:tStep:(tStep*(length(timeFram)-1)); %meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
 plot(t, InflaRespRoute, 'blue', 'LineWidth',3)
 
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-title({'Average Acoustic Response to Inflation'; [AVar.curRecording '   f0: ' num2str(meanTrialf0b) 'Hz']},...
+title({'Average Acoustic Response to Inflation'; [curExp '   f0: ' num2str(meanTrialf0b) 'Hz']},...
                      'FontSize', 18,...
                      'FontWeight', 'bold')
 axis(limits); box off
@@ -405,7 +409,7 @@ axis(limits); box off
 set(gca, 'FontSize', 16,...
          'FontWeight','bold');
 
-plTitle = [AVar.curRecording '_Inflation Response Route.png'];
+plTitle = [curExp '_Inflation Response Route.png'];
 saveFileName = fullfile(plotFolder, plTitle);
 export_fig(saveFileName)
 end
