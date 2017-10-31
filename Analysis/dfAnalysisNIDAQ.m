@@ -101,7 +101,7 @@ for ii = 1:niAn.ncTrials
 
     onsetPressure  = round(100*niAn.sensorP_C(endRiseInd, ii))/100;
     offsetPressure = round(100*niAn.sensorP_C(startFallInd, ii))/100;
-    onsetTime = round(100*niAn.time_DN(endRiseInd))/100;
+    onsetTime  = round(100*niAn.time_DN(endRiseInd))/100;
     offsetTime = round(100*niAn.time_DN(startFallInd))/100;
     
     niAn.indPressures   = cat(1, niAn.indPressures, [endRiseInd, startFallInd]);

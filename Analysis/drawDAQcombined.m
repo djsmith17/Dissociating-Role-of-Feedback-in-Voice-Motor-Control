@@ -2,7 +2,7 @@ function drawDAQcombined(niAn, time, sensor, saveResultsDir, sv2F)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
-curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
+curSess  = niAn.curSess;  % The current experiment details (Subject/Run)
 numTrial = niAn.ncTrials; % Number of Catch Trials (Only relevant ones)
 
 meanLagTimeP      = niAn.meanLagTimeP;
@@ -10,7 +10,7 @@ meanRiseTimeP     = niAn.meanRiseTimeP;
 meanRangePressure = niAn.meanRangePressure;
 SensLim_Al        = niAn.pLimits_Al;
 
-curExp(strfind(curExp, '_')) = ' ';
+curSess(strfind(curSess, '_')) = ' ';
 
 plotpos = [500 300];
 plotdim = [800 600];
@@ -29,7 +29,7 @@ end
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
 ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Mean Pressure Sensor Measurements aligned at Perturbation Onset';
-        curExp}, 'FontSize', 12, 'FontWeight', 'bold')
+        curSess}, 'FontSize', 12, 'FontWeight', 'bold')
 axis(SensLim_Al);
 box off
 
@@ -54,7 +54,7 @@ t = annotation('textbox',[0.70 0.7 0.45 0.1],...
                 'FontName','Arial');
 
 if sv2F == 1
-    plTitle = [curExp  '_CombinedDAQSignalOutput.jpg'];     
+    plTitle = [curSess  '_CombinedDAQSignalOutput.jpg'];     
     saveFileName = fullfile(saveResultsDir, plTitle);
     export_fig(saveFileName) 
 end

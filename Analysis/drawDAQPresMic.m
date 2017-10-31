@@ -2,7 +2,7 @@ function drawDAQPresMic(niAn, saveResultsDir, sv2F)
 %Plots multiple signals against each other. Creates a new plot for each 
 %trial. Displays relevant information
 
-curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
+curSess  = niAn.curSess;  % The current experiment details (Subject/Run)
 numTrial = niAn.ncTrials; % Number of Catch Trials
 trigs    = niAn.pertTrig; % Where the perturbations occur
 
@@ -19,7 +19,7 @@ micf0          = niAn.audioMf0_norm;
 headf0         = niAn.audioHf0_norm;
 aLimits        = niAn.aLimits;
 
-curExp(strfind(curExp, '_')) = ' ';
+curSess(strfind(curSess, '_')) = ' ';
 
 plotpos = [500 300];
 plotdim = [800 600];
@@ -54,7 +54,7 @@ for ii = 1:numTrial
     ylabel(aX(1), 'f0 (Cents)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', micColor)
     ylabel(aX(2), 'Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
     title({'Pressure and f0 changes due to Balloon Inflation';
-            [curExp ' Trial ' num2str(niAn.ctIdx(ii))]}, 'FontSize', 12, 'FontWeight', 'bold')
+            [curSess ' Trial ' num2str(niAn.ctIdx(ii))]}, 'FontSize', 12, 'FontWeight', 'bold')
     axis(aX(1), aLimits); 
     axis(aX(2), pLimits);
     box off
@@ -78,7 +78,7 @@ for ii = 1:numTrial
     plotTitle =  '_DAQMicPres ';
 
     if sv2F == 1
-        plTitle = [curExp  plotTitle num2str(ii) '.jpg'];     
+        plTitle = [curSess  plotTitle num2str(ii) '.jpg'];     
         saveFileName = fullfile(saveResultsDir, plTitle);
         export_fig(saveFileName) 
     end
