@@ -1,5 +1,5 @@
-function meanf0 = dfcalcf0Praat(dirs)
-%This asks praat to calculate f0 for a given saved wav file. 
+function meanf0 = dfCalcf0PraatSingle(dirs)
+%Calculation of pitch using Praat for a single saved wav file.
 
 tokenDir = dirs.tokenDir;
 baseTokenFile = dirs.baseTokenFile;

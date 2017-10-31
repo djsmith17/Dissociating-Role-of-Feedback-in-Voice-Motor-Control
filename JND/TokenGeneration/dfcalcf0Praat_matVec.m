@@ -1,14 +1,11 @@
 function meanf0 = dfcalcf0Praat_matVec(dirs)
 %This asks praat to calculate f0 for a given saved wav file. 
 
-tokenDir = dirs.tokenDir;
-baseTokenFile = dirs.baseTokenFile;
-psDir    = dirs.JNDTG;                       %Praat scripting
-pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
-
-tokenDir   = [tokenDir, '\']; % add a slash to the mic folder
-ext        = '.wav';          % extension of files
-txtFileLoc = [tokenDir, '\pitchCalc.txt'];
+resultFolder = dirs.SavResultsDir;
+wavFileLoc   = [resultFolder, '\trialRec.wav'];
+txtFileLoc   = [resultFolder, '\pitchCalc.txt'];
+psDir        = dirs.JNDTG;                       %Praat scripting
+pbDir        = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
@@ -25,11 +22,10 @@ if ~exist(gt_fn, 'file')
     error('file ''batchcalcf0.praat'' not found')
 end
  
-call2 = sprintf('%s praat "execute %s %s %s %s', ...
+call2 = sprintf('%s praat "execute %s %s %s', ...
                     sp_fn, ... %sendpraat.exe
                     gt_fn, ... %saved praat script ('generatef0JNDTokens)
-                    baseTokenFile, ... %file location for saved wav files
-                    ext, ... %file extension
+                    wavFileLoc, ... %file location of generated wav file
                     txtFileLoc ...
                     );
                 
@@ -48,6 +44,7 @@ praatScan   = textscan(praatResult, '%f %s');
 meanf0      = averagePraatf0(praatScan);
 
 fclose(praatResult);
+delete(wavFileLoc);
 delete(txtFileLoc);
 end
 

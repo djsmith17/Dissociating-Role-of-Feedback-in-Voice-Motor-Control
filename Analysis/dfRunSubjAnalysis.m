@@ -10,6 +10,7 @@ clear all; close all; clc
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participant  = 'Pilot0'; %List of multiple participants.
 AVar.run          = 'SF3';
+AVar.debug        = 1;
 
 dirs               = dfDirs(AVar.project);
 dirs.SavFileDir    = fullfile(dirs.SavData, AVar.participant, AVar.run, [AVar.participant AVar.run 'DRF.mat']); %Where to find data
@@ -23,10 +24,13 @@ end
 fprintf('Loading Files for %s %s\n', AVar.participant, AVar.run)
 load(dirs.SavFileDir)
 
-[auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
+% [auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
 [niAn, niRes] = dfAnalysisNIDAQ(DRF.expParam, DRF.DAQin);
 
 fprintf('Saving Results for %s %s\n', AVar.participant, AVar.run)
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [AVar.participant AVar.run 'ResultsDRF.mat']);
-save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
+
+if debug == 0
+    save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
+end
 end

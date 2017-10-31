@@ -152,7 +152,7 @@ for j = 1:numTrial %Trial by Trial
     sensorHP = filtfilt(B,A,sensor(:,j));
     for i = 1:numWin
         winIdx = winSts(i):winSts(i)+ winP - 1;
-        sensorf0(i,j) = (dfCalcf0Chile(sensorHP(winIdx), fs));
+        sensorf0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
     end
 end
 end
