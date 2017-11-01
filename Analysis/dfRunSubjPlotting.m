@@ -43,11 +43,11 @@ if PltVar.NIDAQ_MeanTrialMicf0 == 1
 end
 
 if PltVar.NIDAQ_PresMic == 1
-    drawDAQPresMic(niAn, dirs.SavResultsDir, sv2File)
+    drawDAQPresMic(niRes, dirs.SavResultsDir, sv2File)
 end
 
 if PltVar.NIDAQ_AligSens == 1
-    drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2File)
+    drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2File)
 end
 
 if PltVar.NIDAQ_allCh == 1
