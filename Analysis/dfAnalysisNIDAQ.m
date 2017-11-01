@@ -78,6 +78,9 @@ niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Pertur
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
+%Make a dummy set of contTrig
+niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
+
 %Find Rising and Falling Edges of sensor signals
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
 [niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
@@ -120,8 +123,7 @@ if audioFlag == 1
     niAn.audioMf0_meanp = meanAudioData(niAn.time_audio, niAn.audioMf0_p, niAn.fsA, niAn.pertTrig);
     niAn.audioHf0_meanp = meanAudioData(niAn.time_audio, niAn.audioHf0_p, niAn.fsA, niAn.pertTrig);
     niAn.audioMf0_meanc = meanAudioData(niAn.time_audio, niAn.audioMf0_c, niAn.fsA, niAn.contTrig);
-    niAn.audioHf0_meanc = meanAudioData(niAn.time_audio, niAn.audioHf0_c, niAn.fsA, niAn.contTrig);
-    
+    niAn.audioHf0_meanc = meanAudioData(niAn.time_audio, niAn.audioHf0_c, niAn.fsA, niAn.contTrig);    
     
 else
     niAn.time_audio     = []; niAn.fsA            = [];
@@ -310,7 +312,16 @@ meanATime   = (-0.5+per):per:1.0;
 meanOnset  = mean(OnsetSecs, 2);
 meanOffset = mean(OffsetSecs, 2);
 
-meanAudio = [meanATime' meanOnset meanOffset];
+stdOnset   = std(OnsetSecs, 0, 2);
+stdOffset  = std(OffsetSecs, 0, 2);
+
+SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
+SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
+
+NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+
+meanAudio = [meanATime' meanOnset NCIOnset meanOffset NCIOffset];
 end
 
 function y = round2matchfs(x)
@@ -359,7 +370,7 @@ lims.force       = [0 4 1 5];
 lims.audio     = [0 4 -100 100];
 
 %Section Mean Trials: f0 Audio 
-lims.audioMean = [0 4 -100 100];
+lims.audioMean = [0 1.5 -100 100];
 
 %Full trial f0 analysis
 
