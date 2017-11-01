@@ -99,8 +99,8 @@ niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 
 if audioFlag == 1
     % Audio Processing
-    [niAn.time_audio, niAn.audioMf0] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
-    [niAn.time_audio, niAn.audioHf0] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
+    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
+    [niAn.time_audio, niAn.audioHf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
     % niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
     % niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
     % niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
@@ -117,11 +117,11 @@ if audioFlag == 1
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
     %Mean around the onset and offset
-    niAn.audioMf0_meanp = meanAudioData(niAn.audioMf0_p, niAn.sRate);
+    niAn.audioMf0_meanp = meanAudioData(niAn.audioMf0_p, niAn.fsA, niAn.pertTrig);
     
     
 else
-    niAn.time_audio     = [];
+    niAn.time_audio     = []; niAn.fsA            = [];
     niAn.audioMf0       = []; niAn.audioHf0       = [];
     niAn.trialf0b       = []; niAn.f0b            = [];
     niAn.audioMf0_norm  = []; niAn.audioHf0_norm  = [];
@@ -276,8 +276,41 @@ for ii = 1:numTrial
 end
 end
 
-function meanf0 = meanAudioData(audio, fs)
+function meanAudio = meanAudioData(audio, fs, trigs)
+[~, numTrial] = size(audio);
+preEve  = 0.5; posEve = 1.5;
+preEveP = preEve*fs;
+posEveP = posEve*fs;
 
+OnsetSecs  = [];
+OffsetSecs = [];
+for ii = 1:numTrial    
+    OnsetT  = round2matchfs(trigs(ii,1));
+    OffsetT = round2matchfs(trigs(ii,2));
+    
+    OnsetSt = OnsetT - preEveP;
+    OnsetSp = OnsetT + posEveP;
+    
+    OffsetSt = OffsetT - preEveP;
+    OffsetSp = OffsetT + posEveP;
+        
+    OnsetSec  = audio(OnsetSt:OnsetSp);
+    OffsetSec = audio(OffsetSt:OffsetSp);
+    
+    OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
+    OffsetSecs = cat(2, OffsetSecs, OffsetSec);
+end
+meanOnset  = mean(OnsetSecs, 2);
+meanOffset = mean(OffsetSecs, 2);
+
+meanAudio = [meanOnset meanOffset];
+end
+
+function y = round2matchfs(x)
+%This expects a decimal number as input
+%Input can be given as a set
+
+y = round(x.*200)./200;
 end
 
 function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
