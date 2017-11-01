@@ -370,7 +370,7 @@ lims.force       = [0 4 1 5];
 lims.audio     = [0 4 -100 100];
 
 %Section Mean Trials: f0 Audio 
-lims.audioMean = [0 1.5 -100 100];
+lims.audioMean = [-0.5 1.0 -100 100];
 
 %Full trial f0 analysis
 
@@ -436,7 +436,7 @@ res.audioHf0TrialCont = niAn.audioHf0_c;
 res.limitsA           = lims.audio;
 
 %Sectioned Mean Trials: Mic/Head f0 Trace 
-res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
+res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanTimeA MeanSigOn 90%CI MeanSigOff 90%CI]
 res.audioMf0MeanCont = niAn.audioMf0_meanc;
 res.audioHf0MeanPert = niAn.audioHf0_meanp;
 res.audioHf0MeanCont = niAn.audioHf0_meanc;
