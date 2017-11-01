@@ -23,7 +23,7 @@ rng('shuffle');
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Loudness (dB SPL):',...
-          'Gender ("male" or "female")'};
+          'Gender ("male" or "female"):'};
 name = 'Subject Information';
 numlines = 1;
 defaultanswer = {'null', 'SF1', '60', 'female'};
@@ -33,7 +33,17 @@ if isempty(answer)
     return
 end
 
-num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full') ;
+AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'None', 'Voice', 'Masking Noise', 'Masking Noise');
+switch AudFB
+    case 'None'
+        AudFBSw = 0;
+    case 'Voice'
+        AudFBSw = 1;
+    case 'Masking Noise'
+        AudFBSw = 2;
+end
+
+num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full');
 switch num_trials
     case 'Practice'
         numTrials = 4;
@@ -54,7 +64,8 @@ expParam.curSess       = [expParam.subject expParam.run];
 expParam.numTrial      = numTrials;
 expParam.curTrial      = [];
 expParam.perCatch      = perCatch;
-expParam.masking       = 1;
+expParam.AudFB         = AudFB;
+expParam.AudFBSw       = AudFBSw;
 expParam.trialLen      = 4; %Seconds
 expParam.niDev         = 'Dev2';
 expParam.bVis          = 0;

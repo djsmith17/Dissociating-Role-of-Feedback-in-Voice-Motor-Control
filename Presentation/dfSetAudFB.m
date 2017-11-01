@@ -3,22 +3,31 @@ function [expParam, p] = dfSetAudFB(expParam, dirs, p)
 %experiment involving Audapter. If the Auditory feedback is speech-shaped
 %masking noise, then you will need the masking noise wave file, SSN.wav.
 
-%No Masking Noise. Regular Auduitory Feedback
-if expParam.masking == 0
-    p.fb          = 1;
+%No Auduitory Feedback. Muted Headphones
+if  expParam.AudFBSw == 0
+    p.fb          = 0;  % Muted FB
+    p.bPitchShift = 0;
+    
+    expParam.SSNw   = [];
+    expParam.SSNfs  = [];
+    
+%REGULAR AUDITORY FEEDBACK OF THEIR VOICE
+elseif expParam.AudFBSw == 1
+    p.fb          = 1;   % Microphone FB
     p.bPitchShift = 1;
 %     p.dScale      = 1; %Headphone Scalar
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];
 
-%With Speech-Shaped Masking Noise
-elseif expParam.masking == 1
-    p.fb          = 2;
+%SPEECH-SHAPED MASKING NOISE
+elseif expParam.AudFBSw == 2
+    p.fb          = 2;   % Audio File (Masking)
     p.bPitchShift = 0;
 %     p.dScale      = 1; %Headphone Scalar
     
-    noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); %Uses Speech-Shaped Noise stored in util
+    %Uses Speech-Shaped Noise stored in util
+    noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
     
     maxPBSize  = Audapter('getMaxPBLen');
 
