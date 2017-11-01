@@ -88,10 +88,10 @@ else
     load(dirs.RecFileDir)
 end
 
-niAn = dfAnalysisNIDAQ(NSD.expParam, NSD.DAQin);
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0);
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
-drawDAQcombined(niAn, niAn.time_Al, niAn.sensorP_Al, dirs.SavResultsDir, sv2F)
-drawDAQAll(niAn, 1, dirs.SavResultsDir, sv2F)
+drawDAQcombined(niRes, dirs.SavResultsDir, sv2F)
+drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
 drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
 end

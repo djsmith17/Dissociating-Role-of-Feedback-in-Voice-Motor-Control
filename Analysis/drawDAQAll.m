@@ -1,11 +1,11 @@
-function drawDAQAll(niAn, plotFlag, saveResultsDir, sv2F)
+function drawDAQAll(niAn, saveResultsDir, sv2F)
 %This will draw every channel that was collected by the DAQ and then
 %analyzed by dfAnalysisNIDAQ. This just gives a top down view of what
 %happened in this recording. If multiple trials are given, this will either
 %plot each trial, or aligned trials, based on flag
 
 curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
-numTrial = niAn.ncTrials; % Number of Trials
+numTrial = niRes.numPertTrials; % Number of Trials
 trigs    = niAn.pertTrig; % Where the perturbation occurs
 
 time     = niAn.time;
@@ -15,21 +15,6 @@ sensorFN = niAn.sensorFN;
 sensorP  = niAn.sensorP;
 audioM   = niAn.audioM;
 audioH   = niAn.audioH;
-sensorO  = niAn.sensorO;
-
-lagTimeP       = niAn.lagsPres;
-riseTimeP      = niAn.riseTimeP;
-rangePressures = niAn.rangePressures;
-% pLimits        = niAn.pLimits;
-
-% sensorFN   = niAn.sensorFN_DN;
-% lagTimeFC  = niAn.lagsFC;
-% lagTimeFN  = niAn.lagsFN;
-% fLimits    = niAn.fLimits;
-
-% micf0     = niAn.audioMf0_norm;
-% headf0    = niAn.audioHf0_norm;
-% aLimits   = niAn.aLimits;
 
 curExp(strfind(curExp, '_')) = ' ';
 

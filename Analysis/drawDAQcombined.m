@@ -1,14 +1,17 @@
-function drawDAQcombined(niAn, time, sensor, saveResultsDir, sv2F)
+function drawDAQcombined(niRes, saveResultsDir, sv2F)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
-curSess  = niAn.curSess;  % The current experiment details (Subject/Run)
-numTrial = niAn.ncTrials; % Number of Catch Trials (Only relevant ones)
+curSess  = niRes.curSess;       % The current experiment details (Subject/Run)
+numTrial = niRes.numPertTrials; % Number of Catch Trials (Only relevant ones)
 
-meanLagTimeP      = niAn.meanLagTimeP;
-meanRiseTimeP     = niAn.meanRiseTimeP;
-meanRangePressure = niAn.meanRangePressure;
-SensLim_Al        = niAn.pLimits_Al;
+time   = niRes.timeSAl;
+sensor = niRes.sensorPAl;
+limits = niRes.limitsPAl;
+
+meanLagTime  = niRes.lagTimePm;
+meanRiseTime = niRes.riseTimePm;
+meanVal      = niRes.OnOfValPm;
 
 curSess(strfind(curSess, '_')) = ' ';
 
@@ -30,7 +33,7 @@ xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
 ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Mean Pressure Sensor Measurements aligned at Perturbation Onset';
         curSess}, 'FontSize', 12, 'FontWeight', 'bold')
-axis(SensLim_Al);
+axis(limits);
 box off
 
 set(gca,'FontSize', 12,...
@@ -45,9 +48,9 @@ set(pltlgd, 'box', 'off',...
             'location', 'NorthWest'); 
 
 t = annotation('textbox',[0.70 0.7 0.45 0.1],...
-               'string', {['Onset Lag: ' num2str(1000*meanLagTimeP(1)) 'ms'];...
-                          ['Rise Time: ' num2str(1000*meanRiseTimeP) 'ms'];...
-                          ['Onset/Offset Val: ' num2str(meanRangePressure(1), '%1.2f') 'psi, ' num2str(meanRangePressure(2), '%1.2f') 'psi']},...
+               'string', {['Onset Lag: ' num2str(1000*meanLagTime(1)) 'ms'];...
+                          ['Rise Time: ' num2str(1000*meanRiseTime) 'ms'];...
+                          ['Onset/Offset Val: ' num2str(meanVal(1), '%1.2f') 'psi, ' num2str(meanVal(2), '%1.2f') 'psi']},...
                 'LineStyle','none',...
                 'FontWeight','bold',...
                 'FontSize',10,...
