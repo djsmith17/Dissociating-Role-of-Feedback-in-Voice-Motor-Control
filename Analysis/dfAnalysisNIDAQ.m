@@ -117,7 +117,7 @@ if audioFlag == 1
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
     %Mean around the onset and offset
-    niAn.audioMf0_meanp = meanAudioData(niAn.audioMf0_p, niAn.fsA, niAn.pertTrig);
+    niAn.audioMf0_meanp = meanAudioData(niAn.time_audio, niAn.audioMf0_p, niAn.fsA, niAn.pertTrig);
     
     
 else
@@ -276,26 +276,28 @@ for ii = 1:numTrial
 end
 end
 
-function meanAudio = meanAudioData(audio, fs, trigs)
+function meanAudio = meanAudioData(time, audio, fs, trigs)
 [~, numTrial] = size(audio);
 preEve  = 0.5; posEve = 1.5;
 preEveP = preEve*fs;
 posEveP = posEve*fs;
 
+trigsR  = round2matchfs(trigs);
+OnsetSt = trigsR(:,1) - preEve;
+OnsetSp = trigsR(:,1) + posEve;
+OffsetSt = trigsR(:,2) - preEve;
+OffsetSp = trigsR(:,2) + posEve;
+
 OnsetSecs  = [];
 OffsetSecs = [];
-for ii = 1:numTrial    
-    OnsetT  = round2matchfs(trigs(ii,1));
-    OffsetT = round2matchfs(trigs(ii,2));
+for ii = 1:numTrial        
+    OnsetStI  = find(time == OnsetSt(ii));
+    OnsetSpI  = find(time == OnsetSp(ii));
+    OffsetStI = find(time == OffsetSt(ii));
+    OffsetSpI = find(time == OffsetSp(ii));
     
-    OnsetSt = OnsetT - preEveP;
-    OnsetSp = OnsetT + posEveP;
-    
-    OffsetSt = OffsetT - preEveP;
-    OffsetSp = OffsetT + posEveP;
-        
-    OnsetSec  = audio(OnsetSt:OnsetSp);
-    OffsetSec = audio(OffsetSt:OffsetSp);
+    OnsetSec  = audio(OnsetStI:OnsetSpI);
+    OffsetSec = audio(OffsetStI:OffsetSpI);
     
     OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
     OffsetSecs = cat(2, OffsetSecs, OffsetSec);
