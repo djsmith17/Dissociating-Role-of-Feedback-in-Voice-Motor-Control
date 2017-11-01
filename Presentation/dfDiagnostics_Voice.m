@@ -28,7 +28,7 @@ expParam.subject    = answer{1}; %Subject#, Pilot#, null
 expParam.run        = answer{2};
 expParam.gender     = answer{3};
 expParam.numTrial   = str2double(answer{4});
-expParam.masking    = 0;
+expParam.AudFBSw    = 0;
 expParam.trialLen   = 4; %Seconds
 expParam.CueMixTrimMic = 39;
 

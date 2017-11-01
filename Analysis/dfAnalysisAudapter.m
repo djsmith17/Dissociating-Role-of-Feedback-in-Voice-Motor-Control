@@ -24,7 +24,8 @@ auAn.trigsT   = expParam.trigs(:,:,1);  %Pregenerated start and stop times for t
 auAn.trigsA   = expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
 auAn.trigsQ   = expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
 auAn.trialType = expParam.trialType;    %List of trial Order
-auAn.mask      = expParam.masking;
+auAn.AudFB    = expParam.AudFB;
+auAn.AudFBSw  = expParam.AudFBSw;
 
 auAn.dnSamp  = 10;
 auAn.winLen  = 0.05;                   % Analysis window length (seconds)

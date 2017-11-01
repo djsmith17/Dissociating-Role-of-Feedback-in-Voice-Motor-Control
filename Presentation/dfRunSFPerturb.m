@@ -33,11 +33,11 @@ if isempty(answer)
     return
 end
 
-AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'None', 'Voice', 'Masking Noise', 'Masking Noise');
+AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
 switch AudFB
-    case 'None'
+    case 'Voice Not Shifted'
         AudFBSw = 0;
-    case 'Voice'
+    case 'Voice Shifted'
         AudFBSw = 1;
     case 'Masking Noise'
         AudFBSw = 2;
