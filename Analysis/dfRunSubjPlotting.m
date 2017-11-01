@@ -3,14 +3,15 @@ function dfRunSubjPlotting()
 
 clear all; close all; clc
 PltVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PltVar.participant  = 'Pilot0'; %List of multiple participants.
-PltVar.run          = 'SF3';
+PltVar.participant  = 'Pilot24'; %List of multiple participants.
+PltVar.run          = 'SF1';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                = 1;
 PltVar.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
 PltVar.NIDAQ_PresMic   = 1;
 PltVar.NIDAQ_AligSens  = 1;
+PltVar.NIDAQ_MeanTrialMicf0     = 1;
 PltVar.IntraTrial_T    = 0; %SPL trace of individual trial
 PltVar.IntraTrial_f0   = 0; %f0 trace for each individual trial
 PltVar.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
@@ -25,11 +26,20 @@ dirs                = dfDirs(PltVar.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, PltVar.participant, PltVar.run); %Where to save results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PltVar.participant PltVar.run 'ResultsDRF.mat']); %Where to save results
 
+if exist(dirs.SavResultsFile, 'file') == 0
+    fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
+    return
+end
+
 %Load 'auAn' 'auRes' 'niAn' 'niRes'
 load(dirs.SavResultsFile)
 
 if PltVar.InterTrial_f0 == 1
     drawInterTrialf0(auRes.timeSec, auRes.meanTrialf0_St, auRes.meanTrialf0_Sp, auRes.f0LimitsSec, auRes.trialCount, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+end
+
+if PltVar.NIDAQ_MeanTrialMicf0 == 1
+    drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
 end
 
 if PltVar.NIDAQ_PresMic == 1
