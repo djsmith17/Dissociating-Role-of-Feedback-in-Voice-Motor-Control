@@ -5,7 +5,7 @@ function drawDAQAll(niAn, saveResultsDir, sv2F)
 %plot each trial, or aligned trials, based on flag
 
 curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
-numTrial = niRes.numPertTrials; % Number of Trials
+numTrial = niAn.numPertTrials; % Number of Trials
 trigs    = niAn.pertTrig; % Where the perturbation occurs
 
 time     = niAn.time;
