@@ -72,7 +72,7 @@ niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 
-%Fix Offset
+%ZeroMean the Offset
 niAn.sensorP_DNz = correctPOffset(niAn.sensorP_DN, niAn.sRateDN);
 
 %Parse out the pertrubed trials
@@ -244,18 +244,32 @@ function [endRiseInd, startFallInd] = findCrossings(sensor, fs, man)
 [B, A] = butter(8, (50/(fs/2)), 'low'); 
 sensorFilt = filtfilt(B,A, sensor);
 
-sensDiff = [0; diff(sensorFilt)]*20;
-sensDiff2= [0; diff(sensDiff)]*20;
+sensDiff  = [0; diff(sensorFilt)]*50;
+sensDiff2 = [0; diff(sensDiff)]*50;
 
 if man == 0
-    incInds = find(sensDiff > 0.05);
-    decInds = find(sensDiff < -0.05);
-
-    incNonIncre = find((diff(incInds) == 1) == 0); %The indices where the values stop increasing
-    decNonIncre = find((diff(decInds) == 1) == 1); %The indices where the values start decreasing
+    %This is a bit lazy, I know. For right now it will work.
+    rangeU = 1*fs:2*fs;
+    rangeD = 2*fs:3*fs;
     
-    endRiseInd   = incInds(incNonIncre(end));
-    startFallInd = decInds(decNonIncre(1));
+    %yes its a bit lazy. I am sorry. 
+    [pksU, locU] = findpeaks(sensDiff2, 'MinPeakHeight', 6);
+    [pksD, locD] = findpeaks(-1*sensDiff2, 'MinPeakHeight', 10);
+
+    if isempty(pksU)
+        disp('No rise found')
+        endRiseInd = [];
+    else
+        endRiseInd = locU(end);
+    end
+    
+    if isempty(pksD)
+        disp('No fall found')
+        startFallInd = [];
+    else
+        startFallInd = locD(1);
+    end
+    
 else
     PresFig = figure;
     plot(sensor, 'k'); hold on
