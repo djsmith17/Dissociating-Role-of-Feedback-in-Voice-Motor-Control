@@ -72,9 +72,12 @@ niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 
+%Fix Offset
+niAn.sensorP_DNz = correctPOffset(niAn.sensorP_DN, niAn.sRateDN);
+
 %Parse out the pertrubed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Perturbed Trials
+niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DNz, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
@@ -148,6 +151,17 @@ sensorDN = zeros(numSampDN, numTrial);
 for i = 1:numSampDN
     sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
 end
+end
+
+function sensorZeroed = correctPOffset(sensor, fs)
+%The first second of the trial will have the baseline pressure reading
+%from the sensor. We will use this to fix the offset in all the trials. 
+
+firstS  = 1:(1*fs);
+firstT  = sensor(firstS, 1);
+meanRec = mean(firstT);
+
+sensorZeroed = sensor - meanRec;
 end
 
 function signalParse = parseTrialTypes(signal, idx)
@@ -308,7 +322,7 @@ for ii = 1:numTrial
     OnsetSecs  = cat(2, OnsetSecs, OnsetSec');
     OffsetSecs = cat(2, OffsetSecs, OffsetSec');
 end
-meanATime   = (-0.5+per):per:1.0;
+meanATime  = (-0.5+per):per:1.0;
 meanOnset  = mean(OnsetSecs, 2);
 meanOffset = mean(OffsetSecs, 2);
 
