@@ -304,6 +304,33 @@ for ii = 1:numTrial
 end
 end
 
+function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
+
+sensorDN = [];
+for iSt = 1:numWin
+    winIdx = winSts(iSt):winSts(iSt) + winP - 1;
+    sensorDN = cat(1, sensorDN, mean(sensor(winIdx, :)));
+end
+end
+
+function audiof0 = signalFrequencyAnalysis(dirs, audio, fs, freqCutOff, numWin, winSts, winP, flag)
+[~, numTrial] = size(audio);
+
+%Low-Pass filter for the given cut off frequency
+[B,A]    = butter(4,(freqCutOff)/(fs/2));
+
+audiof0 = zeros(numWin, numTrial);
+for j = 1:numTrial %Trial by Trial
+    sensorHP = filtfilt(B,A,audio(:,j));
+    for i = 1:numWin
+        winIdx = winSts(i):winSts(i)+ winP - 1;
+        timef0(i,j)  = mean(sensor(winIdx, :));
+        audiof0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
+    end
+end
+end
+
+
 function audio_norm = normalizef0(audio, f0b)
 [~, numTrial] = size(audio);
 
@@ -362,30 +389,6 @@ function y = round2matchfs(x)
 %Input can be given as a set
 
 y = round(x.*200)./200;
-end
-
-function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
-
-sensorDN = [];
-for iSt = 1:numWin
-    winIdx = winSts(iSt):winSts(iSt) + winP - 1;
-    sensorDN = cat(1, sensorDN, mean(sensor(winIdx, :)));
-end
-end
-
-function sensorf0 = signalFrequencyAnalysis(sensor, fs, freqCutOff, numTrial, numWin, winSts, winP)
-
-%Low-Pass filter for the given cut off frequency
-[B,A]    = butter(4,(freqCutOff)/(fs/2));
-
-sensorf0 = zeros(numWin, numTrial);
-for j = 1:numTrial %Trial by Trial
-    sensorHP = filtfilt(B,A,sensor(:,j));
-    for i = 1:numWin
-        winIdx = winSts(i):winSts(i)+ winP - 1;
-        sensorf0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
-    end
-end
 end
 
 function lims = identifyLimits(niAn)
