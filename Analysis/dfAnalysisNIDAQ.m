@@ -398,17 +398,16 @@ lims.force       = [0 4 1 5];
 %Full Individual Trials: f0 Audio 
 lims.audio     = [0 4 -100 100];
 
-%Section Mean Trials: f0 Audio 
-
-[~, Imax] = max(niAn.audioMf0_meanp(:,2)); %Mean Microphone f0, Perturbed Trials
+%Section Mean Pertrubed Trials: f0 Audio 
+[~, Imax] = max(niAn.audioMf0_meanp(:,2)); %Max Pert Onset
 upBoundOn = round(niAn.audioMf0_meanp(Imax,2) + niAn.audioMf0_meanp(Imax,3) + 10);
-[~, Imin] = min(niAn.audioMf0_meanp(:,2)); %Mean Microphone f0, Perturbed Trials
-lwBoundOn = round(niAn.audioMf0_meanp(Imin,2) + niAn.audioMf0_meanp(Imax,3) + 10);
+[~, Imin] = min(niAn.audioMf0_meanp(:,2)); %Min Pert Onset
+lwBoundOn = round(niAn.audioMf0_meanp(Imin,2) - niAn.audioMf0_meanp(Imin,3) - 10);
 
-[~, Imax] = max(niAn.audioMf0_meanp(:,4)); %Mean Microphone f0, Perturbed Trials
+[~, Imax] = max(niAn.audioMf0_meanp(:,4)); %Max Pert Offset
 upBoundOf = round(niAn.audioMf0_meanp(Imax,4) + niAn.audioMf0_meanp(Imax,5) + 10);
-[~, Imin] = min(niAn.audioMf0_meanp(:,4)); %Mean Microphone f0, Perturbed Trials
-lwBoundOf = round(niAn.audioMf0_meanp(Imin,4) + niAn.audioMf0_meanp(Imax,5) + 10);
+[~, Imin] = min(niAn.audioMf0_meanp(:,4)); %Min Pert Offset
+lwBoundOf = round(niAn.audioMf0_meanp(Imin,4) - niAn.audioMf0_meanp(Imin,5) - 10);
 
 if upBoundOn > upBoundOf
     upBoundSec = upBoundOn;
