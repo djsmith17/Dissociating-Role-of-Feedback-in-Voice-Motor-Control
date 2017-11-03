@@ -105,6 +105,11 @@ niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 
 if audioFlag == 1
     % Audio Processing
+    
+    [B,A]    = butter(4,(300)/(sRate/2));
+    niAn.audioMf   = filtfilt(B,A,niAn.audioM); %Low-pass filtered under 500Hz
+    niAn.audioHf   = filtfilt(B,A,niAn.audioH); %Low-pass filtered under 500Hz
+    
     [niAn.time_audio, niAn.audioMf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
     [niAn.time_audio, niAn.audioHf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
     % niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
@@ -115,7 +120,7 @@ if audioFlag == 1
     niAn.f0b        = mean(niAn.trialf0b);
 
     niAn.audioMf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
-    niAn.audioHf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
+    niAn.audioHf0_norm = normalizef0(niAn.audioHf0, niAn.trialf0b);
     %Find the Perturbed Trials
     niAn.audioMf0_p = parseTrialTypes(niAn.audioMf0_norm, niAn.pertIdx);
     niAn.audioHf0_p = parseTrialTypes(niAn.audioHf0_norm, niAn.pertIdx);
