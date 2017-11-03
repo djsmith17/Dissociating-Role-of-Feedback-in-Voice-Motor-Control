@@ -448,6 +448,4 @@ else
     lims.lwBoundSec = lwBound_Sp;
 end
 
-
-
 end

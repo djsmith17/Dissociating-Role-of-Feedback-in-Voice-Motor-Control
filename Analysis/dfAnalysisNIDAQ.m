@@ -394,36 +394,35 @@ lims.pressureAl = [0 3.5 0 5];
 %Full Individual Trials: Force Sensors
 lims.force       = [0 4 1 5];
 
+%Full trial f0 analysis
 %Full Individual Trials: f0 Audio 
 lims.audio     = [0 4 -100 100];
 
 %Section Mean Trials: f0 Audio 
-lims.audioMean = [-0.5 1.0 -100 100];
 
-%Full trial f0 analysis
+[~, Imax] = max(niAn.audioMf0_meanp(:,2)); %Mean Microphone f0, Perturbed Trials
+upBoundOn = round(niAn.audioMf0_meanp(Imax,2) + niAn.audioMf0_meanp(Imax,3) + 10);
+[~, Imin] = min(niAn.audioMf0_meanp(:,2)); %Mean Microphone f0, Perturbed Trials
+lwBoundOn = round(niAn.audioMf0_meanp(Imin,2) + niAn.audioMf0_meanp(Imax,3) + 10);
 
-% %Sectioned f0 Analysis
-% [~, Imax] = max(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
-% upBound_St = round(niAn.meanTrialf0_St(Imax,1,2) + niAn.meanTrialf0_St(Imax,2,2) + 10);
-% [~, Imin] = min(niAn.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
-% lwBound_St = round(niAn.meanTrialf0_St(Imin,1,2) - niAn.meanTrialf0_St(Imin,2,2) - 10);
-% 
-% [~, Imax] = max(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
-% upBound_Sp = round(niAn.meanTrialf0_Sp(Imax,1,2) + niAn.meanTrialf0_Sp(Imax,2,2) + 10);
-% [~, Imin] = min(niAn.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
-% lwBound_Sp = round(niAn.meanTrialf0_Sp(Imin,1,2) - niAn.meanTrialf0_Sp(Imin,2,2) - 10);
-% 
-% if upBound_St > upBound_Sp
-%     lims.upBoundSec = upBound_St;
-% else
-%     lims.upBoundSec = upBound_Sp;
-% end
-% 
-% if lwBound_St < lwBound_Sp
-%     lims.lwBoundSec = lwBound_St;
-% else
-%     lims.lwBoundSec = lwBound_Sp;
-% end
+[~, Imax] = max(niAn.audioMf0_meanp(:,4)); %Mean Microphone f0, Perturbed Trials
+upBoundOf = round(niAn.audioMf0_meanp(Imax,4) + niAn.audioMf0_meanp(Imax,5) + 10);
+[~, Imin] = min(niAn.audioMf0_meanp(:,4)); %Mean Microphone f0, Perturbed Trials
+lwBoundOf = round(niAn.audioMf0_meanp(Imin,4) + niAn.audioMf0_meanp(Imax,5) + 10);
+
+if upBoundOn > upBoundOf
+    upBoundSec = upBoundOn;
+else
+    upBoundSec = upBoundOf;
+end
+
+if lwBoundOn < lwBoundOf
+    lwBoundSec = lwBoundOn;
+else
+    lwBoundSec = lwBoundOf;
+end
+
+lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
 end
 
 function res = packResults(niAn, lims)
