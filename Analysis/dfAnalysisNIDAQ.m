@@ -39,13 +39,15 @@ niAn.numContTrials = sum(niAn.ContTrials);
 niAn.numPertTrials = sum(niAn.PertTrials);
 
 %Identify a few analysis varaibles
-niAn.win    = 0.05;  %seconds
-niAn.winP   = niAn.win*niAn.sRate;
-niAn.pOV    = 0.60;  %60% overlap
-niAn.tStepP = niAn.winP*(1-niAn.pOV);
-niAn.winSts = 1:niAn.tStepP:(niAn.numSamp-niAn.winP);
-niAn.numWin = length(niAn.winSts);
-niAn.freqCutOff = 400;
+fV.win    = 0.05;  %seconds
+fV.fsA    = 1/fV.win;
+fV.winP   = fV.win*niAn.sRate;
+fV.pOV    = 0.60;  %60% overlap
+fV.tStepP = fV.winP*(1-fV.pOV);
+fV.winSts = 1:fV.tStepP:(niAn.numSamp-fV.winP);
+fV.numWin = length(fV.winSts);
+fV.freqCutOff = 400;
+niAn.fV = fV;
 
 %Unpack the NIDAQ raw data set
 niAn.sRateDN  = sRate/niAn.dnSamp;
@@ -313,23 +315,28 @@ for iSt = 1:numWin
 end
 end
 
-function audiof0 = signalFrequencyAnalysis(dirs, audio, fs, freqCutOff, numWin, winSts, winP, flag)
+function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, flag)
 [~, numTrial] = size(audio);
 
-%Low-Pass filter for the given cut off frequency
-[B,A]    = butter(4,(freqCutOff)/(fs/2));
+if flag == 1
+    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs);
+else
+    %Low-Pass filter for the given cut off frequency
+    [B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
 
-audiof0 = zeros(numWin, numTrial);
-for j = 1:numTrial %Trial by Trial
-    sensorHP = filtfilt(B,A,audio(:,j));
-    for i = 1:numWin
-        winIdx = winSts(i):winSts(i)+ winP - 1;
-        timef0(i,j)  = mean(sensor(winIdx, :));
-        audiof0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
+    timef0  = zeros(fV.numWin, numTrial);
+    audiof0 = zeros(fV.numWin, numTrial);
+    for j = 1:numTrial %Trial by Trial
+        sensorHP = filtfilt(B,A,audio(:,j));
+        for i = 1:fV.numWin
+            winIdx = fV.winSts(i):fV.winSts(i)+ fV.winP - 1;
+            timef0(i,j)  = mean(time(winIdx));
+            audiof0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
+        end
     end
+    fsA = fV.fsA;
 end
 end
-
 
 function audio_norm = normalizef0(audio, f0b)
 [~, numTrial] = size(audio);
@@ -394,17 +401,17 @@ end
 function lims = identifyLimits(niAn)
 
 %Full Inidividual Trials: Pressure Sensor
-lims.pressure    = [0 4 0 5];
+lims.pressure   = [0 4 0 5];
 
 %Aligned Pressure Data
 lims.pressureAl = [0 3.5 0 5];
 
 %Full Individual Trials: Force Sensors
-lims.force       = [0 4 1 5];
+lims.force      = [0 4 1 5];
 
 %Full trial f0 analysis
 %Full Individual Trials: f0 Audio 
-lims.audio     = [0 4 -100 100];
+lims.audio      = [0 4 -100 100];
 
 %Section Mean Pertrubed Trials: f0 Audio 
 [~, Imax] = max(niAn.audioMf0_meanp(:,2)); %Max Pert Onset

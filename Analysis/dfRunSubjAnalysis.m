@@ -13,7 +13,7 @@ AVar.run          = 'SF1';
 AVar.debug        = 0;
 
 dirs               = dfDirs(AVar.project);
-dirs.SavFileDir    = fullfile(dirs.SavData, AVar.participant, AVar.run, [AVar.participant AVar.run 'DRF.mat']); %Where to find data
+dirs.SavFileDir    = fullfile(dirs.RecData, AVar.participant, AVar.run, [AVar.participant AVar.run 'DRF.mat']); %Where to find data
 dirs.SavResultsDir = fullfile(dirs.Results, AVar.participant, AVar.run); %Where to save results
 dirs.InflaRespFile = fullfile(dirs.SavData, AVar.participant, [AVar.participant '_AveInflaResp.mat']);
 

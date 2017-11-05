@@ -9,7 +9,7 @@ function dfRunPooledAnalysis()
 clear all; close all; clc
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 pA.participants  = {'Pilot24'; 'Pilot24'}; %List of multiple participants.
-pA.runs          = 'SF1';
+pA.runs          = {'SF1'; 'SF2'};
 
 
 
