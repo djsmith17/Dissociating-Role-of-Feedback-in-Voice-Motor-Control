@@ -306,15 +306,6 @@ for ii = 1:numTrial
 end
 end
 
-function sensorDN = dnSampleSmoothSignal(sensor, winP, numWin, winSts)
-
-sensorDN = [];
-for iSt = 1:numWin
-    winIdx = winSts(iSt):winSts(iSt) + winP - 1;
-    sensorDN = cat(1, sensorDN, mean(sensor(winIdx, :)));
-end
-end
-
 function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, flag)
 [~, numTrial] = size(audio);
 
