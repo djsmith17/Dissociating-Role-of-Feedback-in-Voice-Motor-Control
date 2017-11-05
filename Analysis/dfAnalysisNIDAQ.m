@@ -108,13 +108,6 @@ niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 if audioFlag == 1
     % Audio Processing
     
-    [B,A]    = butter(4,(300)/(sRate/2));
-    niAn.audioMf   = filtfilt(B,A,niAn.audioM); %Low-pass filtered under 500Hz
-    niAn.audioHf   = filtfilt(B,A,niAn.audioH); %Low-pass filtered under 500Hz
-    
-%     [niAn.time_audio, niAn.audioMf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
-%     [niAn.time_audio, niAn.audioHf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
-    % niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
     [niAn.time_audio, niAn.audioMf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, 2);
     [niAn.time_audio, niAn.audioHf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, 1);
     prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
