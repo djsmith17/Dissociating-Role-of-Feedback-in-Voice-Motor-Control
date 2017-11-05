@@ -112,11 +112,11 @@ if audioFlag == 1
     niAn.audioMf   = filtfilt(B,A,niAn.audioM); %Low-pass filtered under 500Hz
     niAn.audioHf   = filtfilt(B,A,niAn.audioH); %Low-pass filtered under 500Hz
     
-    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
-    [niAn.time_audio, niAn.audioHf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
+%     [niAn.time_audio, niAn.audioMf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioM, niAn.sRate);
+%     [niAn.time_audio, niAn.audioHf0, niAn.fsA] = dfCalcf0Praat(dirs, niAn.audioH, niAn.sRate);
     % niAn.time_audio = dnSampleSmoothSignal(niAn.time, niAn.winP, niAn.numWin, niAn.winSts);
-    % niAn.audioMf0   = signalFrequencyAnalysis(niAn.audioM, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
-    % niAn.audioHf0   = signalFrequencyAnalysis(niAn.audioH, niAn.sRate, niAn.freqCutOff, niAn.numTrial, niAn.numWin, niAn.winSts, niAn.winP);
+    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, 2);
+    [niAn.time_audio, niAn.audioHf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, 1);
     prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
     niAn.trialf0b   = mean(niAn.audioMf0(prePert,:),1);
     niAn.f0b        = mean(niAn.trialf0b);
@@ -324,13 +324,14 @@ else
     %Low-Pass filter for the given cut off frequency
     [B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
 
-    timef0  = zeros(fV.numWin, numTrial);
     audiof0 = zeros(fV.numWin, numTrial);
     for j = 1:numTrial %Trial by Trial
         sensorHP = filtfilt(B,A,audio(:,j));
+        
+        timef0   =  zeros(fV.numWin);
         for i = 1:fV.numWin
             winIdx = fV.winSts(i):fV.winSts(i)+ fV.winP - 1;
-            timef0(i,j)  = mean(time(winIdx));
+            timef0(j)  = mean(time(winIdx));
             audiof0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
         end
     end
