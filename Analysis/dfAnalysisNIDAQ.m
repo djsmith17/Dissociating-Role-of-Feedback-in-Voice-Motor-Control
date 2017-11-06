@@ -122,11 +122,16 @@ if audioFlag == 1
     niAn.audioMf0_c = parseTrialTypes(niAn.audioMf0_norm, niAn.contIdx);
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
+    [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_p, niAn.fsA, niAn.pertTrig);
+    [niAn.secTime, niAn.audioHf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioHf0_p, niAn.fsA, niAn.pertTrig);
+    [niAn.secTime, niAn.audioMf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioMf0_c, niAn.fsA, niAn.contTrig);
+    [niAn.secTime, niAn.audioHf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioHf0_c, niAn.fsA, niAn.contTrig);
+    
     %Mean around the onset and offset
-    niAn.audioMf0_meanp = meanAudioData(niAn.time_audio, niAn.audioMf0_p, niAn.fsA, niAn.pertTrig);
-    niAn.audioHf0_meanp = meanAudioData(niAn.time_audio, niAn.audioHf0_p, niAn.fsA, niAn.pertTrig);
-    niAn.audioMf0_meanc = meanAudioData(niAn.time_audio, niAn.audioMf0_c, niAn.fsA, niAn.contTrig);
-    niAn.audioHf0_meanc = meanAudioData(niAn.time_audio, niAn.audioHf0_c, niAn.fsA, niAn.contTrig);    
+    niAn.audioMf0_meanp = meanAudioData(niAn.audioMf0_Secp);
+    niAn.audioHf0_meanp = meanAudioData(niAn.audioHf0_Secp);
+    niAn.audioMf0_meanc = meanAudioData(niAn.audioMf0_Secc);
+    niAn.audioHf0_meanc = meanAudioData(niAn.audioHf0_Secc);    
     
 else
     niAn.time_audio     = []; niAn.fsA            = [];
@@ -135,6 +140,9 @@ else
     niAn.audioMf0_norm  = []; niAn.audioHf0_norm  = [];
     niAn.audioMf0_p     = []; niAn.audioHf0_p     = [];
     niAn.audioMf0_c     = []; niAn.audioHf0_c     = [];
+    niAn.secTime        = [];
+    niAn.audioMf0_Secp  = []; niAn.audioHf0_Secp  = [];
+    niAn.audioMf0_Secc  = []; niAn.audioHf0_Secc  = [];
     niAn.audioMf0_meanp = []; niAn.audioHf0_meanp = [];
     niAn.audioMf0_meanc = []; niAn.audioHf0_meanc = [];
 end
@@ -338,7 +346,7 @@ for ii = 1:numTrial
 end
 end
 
-function meanAudio = meanAudioData(time, audio, fs, trigs)
+function [secTime, secAudio] = sectionAudioData(time, audio, fs, trigs)
 [~, numTrial] = size(audio);
 preEve  = 0.5; posEve = 1.0;
 per     = 1/fs;
@@ -365,7 +373,16 @@ for ii = 1:numTrial
     OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
     OffsetSecs = cat(2, OffsetSecs, OffsetSec);
 end
-meanATime  = (-0.5+per):per:1.0;
+
+secTime  = (-0.5+per):per:1.0;
+secAudio = [OnsetSecs; OffsetSecs];
+end
+
+function meanAudio = meanAudioData(secAudio)
+
+OnsetSecs  = secAudio(:,:,1);
+OffsetSecs = secAudio(:,:,2);
+
 meanOnset  = mean(OnsetSecs, 2);
 meanOffset = mean(OffsetSecs, 2);
 
@@ -378,7 +395,7 @@ SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
 NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-meanAudio = [meanATime' meanOnset NCIOnset meanOffset NCIOffset];
+meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
 function y = round2matchfs(x)
@@ -466,8 +483,15 @@ res.audioHf0TrialPert = niAn.audioHf0_p;
 res.audioHf0TrialCont = niAn.audioHf0_c;
 res.limitsA           = lims.audio;
 
+%Sections Trials: Mic/Head f0
+res.secTime          = niAn.secTime;
+res.audioMf0SecPert  = niAn.audioMf0_Secp;
+res.audioMf0SecCont  = niAn.audioMf0_Secc;
+res.audioHf0SecPert  = niAn.audioHf0_Secp;
+res.audioHf0SecCont  = niAn.audioHf0_Secc;
+
 %Mean Sectioned Trials: Mic/Head f0 Trace 
-res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanTimeA MeanSigOn 90%CI MeanSigOff 90%CI]
+res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
 res.audioMf0MeanCont = niAn.audioMf0_meanc;
 res.audioHf0MeanPert = niAn.audioHf0_meanp;
 res.audioHf0MeanCont = niAn.audioHf0_meanc;
