@@ -68,8 +68,10 @@ for ii = 1:pA.numPart
         thisStruc.f0b              = mean(thisStruc.runf0b);
         thisStruc.audioMf0MeanPert = meanRunAudioData(thisStruc.audioMf0SecPert);
         thisStruc.audioMf0MeanCont = meanRunAudioData(thisStruc.audioMf0SecCont);
-        thisStruc.limitsAmean      = [-0.5 1.0 -80 20];
         thisStruc.respVarm         = mean(thisStruc.respVar, 1);
+        
+        lims = identifyLimits(thisStruc);
+        thisStruc.limitsAmean = lims.audioMean;
         
         combDataStr(ii,jj) = thisStruc;        
     end
@@ -115,4 +117,45 @@ NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
 NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
 meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+end
+
+function lims = identifyLimits(niAn)
+
+%Full Inidividual Trials: Pressure Sensor
+lims.pressure   = [0 4 0 5];
+
+%Aligned Pressure Data
+lims.pressureAl = [0 3.5 0 5];
+
+%Full Individual Trials: Force Sensors
+lims.force      = [0 4 1 5];
+
+%Full trial f0 analysis
+%Full Individual Trials: f0 Audio 
+lims.audio      = [0 4 -100 100];
+
+%Section Mean Pertrubed Trials: f0 Audio 
+[~, Imax] = max(niAn.audioMf0MeanPert(:,1)); %Max Pert Onset
+upBoundOn = round(niAn.audioMf0MeanPert(Imax,1) + niAn.audioMf0MeanPert(Imax,2) + 10);
+[~, Imin] = min(niAn.audioMf0MeanPert(:,1)); %Min Pert Onset
+lwBoundOn = round(niAn.audioMf0MeanPert(Imin,1) - niAn.audioMf0MeanPert(Imin,2) - 10);
+
+[~, Imax] = max(niAn.audioMf0MeanPert(:,3)); %Max Pert Offset
+upBoundOf = round(niAn.audioMf0MeanPert(Imax,3) + niAn.audioMf0MeanPert(Imax,4) + 10);
+[~, Imin] = min(niAn.audioMf0MeanPert(:,3)); %Min Pert Offset
+lwBoundOf = round(niAn.audioMf0MeanPert(Imin,3) - niAn.audioMf0MeanPert(Imin,4) - 10);
+
+if upBoundOn > upBoundOf
+    upBoundSec = upBoundOn;
+else
+    upBoundSec = upBoundOf;
+end
+
+if lwBoundOn < lwBoundOf
+    lwBoundSec = lwBoundOn;
+else
+    lwBoundSec = lwBoundOf;
+end
+
+lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
 end

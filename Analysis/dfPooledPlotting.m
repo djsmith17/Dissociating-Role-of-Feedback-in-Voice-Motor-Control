@@ -8,7 +8,8 @@ PolPlt.analyses = 'SfN2017';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                     = 1;
-PolPlt.NIDAQ_MeanTrialMicf0 = 1;
+PolPlt.NIDAQ_MeanTrialMicf0 = 0;
+PolPlt.dataTable            = 1;
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, PolPlt.poolA, PolPlt.analyses); %Where to save results
@@ -19,13 +20,21 @@ if exist(dirs.SavResultsFile, 'file') == 0
     return
 end
 
-%Load 'auAn' 'auRes' 'niAn' 'niRes'
 load(dirs.SavResultsFile)
 
 if PolPlt.NIDAQ_MeanTrialMicf0 == 1
+    drawDAQMeanTrialMicf0(combDataStr(1,1), dirs.SavResultsDir)
+    drawDAQMeanTrialMicf0(combDataStr(1,2), dirs.SavResultsDir)
+    drawDAQMeanTrialMicf0(combDataStr(2,1), dirs.SavResultsDir)
+    drawDAQMeanTrialMicf0(combDataStr(2,2), dirs.SavResultsDir)
+    drawDAQMeanTrialMicf0(combDataStr(3,1), dirs.SavResultsDir)
+    drawDAQMeanTrialMicf0(combDataStr(3,2), dirs.SavResultsDir)
     drawDAQMeanTrialMicf0(combDataStr(4,1), dirs.SavResultsDir)
     drawDAQMeanTrialMicf0(combDataStr(4,2), dirs.SavResultsDir)
 end
 
+if dataTable == 1
+    
+end
 
 end
