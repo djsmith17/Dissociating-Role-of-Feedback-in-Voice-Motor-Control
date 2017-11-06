@@ -47,6 +47,7 @@ for ii = 1:pA.numPart
     end
 end
 
+cond = {' Masking Noise'; ' Normal Voicing'};
 statLib = [];
 for ii = 1:pA.numPart
     for jj = 1:2 %Masking Noise, then Voice Conditions
@@ -55,6 +56,7 @@ for ii = 1:pA.numPart
         
         thisStruc.subject         = runSt1.subject;
         thisStruc.runs            = {runSt1.run; runSt2.run};
+        thisStruc.curSess         = [thisStruc.subject cond{jj}];
         thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrials]);
         thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrials]);
         thisStruc.secTime         = runSt1.secTime;
@@ -63,10 +65,11 @@ for ii = 1:pA.numPart
         thisStruc.audioMf0SecCont = [runSt1.audioMf0SecCont runSt2.audioMf0SecCont];        
         thisStruc.respVar         = [runSt1.respVar; runSt2.respVar];
         
-        thisStruc.f0b             = mean(thisStruc.runf0b);
-        thisStruc.audioMf0_meanp  = meanRunAudioData(thisStruc.audioMf0SecPert);
-        thisStruc.audioMf0_meanc  = meanRunAudioData(thisStruc.audioMf0SecCont);
-        thisStruc.respVarm        = mean(thisStruc.respVar, 1);
+        thisStruc.f0b              = mean(thisStruc.runf0b);
+        thisStruc.audioMf0MeanPert = meanRunAudioData(thisStruc.audioMf0SecPert);
+        thisStruc.audioMf0MeanCont = meanRunAudioData(thisStruc.audioMf0SecCont);
+        thisStruc.limitsAmean      = [-0.5 1.0 -80 20];
+        thisStruc.respVarm         = mean(thisStruc.respVar, 1);
         
         combDataStr(ii,jj) = thisStruc;        
     end
