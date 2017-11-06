@@ -466,7 +466,7 @@ res.audioHf0TrialPert = niAn.audioHf0_p;
 res.audioHf0TrialCont = niAn.audioHf0_c;
 res.limitsA           = lims.audio;
 
-%Sectioned Mean Trials: Mic/Head f0 Trace 
+%Mean Sectioned Trials: Mic/Head f0 Trace 
 res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanTimeA MeanSigOn 90%CI MeanSigOff 90%CI]
 res.audioMf0MeanCont = niAn.audioMf0_meanc;
 res.audioHf0MeanPert = niAn.audioHf0_meanp;
