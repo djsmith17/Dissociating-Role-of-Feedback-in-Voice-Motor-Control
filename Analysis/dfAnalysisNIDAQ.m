@@ -131,7 +131,10 @@ if audioFlag == 1
     niAn.audioMf0_meanp = meanAudioData(niAn.audioMf0_Secp);
     niAn.audioHf0_meanp = meanAudioData(niAn.audioHf0_Secp);
     niAn.audioMf0_meanc = meanAudioData(niAn.audioMf0_Secc);
-    niAn.audioHf0_meanc = meanAudioData(niAn.audioHf0_Secc);    
+    niAn.audioHf0_meanc = meanAudioData(niAn.audioHf0_Secc); 
+    
+    %The Inflation Response
+    [niAn.respVar, niAn.respVarMean] = InflationResponse(niAn.secTime, niAn.audioMf0_Secp);
     
 else
     niAn.time_audio     = []; niAn.fsA            = [];
@@ -145,6 +148,7 @@ else
     niAn.audioMf0_Secc  = []; niAn.audioHf0_Secc  = [];
     niAn.audioMf0_meanp = []; niAn.audioHf0_meanp = [];
     niAn.audioMf0_meanc = []; niAn.audioHf0_meanc = [];
+    niAn.respVar        = []; niAn.respVarMean    = [];
 end
     
 lims = identifyLimits(niAn);
@@ -380,6 +384,13 @@ secAudio(:,:,1) = OnsetSecs;
 secAudio(:,:,2) = OffsetSecs;
 end
 
+function y = round2matchfs(x)
+%This expects a decimal number as input
+%Input can be given as a set
+
+y = round(x.*200)./200;
+end
+
 function meanAudio = meanAudioData(secAudio)
 
 OnsetSecs  = secAudio(:,:,1);
@@ -401,11 +412,25 @@ NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
-function y = round2matchfs(x)
-%This expects a decimal number as input
-%Input can be given as a set
+function [respVar, respVarm] = InflationResponse(secTime, secAudio)
+[~, numTrial, ~] = size(secAudio);
+postOnset = find(0 <= secTime & .20 >= secTime); % Cheating
 
-y = round(x.*200)./200;
+stimMag  = [];
+respMag  = [];
+respPer  = [];
+stimMagT = [];
+for i = 1:numTrial
+    onset = secAudio(:,i,1);    
+    [minOn, minIdx] = min(onset(postOnset)); 
+    stimMag  = cat(1, stimMag, minOn);       % Cheating
+    respMag  = cat(1, respMag, onset(end));  % Cheating
+    respPer  = cat(1, respPer, 100*(1 - onset(end)/minOn));
+    stimMagT = cat(1, stimMagT, secTime(postOnset(minIdx)));
+end
+
+respVar  = [stimMag stimMagT respMag respPer];
+respVarm = mean(respVar, 1);
 end
 
 function lims = identifyLimits(niAn)
@@ -499,4 +524,8 @@ res.audioMf0MeanCont = niAn.audioMf0_meanc;
 res.audioHf0MeanPert = niAn.audioHf0_meanp;
 res.audioHf0MeanCont = niAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
+
+%Inflation Response
+res.respVar  = niAn.respVar;
+res.respVarM = niAn.respVarMean;
 end

@@ -9,7 +9,7 @@ function dfRunPooledAnalysis()
 clear all; close all; clc
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
 pA.pAnalysis     = 'SfN2017';
-pA.participants  = {'Pilot24'; 'Pilot24'}; %List of multiple participants.
+pA.participants  = {'Pilot24'; 'Pilot24'; 'Pilot24'}; %List of multiple participants.
 pA.numPart       = length(pA.participants);
 pA.runs          = {'SF1'; 'SF2'}; %All runs to consider 
 pA.numRuns       = length(pA.runs);
@@ -32,15 +32,14 @@ for ii = 1:pA.numPart
             disp('ERROR: NO DANG FILE')
             return
         end        
-        load(dirs.SavFile)
-       
-        niPAn  = [];
-        niPRes = [];
-        auPAn  = [];
-        auPRes = [];
+        load(dirs.SavFile)       
     end
 end
 
+niPAn  = [];
+niPRes = [];
+auPAn  = [];
+auPRes = [];
 
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
