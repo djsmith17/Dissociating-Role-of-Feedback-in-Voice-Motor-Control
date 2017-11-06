@@ -108,14 +108,14 @@ niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 if audioFlag == 1
     % Audio Processing
     
-    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, 2);
+    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, 1);
     [niAn.time_audio, niAn.audioHf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, 1);
     prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
     niAn.trialf0b   = mean(niAn.audioMf0(prePert,:),1);
     niAn.f0b        = mean(niAn.trialf0b);
 
-    niAn.audioMf0_norm = normalizef0(niAn.audioMf0, niAn.trialf0b);
-    niAn.audioHf0_norm = normalizef0(niAn.audioHf0, niAn.trialf0b);
+    niAn.audioMf0_norm = normalizeDAQf0(niAn.audioMf0, niAn.trialf0b);
+    niAn.audioHf0_norm = normalizeDAQf0(niAn.audioHf0, niAn.trialf0b);
     %Find the Perturbed Trials
     niAn.audioMf0_p = parseTrialTypes(niAn.audioMf0_norm, niAn.pertIdx);
     niAn.audioHf0_p = parseTrialTypes(niAn.audioHf0_norm, niAn.pertIdx);
@@ -312,10 +312,10 @@ else
     for j = 1:numTrial %Trial by Trial
         sensorHP = filtfilt(B,A,audio(:,j));
         
-        timef0   =  zeros(fV.numWin);
+        timef0 = [];
         for i = 1:fV.numWin
             winIdx = fV.winSts(i):fV.winSts(i)+ fV.winP - 1;
-            timef0(j)  = mean(time(winIdx));
+            timef0 = cat(1, timef0, mean(time(winIdx)));
             audiof0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
         end
     end
@@ -323,7 +323,7 @@ else
 end
 end
 
-function audio_norm = normalizef0(audio, f0b)
+function audio_norm = normalizeDAQf0(audio, f0b)
 [~, numTrial] = size(audio);
 
 audio_norm = [];
