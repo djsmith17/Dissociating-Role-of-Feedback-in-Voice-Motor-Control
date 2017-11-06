@@ -46,7 +46,7 @@ fV.pOV    = 0.60;  %60% overlap
 fV.tStepP = fV.winP*(1-fV.pOV);
 fV.winSts = 1:fV.tStepP:(niAn.numSamp-fV.winP);
 fV.numWin = length(fV.winSts);
-fV.freqCutOff = 400;
+fV.freqCutOff = 300;
 niAn.fV = fV;
 
 %Unpack the NIDAQ raw data set
@@ -316,7 +316,12 @@ else
         for i = 1:fV.numWin
             winIdx = fV.winSts(i):fV.winSts(i)+ fV.winP - 1;
             timef0 = cat(1, timef0, mean(time(winIdx)));
-            audiof0(i,j) = dfCalcf0Chile(sensorHP(winIdx), fs);
+            f0 = dfCalcf0Chile(sensorHP(winIdx), fs);
+            if isnan(f0)
+%                 disp('hit')
+                f0 = 100;
+            end
+            audiof0(i,j) = f0;
         end
     end
     fsA = fV.fsA;
@@ -354,11 +359,11 @@ for ii = 1:numTrial
     OffsetISt = OffsetI - preEveP;
     OffsetISp = OffsetI + posEveP;
         
-    OnsetSec  = audio(OnsetISt:OnsetISp);
-    OffsetSec = audio(OffsetISt:OffsetISp);
+    OnsetSec  = audio(OnsetISt:OnsetISp, ii);
+    OffsetSec = audio(OffsetISt:OffsetISp, ii);
     
-    OnsetSecs  = cat(2, OnsetSecs, OnsetSec');
-    OffsetSecs = cat(2, OffsetSecs, OffsetSec');
+    OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
+    OffsetSecs = cat(2, OffsetSecs, OffsetSec);
 end
 meanATime  = (-0.5+per):per:1.0;
 meanOnset  = mean(OnsetSecs, 2);
