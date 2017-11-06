@@ -3,7 +3,7 @@ function dfRunSubjPlotting()
 
 clear all; close all; clc
 PltVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PltVar.participant  = 'Pilot24'; %List of multiple participants.
+PltVar.participant  = 'Pilot22'; %List of multiple participants.
 PltVar.run          = 'SF1';
 
 %Plot Toggles. This could eventually become an input variable
@@ -14,7 +14,7 @@ PltVar.NIDAQ_AligSens  = 0;
 PltVar.NIDAQ_MeanTrialMicf0 = 1;
 PltVar.IntraTrial_T    = 0; %SPL trace of individual trial
 PltVar.IntraTrial_f0   = 0; %f0 trace for each individual trial
-PltVar.InterTrial_f0   = 1; %Average f0 trace over all trials of a run
+PltVar.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
 PltVar.IntraTrialP_f0  = 0; %f0 trace of pertrubed trials of a run
 PltVar.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
 PltVar.InterTrial_AudRes = 0; %Average f0 response trace to auditory pert trials of a run
