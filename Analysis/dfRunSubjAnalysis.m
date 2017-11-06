@@ -8,28 +8,37 @@ function dfRunSubjAnalysis()
 
 clear all; close all; clc
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participant  = 'Pilot24'; %List of multiple participants.
-AVar.run          = 'SF4';
+AVar.participants  = {'Pilot24'; 'Pilot25'; 'Pilot26'; 'Pilot22'}; %List of multiple participants.
+AVar.numPart      = length(AVar.participants);
+AVar.runs         = {'SF1'; 'SF2'; 'SF3'; 'SF4'};
+AVar.numRuns      = length(AVar.runs);
 AVar.debug        = 0;
 
 dirs               = dfDirs(AVar.project);
-dirs.SavFileDir    = fullfile(dirs.RecData, AVar.participant, AVar.run, [AVar.participant AVar.run 'DRF.mat']); %Where to find data
-dirs.SavResultsDir = fullfile(dirs.Results, AVar.participant, AVar.run); %Where to save results
-dirs.InflaRespFile = fullfile(dirs.SavData, AVar.participant, [AVar.participant '_AveInflaResp.mat']);
 
-if exist(dirs.SavResultsDir, 'dir') == 0
-    mkdir(dirs.SavResultsDir)
-end
+for i = 1:AVar.numPart
+    for j = 1:AVar.numRuns
+        participant = AVar.participants{i};
+        run         = AVar.runs{j};
+        
+        dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
+        dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save results
 
-fprintf('Loading Files for %s %s\n', AVar.participant, AVar.run)
-load(dirs.SavFileDir)
+        if exist(dirs.SavResultsDir, 'dir') == 0
+            mkdir(dirs.SavResultsDir)
+        end
 
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, 1);
-[auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
+        fprintf('Loading Files for %s %s\n', participant, run)
+        load(dirs.SavFileDir)
 
-dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [AVar.participant AVar.run 'ResultsDRF.mat']);
-if AVar.debug == 0
-    fprintf('Saving Results for %s %s\n', AVar.participant, AVar.run)
-    save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, 1);
+        [auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
+
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
+        if AVar.debug == 0
+            fprintf('Saving Results for %s %s\n', participant, run)
+            save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
+        end
+    end
 end
 end

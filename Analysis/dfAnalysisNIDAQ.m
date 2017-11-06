@@ -429,7 +429,7 @@ for i = 1:numTrial
     stimMagT = cat(1, stimMagT, secTime(postOnset(minIdx)));
 end
 
-respVar  = [stimMag stimMagT respMag respPer];
+respVar  = [stimMagT stimMag respMag respPer];
 respVarm = mean(respVar, 1);
 end
 

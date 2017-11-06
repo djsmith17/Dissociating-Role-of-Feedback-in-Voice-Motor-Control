@@ -9,9 +9,9 @@ function dfRunPooledAnalysis()
 clear all; close all; clc
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
 pA.pAnalysis     = 'SfN2017';
-pA.participants  = {'Pilot24'; 'Pilot24'; 'Pilot24'}; %List of multiple participants.
+pA.participants  = {'Pilot24'; 'Pilot25'; 'Pilot26'; 'Pilot22'}; %List of multiple participants.
 pA.numPart       = length(pA.participants);
-pA.runs          = {'SF1'; 'SF2'}; %All runs to consider 
+pA.runs          = {'SF1'; 'SF2'; 'SF3'; 'SF4'}; %All runs to consider 
 pA.numRuns       = length(pA.runs);
 
 dirs               = dfDirs(pA.project);
@@ -33,6 +33,15 @@ for ii = 1:pA.numPart
             return
         end        
         load(dirs.SavFile)
+        AudFB = auAn.AudFB;
+        
+        if strcmp(AudFb, 'Masking Noise', 2)
+           
+        else
+            
+        end
+        
+        
     end
 end
 
