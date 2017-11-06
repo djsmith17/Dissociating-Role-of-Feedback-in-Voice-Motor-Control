@@ -32,7 +32,7 @@ for ii = 1:pA.numPart
             disp('ERROR: NO DANG FILE')
             return
         end        
-        load(dirs.SavFile)       
+        load(dirs.SavFile)
     end
 end
 

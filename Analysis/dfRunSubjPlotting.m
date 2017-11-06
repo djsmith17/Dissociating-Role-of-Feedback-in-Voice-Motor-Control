@@ -4,12 +4,12 @@ function dfRunSubjPlotting()
 clear all; close all; clc
 PltVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 PltVar.participant  = 'Pilot24'; %List of multiple participants.
-PltVar.run          = 'SF1';
+PltVar.run          = 'SF4';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                = 1;
 PltVar.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
-PltVar.NIDAQ_PresMic   = 0;
+PltVar.NIDAQ_PresMic   = 1;
 PltVar.NIDAQ_AligSens  = 1;
 PltVar.NIDAQ_MeanTrialMicf0 = 1;
 PltVar.IntraTrial_T    = 0; %SPL trace of individual trial
