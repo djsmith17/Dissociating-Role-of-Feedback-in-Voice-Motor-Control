@@ -90,12 +90,17 @@ for ii = 1:pA.numPart
     statLib(ii,6) = voic.respVarm(4); %Voicing %
     statLib(ii,7) = pStim; %p-value stimulus
     statLib(ii,8) = pResp; %p-value response
-    statLib(ii,9) = pPerc; %p-value percent increase
+    statLib(ii,9) = pPerc; %p-value percent increase 
 end
+
+% statTable = table(statLib(:,1), 
 
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib')
+
+dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
+xlswrite(dirs.excelFile, statLib, 1)
 end
 
 function meanAudio = meanRunAudioData(secAudio)
