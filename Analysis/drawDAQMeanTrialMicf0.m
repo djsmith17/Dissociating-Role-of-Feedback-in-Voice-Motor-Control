@@ -5,16 +5,16 @@ f0b              = niRes.f0b;
 numCT            = niRes.numContTrials;
 numPT            = niRes.numPertTrials;
 
-time             = niRes.audioMf0MeanPert(:,1);
-meanf0PertOnset  = niRes.audioMf0MeanPert(:,2);
-CIf0PertOnset    = niRes.audioMf0MeanPert(:,3);
-meanf0PertOffset = niRes.audioMf0MeanPert(:,4);
-CIf0PertOffset   = niRes.audioMf0MeanPert(:,5);
+time             = niRes.secTime;
+meanf0PertOnset  = niRes.audioMf0MeanPert(:,1);
+CIf0PertOnset    = niRes.audioMf0MeanPert(:,2);
+meanf0PertOffset = niRes.audioMf0MeanPert(:,3);
+CIf0PertOffset   = niRes.audioMf0MeanPert(:,4);
 
-meanf0ContOnset  = niRes.audioMf0MeanCont(:,2);
-CIf0ContOnset    = niRes.audioMf0MeanCont(:,3);
-meanf0ContOffset = niRes.audioMf0MeanCont(:,4);
-CIf0ContOffset   = niRes.audioMf0MeanCont(:,5);
+meanf0ContOnset  = niRes.audioMf0MeanCont(:,1);
+CIf0ContOnset    = niRes.audioMf0MeanCont(:,2);
+meanf0ContOffset = niRes.audioMf0MeanCont(:,3);
+CIf0ContOffset   = niRes.audioMf0MeanCont(:,4);
 limits           = niRes.limitsAmean;
 
 plotpos = [200 100];
