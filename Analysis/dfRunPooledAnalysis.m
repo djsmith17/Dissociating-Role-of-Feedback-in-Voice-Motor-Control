@@ -54,7 +54,8 @@ for ii = 1:pA.numPart
         runSt1 = allDataStr(ii, 1, jj);
         runSt2 = allDataStr(ii, 2, jj);
         
-        thisStruc.subject         = runSt1.subject;
+        thisStruc.parti           = runSt1.subject;
+        thisStruc.subject         = ['Participant ' num2str(ii)];
         thisStruc.runs            = {runSt1.run; runSt2.run};
         thisStruc.curSess         = [thisStruc.subject cond{jj}];
         thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrials]);
