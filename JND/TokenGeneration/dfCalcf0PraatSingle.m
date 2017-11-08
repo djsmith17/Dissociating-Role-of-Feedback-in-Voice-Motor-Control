@@ -1,10 +1,10 @@
 function meanf0 = dfCalcf0PraatSingle(dirs)
 %Calculation of pitch using Praat for a single saved wav file.
 
-tokenDir = dirs.tokenDir;
+tokenDir      = dirs.tokenDir;
 baseTokenFile = dirs.baseTokenFile;
-psDir    = dirs.JNDTG;                       %Praat scripting
-pbDir    = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
+psDir         = dirs.JNDTG;                       %Praat scripting
+pbDir         = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
 tokenDir   = [tokenDir, '\']; % add a slash to the mic folder
 ext        = '.wav';          % extension of files

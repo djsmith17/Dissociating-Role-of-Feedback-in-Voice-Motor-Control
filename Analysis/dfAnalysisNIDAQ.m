@@ -9,8 +9,6 @@ function [niAn, res] = dfAnalysisNIDAQ(dirs, expParam, DAQin, audioFlag)
 %Trig: Trigger values where onset and offset occur
 %DN:   Down Sampled (and smoothed)
 
-fprintf('\nStarting NIDAQ Analysis\n')
-
 sv2File = 0;
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
@@ -18,12 +16,12 @@ sRate = expParam.sRateQ;
 %Identify some starting variables
 niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
-if isfield(expParam, 'curSess')
-    niAn.curSess  = expParam.curSess;  %Short hand of experiment details
-else
-    niAn.curSess  = [expParam.subject expParam.run]; 
-end
-niAn.trialType    = expParam.trialType;
+niAn.curSess  = expParam.curSess;
+niAn.gender   = expParam.gender;
+niAn.bTf0b    = dfCalcf0PraatSingle(dirs);
+niAn.trialType = expParam.trialType;
+
+fprintf('\nStarting NIDAQ Analysis for Participant %s, $s with f0 of $0.2d\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 niAn.dnSamp   = 10;
 niAn.sRate    = sRate;
@@ -108,8 +106,8 @@ niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 if audioFlag == 1
     % Audio Processing
     
-    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, 1);
-    [niAn.time_audio, niAn.audioHf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, 1);
+    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, niAn.bTf0b, 1);
+    [niAn.time_audio, niAn.audioHf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, niAn.bTf0b, 1);
     prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
     niAn.trialf0b   = mean(niAn.audioMf0(prePert,:),1);
     niAn.f0b        = mean(niAn.trialf0b);
@@ -311,11 +309,11 @@ for ii = 1:numTrial
 end
 end
 
-function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, flag)
+function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, bTf0b, flag)
 [~, numTrial] = size(audio);
 
 if flag == 1
-    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs);
+    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
 else
     %Low-Pass filter for the given cut off frequency
     [B,A]    = butter(4,(fV.freqCutOff)/(fs/2));

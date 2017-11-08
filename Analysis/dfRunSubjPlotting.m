@@ -3,14 +3,15 @@ function dfRunSubjPlotting()
 
 clear all; close all; clc
 PltVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PltVar.participant  = 'Pilot24'; %List of multiple participants.
-PltVar.run          = 'SF4';
+PltVar.participant  = 'Pilot22'; %List of multiple participants.
+PltVar.run          = 'SF1';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                = 1;
 PltVar.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
-PltVar.NIDAQ_PresMic   = 1;
-PltVar.NIDAQ_AligSens  = 1;
+PltVar.NIDAQ_PresMic   = 0;
+PltVar.NIDAQ_AligSens  = 0;
+PltVar.NIDAQ_AllPertTrial = 1;
 PltVar.NIDAQ_MeanTrialMicf0 = 1;
 PltVar.IntraTrial_T    = 0; %SPL trace of individual trial
 PltVar.IntraTrial_f0   = 0; %f0 trace for each individual trial
@@ -37,6 +38,10 @@ load(dirs.SavResultsFile)
 if PltVar.InterTrial_f0 == 1
     drawInterTrialf0(auRes.timeSec, auRes.meanTrialf0_St, auRes.meanTrialf0_Sp, auRes.f0LimitsSec, auRes.trialCount, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
 end
+
+if PltVar.NIDAQ_AllPertTrial == 1
+    drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
+end  
 
 if PltVar.NIDAQ_MeanTrialMicf0 == 1
     drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
