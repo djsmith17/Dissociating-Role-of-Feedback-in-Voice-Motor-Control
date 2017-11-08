@@ -8,7 +8,7 @@ PolPlt.analyses = 'SfN2017';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                     = 1;
-PolPlt.NIDAQ_MeanTrialMicf0 = 0;
+PolPlt.NIDAQ_MeanTrialMicf0 = 1;
 PolPlt.MaskVVoice           = 1;
 PolPlt.dataTable            = 0;
 

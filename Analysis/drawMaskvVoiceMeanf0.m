@@ -27,6 +27,8 @@ statSP  = statLib(7);
 statRP  = statLib(8);
 statPP  = statLib(9);
 
+pValueThresh = 0.05;
+
 plotpos = [10 100];
 plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
@@ -79,18 +81,10 @@ annoStim = ['Stimulation Mag  (M/V): ' num2str(statSMM) ' cents / ' num2str(stat
 annoResp = ['Response Mag (M/V): ' num2str(statRMM) ' cents / ' num2str(statRMV) ' cents'];
 annoPerc = ['Response Percent (M/V): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
 
-if statSP < 0.05;
-    annoStim = [annoStim '*'];
-end
-
-if statRP < 0.05;
-    annoResp = [annoResp '*'];
-end
-
-if statPP < 0.05;
-    annoPerc = [annoPerc '*'];
-end
-     
+annoStim = checkSig(statSP, pValueThresh, annoStim);
+annoResp = checkSig(statRP, pValueThresh, annoResp);
+annoPerc = checkSig(statPP, pValueThresh, annoPerc);
+ 
 t = annotation('textbox',[.25 .75 0.45 0.1],...
                'string', {annoStim;
                           annoResp
@@ -112,5 +106,12 @@ for i = 1:length(plots)
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
+end
+end
+
+function anno = checkSig(stat, thresh, anno)
+
+if stat < thresh
+    anno = [anno '*'];
 end
 end
