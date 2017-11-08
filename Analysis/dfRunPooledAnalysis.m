@@ -23,9 +23,10 @@ end
 
 % allDataStr is 3D struc with dim (Parti nRun Cond);
 for ii = 1:pA.numPart
+    participant = pA.participants{ii};
     colM = 1; colV = 1;
+    fprintf('Sorting Runs for %s\n', participant)
     for jj = 1:pA.numRuns
-        participant = pA.participants{ii};
         run         = pA.runs{jj};
         dirs.SavFileDir  = fullfile(dirs.Results, participant, run); %Where to save results        
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']);
@@ -50,12 +51,14 @@ end
 cond = {' Masking Noise'; ' Normal Voicing'};
 statLib = [];
 for ii = 1:pA.numPart
+    participant = pA.participants{ii};
+    fprintf('Combining task conditions for %s\n',participant)
     for jj = 1:2 %Masking Noise, then Voice Conditions
         runSt1 = allDataStr(ii, 1, jj);
         runSt2 = allDataStr(ii, 2, jj);
         
         thisStruc.parti           = runSt1.subject;
-        thisStruc.subject         = ['Participant ' num2str(ii)];
+        thisStruc.subject         = ['Participant ' num2str(ii)]; %doubleblind sorta, I guess. Shoot me
         thisStruc.runs            = {runSt1.run; runSt2.run};
         thisStruc.curSess         = [thisStruc.subject cond{jj}];
         thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrials]);
@@ -79,9 +82,22 @@ for ii = 1:pA.numPart
     mask = combDataStr(ii,1);
     voic = combDataStr(ii,2); 
     
-    [Hstim, pStim] = ttest(mask.respVar(:,2), voic.respVar(:,2));
-    [Hresp, pResp] = ttest(mask.respVar(:,3), voic.respVar(:,3));
-    [Hperc, pPerc] = ttest(mask.respVar(:,4), voic.respVar(:,4));
+    if mask.numPertTrials ~= voic.numPertTrials
+        if mask.numPertTrials > voic.numPertTrials
+            disp('There are less Voiced Trials')
+            t2u = 1:voic.numPertTrials;
+        else
+            disp('There are less Masked Trials')
+            t2u = 1:mask.numPertTrials; 
+        end
+    else
+        disp('Using all pert trials')
+        t2u = 1:mask.numPertTrials;
+    end
+    
+    [Hstim, pStim] = ttest(mask.respVar(t2u,2), voic.respVar(t2u,2));
+    [Hresp, pResp] = ttest(mask.respVar(t2u,3), voic.respVar(t2u,3));
+    [Hperc, pPerc] = ttest(mask.respVar(t2u,4), voic.respVar(t2u,4));
     
     statLib(ii,1) = mask.respVarm(2); %Masking StimMag
     statLib(ii,2) = voic.respVarm(2); %Voicing StimMag
