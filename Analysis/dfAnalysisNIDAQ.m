@@ -105,9 +105,20 @@ niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 
 if audioFlag == 1
     % Audio Processing
+    dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [niAn.subject niAn.run 'f0Analysis.mat']);
     
-    [niAn.time_audio, niAn.audioMf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, niAn.bTf0b, 1);
-    [niAn.time_audio, niAn.audioHf0, niAn.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, niAn.bTf0b, 1);
+    if exist(dirs.audiof0AnalysisFile, 'file') == 0
+        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, niAn.bTf0b, 1);
+        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, niAn.bTf0b, 1);
+        save(dirs.audiof0AnalysisFile, 'f0A')
+    else
+        load(dirs.audiof0AnalysisFile)
+    end
+    niAn.time_audio = f0A.time_audio;
+    niAn.fsA        = f0A.fsA;
+    niAn.audioMf0   = f0A.audioMf0; 
+    niAn.audioHf0   = f0A.audioHf0;    
+
     prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
     niAn.trialf0b   = mean(niAn.audioMf0(prePert,:),1);
     niAn.f0b        = mean(niAn.trialf0b);
@@ -120,10 +131,13 @@ if audioFlag == 1
     niAn.audioMf0_c = parseTrialTypes(niAn.audioMf0_norm, niAn.contIdx);
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
-    [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_p, niAn.fsA, niAn.pertTrig);
-    [niAn.secTime, niAn.audioHf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioHf0_p, niAn.fsA, niAn.pertTrig);
-    [niAn.secTime, niAn.audioMf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioMf0_c, niAn.fsA, niAn.contTrig);
-    [niAn.secTime, niAn.audioHf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioHf0_c, niAn.fsA, niAn.contTrig);
+    [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrials, niAn.pertTrig] = audioPostProcessing(niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig);
+    [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrials, niAn.contTrig] = audioPostProcessing(niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig);
+    
+    [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_pPP, niAn.fsA, niAn.pertTrig);
+    [niAn.secTime, niAn.audioHf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioHf0_pPP, niAn.fsA, niAn.pertTrig);
+    [niAn.secTime, niAn.audioMf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioMf0_cPP, niAn.fsA, niAn.contTrig);
+    [niAn.secTime, niAn.audioHf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioHf0_cPP, niAn.fsA, niAn.contTrig);
     
     %Mean around the onset and offset
     niAn.audioMf0_meanp = meanAudioData(niAn.audioMf0_Secp);
@@ -345,6 +359,25 @@ audio_norm = [];
 for ii = 1:numTrial
     audio_trial = 1200*log2(audio(:,ii)./f0b(ii));
     audio_norm  = cat(2, audio_norm, audio_trial);
+end
+end
+
+function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(audioNormM, audioNormH, numTrialType, trigs)
+
+audioNormMPP = [];
+audioNormHPP = [];
+numTrialTypePP = 0; 
+trigsPP        = [];
+for ii = 1:numTrialType
+    ind = find(audioNormM(:,ii) >= 800);
+    if ~isempty(ind)
+        disp('Threw away a trial')
+    else
+        numTrialTypePP = numTrialTypePP + 1;
+        trigsPP = cat(1, trigsPP, trigs(ii,:));
+        audioNormMPP = cat(2, audioNormMPP, audioNormM(:,ii));
+        audioNormHPP = cat(2, audioNormHPP, audioNormH(:,ii));
+    end
 end
 end
 

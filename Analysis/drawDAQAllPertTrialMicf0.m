@@ -74,11 +74,11 @@ end
 % 
 % suptitle({[curSess ': Mic Recording']; ['   f0: ' num2str(f0b) 'Hz']})
 % 
-% plots = {'InterTrialf0DAQ'};
-% for i = 1:length(plots)
-%     plTitle = [curSess '_' plots{i} '.jpg'];
-% 
-%     saveFileName = fullfile(plotFolder, plTitle);
-%     export_fig(saveFileName)
-% end
+plots = {'IntraTrialf0DAQ'};
+for i = 1:length(plots)
+    plTitle = [curSess '_' plots{i} '.jpg'];
+
+    saveFileName = fullfile(plotFolder, plTitle);
+    export_fig(saveFileName)
+end
 end
