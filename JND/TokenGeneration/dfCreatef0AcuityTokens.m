@@ -73,6 +73,7 @@ GT.PertTokens = PertTokens;
 
 GTFiles = fullfile(dirs.RecFileDir, [GT.subject GT.run 'DRF.mat']);
 save(GTFiles, 'GT');
+fprintf('Completed creating tokens for participant %s with f0 of %0.2f Hz\n', GT.subject, subjf0)
 end
 
 function freqs = targetf0calc(f0, AllFreq, FreqLen)

@@ -4,9 +4,10 @@ function [time, trialsetf0, fsA] = dfCalcf0Praat(dirs, trialset, fs, bTf0b)
 resultFolder  = dirs.SavResultsDir;
 wavFileLoc    = [resultFolder, '\trialRec.wav'];
 txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
+[~, numTrial] = size(trialset);
+
 psDir         = dirs.Code;                        %Praat scripting
 pbDir         = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
-[~, numTrial] = size(trialset);
 
 tStep = 0.005; %seconds
 fsA   = 1/tStep;

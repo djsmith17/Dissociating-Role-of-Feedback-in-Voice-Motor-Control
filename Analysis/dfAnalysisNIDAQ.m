@@ -1,4 +1,4 @@
-function [niAn, res] = dfAnalysisNIDAQ(dirs, expParam, DAQin, audioFlag)
+function [niAn, res] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, audioFlag)
 %A quick reference
 %
 %Pert: Perturbation signal
@@ -18,10 +18,10 @@ niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
 niAn.curSess  = expParam.curSess;
 niAn.gender   = expParam.gender;
-niAn.bTf0b    = dfCalcf0PraatSingle(dirs);
+niAn.bTf0b    = bTf0b;
 niAn.trialType = expParam.trialType;
 
-fprintf('\nStarting NIDAQ Analysis for Participant %s, $s with f0 of $0.2d\n', niAn.subject, niAn.run, niAn.bTf0b)
+fprintf('Starting NIDAQ Analysis for Participant %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 niAn.dnSamp   = 10;
 niAn.sRate    = sRate;
@@ -414,17 +414,16 @@ function [respVar, respVarm] = InflationResponse(secTime, secAudio)
 [~, numTrial, ~] = size(secAudio);
 postOnset = find(0 <= secTime & .20 >= secTime); % Cheating
 
-stimMag  = [];
-respMag  = [];
-respPer  = [];
-stimMagT = [];
+stimMagT = []; stimMag = [];
+respMag  = []; respPer = [];
 for i = 1:numTrial
     onset = secAudio(:,i,1);    
     [minOn, minIdx] = min(onset(postOnset)); 
+    
+    stimMagT = cat(1, stimMagT, secTime(postOnset(minIdx)));
     stimMag  = cat(1, stimMag, minOn);       % Cheating
     respMag  = cat(1, respMag, onset(end));  % Cheating
-    respPer  = cat(1, respPer, 100*(1 - onset(end)/minOn));
-    stimMagT = cat(1, stimMagT, secTime(postOnset(minIdx)));
+    respPer  = cat(1, respPer, 100*(1 - onset(end)/minOn));    
 end
 
 respVar  = [stimMagT stimMag respMag respPer];

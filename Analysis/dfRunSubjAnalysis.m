@@ -21,17 +21,25 @@ for i = 1:AVar.numPart
         participant = AVar.participants{i};
         run         = AVar.runs{j};
         
+        dirs.baselineData  = fullfile(dirs.RecData, participant, 'GT1', [participant 'GT1' 'DRF.mat']); %Where to find data
         dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save results
 
+        if exist(dirs.baselineData, 'file') == 0
+            disp('ERROR')
+            return
+        end
+        
         if exist(dirs.SavResultsDir, 'dir') == 0
             mkdir(dirs.SavResultsDir)
         end
 
         fprintf('Loading Files for %s %s\n', participant, run)
+        load(dirs.baselineData)
         load(dirs.SavFileDir)
-
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, 1);
+        
+        bTf0b = GT.subjf0;
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, 1);
         [auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
 
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);

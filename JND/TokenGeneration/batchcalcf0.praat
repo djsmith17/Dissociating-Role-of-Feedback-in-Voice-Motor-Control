@@ -6,22 +6,18 @@
 ############################
 
 form Resynthize files to have flat pitch
-	text baseTokenFile
-	sentence Sound_file_extension
+	text wavFileLoc
 	text txtFileLoc
+	positive curTrial
+	positive numTrial
 endform
 
-#Here, you make a listing of all the sound files in a directory.
-#Create Strings as file list... list 'tokenDir$'/*'sound_file_extension$'
-#filename$ = Get string... 1
-
 #A sound file is opened from the listing:
-#Read from file... 'tokenDir$'/'filename$'
-Read from file... 'baseTokenFile$'
+Read from file... 'wavFileLoc$'
 sound_one$ = selected$ ("Sound")
 
 start = Get start time
-end = Get end time
+end   = Get end time
 
 To Pitch (ac)... 0.005 75 15 off 0.03 0.45 0.01 0.35 0.14 600
 
@@ -29,15 +25,15 @@ for i to (end - start)/0.005
     time = start + i * 0.005
     select Pitch 'sound_one$'
     pitch = Get value at time... time Hertz Linear
-    appendInfoLine: fixed$ (time, 2), " ", fixed$ (pitch, 2)
+    appendInfoLine: fixed$ (time, 3), " ", fixed$ (pitch, 3)
 endfor
 	
-	
-#titleline$ = "Time	F0(Hz)	'newline$'"
-#fileappend 'txtFileLoc$' 'titleline$'
 fappendinfo 'txtFileLoc$'
 
 select all
 Remove
+clearinfo
 
+if curTrial = numTrial
 Quit
+endif

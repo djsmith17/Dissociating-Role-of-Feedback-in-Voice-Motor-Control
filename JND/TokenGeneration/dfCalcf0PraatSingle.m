@@ -2,13 +2,12 @@ function meanf0 = dfCalcf0PraatSingle(dirs)
 %Calculation of pitch using Praat for a single saved wav file.
 
 tokenDir      = dirs.tokenDir;
-baseTokenFile = dirs.baseTokenFile;
+wavFileLoc    = dirs.baseTokenFile;
+txtFileLoc    = [tokenDir, '\pitchCalc.txt'];
+numTrial      = 1;
+
 psDir         = dirs.JNDTG;                       %Praat scripting
 pbDir         = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
-
-tokenDir   = [tokenDir, '\']; % add a slash to the mic folder
-ext        = '.wav';          % extension of files
-txtFileLoc = [tokenDir, '\pitchCalc.txt'];
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
@@ -20,17 +19,19 @@ if ~exist(sp_fn, 'file')
     error('file ''sendpraat.exe'' not found')
 end
 
-gt_fn = fullfile(psDir, 'batchcalcf0Single.praat');
+gt_fn = fullfile(psDir, 'batchcalcf0.praat');
 if ~exist(gt_fn, 'file')
     error('file ''batchcalcf0.praat'' not found')
 end
  
-call2 = sprintf('%s praat "execute %s %s %s %s', ...
+curTrial = 1;
+call2 = sprintf('%s praat "execute %s %s %s %f %f', ...
                     sp_fn, ... %sendpraat.exe
                     gt_fn, ... %saved praat script ('generatef0JNDTokens)
-                    baseTokenFile, ... %file location for saved wav files
-                    ext, ... %file extension
-                    txtFileLoc ...
+                    wavFileLoc, ... %file location for saved wav files
+                    txtFileLoc, ...
+                    curTrial, ...
+                    numTrial ...
                     );
                 
 [s, r] = dos(call2);
@@ -45,10 +46,10 @@ end
 
 praatResult = fopen(txtFileLoc);
 praatScan   = textscan(praatResult, '%f %s');
-meanf0      = averagePraatf0(praatScan);
-
 fclose(praatResult);
 delete(txtFileLoc);
+
+meanf0      = averagePraatf0(praatScan);
 end
 
 function meanf0 = averagePraatf0(praatScan)
