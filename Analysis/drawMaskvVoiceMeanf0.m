@@ -1,4 +1,4 @@
-function drawMaskvVoiceMeanf0(niResM, niResV, statLib, plotFolder)
+function drawMaskvVoiceMeanf0(niResM, niResV, statLib, pltName, plotFolder)
 
 curSess          = niResM.subject;
 f0b              = round(niResM.f0b);
@@ -77,9 +77,9 @@ sup = suptitle(curSess);
 set(sup, 'FontSize', 20,...
          'FontWeight','bold')
      
-annoStim = ['Stimulation Mag  (M/V): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];
-annoResp = ['Response Mag (M/V): ' num2str(statRMM) ' cents / ' num2str(statRMV) ' cents'];
-annoPerc = ['Response Percent (M/V): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
+annoStim = ['SM (M/NM): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];
+annoResp = ['RM (M/NM): ' num2str(statRMM) ' cents / ' num2str(statRMV) ' cents'];
+annoPerc = ['RP (M/NM): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
 
 annoStim = checkSig(statSP, pValueThresh, annoStim);
 annoResp = checkSig(statRP, pValueThresh, annoResp);
@@ -94,15 +94,15 @@ t = annotation('textbox',[.25 .75 0.45 0.1],...
                 'FontSize',12,...
                 'FontName','Arial');
 
-legend([uH.mainLine pH.mainLine],{[num2str(numMasked) ' Masked FB Perturb Trials'], [num2str(numVoiced) ' Voice FB Perturb Trials']},...
+legend([uH.mainLine pH.mainLine],{[num2str(numMasked) ' M Trials'], [num2str(numVoiced) ' NM Trials']},...
             'box', 'off',...
             'FontSize', 14,...
             'FontWeight', 'bold',...
             'Position', [0.80 0.75 0.1 0.1]);
 
-plots = {'MaskvVoice'};
+plots = {'Figure'};
 for i = 1:length(plots)
-    plTitle = [curSess '_' plots{i} '.jpg'];
+    plTitle = [pltName '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
