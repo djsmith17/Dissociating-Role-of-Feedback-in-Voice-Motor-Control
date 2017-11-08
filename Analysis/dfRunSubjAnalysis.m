@@ -8,7 +8,7 @@ function dfRunSubjAnalysis()
 
 clear all; close all; clc
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot22'}; %List of multiple participants.
+AVar.participants  = {'Pilot24', 'Pilot25', 'Pilot26', 'Pilot22'}; %List of multiple participants.
 AVar.numPart      = length(AVar.participants);
 AVar.runs         = {'SF1'; 'SF2'; 'SF3'; 'SF4'};
 AVar.numRuns      = length(AVar.runs);
@@ -44,7 +44,7 @@ for i = 1:AVar.numPart
 
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         if AVar.debug == 0
-            fprintf('Saving Results for %s %s\n', participant, run)
+            fprintf('Saving Results for %s %s\n\n', participant, run)
             save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
         end
     end

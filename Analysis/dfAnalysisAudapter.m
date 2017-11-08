@@ -6,8 +6,6 @@ function [auAn, res] = dfAnalysisAudapter(expParam, rawData, DAQin)
 
 %Requires the Signal Processing Toolbox
 
-fprintf('\nStarting Analysis\n')
-
 auAn.curType  = expParam.expType;
 auAn.curSubj  = expParam.subject;
 auAn.run      = expParam.run;
@@ -17,6 +15,8 @@ else
     auAn.curSess  = [expParam.subject expParam.run]; 
 end
    
+fprintf('Starting NIDAQ Analysis for %s, %s\n', niAn.subject, niAn.run)
+
 auAn.sRate    = expParam.sRateAnal;
 auAn.sRateQ   = expParam.sRateQ;
 auAn.numTrial = expParam.numTrial;
@@ -99,7 +99,7 @@ for ii = 1:auAn.numTrial
     if saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
     elseif saveT == 1 %Save the Trial
-        fprintf('%s Trial %d saved\n', auAn.curSess, ii)
+%         fprintf('%s Trial %d saved\n', auAn.curSess, ii)
         
         %Pert Full Trial
         Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.sRate, auAn, [], 0);

@@ -21,7 +21,7 @@ niAn.gender   = expParam.gender;
 niAn.bTf0b    = bTf0b;
 niAn.trialType = expParam.trialType;
 
-fprintf('Starting NIDAQ Analysis for Participant %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
+fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 niAn.dnSamp   = 10;
 niAn.sRate    = sRate;
@@ -131,8 +131,8 @@ if audioFlag == 1
     niAn.audioMf0_c = parseTrialTypes(niAn.audioMf0_norm, niAn.contIdx);
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
-    [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrials, niAn.pertTrig] = audioPostProcessing(niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig);
-    [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrials, niAn.contTrig] = audioPostProcessing(niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig);
+    [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrials, niAn.pertTrig] = audioPostProcessing(niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig, niAn.curSess, 'Pert');
+    [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrials, niAn.contTrig] = audioPostProcessing(niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig, niAn.curSess, 'Cont');
     
     [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_pPP, niAn.fsA, niAn.pertTrig);
     [niAn.secTime, niAn.audioHf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioHf0_pPP, niAn.fsA, niAn.pertTrig);
@@ -362,16 +362,16 @@ for ii = 1:numTrial
 end
 end
 
-function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(audioNormM, audioNormH, numTrialType, trigs)
+function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(audioNormM, audioNormH, numTrialType, trigs, curSess, type)
 
 audioNormMPP = [];
 audioNormHPP = [];
 numTrialTypePP = 0; 
 trigsPP        = [];
 for ii = 1:numTrialType
-    ind = find(audioNormM(:,ii) >= 800);
+    ind = find(audioNormM(:,ii) >= 800 | audioNormM(:,ii) <=  -800);
     if ~isempty(ind)
-        disp('Threw away a trial')
+        fprintf('Threw away %s %s trial %s\n', curSess, type, num2str(ii))
     else
         numTrialTypePP = numTrialTypePP + 1;
         trigsPP = cat(1, trigsPP, trigs(ii,:));
