@@ -33,7 +33,7 @@ figureL      = pltName(end);
 
 %Plotting Variables
 plotpos        = [10 100];
-plotdim        = targPixDim;
+plotdim        = [1600 600];
 IndiSubjf0Resp = figure('Color', [1 1 1]);
 set(IndiSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
@@ -56,7 +56,6 @@ shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-
 title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
 
@@ -72,9 +71,9 @@ pH = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Vo
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-
 title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
+
 set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold',...
@@ -84,7 +83,8 @@ sup = suptitle(curSess);
 set(sup, 'FontSize', 20,...
          'FontName', fontN,...
          'FontWeight','bold')
-     
+
+% Done plotting, now to add some annotations
 annoStim = ['SM (M/NM): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];
 annoResp = ['RM (M/NM): ' num2str(statRMM) ' cents / ' num2str(statRMV) ' cents'];
 annoPerc = ['RP (M/NM): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
@@ -116,11 +116,16 @@ legend([uH.mainLine pH.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2st
             'FontWeight', 'bold',...
             'Position', [0.80 0.75 0.1 0.1]);
 
+
+        
 plots = {'Figure'};
 for i = 1:length(plots)
     plTitle = [pltName '.jpg'];
+    plTitleT = [pltName '.tif'];
 
     saveFileName = fullfile(plotFolder, plTitle);
+    saveFileNameT= fullfile(plotFolder, plTitleT);
+%     X = setImageSaveTif(saveFileNameT, IndiSubjf0Resp);
     export_fig(saveFileName)
 end
 end
@@ -149,4 +154,12 @@ function anno = checkSig(stat, thresh, anno)
 if stat < thresh
     anno = [anno '*'];
 end
+end
+
+function X = setImageSaveTif(plotFolder, IndiSubjf0Resp)
+
+F = getframe(IndiSubjf0Resp);
+[X, Map] = frame2im(F);
+
+imwrite(X, plotFolder, 'Resolution', 300)
 end

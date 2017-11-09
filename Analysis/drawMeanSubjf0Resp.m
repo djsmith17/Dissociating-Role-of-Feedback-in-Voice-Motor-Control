@@ -32,7 +32,7 @@ pValueThresh = 0.05;
 
 % Plotting Variables
 plotpos        = [10 100];
-plotdim        = targPixDim;
+plotdim        = [1600 600];
 MeanSubjf0Resp = figure('Color', [1 1 1]);
 set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
@@ -49,7 +49,6 @@ shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, 'r', 1); %Voice
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-
 title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
 
@@ -65,9 +64,9 @@ pH = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, 'r', 1); %Voice
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-
 title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
+
 set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold',...
@@ -76,7 +75,8 @@ set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
 sup = suptitle(curSess);
 set(sup, 'FontSize', 20,...
          'FontWeight','bold')
-     
+
+% Done plotting, now to add some annotations
 annoStim = ['SM (M/NM): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];
 annoResp = ['RM (M/NM): ' num2str(statRMM) ' cents / ' num2str(statRMV) ' cents'];
 annoPerc = ['RP (M/NM): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
