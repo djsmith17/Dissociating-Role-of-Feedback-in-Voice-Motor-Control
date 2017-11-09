@@ -10,12 +10,13 @@ meanf0PertOnsetM  = niResM.audioMf0MeanPert(:,1);
 CIf0PertOnsetM    = niResM.audioMf0MeanPert(:,2);
 meanf0PertOffsetM = niResM.audioMf0MeanPert(:,3);
 CIf0PertOffsetM   = niResM.audioMf0MeanPert(:,4);
+limitsM           = niResM.limitsAmean;
 
 meanf0PertOnsetV  = niResV.audioMf0MeanPert(:,1);
 CIf0PertOnsetV    = niResV.audioMf0MeanPert(:,2);
 meanf0PertOffsetV = niResV.audioMf0MeanPert(:,3);
 CIf0PertOffsetV   = niResV.audioMf0MeanPert(:,4);
-limits            = niResM.limitsAmean;
+limitsV           = niResV.limitsAmean;
 
 statSMM = round(10*statLib(1))/10;
 statSMV = round(10*statLib(2))/10;
@@ -26,6 +27,22 @@ statRPV = round(statLib(6));
 statSP  = statLib(7);
 statRP  = statLib(8);
 statPP  = statLib(9);
+
+if limitsM(3) < limitsV(3)
+    lwLimit = limitsM(3);
+else
+    lwLimit = limitsV(3);
+end
+
+if limitsM(4) > limitsV(4)
+    upLimit = limitsM(4);
+else
+    upLimit = limitsV(4);
+end
+
+limits    = limitsV;
+limits(3) = lwLimit;
+limits(4) = upLimit;
 
 pValueThresh = 0.05;
 figureL      = pltName(end);
