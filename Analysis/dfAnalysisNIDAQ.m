@@ -446,11 +446,13 @@ end
 function [respVar, respVarm] = InflationResponse(secTime, secAudio)
 [~, numTrial, ~] = size(secAudio);
 postOnset = find(0 <= secTime & .20 >= secTime); % Cheating
+tAtOnset = find(secTime == 0);
 
 stimMagT = []; stimMag = [];
 respMag  = []; respPer = [];
 for i = 1:numTrial
-    onset = secAudio(:,i,1);    
+    onset = secAudio(:,i,1); %First depth dim in Onset
+    f0AtOnset       = onset(tAtOnset);
     [minOn, minIdx] = min(onset(postOnset)); 
     
     stimMagT = cat(1, stimMagT, secTime(postOnset(minIdx)));
