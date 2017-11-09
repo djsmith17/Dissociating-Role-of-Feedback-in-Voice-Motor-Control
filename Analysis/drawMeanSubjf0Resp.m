@@ -1,4 +1,4 @@
-function drawMeanSubjf0Resp(allSubjRes, statLib, pltName, plotFolder)
+function drawMeanSubjf0Resp(allSubjRes, statLib, targPixDim, pltName, plotFolder)
 
 curSess          = 'Mean Participant Response';
 numMasked        = allSubjRes.numMaskedTrials;
@@ -27,33 +27,17 @@ statSP  = statLib(7);
 statRP  = statLib(8);
 statPP  = statLib(9);
 
-if limitsM(3) < limitsV(3)
-    lwLimit = limitsM(3);
-else
-    lwLimit = limitsV(3);
-end
-
-if limitsM(4) > limitsV(4)
-    upLimit = limitsM(4);
-else
-    upLimit = limitsV(4);
-end
-
-limits    = limitsV;
-limits(3) = lwLimit;
-limits(4) = upLimit;
-
+limits = checkLims(limitsM, limitsV);
 pValueThresh = 0.05;
 
-plotpos = [10 100];
-plotdim = [1600 600];
-InterTrialf0 = figure('Color', [1 1 1]);
-set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-curSess(strfind(curSess, '_')) = ' ';
+% Plotting Variables
+plotpos        = [10 100];
+plotdim        = targPixDim;
+MeanSubjf0Resp = figure('Color', [1 1 1]);
+set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 dottedStartx = [0 0];
-dottedy      = [-300 300];
+dottedy      = [-500 500];
 
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.05]);
 
@@ -103,12 +87,12 @@ annoPerc = checkSig(statPP, pValueThresh, annoPerc);
  
 statBox = annotation('textbox',[.25 .75 0.45 0.1],...
                      'string', {annoStim;
-                                  annoResp
-                                  annoPerc},...
-                        'LineStyle','none',...
-                        'FontWeight','bold',...
-                        'FontSize',12,...
-                        'FontName','Arial');
+                                annoResp
+                                annoPerc},...
+                      'LineStyle','none',...
+                      'FontWeight','bold',...
+                      'FontSize', 12,...
+                      'FontName','Arial');
 
 legend([uH.mainLine pH.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
             'Box', 'off',...
@@ -124,6 +108,25 @@ for i = 1:length(plots)
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
 end
+end
+
+function limits = checkLims(limitsM, limitsV)
+
+if limitsM(3) < limitsV(3)
+    lwLimit = limitsM(3);
+else
+    lwLimit = limitsV(3);
+end
+
+if limitsM(4) > limitsV(4)
+    upLimit = limitsM(4);
+else
+    upLimit = limitsV(4);
+end
+
+limits    = limitsV;
+limits(3) = lwLimit;
+limits(4) = upLimit;
 end
 
 function anno = checkSig(stat, thresh, anno)

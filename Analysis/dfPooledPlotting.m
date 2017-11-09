@@ -17,6 +17,13 @@ dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, PolPlt.poolA, PolPlt.analyses); %Where to save results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.mat']); %Where to save results
 
+ppi        = 300;
+scRes      = [1680 1050];
+scDim      = [18.625 11.75];
+targFigDim = [14 5];
+
+targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim);
+
 pltLetter = {'a'; 'b'; 'c'; 'd'};
 
 if exist(dirs.SavResultsFile, 'file') == 0
@@ -40,13 +47,25 @@ end
 if PolPlt.MaskVVoice == 1
     for ii = 1:4
         pltName = ['SfN2017Results Figure 4' pltLetter{ii}];
-        drawMaskvVoiceMeanf0(combDataStr(ii,1), combDataStr(ii,2), statLib(ii,:), pltName, dirs.SavResultsDir)
+        drawMaskvVoiceMeanf0(combDataStr(ii,1), combDataStr(ii,2), statLib(ii,:), targPixDim, pltName, dirs.SavResultsDir)
     end
 end
 
 if PolPlt.AllSubjMaskvVoice == 1
     pltName = 'SfN2017Results Figure 5';
-    drawMeanSubjf0Resp(allSubjRes, statLibAll, pltName, dirs.SavResultsDir)
+    drawMeanSubjf0Resp(allSubjRes, statLibAll, targPixDim, pltName, dirs.SavResultsDir)
+end
 end
 
+function targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim)
+
+mHppi = round(scRes(1)/scDim(1));
+mVppi = ceil(scRes(2)/scDim(2));
+
+scaleDif = ppi/mHppi;
+
+tHPixDim = ppi*targFigDim(1);
+tVPixDim = ppi*targFigDim(2);
+
+targPixDim = [tHPixDim tVPixDim];
 end
