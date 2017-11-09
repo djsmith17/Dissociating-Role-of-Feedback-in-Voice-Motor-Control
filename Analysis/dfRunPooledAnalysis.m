@@ -28,32 +28,39 @@ for ii = 1:pA.numPart
     colM = 1; colV = 1;
     fprintf('Sorting Runs for %s\n', participant)
     for jj = 1:pA.numRuns
-        run         = pA.runs{jj};
-        dirs.SavFileDir  = fullfile(dirs.Results, participant, run); %Where to save results        
-        dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']);
-        
-        if exist(dirs.SavFile, 'file') == 0
-            disp('ERROR: NO DANG FILE')
-            return
-        end        
-        load(dirs.SavFile)
-        pA.AudFB = niRes.AudFB;
-        
-        if strcmp(pA.AudFB, 'Masking Noise')
-           allDataStr(ii, colM, 1) = niRes;
-           colM = colM + 1;
+        if ii == 1 & jj == 3
+            disp('lol')
         else
-           allDataStr(ii, colV, 2) = niRes;
-           colV = colV + 1;
-        end       
+            run         = pA.runs{jj};
+            dirs.SavFileDir  = fullfile(dirs.Results, participant, run); %Where to save results        
+            dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']);
+
+            if exist(dirs.SavFile, 'file') == 0
+                disp('ERROR: NO DANG FILE')
+                return
+            end        
+            load(dirs.SavFile)
+            pA.AudFB = niRes.AudFB;
+
+            if strcmp(pA.AudFB, 'Masking Noise')
+               allDataStr(ii, colM, 1) = niRes;
+               colM = colM + 1;
+            else
+               allDataStr(ii, colV, 2) = niRes;
+               colV = colV + 1;
+            end    
+        end
     end
 end
 
+allSubjRes.numControlTrials = 0;
 allSubjRes.numMaskedTrials  = 0;
 allSubjRes.numVoicedTrials  = 0;
 allSubjRes.secTime          = [];
 allSubjRes.audioMf0SecPertM = [];
 allSubjRes.audioMf0SecPertV = [];
+allSubjRes.audioMf0SecContM = [];
+allSubjRes.audioMf0SecContV = [];
 unSubM.respVar           = [];
 unSubV.respVar           = [];
 
@@ -69,8 +76,8 @@ for ii = 1:pA.numPart
         thisStruc.subject         = ['Participant ' num2str(ii)]; %doubleblind sorta, I guess. Shoot me
         thisStruc.runs            = {runSt1.run; runSt2.run};
         thisStruc.curSess         = [thisStruc.subject pA.cond{jj}];
-        thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrials]);
-        thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrials]);
+        thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrialsPP]);
+        thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrialsPP]);
         thisStruc.secTime         = runSt1.secTime;
         thisStruc.runf0b          = [runSt1.f0b runSt2.f0b];
         thisStruc.audioMf0SecPert = [runSt1.audioMf0SecPert runSt2.audioMf0SecPert];
@@ -92,11 +99,15 @@ for ii = 1:pA.numPart
     
     statLib(ii,:) = packStatLib(mask, voic);
     
+    allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrials + voic.numContTrials;
     allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrials;
     allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrials;
     
     allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
     allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);
+    
+    allSubjRes.audioMf0SecContM = cat(2, allSubjRes.audioMf0SecContM, mask.audioMf0SecCont);
+    allSubjRes.audioMf0SecContV = cat(2, allSubjRes.audioMf0SecContV, voic.audioMf0SecCont);
     
     unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
     unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
@@ -104,6 +115,9 @@ end
 allSubjRes.secTime           = mask.secTime;
 allSubjRes.audioMf0MeanPertM = meanRunAudioData(allSubjRes.audioMf0SecPertM);
 allSubjRes.audioMf0MeanPertV = meanRunAudioData(allSubjRes.audioMf0SecPertV);
+allSubjRes.audioMf0MeanContM = meanRunAudioData(allSubjRes.audioMf0SecContM);
+allSubjRes.audioMf0MeanContV = meanRunAudioData(allSubjRes.audioMf0SecContV);
+
 unSubM.respVarm              = mean(unSubM.respVar, 1);
 unSubV.respVarm              = mean(unSubV.respVar, 1);
 

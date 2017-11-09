@@ -1,6 +1,7 @@
 function drawMaskvVoiceMeanf0(niResM, niResV, statLib, targPixDim, pltName, plotFolder)
 
 curSess          = niResM.subject;
+numCont          = niResM.numContTrials;
 numMasked        = niResM.numPertTrials;
 numVoiced        = niResV.numPertTrials;
 
@@ -9,6 +10,11 @@ meanf0PertOnsetM  = niResM.audioMf0MeanPert(:,1);
 CIf0PertOnsetM    = niResM.audioMf0MeanPert(:,2);
 meanf0PertOffsetM = niResM.audioMf0MeanPert(:,3);
 CIf0PertOffsetM   = niResM.audioMf0MeanPert(:,4);
+
+meanf0ContOnsetM  = niResM.audioMf0MeanCont(:,1);
+CIf0ContOnsetM    = niResM.audioMf0MeanCont(:,2);
+meanf0ContOffsetM = niResM.audioMf0MeanCont(:,3);
+CIf0ContOffsetM   = niResM.audioMf0MeanCont(:,4);
 limitsM           = niResM.limitsAmean;
 
 meanf0PertOnsetV  = niResV.audioMf0MeanPert(:,1);
@@ -51,14 +57,17 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
+plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
+hold on
+nC = shadedErrorBar(time, meanf0ContOnsetM, CIf0ContOnsetM, 'k', 1); %Voice
+hold on
 nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Masked
 hold on
 nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
 
 set(nM.mainLine, 'LineWidth', lineThick)
 set(nV.mainLine, 'LineWidth', lineThick)
+set(nC.mainLine, 'LineWidth', lineThick)
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
@@ -71,17 +80,20 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 
 %Offset of Perturbation
 axes(ha(2))
+plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
+hold on
+fC = shadedErrorBar(time, meanf0ContOffsetM, CIf0ContOffsetM, 'k', 1); %Voice
+hold on
 fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Masked
 hold on
 fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
-hold on
-plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
 
 set(fM.mainLine, 'LineWidth', lineThick)
 set(fV.mainLine, 'LineWidth', lineThick)
+set(fC.mainLine, 'LineWidth', lineThick)
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
-title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
+title('Offset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
 set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
@@ -120,7 +132,7 @@ figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
                         'FontSize', titleFSize,...
                         'FontWeight','bold');
 
-legend([fM.mainLine fV.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
+legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numCont) ' Control Trials'], [num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
             'Position', [0.83 0.75 0.1 0.1],...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...

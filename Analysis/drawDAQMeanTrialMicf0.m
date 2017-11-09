@@ -1,9 +1,10 @@
 function drawDAQMeanTrialMicf0(niRes, plotFolder)
 
 curSess          = niRes.curSess;
-f0b              = niRes.f0b;
-numCT            = niRes.numContTrials;
-numPT            = niRes.numPertTrials;
+f0b              = round(10*niRes.f0b)/10;
+AudFB            = niRes.AudFB;
+numCT            = niRes.numContTrialsPP;
+numPT            = niRes.numPertTrialsPP;
 
 time             = niRes.secTime;
 meanf0PertOnset  = niRes.audioMf0MeanPert(:,1);
@@ -25,8 +26,6 @@ plotpos = [10 100];
 plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
 set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-curSess(strfind(curSess, '_')) = ' ';
 
 dottedStartx = [0 0];
 dottedy      = [-300 300];
@@ -65,7 +64,7 @@ set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
 
-suptitle({[curSess ': Mic Recording']; ['   f0: ' num2str(f0b) 'Hz']})
+suptitle({curSess; ['AudFB: ' AudFB]; ['f0: ' num2str(f0b) 'Hz']})
 
 annoStim = ['SM: ' num2str(statSM) ' cents'];
 annoResp = ['RM: ' num2str(statRM) ' cents'];
