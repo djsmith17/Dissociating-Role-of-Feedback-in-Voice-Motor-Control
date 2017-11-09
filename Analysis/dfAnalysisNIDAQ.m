@@ -139,8 +139,8 @@ if audioFlag == 1
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
     %Find troublesome trials and remove
-    [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrials, niAn.pertTrig] = audioPostProcessing(niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig, niAn.curSess, 'Pert');
-    [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrials, niAn.contTrig] = audioPostProcessing(niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig, niAn.curSess, 'Cont');
+    [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrials, niAn.pertTrig] = audioPostProcessing(niAn.time_audio, niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig, niAn.curSess, 'Pert');
+    [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrials, niAn.contTrig] = audioPostProcessing(niAn.time_audio, niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig, niAn.curSess, 'Cont');
     
     %Section the data around onset and offset
     [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_pPP, niAn.fsA, niAn.pertTrig);
@@ -381,14 +381,16 @@ for ii = 1:numTrial
 end
 end
 
-function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(audioNormM, audioNormH, numTrialType, trigs, curSess, type)
+function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(time, audioNormM, audioNormH, numTrialType, trigs, curSess, type)
+
+timeInd = find(time > 0.5 & time < 4);
 
 audioNormMPP = [];
 audioNormHPP = [];
 numTrialTypePP = 0; 
 trigsPP        = [];
 for ii = 1:numTrialType
-    ind = find(audioNormM(:,ii) >= 500 | audioNormM(:,ii) <=  -500);
+    ind = find(audioNormM(timeInd,ii) >= 500 | audioNormM(timeInd,ii) <=  -500);
     if ~isempty(ind)
         fprintf('Threw away %s %s trial %s\n', curSess, type, num2str(ii))
     else
@@ -530,6 +532,7 @@ function res = packResults(niAn, lims)
 res.subject = niAn.subject;
 res.run     = niAn.run;
 res.curSess = niAn.curSess;
+res.AudFB   = niAn.AudFB;
 
 res.numTrials     = niAn.numTrial;
 res.numContTrials = niAn.numContTrials;

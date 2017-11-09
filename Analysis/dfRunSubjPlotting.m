@@ -10,7 +10,7 @@ sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
 %Plot Toggles. This could eventually become an input variable
-sv2File                = 0;
+sv2File              = 0;
 sPlt.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
 sPlt.NIDAQ_PresMic   = 0;
 sPlt.NIDAQ_AligSens  = 0;

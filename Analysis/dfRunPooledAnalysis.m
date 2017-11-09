@@ -119,8 +119,6 @@ allSubjRes.limitsAmeanV = limsV.audioMean;
 
 statLibAll = packStatLib(unSubM, unSubV);
 
-% statTable = table(statLib(:,1), 
-
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll')
