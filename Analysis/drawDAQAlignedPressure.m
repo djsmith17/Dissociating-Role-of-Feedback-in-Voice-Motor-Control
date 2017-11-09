@@ -4,6 +4,7 @@ function drawDAQAlignedPressure(niRes, saveResultsDir, sv2F)
 
 curSess  = niRes.curSess;       % The current experiment details (Subject/Run)
 numTrial = niRes.numPertTrials; % Number of Catch Trials (Only relevant ones)
+AudFB    = niRes.AudFB;
 
 time   = niRes.timeSAl;
 sensor = niRes.sensorPAl;
@@ -32,7 +33,8 @@ end
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
 ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Mean Pressure Sensor Measurements aligned at Perturbation Onset';
-        curSess}, 'FontSize', 12, 'FontWeight', 'bold')
+        curSess;
+        ['AudFB: ' AudFB]}, 'FontSize', 12, 'FontWeight', 'bold')
 axis(limits);
 box off
 
