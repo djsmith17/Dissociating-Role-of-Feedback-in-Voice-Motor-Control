@@ -465,24 +465,44 @@ meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
 function [respVar, respVarm] = InflationResponse(secTime, secAudio)
-[~, numTrial, ~] = size(secAudio);
-postOnset = find(0 <= secTime & .20 >= secTime); % Cheating
-tAtOnset = find(secTime == 0);
+[L, numTrial, ~] = size(secAudio);
+ir.numTrial = numTrial;
+ir.time     = secTime;
+ir.iAtOnset = find(secTime == 0); %Ind
+ir.vAtOnset = [];
+ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); %Ind
+ir.tAtMin = [];
+ir.vAtMin = [];
+ir.stimMag = [];
+ir.iAtResp = L; %the last ind
+ir.tAtResp = ir.time(L);
+ir.vAtResp = [];
+ir.respMag = [];
+ir.respPer = [];
 
-stimMagT = []; stimMag = [];
-respMag  = []; respPer = [];
+tAtMin  = []; stimMag = [];
+respMag = []; respPer = [];
 for i = 1:numTrial
     onset = secAudio(:,i,1); %First depth dim in Onset
-    f0AtOnset       = onset(tAtOnset);
-    [minOn, minIdx] = min(onset(postOnset)); 
+    ir.vAtOnset = onset(ir.iAtOnset);
+
+    [minOn, minIdx] = min(onset(postOnset));
+    ir.tAtMin = ir.time(ir.iPostOnsetR(minIdx));
+    ir.vAtMin = minOn;
+    ir.stimMag = ir.vAtMin - ir.vAtOnset;
     
-    stimMagT = cat(1, stimMagT, secTime(postOnset(minIdx)));
-    stimMag  = cat(1, stimMag, minOn);       % Cheating
-    respMag  = cat(1, respMag, onset(end));  % Cheating
-    respPer  = cat(1, respPer, 100*(1 - onset(end)/minOn));    
+    ir.vAtResp = onset(ir.iAtResp);
+    ir.respMag = ir.vAtResp - ir.vAtMin;
+    
+    ir.respPer = 100*(ir.respMag/abs(ir.stimMag));
+    
+    tAtMin   = cat(1, tAtMin, ir.tAtMin);
+    stimMag  = cat(1, stimMag, ir.stimMag); 
+    respMag  = cat(1, respMag, ir.respMag); 
+    respPer  = cat(1, respPer, ir.respPer);
 end
 
-respVar  = [stimMagT stimMag respMag respPer];
+respVar  = [tAtMin stimMag respMag respPer];
 respVarm = mean(respVar, 1);
 end
 
