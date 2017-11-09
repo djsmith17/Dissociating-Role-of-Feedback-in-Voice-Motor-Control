@@ -18,6 +18,7 @@ niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
 niAn.curSess  = expParam.curSess;
 niAn.gender   = expParam.gender;
+niAn.AudFB    = expParam.AudFB;
 niAn.bTf0b    = bTf0b;
 niAn.trialType = expParam.trialType;
 
@@ -365,7 +366,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii));
+    audioSmooth = smooth(audio(:,ii), 10);
     audioS      = cat(2, audioS, audioSmooth);
 end
 end

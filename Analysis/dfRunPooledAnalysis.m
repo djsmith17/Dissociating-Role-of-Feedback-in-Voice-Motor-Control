@@ -37,7 +37,7 @@ for ii = 1:pA.numPart
             return
         end        
         load(dirs.SavFile)
-        pA.AudFB = auAn.AudFB;
+        pA.AudFB = niRes.AudFB;
         
         if strcmp(pA.AudFB, 'Masking Noise')
            allDataStr(ii, colM, 1) = niRes;
