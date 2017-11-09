@@ -155,7 +155,7 @@ if audioFlag == 1
     niAn.audioHf0_meanc = meanAudioData(niAn.audioHf0_Secc); 
     
     %The Inflation Response
-    [niAn.respVar, niAn.respVarMean] = InflationResponse(niAn.secTime, niAn.audioMf0_Secp);
+    [niAn.respVar, niAn.respVarMean, niAn.respVarSD] = InflationResponse(niAn.secTime, niAn.audioMf0_Secp);
     
 else
     niAn.time_audio     = []; niAn.fsA            = [];
@@ -464,7 +464,7 @@ NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
-function [respVar, respVarm] = InflationResponse(secTime, secAudio)
+function [respVar, respVarm, respVarSD] = InflationResponse(secTime, secAudio)
 [L, numTrial, ~] = size(secAudio);
 ir.numTrial = numTrial;
 ir.time     = secTime;
@@ -486,7 +486,7 @@ for i = 1:numTrial
     onset = secAudio(:,i,1); %First depth dim in Onset
     ir.vAtOnset = onset(ir.iAtOnset);
 
-    [minOn, minIdx] = min(onset(postOnset));
+    [minOn, minIdx] = min(onset(ir.iPostOnsetR));
     ir.tAtMin = ir.time(ir.iPostOnsetR(minIdx));
     ir.vAtMin = minOn;
     ir.stimMag = ir.vAtMin - ir.vAtOnset;
@@ -504,6 +504,7 @@ end
 
 respVar  = [tAtMin stimMag respMag respPer];
 respVarm = mean(respVar, 1);
+respVarSD = std(respVar, 0, 1);
 end
 
 function lims = identifyLimits(niAn)
@@ -602,4 +603,5 @@ res.limitsAmean      = lims.audioMean;
 %Inflation Response
 res.respVar  = niAn.respVar;
 res.respVarM = niAn.respVarMean;
+red.respVarSD = niAn.respVarSD;
 end
