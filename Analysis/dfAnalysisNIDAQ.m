@@ -500,6 +500,10 @@ for i = 1:numTrial
     
     ir.respPer = 100*(ir.respMag/abs(ir.stimMag));
     
+    if ir.stimMag == 0
+        ir.respPer = 0.0;
+    end
+    
     tAtMin   = cat(1, tAtMin, ir.tAtMin);
     stimMag  = cat(1, stimMag, ir.stimMag); 
     respMag  = cat(1, respMag, ir.respMag); 

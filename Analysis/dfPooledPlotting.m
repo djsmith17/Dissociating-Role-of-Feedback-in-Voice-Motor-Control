@@ -55,6 +55,7 @@ if PolPlt.AllSubjMaskvVoice == 1
     pltName = 'SfN2017Results Figure 5';
     drawMeanSubjf0Resp(allSubjRes, statLibAll, targPixDim, pltName, dirs.SavResultsDir)
 end
+close all
 end
 
 function targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim)

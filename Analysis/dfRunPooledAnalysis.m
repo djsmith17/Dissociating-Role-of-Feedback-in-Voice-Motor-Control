@@ -28,24 +28,28 @@ for ii = 1:pA.numPart
     colM = 1; colV = 1;
     fprintf('Sorting Runs for %s\n', participant)
     for jj = 1:pA.numRuns
-        run         = pA.runs{jj};
-        dirs.SavFileDir  = fullfile(dirs.Results, participant, run); %Where to save results        
-        dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']);
-        
-        if exist(dirs.SavFile, 'file') == 0
-            disp('ERROR: NO DANG FILE')
-            return
-        end        
-        load(dirs.SavFile)
-        pA.AudFB = niRes.AudFB;
-        
-        if strcmp(pA.AudFB, 'Masking Noise')
-           allDataStr(ii, colM, 1) = niRes;
-           colM = colM + 1;
+        if ii == 1 & jj == 3
+            disp('lol')
         else
-           allDataStr(ii, colV, 2) = niRes;
-           colV = colV + 1;
-        end       
+            run         = pA.runs{jj};
+            dirs.SavFileDir  = fullfile(dirs.Results, participant, run); %Where to save results        
+            dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']);
+
+            if exist(dirs.SavFile, 'file') == 0
+                disp('ERROR: NO DANG FILE')
+                return
+            end        
+            load(dirs.SavFile)
+            pA.AudFB = niRes.AudFB;
+
+            if strcmp(pA.AudFB, 'Masking Noise')
+               allDataStr(ii, colM, 1) = niRes;
+               colM = colM + 1;
+            else
+               allDataStr(ii, colV, 2) = niRes;
+               colV = colV + 1;
+            end    
+        end
     end
 end
 
