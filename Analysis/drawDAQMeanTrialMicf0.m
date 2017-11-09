@@ -67,11 +67,11 @@ set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
 
 suptitle({[curSess ': Mic Recording']; ['   f0: ' num2str(f0b) 'Hz']})
 
-annoStim = ['SM: ' num2str(statSM)];
-annoResp = ['RM: ' num2str(statRM)];
-annoPerc = ['RP: ' num2str(statRP)];
+annoStim = ['SM: ' num2str(statSM) ' cents'];
+annoResp = ['RM: ' num2str(statRM) ' cents'];
+annoPerc = ['RP: ' num2str(statRP) ' %'];
 
-statBox = annotation('textbox',[.25 .75 0.45 0.1],...
+statBox = annotation('textbox',[.38 .75 0.45 0.1],...
                      'string', {annoStim;
                                 annoResp
                                 annoPerc},...
@@ -85,7 +85,7 @@ legend([uH.mainLine pH.mainLine],{[num2str(numCT) ' Control Trials'], [num2str(n
             'Edgecolor', [1 1 1],...
             'FontSize', 14,...
             'FontWeight', 'bold',...
-            'Position', [0.80 0.75 0.1 0.1]);
+            'Position', [0.75 0.75 0.1 0.1]);
 
 plots = {'InterTrialf0DAQ'};
 for i = 1:length(plots)
