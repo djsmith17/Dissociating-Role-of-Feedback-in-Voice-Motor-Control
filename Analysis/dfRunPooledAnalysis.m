@@ -58,6 +58,8 @@ allSubjRes.numVoicedTrials  = 0;
 allSubjRes.secTime          = [];
 allSubjRes.audioMf0SecPertM = [];
 allSubjRes.audioMf0SecPertV = [];
+allSubjRes.audioMf0SecContM = [];
+allSubjRes.audioMf0SecContV = [];
 unSubM.respVar           = [];
 unSubV.respVar           = [];
 
@@ -102,12 +104,18 @@ for ii = 1:pA.numPart
     allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
     allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);
     
+    allSubjRes.audioMf0SecContM = cat(2, allSubjRes.audioMf0SecContM, mask.audioMf0SecCont);
+    allSubjRes.audioMf0SecContV = cat(2, allSubjRes.audioMf0SecContV, voic.audioMf0SecCont);
+    
     unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
     unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
 end
 allSubjRes.secTime           = mask.secTime;
 allSubjRes.audioMf0MeanPertM = meanRunAudioData(allSubjRes.audioMf0SecPertM);
 allSubjRes.audioMf0MeanPertV = meanRunAudioData(allSubjRes.audioMf0SecPertV);
+allSubjRes.audioMf0MeanContM = meanRunAudioData(allSubjRes.audioMf0SecContM);
+allSubjRes.audioMf0MeanContV = meanRunAudioData(allSubjRes.audioMf0SecContV);
+
 unSubM.respVarm              = mean(unSubM.respVar, 1);
 unSubV.respVarm              = mean(unSubV.respVar, 1);
 

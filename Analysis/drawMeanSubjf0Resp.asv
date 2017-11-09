@@ -59,7 +59,7 @@ nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Mask
 hold on
 nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
 hold on
-nC = shadedErrorBar(time, meanf0ContOnsetM, CIf0ContOnsetM, 'k', 1); %Voice
+nC = shadedErrorBar(time, meanf0ContOnsetM, meanf0ContOnsetM, voicColor, 1); %Voice
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
 
@@ -80,8 +80,6 @@ axes(ha(2))
 fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Masked
 hold on
 fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
-hold on
-fC = shadedErrorBar(time, meanf0ContOffsetM, CIf0ContOffsetM, 'k', 1); %Voice
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
 

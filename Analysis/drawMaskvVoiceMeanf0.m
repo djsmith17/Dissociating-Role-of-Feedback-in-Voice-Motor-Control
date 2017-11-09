@@ -9,6 +9,11 @@ meanf0PertOnsetM  = niResM.audioMf0MeanPert(:,1);
 CIf0PertOnsetM    = niResM.audioMf0MeanPert(:,2);
 meanf0PertOffsetM = niResM.audioMf0MeanPert(:,3);
 CIf0PertOffsetM   = niResM.audioMf0MeanPert(:,4);
+
+meanf0ContOnsetM  = niResM.audioMf0MeanCont(:,1);
+CIf0ContOnsetM    = niResM.audioMf0MeanCont(:,2);
+meanf0ContOffsetM = niResM.audioMf0MeanCont(:,3);
+CIf0ContOffsetM   = niResM.audioMf0MeanCont(:,4);
 limitsM           = niResM.limitsAmean;
 
 meanf0PertOnsetV  = niResV.audioMf0MeanPert(:,1);
@@ -55,6 +60,8 @@ nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Mask
 hold on
 nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
 hold on
+nC = shadedErrorBar(time, meanf0ContOnsetM, CIf0ContOnsetM, 'k', 1); %Voice
+hold on
 plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
 
 set(nM.mainLine, 'LineWidth', lineThick)
@@ -75,13 +82,15 @@ fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Ma
 hold on
 fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
 hold on
+fC = shadedErrorBar(time, meanf0ContOffsetM, CIf0ContOffsetM, 'k', 1); %Voice
+hold on
 plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
 
 set(fM.mainLine, 'LineWidth', lineThick)
 set(fV.mainLine, 'LineWidth', lineThick)
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
-title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
+title('Offset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
 set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
