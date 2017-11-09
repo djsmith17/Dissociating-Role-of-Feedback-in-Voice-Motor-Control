@@ -13,8 +13,8 @@ dirs               = dfDirs(sPlt.project);
 sv2File              = 1;
 sPlt.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
 sPlt.NIDAQ_PresMic   = 0;
-sPlt.NIDAQ_AligSens  = 1;
-sPlt.NIDAQ_AllPertTrial = 1;
+sPlt.NIDAQ_AligSens  = 0;
+sPlt.NIDAQ_AllPertTrial   = 0;
 sPlt.NIDAQ_MeanTrialMicf0 = 1;
 sPlt.IntraTrial_T    = 0; %SPL trace of individual trial
 sPlt.IntraTrial_f0   = 0; %f0 trace for each individual trial
@@ -57,10 +57,6 @@ for ii = 1:sPlt.numPart
 
         if sPlt.NIDAQ_PresMic == 1
             drawDAQPresMic(niRes, dirs.SavResultsDir, sv2File)
-        end
-
-        if sPlt.NIDAQ_AligSens == 1
-            drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2File)
         end
 
         if sPlt.NIDAQ_allCh == 1

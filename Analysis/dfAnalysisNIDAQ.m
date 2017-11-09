@@ -139,14 +139,14 @@ if audioFlag == 1
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
     %Find troublesome trials and remove
-    [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrials, niAn.pertTrig] = audioPostProcessing(niAn.time_audio, niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig, niAn.curSess, 'Pert');
-    [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrials, niAn.contTrig] = audioPostProcessing(niAn.time_audio, niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig, niAn.curSess, 'Cont');
+    [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrialsPP, niAn.pertTrigPP] = audioPostProcessing(niAn.time_audio, niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig, niAn.curSess, 'Pert');
+    [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrialsPP, niAn.contTrigPP] = audioPostProcessing(niAn.time_audio, niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig, niAn.curSess, 'Cont');
     
     %Section the data around onset and offset
-    [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_pPP, niAn.fsA, niAn.pertTrig);
-    [niAn.secTime, niAn.audioHf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioHf0_pPP, niAn.fsA, niAn.pertTrig);
-    [niAn.secTime, niAn.audioMf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioMf0_cPP, niAn.fsA, niAn.contTrig);
-    [niAn.secTime, niAn.audioHf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioHf0_cPP, niAn.fsA, niAn.contTrig);
+    [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_pPP, niAn.fsA, niAn.pertTrigPP);
+    [niAn.secTime, niAn.audioHf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioHf0_pPP, niAn.fsA, niAn.pertTrigPP);
+    [niAn.secTime, niAn.audioMf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioMf0_cPP, niAn.fsA, niAn.contTrigPP);
+    [niAn.secTime, niAn.audioHf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioHf0_cPP, niAn.fsA, niAn.contTrigPP);
     
     %Mean around the onset and offset
     niAn.audioMf0_meanp = meanAudioData(niAn.audioMf0_Secp);
@@ -164,6 +164,10 @@ else
     niAn.audioMf0_norm  = []; niAn.audioHf0_norm  = [];
     niAn.audioMf0_p     = []; niAn.audioHf0_p     = [];
     niAn.audioMf0_c     = []; niAn.audioHf0_c     = [];
+    niAn.audioMf0_pPP   = []; niAn.audioHf0_pPP   = [];
+    niAn.numPertTrialPP = []; niAn.pertTrigPP     = [];
+    niAn.audioMf0_cPP   = []; niAn.audioHf0_cPP   = [];
+    niAn.numContTrialPP = []; niAn.contTrigPP     = [];
     niAn.secTime        = [];
     niAn.audioMf0_Secp  = []; niAn.audioHf0_Secp  = [];
     niAn.audioMf0_Secc  = []; niAn.audioHf0_Secc  = [];
@@ -519,8 +523,18 @@ lims.pressureAl = [0 3.5 0 5];
 lims.force      = [0 4 1 5];
 
 %Full trial f0 analysis
-%Full Individual Trials: f0 Audio 
-lims.audio      = [0 4 -100 100];
+%Full Individual Trials: f0 Audio
+pertTrials = niAn.audioMf0_pPP;
+sec = 100:700;
+
+alluL = max(pertTrials(sec,:));
+alluL(find(alluL > 150)) = 0;
+alllL = min(pertTrials(sec,:));
+alllL(find(alllL < -150)) = 0;
+
+uL = round(max(alluL)) + 20;
+lL = round(min(alllL)) - 20;
+lims.audio      = [0 4 lL uL];
 
 %Section Mean Pertrubed Trials: f0 Audio 
 [~, Imax] = max(niAn.audioMf0_meanp(:,1)); %Max Pert Onset
@@ -576,14 +590,18 @@ res.timeSAl   = niAn.time_Al;
 res.sensorPAl = niAn.sensorP_Al;
 res.limitsPAl = lims.pressureAl;
 
-res.timeA    = niAn.time_audio;
-res.f0b      = niAn.f0b;
+res.timeA     = niAn.time_audio;
+res.f0b       = niAn.f0b;
+
+res.numContTrialsPP = niAn.numContTrialsPP;
+res.numPertTrialsPP = niAn.numPertTrialsPP;
+res.pertTrigPP      = niAn.pertTrigPP;
 
 %Full Individual Trials: Mic/Head f0 Trace 
-res.audioMf0TrialPert = niAn.audioMf0_p;
-res.audioMf0TrialCont = niAn.audioMf0_c;
-res.audioHf0TrialPert = niAn.audioHf0_p;
-res.audioHf0TrialCont = niAn.audioHf0_c;
+res.audioMf0TrialPert = niAn.audioMf0_pPP;
+res.audioMf0TrialCont = niAn.audioMf0_cPP;
+res.audioHf0TrialPert = niAn.audioHf0_pPP;
+res.audioHf0TrialCont = niAn.audioHf0_cPP;
 res.limitsA           = lims.audio;
 
 %Sections Trials: Mic/Head f0
@@ -601,7 +619,7 @@ res.audioHf0MeanCont = niAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
 
 %Inflation Response
-res.respVar  = niAn.respVar;
-res.respVarM = niAn.respVarMean;
-red.respVarSD = niAn.respVarSD;
+res.respVar   = niAn.respVar;
+res.respVarM  = niAn.respVarMean;
+res.respVarSD = niAn.respVarSD;
 end

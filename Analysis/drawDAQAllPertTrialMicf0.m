@@ -3,12 +3,12 @@ function drawDAQAllPertTrialMicf0(niRes, plotFolder)
 curSess          = niRes.curSess;
 AudFB            = niRes.AudFB;
 f0b              = round(10*niRes.f0b)/10;
-numPT            = niRes.numPertTrials;
-pertTrig         = niRes.pertTrig;
+numPT            = niRes.numPertTrialsPP;
+pertTrig         = niRes.pertTrigPP;
 
 time             = niRes.timeA;
 sigs             = niRes.audioMf0TrialPert;
-limits           = [0 4 -150 150];
+limits           = niRes.limitsA;
 
 plotpos = [10 100];
 plotdim = [1600 800];
@@ -25,7 +25,7 @@ for ii = 1:numPT
     pertAx  = [pertTrig(ii,1), pertTrig(ii,2)];
     pertAy  = [600 600];
     
-    pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+    pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on    
     plot(time, sigs(:,ii), 'b', 'LineWidth', 2)
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
