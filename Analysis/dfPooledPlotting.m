@@ -20,7 +20,7 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 ppi        = 300;
 scRes      = [1680 1050];
 scDim      = [18.625 11.75];
-targFigDim = [14 5];
+targFigDim = [15 4];
 
 targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim);
 

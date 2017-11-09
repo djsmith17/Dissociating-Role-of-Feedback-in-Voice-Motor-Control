@@ -47,7 +47,7 @@ titleFSize   = 35;
 axisLSize    = 30;
 lineThick    = 4;
 
-ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.05]);
+ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
