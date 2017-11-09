@@ -118,22 +118,30 @@ if audioFlag == 1
     niAn.fsA        = f0A.fsA;
     niAn.audioMf0   = f0A.audioMf0; 
     niAn.audioHf0   = f0A.audioHf0;    
-
+    
+    %Smooth the f0 data
+    niAn.audioMf0S   = smoothf0(niAn.audioMf0);
+    niAn.audioHf0S   = smoothf0(niAn.audioHf0);
+    
+    %Normalize f0 and convert to cents
     prePert         = (0.5 < niAn.time_audio & 1.0 > niAn.time_audio);
-    niAn.trialf0b   = mean(niAn.audioMf0(prePert,:),1);
+    niAn.trialf0b   = mean(niAn.audioMf0S(prePert,:),1);
     niAn.f0b        = mean(niAn.trialf0b);
 
-    niAn.audioMf0_norm = normalizeDAQf0(niAn.audioMf0, niAn.trialf0b);
-    niAn.audioHf0_norm = normalizeDAQf0(niAn.audioHf0, niAn.trialf0b);
+    niAn.audioMf0_norm = normalizeDAQf0(niAn.audioMf0S, niAn.trialf0b);
+    niAn.audioHf0_norm = normalizeDAQf0(niAn.audioHf0S, niAn.trialf0b);
+    
     %Find the Perturbed Trials
     niAn.audioMf0_p = parseTrialTypes(niAn.audioMf0_norm, niAn.pertIdx);
     niAn.audioHf0_p = parseTrialTypes(niAn.audioHf0_norm, niAn.pertIdx);
     niAn.audioMf0_c = parseTrialTypes(niAn.audioMf0_norm, niAn.contIdx);
     niAn.audioHf0_c = parseTrialTypes(niAn.audioHf0_norm, niAn.contIdx);
     
+    %Find troublesome trials and remove
     [niAn.audioMf0_pPP, niAn.audioHf0_pPP, niAn.numPertTrials, niAn.pertTrig] = audioPostProcessing(niAn.audioMf0_p, niAn.audioHf0_p, niAn.numPertTrials, niAn.pertTrig, niAn.curSess, 'Pert');
     [niAn.audioMf0_cPP, niAn.audioHf0_cPP, niAn.numContTrials, niAn.contTrig] = audioPostProcessing(niAn.audioMf0_c, niAn.audioHf0_c, niAn.numContTrials, niAn.contTrig, niAn.curSess, 'Cont');
     
+    %Section the data around onset and offset
     [niAn.secTime, niAn.audioMf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioMf0_pPP, niAn.fsA, niAn.pertTrig);
     [niAn.secTime, niAn.audioHf0_Secp] = sectionAudioData(niAn.time_audio, niAn.audioHf0_pPP, niAn.fsA, niAn.pertTrig);
     [niAn.secTime, niAn.audioMf0_Secc] = sectionAudioData(niAn.time_audio, niAn.audioMf0_cPP, niAn.fsA, niAn.contTrig);
@@ -349,6 +357,16 @@ else
         end
     end
     fsA = fV.fsA;
+end
+end
+
+function audioS = smoothf0(audio)
+[~, numTrial] = size(audio);
+
+audioS = [];
+for ii = 1:numTrial
+    audioSmooth = smooth(audio(:,ii));
+    audioS      = cat(2, audioS, audioSmooth);
 end
 end
 
