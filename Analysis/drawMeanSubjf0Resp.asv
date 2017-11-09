@@ -1,21 +1,21 @@
-function drawMaskvVoiceMeanf0(niResM, niResV, statLib, targPixDim, pltName, plotFolder)
+function drawMeanSubjf0Resp(allSubjRes, statLib, targPixDim, pltName, plotFolder)
 
-curSess          = niResM.subject;
-numMasked        = niResM.numPertTrials;
-numVoiced        = niResV.numPertTrials;
+curSess          = 'Mean Participant Response';
+numMasked        = allSubjRes.numMaskedTrials;
+numVoiced        = allSubjRes.numVoicedTrials;
 
-time              = niResM.secTime;
-meanf0PertOnsetM  = niResM.audioMf0MeanPert(:,1);
-CIf0PertOnsetM    = niResM.audioMf0MeanPert(:,2);
-meanf0PertOffsetM = niResM.audioMf0MeanPert(:,3);
-CIf0PertOffsetM   = niResM.audioMf0MeanPert(:,4);
-limitsM           = niResM.limitsAmean;
+time              = allSubjRes.secTime;
+meanf0PertOnsetM  = allSubjRes.audioMf0MeanPertM(:,1);
+CIf0PertOnsetM    = allSubjRes.audioMf0MeanPertM(:,2);
+meanf0PertOffsetM = allSubjRes.audioMf0MeanPertM(:,3);
+CIf0PertOffsetM   = allSubjRes.audioMf0MeanPertM(:,4);
+limitsM           = allSubjRes.limitsAmeanM;
 
-meanf0PertOnsetV  = niResV.audioMf0MeanPert(:,1);
-CIf0PertOnsetV    = niResV.audioMf0MeanPert(:,2);
-meanf0PertOffsetV = niResV.audioMf0MeanPert(:,3);
-CIf0PertOffsetV   = niResV.audioMf0MeanPert(:,4);
-limitsV           = niResV.limitsAmean;
+meanf0PertOnsetV  = allSubjRes.audioMf0MeanPertV(:,1);
+CIf0PertOnsetV    = allSubjRes.audioMf0MeanPertV(:,2);
+meanf0PertOffsetV = allSubjRes.audioMf0MeanPertV(:,3);
+CIf0PertOffsetV   = allSubjRes.audioMf0MeanPertV(:,4);
+limitsV           = allSubjRes.limitsAmeanV;
 
 statSMM = round(10*statLib(1))/10;
 statSMV = round(10*statLib(2))/10;
@@ -29,13 +29,12 @@ statPP  = statLib(9);
 
 limits = checkLims(limitsM, limitsV);
 pValueThresh = 0.05;
-figureL      = pltName(end);
 
-%Plotting Variables
+% Plotting Variables
 plotpos        = [10 100];
 plotdim        = targPixDim;
-IndiSubjf0Resp = figure('Color', [1 1 1]);
-set(IndiSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+MeanSubjf0Resp = figure('Color', [1 1 1]);
+set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 dottedStartx = [0 0];
 dottedy      = [-500 500];
@@ -45,14 +44,13 @@ fontN        = 'Arial';
 titleFSize   = 20;
 axisLSize    = 20;
 
-
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
-shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Masked
+nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Masked
 hold on
-shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
+nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -65,9 +63,9 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 
 %Offset of Perturbation
 axes(ha(2))
-uH = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Masked
+fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Masked
 hold on
-pH = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
+fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -81,7 +79,6 @@ set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
 
 sup = suptitle(curSess);
 set(sup, 'FontSize', 20,...
-         'FontName', fontN,...
          'FontWeight','bold')
 
 % Done plotting, now to add some annotations
@@ -97,35 +94,24 @@ statBox = annotation('textbox',[.25 .75 0.45 0.1],...
                      'string', {annoStim;
                                 annoResp
                                 annoPerc},...
-                     'LineStyle','none',...
-                     'FontWeight','bold',...
-                     'FontSize',12,...
-                     'FontName', fontN);
-            
-figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
-                        'string', figureL,...
-                        'LineStyle', 'none',...
-                        'FontWeight', 'bold',...
-                        'FontSize',25,...
-                        'FontName', fontN);
+                      'LineStyle','none',...
+                      'FontName', fontN,...
+                      'FontSize', 12,...
+                      'FontWeight','bold');
 
-legend([uH.mainLine pH.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
+legend([fM.mainLine fV.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...
+            'FontName', fontN,...
             'FontSize', 14,...
             'FontWeight', 'bold',...
             'Position', [0.80 0.75 0.1 0.1]);
 
-
-        
 plots = {'Figure'};
 for i = 1:length(plots)
     plTitle = [pltName '.jpg'];
-    plTitleT = [pltName '.tif'];
 
     saveFileName = fullfile(plotFolder, plTitle);
-    saveFileNameT= fullfile(plotFolder, plTitleT);
-%     X = setImageSaveTif(saveFileNameT, IndiSubjf0Resp);
     export_fig(saveFileName)
 end
 end
@@ -154,12 +140,4 @@ function anno = checkSig(stat, thresh, anno)
 if stat < thresh
     anno = [anno '*'];
 end
-end
-
-function X = setImageSaveTif(plotFolder, IndiSubjf0Resp)
-
-F = getframe(IndiSubjf0Resp);
-[X, Map] = frame2im(F);
-
-imwrite(X, plotFolder, 'Resolution', 300)
 end

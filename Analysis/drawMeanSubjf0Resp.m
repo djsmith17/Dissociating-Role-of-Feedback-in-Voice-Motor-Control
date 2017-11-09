@@ -32,48 +32,66 @@ pValueThresh = 0.05;
 
 % Plotting Variables
 plotpos        = [10 100];
-plotdim        = [1600 600];
+plotdim        = targPixDim;
 MeanSubjf0Resp = figure('Color', [1 1 1]);
 set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 dottedStartx = [0 0];
 dottedy      = [-500 500];
+maskColor    = [0 0 1];
+voicColor    = [1 0 0];
+fontN        = 'Arial';
+legAnnoFSize = 30;
+titleFSize   = 35;
+axisLSize    = 30;
+lineThick    = 4;
 
-ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.05 0.05]);
+ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
-shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, 'b', 1); %Masked
+nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Masked
 hold on
-shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, 'r', 1); %Voice
+nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
 hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
+plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
+
+set(nM.mainLine, 'LineWidth', lineThick)
+set(nV.mainLine, 'LineWidth', lineThick)
+xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
+title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
 set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
-        'FontSize', 16,...
+        'FontName', fontN,...
+        'FontSize', axisLSize,...
         'FontWeight','bold')
 
 %Offset of Perturbation
 axes(ha(2))
-uH = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, 'b', 1); %Masked
+fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Masked
 hold on
-pH = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, 'r', 1); %Voice
+fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
 hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
+plot(dottedStartx, dottedy,'k','LineWidth',lineThick)
+
+set(fM.mainLine, 'LineWidth', lineThick)
+set(fV.mainLine, 'LineWidth', lineThick)
+xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
+title('Offset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
 set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
-        'FontSize', 16,...
+        'FontName', fontN,...
+        'FontSize', axisLSize,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
 
 sup = suptitle(curSess);
-set(sup, 'FontSize', 20,...
+set(sup, 'FontName', fontN,...
+         'FontSize', titleFSize,...
          'FontWeight','bold')
 
 % Done plotting, now to add some annotations
@@ -90,16 +108,17 @@ statBox = annotation('textbox',[.25 .75 0.45 0.1],...
                                 annoResp
                                 annoPerc},...
                       'LineStyle','none',...
-                      'FontWeight','bold',...
-                      'FontSize', 12,...
-                      'FontName','Arial');
+                      'FontName', fontN,...
+                      'FontSize', legAnnoFSize,...
+                      'FontWeight','bold');
 
-legend([uH.mainLine pH.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
+legend([fM.mainLine fV.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
+            'Position', [0.80 0.75 0.1 0.1],...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...
-            'FontSize', 14,...
-            'FontWeight', 'bold',...
-            'Position', [0.80 0.75 0.1 0.1]);
+            'FontName', fontN,...
+            'FontSize', legAnnoFSize,...
+            'FontWeight', 'bold');
 
 plots = {'Figure'};
 for i = 1:length(plots)
