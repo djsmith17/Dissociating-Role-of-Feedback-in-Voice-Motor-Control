@@ -17,8 +17,12 @@ meanf0ContOffset = niRes.audioMf0MeanCont(:,3);
 CIf0ContOffset   = niRes.audioMf0MeanCont(:,4);
 limits           = niRes.limitsAmean;
 
-plotpos = [200 100];
-plotdim = [1300 500];
+statSM = round(10*niRes.respVarM(2))/10;
+statRM = round(10*niRes.respVarM(3))/10;
+statRP = round(niRes.respVarM(4));
+
+plotpos = [10 100];
+plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
 set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
@@ -45,9 +49,6 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold')
 
-l0 = legend([uH.mainLine pH.mainLine],[num2str(numCT) ' Control Trials'], [num2str(numPT) ' Perturb Trials']); 
-set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
-
 %Offset of Perturbation
 axes(ha(2))
 shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'b', 1)  %Unperturbed
@@ -65,6 +66,26 @@ set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'YAxisLocation', 'right');
 
 suptitle({[curSess ': Mic Recording']; ['   f0: ' num2str(f0b) 'Hz']})
+
+annoStim = ['SM: ' num2str(statSM)];
+annoResp = ['RM: ' num2str(statRM)];
+annoPerc = ['RP: ' num2str(statRP)];
+
+statBox = annotation('textbox',[.25 .75 0.45 0.1],...
+                     'string', {annoStim;
+                                annoResp
+                                annoPerc},...
+                        'LineStyle','none',...
+                        'FontWeight','bold',...
+                        'FontSize',12,...
+                        'FontName','Arial');
+                    
+legend([uH.mainLine pH.mainLine],{[num2str(numCT) ' Control Trials'], [num2str(numPT) ' Perturbed Trials']},...
+            'Box', 'off',...
+            'Edgecolor', [1 1 1],...
+            'FontSize', 14,...
+            'FontWeight', 'bold',...
+            'Position', [0.80 0.75 0.1 0.1]);
 
 plots = {'InterTrialf0DAQ'};
 for i = 1:length(plots)

@@ -44,7 +44,6 @@ limits(3) = lwLimit;
 limits(4) = upLimit;
 
 pValueThresh = 0.05;
-figureL      = pltName(end);
 
 plotpos = [10 100];
 plotdim = [1600 600];
