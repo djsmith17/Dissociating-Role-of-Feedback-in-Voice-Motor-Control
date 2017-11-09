@@ -53,6 +53,7 @@ for ii = 1:pA.numPart
     end
 end
 
+allSubjRes.numControlTrials = 0;
 allSubjRes.numMaskedTrials  = 0;
 allSubjRes.numVoicedTrials  = 0;
 allSubjRes.secTime          = [];
@@ -75,8 +76,8 @@ for ii = 1:pA.numPart
         thisStruc.subject         = ['Participant ' num2str(ii)]; %doubleblind sorta, I guess. Shoot me
         thisStruc.runs            = {runSt1.run; runSt2.run};
         thisStruc.curSess         = [thisStruc.subject pA.cond{jj}];
-        thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrials]);
-        thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrials]);
+        thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrialsPP]);
+        thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrialsPP]);
         thisStruc.secTime         = runSt1.secTime;
         thisStruc.runf0b          = [runSt1.f0b runSt2.f0b];
         thisStruc.audioMf0SecPert = [runSt1.audioMf0SecPert runSt2.audioMf0SecPert];
@@ -98,6 +99,7 @@ for ii = 1:pA.numPart
     
     statLib(ii,:) = packStatLib(mask, voic);
     
+    allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrials + voic.numContTrials;
     allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrials;
     allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrials;
     

@@ -1,6 +1,7 @@
 function drawMeanSubjf0Resp(allSubjRes, statLib, targPixDim, pltName, plotFolder)
 
 curSess          = 'Mean Participant Response';
+numControl       = allSubjRes.numControlTrials;
 numMasked        = allSubjRes.numMaskedTrials;
 numVoiced        = allSubjRes.numVoicedTrials;
 
@@ -63,8 +64,6 @@ nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Mask
 hold on
 nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
 
-
-
 set(nM.mainLine, 'LineWidth', lineThick)
 set(nV.mainLine, 'LineWidth', lineThick)
 set(nC.mainLine, 'LineWidth', lineThick)
@@ -125,7 +124,7 @@ statBox = annotation('textbox',[.30 .75 0.45 0.1],...
                       'FontSize', legAnnoFSize,...
                       'FontWeight','bold');
 
-legend([fC.mainLine fM.mainLine fV.mainLine],{'Control Trials', [num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
+legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numControl) ' Control Trials'], [num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
             'Position', [0.83 0.75 0.1 0.1],...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...
