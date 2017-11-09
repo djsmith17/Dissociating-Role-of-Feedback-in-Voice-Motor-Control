@@ -15,7 +15,7 @@ else
     auAn.curSess  = [expParam.subject expParam.run]; 
 end
    
-fprintf('Starting NIDAQ Analysis for %s, %s\n', auAn.curSubj, auAn.run)
+fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.curSubj, auAn.run)
 
 auAn.sRate    = expParam.sRateAnal;
 auAn.sRateQ   = expParam.sRateQ;
