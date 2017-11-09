@@ -13,6 +13,7 @@ pA.participants  = {'Pilot24'; 'Pilot25'; 'Pilot26'; 'Pilot22'}; %List of multip
 pA.numPart       = length(pA.participants);
 pA.runs          = {'SF1'; 'SF2'; 'SF3'; 'SF4'}; %All runs to consider 
 pA.numRuns       = length(pA.runs);
+pA.cond          = {' Masking Noise'; ' Normal Voicing'};
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -36,9 +37,9 @@ for ii = 1:pA.numPart
             return
         end        
         load(dirs.SavFile)
-        AudFB = auAn.AudFB;
+        pA.AudFB = auAn.AudFB;
         
-        if strcmp(AudFB, 'Masking Noise')
+        if strcmp(pA.AudFB, 'Masking Noise')
            allDataStr(ii, colM, 1) = niRes;
            colM = colM + 1;
         else
@@ -48,7 +49,6 @@ for ii = 1:pA.numPart
     end
 end
 
-cond = {' Masking Noise'; ' Normal Voicing'};
 statLib = [];
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
@@ -60,7 +60,7 @@ for ii = 1:pA.numPart
         thisStruc.parti           = runSt1.subject;
         thisStruc.subject         = ['Participant ' num2str(ii)]; %doubleblind sorta, I guess. Shoot me
         thisStruc.runs            = {runSt1.run; runSt2.run};
-        thisStruc.curSess         = [thisStruc.subject cond{jj}];
+        thisStruc.curSess         = [thisStruc.subject pA.cond{jj}];
         thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrials]);
         thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrials]);
         thisStruc.secTime         = runSt1.secTime;
@@ -82,9 +82,9 @@ for ii = 1:pA.numPart
     mask = combDataStr(ii,1);
     voic = combDataStr(ii,2); 
     
-    [Hstim, pStim] = ttest2(mask.respVar(:,2), voic.respVar(:,2));
-    [Hresp, pResp] = ttest2(mask.respVar(:,3), voic.respVar(:,3));
-    [Hperc, pPerc] = ttest2(mask.respVar(:,4), voic.respVar(:,4));
+    [~, pStim] = ttest2(mask.respVar(:,2), voic.respVar(:,2));
+    [~, pResp] = ttest2(mask.respVar(:,3), voic.respVar(:,3));
+    [~, pPerc] = ttest2(mask.respVar(:,4), voic.respVar(:,4));
     
     statLib(ii,1) = mask.respVarm(2); %Masking StimMag
     statLib(ii,2) = voic.respVarm(2); %Voicing StimMag
@@ -95,7 +95,12 @@ for ii = 1:pA.numPart
     statLib(ii,7) = pStim; %p-value stimulus
     statLib(ii,8) = pResp; %p-value response
     statLib(ii,9) = pPerc; %p-value percent increase 
+    
+    
+    
 end
+
+
 
 % statTable = table(statLib(:,1), 
 
