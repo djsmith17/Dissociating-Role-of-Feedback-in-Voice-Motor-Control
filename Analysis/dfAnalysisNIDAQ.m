@@ -369,7 +369,7 @@ audioNormHPP = [];
 numTrialTypePP = 0; 
 trigsPP        = [];
 for ii = 1:numTrialType
-    ind = find(audioNormM(:,ii) >= 800 | audioNormM(:,ii) <=  -800);
+    ind = find(audioNormM(:,ii) >= 500 | audioNormM(:,ii) <=  -500);
     if ~isempty(ind)
         fprintf('Threw away %s %s trial %s\n', curSess, type, num2str(ii))
     else
