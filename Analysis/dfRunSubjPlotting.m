@@ -3,7 +3,7 @@ function dfRunSubjPlotting()
 
 clear all; close all; clc
 PltVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PltVar.participant  = 'Pilot22'; %List of multiple participants.
+PltVar.participant  = 'Pilot26'; %List of multiple participants.
 PltVar.run          = 'SF4';
 
 %Plot Toggles. This could eventually become an input variable

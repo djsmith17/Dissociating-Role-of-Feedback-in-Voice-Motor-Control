@@ -10,6 +10,7 @@ PolPlt.analyses = 'SfN2017';
 sv2File                     = 1;
 PolPlt.NIDAQ_MeanTrialMicf0 = 0;
 PolPlt.MaskVVoice           = 1;
+PolPlt.AllSubjMaskvVoice    = 1;
 PolPlt.dataTable            = 0;
 
 dirs                = dfDirs(PolPlt.project);
@@ -41,6 +42,11 @@ if PolPlt.MaskVVoice == 1
         pltName = ['SfN2017Results Figure 4' pltLetter{ii}];
         drawMaskvVoiceMeanf0(combDataStr(ii,1), combDataStr(ii,2), statLib(ii,:), pltName, dirs.SavResultsDir)
     end
+end
+
+if PolPlt.AllSubjMaskvVoice == 1
+    pltName = 'SfN2017Results Figure 5';
+    drawMeanSubjf0Resp(combDataStr, statLib, pltName, dirs.SavResultsDir)
 end
 
 end
