@@ -1,4 +1,4 @@
-function [niAn, res] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, audioFlag)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, audioFlag)
 %A quick reference
 %
 %Pert: Perturbation signal
@@ -173,7 +173,7 @@ else
 end
     
 lims = identifyLimits(niAn);
-res  = packResults(niAn, lims);
+niRes  = packResults(niAn, lims);
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
@@ -366,7 +366,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 10);
+    audioSmooth = smooth(audio(:,ii), 40);
     audioS      = cat(2, audioS, audioSmooth);
 end
 end
