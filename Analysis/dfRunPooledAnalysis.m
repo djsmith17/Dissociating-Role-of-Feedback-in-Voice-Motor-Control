@@ -49,6 +49,14 @@ for ii = 1:pA.numPart
     end
 end
 
+allSubjRes.numMaskedTrials  = 0;
+allSubjRes.numVoicedTrials  = 0;
+allSubjRes.secTime          = [];
+allSubjRes.audioMf0SecPertM = [];
+allSubjRes.audioMf0SecPertV = [];
+unSubM.respVar           = [];
+unSubV.respVar           = [];
+
 statLib = [];
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
@@ -74,7 +82,7 @@ for ii = 1:pA.numPart
         thisStruc.audioMf0MeanCont = meanRunAudioData(thisStruc.audioMf0SecCont);
         thisStruc.respVarm         = mean(thisStruc.respVar, 1);
         
-        lims = identifyLimits(thisStruc);
+        lims = identifyLimits(thisStruc, 0);
         thisStruc.limitsAmean = lims.audioMean;
         
         combDataStr(ii,jj) = thisStruc;        
@@ -82,31 +90,40 @@ for ii = 1:pA.numPart
     mask = combDataStr(ii,1);
     voic = combDataStr(ii,2); 
     
-    [~, pStim] = ttest2(mask.respVar(:,2), voic.respVar(:,2));
-    [~, pResp] = ttest2(mask.respVar(:,3), voic.respVar(:,3));
-    [~, pPerc] = ttest2(mask.respVar(:,4), voic.respVar(:,4));
+    statLib(ii,:) = packStatLib(mask, voic);
     
-    statLib(ii,1) = mask.respVarm(2); %Masking StimMag
-    statLib(ii,2) = voic.respVarm(2); %Voicing StimMag
-    statLib(ii,3) = mask.respVarm(3); %Masking RespMag
-    statLib(ii,4) = voic.respVarm(3); %Voicing RespMag
-    statLib(ii,5) = mask.respVarm(4); %Masking %
-    statLib(ii,6) = voic.respVarm(4); %Voicing %
-    statLib(ii,7) = pStim; %p-value stimulus
-    statLib(ii,8) = pResp; %p-value response
-    statLib(ii,9) = pPerc; %p-value percent increase 
+    allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrials;
+    allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrials;
     
+    allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
+    allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);
     
-    
+    unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
+    unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
 end
+allSubjRes.secTime           = mask.secTime;
+allSubjRes.audioMf0MeanPertM = meanRunAudioData(allSubjRes.audioMf0SecPertM);
+allSubjRes.audioMf0MeanPertV = meanRunAudioData(allSubjRes.audioMf0SecPertV);
+unSubM.respVarm              = mean(unSubM.respVar, 1);
+unSubV.respVarm              = mean(unSubV.respVar, 1);
 
+allSubjRes.respVarM          = unSubM.respVar;
+allSubjRes.respVarV          = unSubV.respVar;
+allSubjRes.respVarmM         = unSubM.respVarm;
+allSubjRes.respVarmV         = unSubV.respVarm;
 
+limsM = identifyLimits(allSubjRes, 1);
+allSubjRes.limitsAmeanM = limsM.audioMean;
+limsV = identifyLimits(allSubjRes, 2);
+allSubjRes.limitsAmeanV = limsV.audioMean;
+
+statLibAll = packStatLib(unSubM, unSubV);
 
 % statTable = table(statLib(:,1), 
 
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
-save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib')
+save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll')
 
 dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 xlswrite(dirs.excelFile, statLib, 1)
@@ -133,7 +150,24 @@ NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
-function lims = identifyLimits(niAn)
+function statLib = packStatLib(mask, voic)
+
+[~, pStim] = ttest2(mask.respVar(:,2), voic.respVar(:,2));
+[~, pResp] = ttest2(mask.respVar(:,3), voic.respVar(:,3));
+[~, pPerc] = ttest2(mask.respVar(:,4), voic.respVar(:,4));
+
+statLib(1) = mask.respVarm(2); %Masking StimMag
+statLib(2) = voic.respVarm(2); %Voicing StimMag
+statLib(3) = mask.respVarm(3); %Masking RespMag
+statLib(4) = voic.respVarm(3); %Voicing RespMag
+statLib(5) = mask.respVarm(4); %Masking %
+statLib(6) = voic.respVarm(4); %Voicing %
+statLib(7) = pStim; %p-value stimulus
+statLib(8) = pResp; %p-value response
+statLib(9) = pPerc; %p-value percent increase 
+end
+
+function lims = identifyLimits(niAn, fl)
 
 %Full Inidividual Trials: Pressure Sensor
 lims.pressure   = [0 4 0 5];
@@ -149,15 +183,23 @@ lims.force      = [0 4 1 5];
 lims.audio      = [0 4 -100 100];
 
 %Section Mean Pertrubed Trials: f0 Audio 
-[~, Imax] = max(niAn.audioMf0MeanPert(:,1)); %Max Pert Onset
-upBoundOn = round(niAn.audioMf0MeanPert(Imax,1) + niAn.audioMf0MeanPert(Imax,2) + 10);
-[~, Imin] = min(niAn.audioMf0MeanPert(:,1)); %Min Pert Onset
-lwBoundOn = round(niAn.audioMf0MeanPert(Imin,1) - niAn.audioMf0MeanPert(Imin,2) - 10);
+if fl == 1
+    audioMean = niAn.audioMf0MeanPertM;
+elseif fl == 2
+    audioMean = niAn.audioMf0MeanPertV;
+else
+    audioMean = niAn.audioMf0MeanPert;
+end
 
-[~, Imax] = max(niAn.audioMf0MeanPert(:,3)); %Max Pert Offset
-upBoundOf = round(niAn.audioMf0MeanPert(Imax,3) + niAn.audioMf0MeanPert(Imax,4) + 10);
-[~, Imin] = min(niAn.audioMf0MeanPert(:,3)); %Min Pert Offset
-lwBoundOf = round(niAn.audioMf0MeanPert(Imin,3) - niAn.audioMf0MeanPert(Imin,4) - 10);
+[~, Imax] = max(audioMean(:,1)); %Max Pert Onset
+upBoundOn = round(audioMean(Imax,1) + audioMean(Imax,2) + 10);
+[~, Imin] = min(audioMean(:,1)); %Min Pert Onset
+lwBoundOn = round(audioMean(Imin,1) - audioMean(Imin,2) - 10);
+
+[~, Imax] = max(audioMean(:,3)); %Max Pert Offset
+upBoundOf = round(audioMean(Imax,3) + audioMean(Imax,4) + 10);
+[~, Imin] = min(audioMean(:,3)); %Min Pert Offset
+lwBoundOf = round(audioMean(Imin,3) - audioMean(Imin,4) - 10);
 
 if upBoundOn > upBoundOf
     upBoundSec = upBoundOn;

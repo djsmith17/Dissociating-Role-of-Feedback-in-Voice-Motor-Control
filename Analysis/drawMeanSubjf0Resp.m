@@ -1,22 +1,21 @@
-function drawMeanSubjf0Resp(combDataStr, statLib, pltName, plotFolder)
+function drawMeanSubjf0Resp(allSubjRes, statLib, pltName, plotFolder)
 
-curSess          = combDataStr.subject;
-f0b              = round(combDataStr.f0b);
-numMasked        = combDataStr.numPertTrials;
-numVoiced        = niResV.numPertTrials;
+curSess          = 'Mean Participant Response';
+numMasked        = allSubjRes.numMaskedTrials;
+numVoiced        = allSubjRes.numVoicedTrials;
 
-time              = combDataStr.secTime;
-meanf0PertOnsetM  = combDataStr.audioMf0MeanPert(:,1);
-CIf0PertOnsetM    = combDataStr.audioMf0MeanPert(:,2);
-meanf0PertOffsetM = combDataStr.audioMf0MeanPert(:,3);
-CIf0PertOffsetM   = combDataStr.audioMf0MeanPert(:,4);
-limitsM           = combDataStr.limitsAmean;
+time              = allSubjRes.secTime;
+meanf0PertOnsetM  = allSubjRes.audioMf0MeanPertM(:,1);
+CIf0PertOnsetM    = allSubjRes.audioMf0MeanPertM(:,2);
+meanf0PertOffsetM = allSubjRes.audioMf0MeanPertM(:,3);
+CIf0PertOffsetM   = allSubjRes.audioMf0MeanPertM(:,4);
+limitsM           = allSubjRes.limitsAmeanM;
 
-meanf0PertOnsetV  = niResV.audioMf0MeanPert(:,1);
-CIf0PertOnsetV    = niResV.audioMf0MeanPert(:,2);
-meanf0PertOffsetV = niResV.audioMf0MeanPert(:,3);
-CIf0PertOffsetV   = niResV.audioMf0MeanPert(:,4);
-limitsV           = niResV.limitsAmean;
+meanf0PertOnsetV  = allSubjRes.audioMf0MeanPertV(:,1);
+CIf0PertOnsetV    = allSubjRes.audioMf0MeanPertV(:,2);
+meanf0PertOffsetV = allSubjRes.audioMf0MeanPertV(:,3);
+CIf0PertOffsetV   = allSubjRes.audioMf0MeanPertV(:,4);
+limitsV           = allSubjRes.limitsAmeanV;
 
 statSMM = round(10*statLib(1))/10;
 statSMV = round(10*statLib(2))/10;
@@ -111,13 +110,6 @@ statBox = annotation('textbox',[.25 .75 0.45 0.1],...
                         'FontWeight','bold',...
                         'FontSize',12,...
                         'FontName','Arial');
-            
-figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
-                        'string', figureL,...
-                        'LineStyle', 'none',...
-                        'FontWeight', 'bold',...
-                        'FontSize',25,...
-                        'FontName', 'Arial');
 
 legend([uH.mainLine pH.mainLine],{[num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
             'Box', 'off',...

@@ -46,7 +46,7 @@ end
 
 if PolPlt.AllSubjMaskvVoice == 1
     pltName = 'SfN2017Results Figure 5';
-    drawMeanSubjf0Resp(combDataStr, statLib, pltName, dirs.SavResultsDir)
+    drawMeanSubjf0Resp(allSubjRes, statLibAll, pltName, dirs.SavResultsDir)
 end
 
 end
