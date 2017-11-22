@@ -165,15 +165,16 @@ else
     niAn.audioMf0_p     = []; niAn.audioHf0_p     = [];
     niAn.audioMf0_c     = []; niAn.audioHf0_c     = [];
     niAn.audioMf0_pPP   = []; niAn.audioHf0_pPP   = [];
-    niAn.numPertTrialPP = []; niAn.pertTrigPP     = [];
+    niAn.numPertTrialsPP = []; niAn.pertTrigPP     = [];
     niAn.audioMf0_cPP   = []; niAn.audioHf0_cPP   = [];
-    niAn.numContTrialPP = []; niAn.contTrigPP     = [];
+    niAn.numContTrialsPP = []; niAn.contTrigPP     = [];
     niAn.secTime        = [];
     niAn.audioMf0_Secp  = []; niAn.audioHf0_Secp  = [];
     niAn.audioMf0_Secc  = []; niAn.audioHf0_Secc  = [];
     niAn.audioMf0_meanp = []; niAn.audioHf0_meanp = [];
     niAn.audioMf0_meanc = []; niAn.audioHf0_meanc = [];
     niAn.respVar        = []; niAn.respVarMean    = [];
+    niAn.respVarSD      = [];
 end
     
 lims = identifyLimits(niAn);
@@ -528,42 +529,51 @@ lims.force      = [0 4 1 5];
 
 %Full trial f0 analysis
 %Full Individual Trials: f0 Audio
-pertTrials = niAn.audioMf0_pPP;
-sec = 100:700;
+if ~isempty(niAn.audioMf0_pPP)
+    pertTrials = niAn.audioMf0_pPP;
+    sec = 100:700;
 
-alluL = max(pertTrials(sec,:));
-alluL(find(alluL > 150)) = 0;
-alllL = min(pertTrials(sec,:));
-alllL(find(alllL < -150)) = 0;
+    alluL = max(pertTrials(sec,:));
+    alluL(find(alluL > 150)) = 0;
+    alllL = min(pertTrials(sec,:));
+    alllL(find(alllL < -150)) = 0;
 
-uL = round(max(alluL)) + 20;
-lL = round(min(alllL)) - 20;
-lims.audio      = [0 4 lL uL];
+    uL = round(max(alluL)) + 20;
+    lL = round(min(alllL)) - 20;
+    lims.audio      = [0 4 lL uL];
+else
+    lims.audio      = [0 4 -20 20];
+end
 
 %Section Mean Pertrubed Trials: f0 Audio 
-[~, Imax] = max(niAn.audioMf0_meanp(:,1)); %Max Pert Onset
-upBoundOn = round(niAn.audioMf0_meanp(Imax,1) + niAn.audioMf0_meanp(Imax,2) + 10);
-[~, Imin] = min(niAn.audioMf0_meanp(:,1)); %Min Pert Onset
-lwBoundOn = round(niAn.audioMf0_meanp(Imin,1) - niAn.audioMf0_meanp(Imin,2) - 10);
+if ~isempty(niAn.audioMf0_meanp)
+    [~, Imax] = max(niAn.audioMf0_meanp(:,1)); %Max Pert Onset
+    upBoundOn = round(niAn.audioMf0_meanp(Imax,1) + niAn.audioMf0_meanp(Imax,2) + 10);
+    [~, Imin] = min(niAn.audioMf0_meanp(:,1)); %Min Pert Onset
+    lwBoundOn = round(niAn.audioMf0_meanp(Imin,1) - niAn.audioMf0_meanp(Imin,2) - 10);
 
-[~, Imax] = max(niAn.audioMf0_meanp(:,3)); %Max Pert Offset
-upBoundOf = round(niAn.audioMf0_meanp(Imax,3) + niAn.audioMf0_meanp(Imax,4) + 10);
-[~, Imin] = min(niAn.audioMf0_meanp(:,3)); %Min Pert Offset
-lwBoundOf = round(niAn.audioMf0_meanp(Imin,3) - niAn.audioMf0_meanp(Imin,4) - 10);
+    [~, Imax] = max(niAn.audioMf0_meanp(:,3)); %Max Pert Offset
+    upBoundOf = round(niAn.audioMf0_meanp(Imax,3) + niAn.audioMf0_meanp(Imax,4) + 10);
+    [~, Imin] = min(niAn.audioMf0_meanp(:,3)); %Min Pert Offset
+    lwBoundOf = round(niAn.audioMf0_meanp(Imin,3) - niAn.audioMf0_meanp(Imin,4) - 10);
 
-if upBoundOn > upBoundOf
-    upBoundSec = upBoundOn;
+    if upBoundOn > upBoundOf
+        upBoundSec = upBoundOn;
+    else
+        upBoundSec = upBoundOf;
+    end
+
+    if lwBoundOn < lwBoundOf
+        lwBoundSec = lwBoundOn;
+    else
+        lwBoundSec = lwBoundOf;
+    end
+
+    lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
 else
-    upBoundSec = upBoundOf;
+    lims.audioMean = [-0.5 1.0 -50 50];
 end
 
-if lwBoundOn < lwBoundOf
-    lwBoundSec = lwBoundOn;
-else
-    lwBoundSec = lwBoundOf;
-end
-
-lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
 end
 
 function res = packResults(niAn, lims)

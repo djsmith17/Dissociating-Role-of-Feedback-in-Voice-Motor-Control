@@ -34,6 +34,8 @@ expParam.numTrial      = str2double(answer{3});
 expParam.perCatch      = str2double(answer{4});
 expParam.trialLen      = 4; %Seconds
 expParam.niDev         = 'Dev2';
+expParam.AudFB         = 'Masking Noise';
+expParam.gender        = 'N/A';
 sv2F                   = 1; %Boolean
 collectNewData         = answer{5};
 
@@ -88,10 +90,10 @@ else
     load(dirs.RecFileDir)
 end
 
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0);
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0, 0);
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
-drawDAQcombined(niRes, dirs.SavResultsDir, sv2F)
-drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
-drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
+drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
+% drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
+% drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
 end
