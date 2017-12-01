@@ -522,7 +522,7 @@ function lims = identifyLimits(niAn)
 lims.pressure   = [0 4 0 5];
 
 %Aligned Pressure Data
-lims.pressureAl = [0 3.5 0 5];
+lims.pressureAl = [0 3.5 -0.5 5];
 
 %Full Individual Trials: Force Sensors
 lims.force      = [0 4 1 5];
