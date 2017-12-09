@@ -8,9 +8,9 @@ function dfRunSubjAnalysis()
 
 clear all; close all; clc
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot0'}; %List of multiple participants.
+AVar.participants  = {'Pilot26'}; %List of multiple participants.
 AVar.numPart      = length(AVar.participants);
-AVar.runs         = {'Run1'};
+AVar.runs         = {'SF2'};
 AVar.numRuns      = length(AVar.runs);
 AVar.debug        = 0;
 

@@ -104,6 +104,7 @@ analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig)
 niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
 niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 
+niAn = initAudVar(niAn);
 if audioFlag == 1
     % Audio Processing
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [niAn.subject niAn.run 'f0Analysis.mat']);
@@ -115,6 +116,7 @@ if audioFlag == 1
     else
         load(dirs.audiof0AnalysisFile)
     end
+    
     niAn.time_audio = f0A.time_audio;
     niAn.fsA        = f0A.fsA;
     niAn.audioMf0   = f0A.audioMf0; 
@@ -156,29 +158,10 @@ if audioFlag == 1
     
     %The Inflation Response
     [niAn.respVar, niAn.respVarMean, niAn.respVarSD] = InflationResponse(niAn.secTime, niAn.audioMf0_Secp);
-    
-else
-    niAn.time_audio     = []; niAn.fsA            = [];
-    niAn.audioMf0       = []; niAn.audioHf0       = [];
-    niAn.trialf0b       = []; niAn.f0b            = [];
-    niAn.audioMf0_norm  = []; niAn.audioHf0_norm  = [];
-    niAn.audioMf0_p     = []; niAn.audioHf0_p     = [];
-    niAn.audioMf0_c     = []; niAn.audioHf0_c     = [];
-    niAn.audioMf0_pPP   = []; niAn.audioHf0_pPP   = [];
-    niAn.numPertTrialsPP = []; niAn.pertTrigPP     = [];
-    niAn.audioMf0_cPP   = []; niAn.audioHf0_cPP   = [];
-    niAn.numContTrialsPP = []; niAn.contTrigPP     = [];
-    niAn.secTime        = [];
-    niAn.audioMf0_Secp  = []; niAn.audioHf0_Secp  = [];
-    niAn.audioMf0_Secc  = []; niAn.audioHf0_Secc  = [];
-    niAn.audioMf0_meanp = []; niAn.audioHf0_meanp = [];
-    niAn.audioMf0_meanc = []; niAn.audioHf0_meanc = [];
-    niAn.respVar        = []; niAn.respVarMean    = [];
-    niAn.respVarSD      = [];
 end
     
-lims = identifyLimits(niAn);
-niRes  = packResults(niAn, lims);
+lims  = identifyLimits(niAn);
+niRes = packResults(niAn, lims);
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
@@ -636,4 +619,45 @@ res.limitsAmean      = lims.audioMean;
 res.respVar   = niAn.respVar;
 res.respVarM  = niAn.respVarMean;
 res.respVarSD = niAn.respVarSD;
+end
+
+function niAn = initAudVar(niAn)
+%Initialize some variables to keep track of them
+
+niAn.time_audio     = []; %time vector of audio samples recorded
+niAn.fsA            = []; %sampling rate of audio samples
+niAn.audioMf0       = []; %Raw Microphone Audio Data
+niAn.audioHf0       = []; %Raw Headphone Audio Data
+niAn.trialf0b       = []; %Per Trial calculated f0
+niAn.f0b            = []; %Average trial f0
+niAn.audioMf0_norm  = []; %Normalized mic data
+niAn.audioHf0_norm  = []; %Normalized head data
+niAn.audioMf0_p     = []; %Perturbed mic data (norm)
+niAn.audioHf0_p     = []; %Pertrubed head data (norm)
+niAn.audioMf0_c     = []; %Control mic data (norm)
+niAn.audioHf0_c     = []; %Control head data (norm)
+niAn.audioMf0_pPP   = []; %
+niAn.audioHf0_pPP   = [];
+niAn.numPertTrialsPP = []; 
+niAn.pertTrigPP     = [];
+niAn.audioMf0_cPP   = []; 
+niAn.audioHf0_cPP   = [];
+niAn.numContTrialsPP = [];
+niAn.contTrigPP     = [];
+
+niAn.secTime        = [];
+niAn.audioMf0_Secp  = []; 
+niAn.audioHf0_Secp  = [];
+niAn.audioMf0_Secc  = []; 
+niAn.audioHf0_Secc  = [];
+
+niAn.audioMf0_meanp = []; 
+niAn.audioHf0_meanp = [];
+niAn.audioMf0_meanc = []; 
+niAn.audioHf0_meanc = [];
+
+niAn.respVar        = []; 
+niAn.respVarMean    = [];
+niAn.respVarSD      = [];
+
 end
