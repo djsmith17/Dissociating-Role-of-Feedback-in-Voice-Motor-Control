@@ -23,10 +23,12 @@ rng('shuffle');
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Loudness (dB SPL):',...
-          'Gender ("male" or "female"):'};
+          'Gender ("male" or "female"):',...
+          'Balloon:', ...
+          'Tightness (inches):'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'SF1', '60', 'female'};
+defaultanswer = {'null', 'SF1', '60', 'female', '2.0K_1', '12'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -60,6 +62,8 @@ expParam.subject       = answer{1};
 expParam.run           = answer{2};
 expParam.targRMS       = str2double(answer{3});
 expParam.gender        = answer{4};
+expParam.balloon       = answer{5};
+expParam.tightness     = answer{6};
 expParam.curSess       = [expParam.subject expParam.run];
 expParam.numTrial      = numTrials;
 expParam.curTrial      = [];
