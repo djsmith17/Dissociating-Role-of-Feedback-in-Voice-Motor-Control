@@ -137,11 +137,11 @@ set(H3,'Visible','off');
 
 DAQin = []; rawData = [];
 for ii = 1:expParam.numTrial
-    expParam.curTrial   = ['Trial' num2str(ii)];
+    expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
-    %Level of f0 change based on results from 
-    audStimP = dfSetAudapFiles(expParam.ostFN, expParam.pcfFN, expParam.trialType(ii), expParam.trigs(ii,:,1), expParam.trialLen, expParam.stimType, InflaRespRoute, tStep);
+    %Level of f0 change based on results from Laryngeal pert Exp
+    audStimP = dfSetAudapFiles(expParam, dirs, ii, 0);
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);

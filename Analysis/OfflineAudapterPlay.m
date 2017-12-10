@@ -42,7 +42,7 @@ collectNewData         = 1; %Boolean
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType      = 'Auditory Perturbation_Perceptual';
 expParam.subject      = answer{1};
-expParam.run          = answer{2};
+expParam.run          = [answer{2} 'Offline'];
 expParam.targRMS      = str2double(answer{3});
 expParam.gender       = answer{4};
 expParam.curSess      = [expParam.subject expParam.run];
@@ -65,12 +65,8 @@ expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files
-dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, [expParam.run 'Offline']);
-dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
-
-dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.baseRec);
-dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
-dirs.saveFileSuffix = '_offlinePSR';
+dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
+dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -78,6 +74,12 @@ end
 if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
+
+dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.baseRec);
+
+dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
+dirs.saveFileSuffix = '_offlinePSR';
+
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
@@ -98,15 +100,25 @@ if collectNewData == 1
     p = getAudapterDefaultParams(expParam.gender);
 
     %Set up Parameters to control NIDAQ and Perturbatron
-    s = initNIDAQ(expParam.trialLen, 'Dev2');
-    expParam.sRateQ = s.Rate; %save the sampling rate of the NIDAQ
+    [s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLen);
+    expParam.sRateQ = s.Rate; % NIDAQ sampling rate
+    expParam.niCh   = niCh;   % Structure of Channel Names
 
     %Set up OST and PCF Files
     expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
     expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+    
+    [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no...
+    
+    expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-    %Should return variables of InflaRespRoute and tStep. 
-    %Recorded from previous experiments
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+
+    expParam.cuePause  = 1.0;
+    expParam.resPause  = 2.0;
+    expParam.boundsRMS = 3;  %+/- dB
+    
+    %Gives variable of InflaRespRoute. Recorded from previous recording
     dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
     try
         load(dirs.InflaRespFile);
@@ -115,18 +127,10 @@ if collectNewData == 1
     catch me
         fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
     end
-
-    [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... 
-
-    expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
-
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
-
+    
     %Create a negative voltage signal for the force sensors
     negVolSrc = zeros(expParam.sRateQ*expParam.trialLen, 1) - 1;
     negVolSrc(1) = 0; negVolSrc(end) = 0;
-
-    expParam.resPause = 2.0;
 
     %Taking the first trial for ease. File out will be 'data'
     fprintf('Loading Previously Recorded Data Set...\n\n')
@@ -138,12 +142,12 @@ if collectNewData == 1
     Mraw  = data.signalIn; 
     fs    = data.params.sRate;
 
-    DAQin   = [];
-    rawData = [];
+    DAQin   = []; rawData = [];
     for ii = 1:expParam.numTrial
         expParam.curTrial    = ['Trial' num2str(ii)];
         expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
+        %Level of f0 change based on results from Laryngeal pert Exp
         audStimP = dfSetAudapFiles(expParam, dirs, ii, 1);
 
         %Set the OST and PCF functions
