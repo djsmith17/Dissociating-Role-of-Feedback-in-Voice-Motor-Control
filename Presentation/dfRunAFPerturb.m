@@ -28,7 +28,7 @@ prompt = {'Subject ID:',...
           'Gender ("male" or "female"):'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'SF1', '60', 'female'};
+defaultanswer = {'null', 'AF1', '60', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -106,14 +106,17 @@ expParam.niCh   = niCh;   % Structure of Channel Names
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-[expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no... ;
+[expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no...
 
 expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-%Should give variable of InflaRespRoute. Recorded from previous
-%experimentation
+expParam.cuePause  = 1.0;
+expParam.resPause  = 2.0;
+expParam.boundsRMS = 3;  %+/- dB
+
+%Gives variable of InflaRespRoute. Recorded from previous recording
 dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
 try
     load(dirs.InflaRespFile);
@@ -121,25 +124,17 @@ catch me
     fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
 end
 
-expParam.cuePause = 1.0;
-expParam.resPause = 2.0;
-
-expParam.targRMS   = targRMS; %dB
-expParam.boundsRMS = 3;  %+/- dB
-expParam.win       = 2;  %which monitor? 1 or 2
-
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
-fprintf('Hit Spacebar when ready\n')
 
-%Close the curtains
-[anMsr, H1, H2, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS, expParam.win);
-pause()
+%Dim the lights
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
-DAQin   = [];
-rawData = [];
-%Close the curtains
-pause(1.0) %Let them breathe a sec
+%Open the curtains
+pause(5); %Let them breathe a sec
+set(H3,'Visible','off');
+
+DAQin = []; rawData = [];
 for ii = 1:expParam.numTrial
     expParam.curTrial   = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
@@ -161,24 +156,23 @@ for ii = 1:expParam.numTrial
     
     %Phonation Start
     set(H1,'Visible','off');
-    set(trigCirc,'Visible','on');
-    set(H2,'Visible','on');
+    set([H2 trigCirc],'Visible','on');
    
-    fprintf('Running Trial %d\n',ii)
+    fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
     
-    %This will hold the script for as long as OutputData vector lasts.
+    %Play out the Analog Perturbatron Signal. This will hold script for as
+    %long as vector lasts. In this case, 4.0 seconds. 
     [dataDAQ, time] = s.startForeground;
     
     %Phonation End
     Audapter('stop');
-    set(trigCirc,'Visible','off');
-    set(H2,'Visible','off'); 
+    set([H2 trigCirc],'Visible','off');
     
     %Save the data
-    data = dfSaveRawData(expParam, dirs);
+    data    = dfSaveRawData(expParam, dirs);
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
     
@@ -187,15 +181,16 @@ for ii = 1:expParam.numTrial
     
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
-    set(rec, 'Visible', 'on'); 
-    set(fbLines, 'Visible', 'on');  
+    set([rec fbLines], 'Visible', 'on');  
     
     pause(expParam.resPause)
-    set(fbLines, 'Visible', 'off');
-    set(rec, 'Visible', 'off');
+    set([rec fbLines], 'Visible', 'off');
 end
-close all
+close all;
+elapsed_time = toc(ET)/60;
+fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 
+expParam.elapsedTime = elapsed_time;
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
 DRF.p           = p;
@@ -204,7 +199,12 @@ DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-save(dirs.RecFileDir, 'DRF')
+switch num_trials
+    case 'Practice'
+        return
+    case 'Full'
+        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
+end
 
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST

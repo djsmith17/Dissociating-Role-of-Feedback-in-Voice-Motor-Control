@@ -118,18 +118,17 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %num
 
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
-expParam.cuePause = 1.0;
-expParam.resPause = 2.0;
-
+expParam.cuePause  = 1.0;
+expParam.resPause  = 2.0;
 expParam.boundsRMS = 3;  %+/- dB
 
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 
-%Close the curtains
+%Dim the lights
 [anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
-%Close the curtains
+%Open the curtains
 pause(5); %Let them breathe a sec
 set(H3,'Visible','off');
 
