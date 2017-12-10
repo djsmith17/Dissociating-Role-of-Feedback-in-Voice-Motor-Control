@@ -58,24 +58,25 @@ switch num_trials
 end
 
 %Experiment Configurations
-expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-expParam.expType       = 'Somatosensory Perturbation_Perceptual';
-expParam.subject       = answer{1};
-expParam.run           = answer{2};
-expParam.targRMS       = str2double(answer{3});
-expParam.gender        = answer{4};
-expParam.balloon       = answer{5};
-expParam.tightness     = answer{6};
-expParam.curSess       = [expParam.subject expParam.run];
-expParam.numTrial      = numTrials;
-expParam.curTrial      = [];
-expParam.perCatch      = perCatch;
-expParam.AudFB         = AudFB;
-expParam.AudFBSw       = AudFBSw;
-expParam.trialLen      = 4; %Seconds
-expParam.niDev         = 'Dev2';
-expParam.bVis          = 0;
-expParam.stimType      = 1; %Not used here, but just saving var
+expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+expParam.expType      = 'Somatosensory Perturbation_Perceptual';
+expParam.subject      = answer{1};
+expParam.run          = answer{2};
+expParam.targRMS      = str2double(answer{3});
+expParam.gender       = answer{4};
+expParam.balloon      = answer{5};
+expParam.tightness    = answer{6};
+expParam.curSess      = [expParam.subject expParam.run];
+expParam.numTrial     = numTrials;
+expParam.curTrial     = [];
+expParam.perCatch     = perCatch;
+expParam.AudFB        = AudFB;
+expParam.AudFBSw      = AudFBSw;
+expParam.trialLen     = 4; %Seconds
+expParam.niDev        = 'Dev2';
+expParam.bVis         = 0;
+expParam.AudPert      = '-100 cents ramped'; %Saving Var Name. Var not used
+expParam.AudPertSw    = 1;                   %Saving Var Name. Var not used
 
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files

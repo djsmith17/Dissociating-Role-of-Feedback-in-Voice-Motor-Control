@@ -54,22 +54,23 @@ switch num_trials
 end
 
 %Experiment Configurations
-expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = answer{1};
-expParam.run           = answer{2};
-expParam.targRMS       = str2double(answer{3});
-expParam.gender        = answer{4};
-expParam.curSess       = [expParam.subject expParam.run];
-expParam.numTrial      = numTrials;
-expParam.curTrial      = [];
-expParam.perCatch      = perCatch;
-expParam.AudFB         = 'Voice Shifted';
-expParam.AudFBSw       = 1; %Voice Shifted
-expParam.trialLen      = 4; %Seconds
-expParam.niDev         = 'Dev2';
-expParam.bVis          = 0;
-expParam.stimType      = pertTypeSw;
+expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+expParam.expType      = 'Auditory Perturbation_Perceptual';
+expParam.subject      = answer{1};
+expParam.run          = answer{2};
+expParam.targRMS      = str2double(answer{3});
+expParam.gender       = answer{4};
+expParam.curSess      = [expParam.subject expParam.run];
+expParam.numTrial     = numTrials;
+expParam.curTrial     = [];
+expParam.perCatch     = perCatch;
+expParam.AudFB        = 'Voice Shifted';
+expParam.AudFBSw      = 1; %Voice Shifted
+expParam.trialLen     = 4; %Seconds
+expParam.niDev        = 'Dev2';
+expParam.bVis         = 0;
+expParam.AudPert      = pertType;
+expParam.AudPertSw    = pertTypeSw;
 
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files

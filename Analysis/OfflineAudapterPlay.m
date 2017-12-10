@@ -7,45 +7,68 @@ function OfflineAudapterPlay(varargin)
 %dfDirs.m
 %initNIDAQ.m
 %dfSetAudFB.m
-%dfTrialOrder.m
+%dfSetTrialOrder.m
 %dfMakePertSignal.m
 %dfSetAudapFiles.m
 
-if isempty(varargin)
-else
+close all;
+ET = tic;
+rng('shuffle');
+
+prompt = {'Subject ID:',...
+          'Session ID:',...
+          'Baseline Loudness (dB SPL):',...
+          'Gender ("male" or "female"):'};
+name = 'Subject Information';
+numlines = 1;
+defaultanswer = {'null', 'AF1', '60', 'female'};
+answer = inputdlg(prompt, name, numlines, defaultanswer);
+
+if isempty(answer)
+    return
+end
+
+pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', '-100 cents ramped', 'Laryngeal Pert Matched', 'Laryngeal Pert Matched');
+switch pertType
+    case '-100 cents ramped'
+        pertTypeSw = 0;
+    case 'Laryngeal Pert Matched'
+        pertTypeSw = 1;
 end
 
 collectNewData         = 1; %Boolean
-sv2F                   = 1; %Boolean
-stimulusNames          = {'LaryngealMatched', 'Sinusoid', 'Linear'};
 
 %Experiment Configurations
-expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
-expParam.run           = 'Run2';
-expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
-expParam.stimName      = stimulusNames{expParam.stimType};
-expParam.curRec        = ['Stimulus Type ' num2str(expParam.stimType)];
-expParam.curSess       = [expParam.subject ' ' expParam.run ' offline'];
-expParam.numTrial      = 10; %Experimental trials = 40
-expParam.curTrial      = [];
-expParam.curExpTrial   = [];
-expParam.perCatch      = 1.00;
-expParam.gender        = 'male';
-expParam.masking       = 0;
-expParam.trialLen      = 4; %Seconds
+expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+expParam.expType      = 'Auditory Perturbation_Perceptual';
+expParam.subject      = answer{1};
+expParam.run          = answer{2};
+expParam.targRMS      = str2double(answer{3});
+expParam.gender       = answer{4};
+expParam.curSess      = [expParam.subject expParam.run];
+expParam.numTrial     = 10;
+expParam.curTrial     = [];
+expParam.perCatch     = 1.00;
+expParam.AudFB        = 'Voice Shifted';
+expParam.AudFBSw      = 1; %Voice Shifted
+expParam.trialLen     = 4; %Seconds
+expParam.niDev        = 'Dev2';
+expParam.bVis         = 0;
+expParam.AudPert      = pertType;
+expParam.AudPertSw    = pertTypeSw;
+
+expParam.baseRec      = 'BV1';
+
 expParam.bf0Vis        = 0;
-expParam.bVis          = 0;
 expParam.bPlay         = 0;
 expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
-
-dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, 'offline');
+% Folder paths to save data files
+dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, [expParam.run 'Offline']);
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
 
-dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.run);
+dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.baseRec);
 dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
 dirs.saveFileSuffix = '_offlinePSR';
 
@@ -118,7 +141,7 @@ if collectNewData == 1
     DAQin   = [];
     rawData = [];
     for ii = 1:expParam.numTrial
-        expParam.curTrial   = ['Trial' num2str(ii)];
+        expParam.curTrial    = ['Trial' num2str(ii)];
         expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
         audStimP = dfSetAudapFiles(expParam, dirs, ii, 1);
