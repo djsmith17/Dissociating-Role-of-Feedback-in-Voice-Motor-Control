@@ -57,7 +57,8 @@ expParam.bVis         = 0;
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 
-expParam.baseRec      = 'BV1';
+expParam.baseRun      = 'BV1';
+expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
 
 expParam.bf0Vis        = 0;
 expParam.bPlay         = 0;
@@ -75,7 +76,11 @@ if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
 
-dirs.SavFileDir    = fullfile(dirs.SavData, expParam.subject, expParam.baseRec);
+dirs.SavBaseFile = fullfile(dirs.SavData, expParam.subject, expParam.baseRun, expParam.baseFile);
+if ~exist(dirs.SavBaseFile, 'file')
+    disp('ERROR: No voice file at this location!')
+    return
+end
 
 dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
 dirs.saveFileSuffix = '_offlinePSR';
@@ -117,6 +122,9 @@ if collectNewData == 1
     expParam.cuePause  = 1.0;
     expParam.resPause  = 2.0;
     expParam.boundsRMS = 3;  %+/- dB
+   
+    %Load the PreRecorded Baseline Mic signal
+    [PreRMic, PreRfs] = OfflineLoadBaselineVoice(dirs);
     
     %Gives variable of InflaRespRoute. Recorded from previous recording
     dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
@@ -127,20 +135,6 @@ if collectNewData == 1
     catch me
         fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
     end
-    
-    %Create a negative voltage signal for the force sensors
-    negVolSrc = zeros(expParam.sRateQ*expParam.trialLen, 1) - 1;
-    negVolSrc(1) = 0; negVolSrc(end) = 0;
-
-    %Taking the first trial for ease. File out will be 'data'
-    fprintf('Loading Previously Recorded Data Set...\n\n')
-    d = dir([dirs.SavFileDir, '\*.mat']);
-    fnames = sort_nat({d.name}); 
-    load(fullfile(dirs.SavFileDir, fnames{1})); 
-    data = DRF.rawData(expParam.offLineTrial);
-    
-    Mraw  = data.signalIn; 
-    fs    = data.params.sRate;
 
     DAQin   = []; rawData = [];
     for ii = 1:expParam.numTrial
@@ -153,22 +147,23 @@ if collectNewData == 1
         %Set the OST and PCF functions
         Audapter('ost', expParam.ostFN, 0);
         Audapter('pcf', expParam.pcfFN, 0);
+        
+        %Setup which perturb file we want
+        NIDAQsig = [expParam.sigs(:,ii) nVS];
+        queueOutputData(s, NIDAQsig);
 
         %Resample at 48000Hz
-        Mraw_reSamp = resample(Mraw, data.params.sr * data.params.downFact, fs);
+        Mraw_reSamp = resample(PreRMic, data.params.sr * data.params.downFact, PreRfs);
         %Split the signal into frames
         Mraw_frames = makecell(Mraw_reSamp, data.params.frameLen * data.params.downFact);
 
-        fprintf('Running Trial %d\n', ii)
+        fprintf('Trial %d\n', ii)
         AudapterIO('init', p);
         Audapter('reset');
 
         for n = 1:length(Mraw_frames)
             Audapter('runFrame', Mraw_frames{n});
         end
-        
-        NIDAQsig = [expParam.sigs(:,ii) negVolSrc];
-        queueOutputData(s, NIDAQsig);
 
         [dataDAQ, time] = s.startForeground;
 
@@ -201,4 +196,16 @@ close all
 drawAudResp_AllTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 
 drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
+end
+
+function [mic, fs] = OfflineLoadBaselineVoice(dirs)
+%Making an extra function because I am extra
+
+%Load previously recorded voice sample to perturb
+fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
+load(dirs.SavBaseFile);
+baseData = DRF.rawData(2);
+
+mic = baseData.signalIn;
+fs  = baseData.expParam.sRateAnal;
 end
