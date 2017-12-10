@@ -9,7 +9,7 @@ function dfRunAFPerturb(varargin)
 %dfDirs.m
 %initNIDAQ.m
 %dfSetAudFB.m
-%dfTrialOrder.m
+%dfSetTrialOrder.m
 %dfMakePertSignal.m
 %dfSetAudapFiles.m
 %dfSetVisFB.m
@@ -18,31 +18,61 @@ function dfRunAFPerturb(varargin)
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
 
-if isempty(varargin)
-    targRMS = 55; 
-else
-    targRMS = varargin{1};
+close all;
+ET = tic;
+rng('shuffle');
+
+prompt = {'Subject ID:',...
+          'Session ID:',...
+          'Baseline Loudness (dB SPL):',...
+          'Gender ("male" or "female"):'};
+name = 'Subject Information';
+numlines = 1;
+defaultanswer = {'null', 'SF1', '60', 'female'};
+answer = inputdlg(prompt, name, numlines, defaultanswer);
+
+if isempty(answer)
+    return
+end
+
+pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', '-100 cents ramped', 'Laryngeal Pert Matched', 'Laryngeal Pert Matched');
+switch pertType
+    case '-100 cents ramped'
+        pertTypeSw = 0;
+    case 'Laryngeal Pert Matched'
+        pertTypeSw = 1;
+end
+
+num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full');
+switch num_trials
+    case 'Practice'
+        numTrials = 4;
+        perCatch  = 0.25;
+    case 'Full'
+        numTrials = 40;
+        perCatch  = 0.25;
 end
 
 %Experiment Configurations
 expParam.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
-expParam.subject       = 'Pilot0'; %Subject#, Pilot#, null
-expParam.run           = 'Run5';
-expParam.stimType      = 3; %1 for stamped, %2 for sinusoid %3 for linear
-expParam.curRec        = ''; %['Stimulus Type ' num2str(expParam.stimType)];
+expParam.subject       = answer{1};
+expParam.run           = answer{2};
+expParam.targRMS       = str2double(answer{3});
+expParam.gender        = answer{4};
 expParam.curSess       = [expParam.subject expParam.run];
-expParam.numTrial      = 40; %Experimental trials = 40
+expParam.numTrial      = numTrials;
 expParam.curTrial      = [];
-expParam.perCatch      = 0.25;
-expParam.gender        = 'male';
-expParam.masking       = 0;
+expParam.perCatch      = perCatch;
+expParam.AudFB         = 'Voice Shifted';
+expParam.AudFBSw       = 1; %Voice Shifted
 expParam.trialLen      = 4; %Seconds
 expParam.niDev         = 'Dev2';
 expParam.bVis          = 0;
+expParam.stimType      = pertTypeSw;
 
 dirs = dfDirs(expParam.project);
-
+% Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
 
