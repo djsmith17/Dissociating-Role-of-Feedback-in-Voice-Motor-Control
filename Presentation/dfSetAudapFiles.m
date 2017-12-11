@@ -259,8 +259,8 @@ pertTime = audStimP.PertT;
 pertAx  = [audStimP.StTime, audStimP.SpTime];
 pertAy  = [200 200];
 
-plotpos = [200 100];
-plotdim = [1300 500];
+plotpos = [10 50];
+plotdim = [1400 500];
 pertColor = [0.8 0.8 0.8];
 AudStim = figure('Color', [1 1 1]);
 set(AudStim, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -268,26 +268,26 @@ set(AudStim, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
 hold on
 
-plot(time, stim)
+plot(time, stim, 'LineWidth', 3)
 
-xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold')
-ylabel('Fundamental Frequency Shift (st)', 'FontSize', 12, 'FontWeight', 'bold')
-title({'Pitch-Shift Reflex Experiment Stimulus'; pertName}, 'FontSize', 16, 'FontWeight', 'bold')
-axis([0 4 -101 1]); box off;
+xlabel('Time (s)', 'FontSize', 16, 'FontWeight', 'bold')
+ylabel('f0 Shift (cents)', 'FontSize', 16, 'FontWeight', 'bold')
+title({'Auditory Feedback Perturbation Stimulus'; pertName}, 'FontSize', 18, 'FontWeight', 'bold')
+axis([0 4 -101 10]); box off;
 
-annotation('textbox',[0.70 0.75 0.40 0.1],...
-           'String', {['Perturbation Magnitude: ' num2str(pertMag) ' cents'],...
-                    ['Fall/Rise Time: ' num2str(pertTime) ' seconds']},...
+annotation('textbox',[0.60 0.25 0.40 0.1],...
+           'String', {['Fall/Rise Time: ' num2str(pertTime) ' seconds'],...
+                      ['Perturbation Magnitude: ' num2str(pertMag) ' cents']},...
                     'LineStyle','none',...
                     'FontWeight','bold',...
-                    'FontSize',10,...
+                    'FontSize',16,...
                     'FontName','Arial');
 
-set(gca, 'FontSize', 16,...
+set(gca, 'FontSize', 14,...
          'FontWeight', 'bold');
      
      
-plTitle = ['PSRStim_' pertName '.jpg'];     
+plTitle = ['AFPerturbStim_' pertName '.jpg'];     
 saveFileName = fullfile(dirs.SavResultsDir, plTitle);
 export_fig(saveFileName) 
 end
