@@ -36,11 +36,11 @@ if isempty(answer)
     return
 end
 
-pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', '-100 cents ramped', 'Laryngeal Pert Matched', 'Laryngeal Pert Matched');
+pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
 switch pertType
-    case '-100 cents ramped'
+    case 'Linear Standard'
         pertTypeSw = 0;
-    case 'Laryngeal Pert Matched'
+    case 'Sinusoid Matched'
         pertTypeSw = 1;
 end
 

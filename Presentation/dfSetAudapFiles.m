@@ -38,31 +38,29 @@ function audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertNam
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.pertSw    = pertSw;    % 0: -100c   1: LarMag
 audStimP.pertName  = pertName;  % '-100 cents ramped', 'Laryngeal Pert Matched'
-audStimP.AudFs     = 48000;     % Hardset
-audStimP.lenTrialT = trialLen;                                  %Trial Length (Seconds)
-audStimP.lenTrialP = audStimP.lenTrialT*audStimP.AudFs;         %Trial Length (Points)
-audStimP.time      = (0:1:audStimP.lenTrialP-1)/audStimP.AudFs; %Projected recorded time course (Points)
-
-audStimP.StTime    = trigs(1);                        %Seconds
-audStimP.SpTime    = trigs(2);                        %Seconds
-audStimP.StPoint   = round(audStimP.StTime*audStimP.AudFs);  %Points
-audStimP.SpPoint   = round(audStimP.SpTime*audStimP.AudFs);  %Points
-audStimP.lenPerT   = audStimP.SpTime - audStimP.StTime;      %Seconds
-audStimP.lenPerP   = round(audStimP.lenPerT*audStimP.AudFs); %Points
-
-audStimP.tStep     = 0.005;   % seconds
+audStimP.tStep     = 0.0002;    % seconds
 audStimP.fs        = 1/audStimP.tStep;
+audStimP.lenTrialT = trialLen;                                  % Trial Length (Seconds)
+audStimP.lenTrialP = audStimP.lenTrialT*audStimP.fs;            % Trial Length (Pert-Points)
+audStimP.time      = (0:1:audStimP.lenTrialP-1)/audStimP.fs; % Seconds (Pert-Points)
+
+audStimP.StTime    = trigs(1);                          % Seconds
+audStimP.SpTime    = trigs(2);                          % Seconds
+audStimP.StPoint   = round(audStimP.StTime*audStimP.fs);% Points
+audStimP.SpPoint   = round(audStimP.SpTime*audStimP.fs);% Points
+
 audStimP.InflaT    = InflaT;  % seconds
 audStimP.InflaV    = InflaV;  % cents
 audStimP.rampLen   = [];
 audStimP.steadyLen = [];
+audStimP.steadyLenP = [];
 audStimP.ramp      = [];
 audStimP.rampRv    = [];
 
 %Define the slope for the Aud. perturbation stimulus
 if pertSw == 0 %Linear Ramp down.
     audStimP.PertT   = 0.15; % seconds          HardSet
-    audStimP.rampLen = audStimP.PertT*audStimP.fs;
+    audStimP.rampLen = round(audStimP.PertT*audStimP.fs);
     
     if trialType == 0;
         audStimP.rampMin = 0;
@@ -73,7 +71,7 @@ if pertSw == 0 %Linear Ramp down.
     end              
 elseif pertSw == 1 %Sigmoid 0 -> LaryngStim Min 
     audStimP.PertT   = InflaT; % seconds
-    audStimP.rampLen = audStimP.PertT*audStimP.fs;
+    audStimP.rampLen = round(audStimP.PertT*audStimP.fs);
     
     if trialType == 0;
         audStimP.rampMin = 0;
@@ -92,6 +90,7 @@ audStimP.steadySt    = audStimP.rampDNRange(end)+1;
 audStimP.steadySp    = audStimP.rampUPRange(1)-1;
 audStimP.steadyRange = audStimP.steadySt:audStimP.steadySp;
 audStimP.steadyLen   = length(audStimP.steadyRange);
+audStimP.steadyLenP  = audStimP.steadyLen/audStimP.fs;
 
 stim = zeros(audStimP.lenTrialP,1);
 stim(audStimP.rampDNRange) = audStimP.ramp;
@@ -107,10 +106,10 @@ function OST_tline = writeOSTportions(audStimP)
 %rules outlined in the Audapter Manuel. This has been specifically
 %organized for customized Pitch-Shift Reflex experiments.
 
-tStep     = audStimP.tStep;
-StTime    = audStimP.StTime;
-rampLen   = audStimP.rampLen;
-steadyLen = audStimP.steadyLen;
+tStep      = audStimP.tStep;
+StTime     = audStimP.StTime;
+rampLen    = audStimP.rampLen;
+steadyLenP = audStimP.steadyLenP;
 
 %The number of changes to f0 + the hold + last THREE clean-up lines
 n = 2*rampLen + 1 + 3;
@@ -134,7 +133,7 @@ for i = 1:n
     if i <= rampLen
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #DownShift ' num2str(i) ' of ' num2str(rampLen)];
     elseif i == rampLen + 1 
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(steadyLen) ' NaN {} #Hold for the pitch-shift hold period'];
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(steadyLenP) ' NaN {} #Hold for the pitch-shift hold period'];
     elseif i <= 2*rampLen + 1
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #UpShift ' num2str(i) ' of ' num2str(rampLen)];    
     elseif i == 2*rampLen + 2
@@ -207,7 +206,7 @@ for i = 1:n
     elseif i == rampLen + 1 
         PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampMin/100) ', 0.0, 0, 0'];
     elseif i <= 2*rampLen + 1
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampRv(i-rampLen)/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampRv(i-rampLen-1)/100) ', 0.0, 0, 0'];
     elseif i == 2*rampLen + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       
@@ -291,5 +290,4 @@ set(gca, 'FontSize', 16,...
 plTitle = ['PSRStim_' pertName '.jpg'];     
 saveFileName = fullfile(dirs.SavResultsDir, plTitle);
 export_fig(saveFileName) 
-
 end
