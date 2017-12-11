@@ -157,7 +157,7 @@ if audioFlag == 1
     niAn.audioHf0_meanc = meanAudioData(niAn.audioHf0_Secc); 
     
     %The Inflation Response
-    [niAn.respVar, niAn.respVarMean, niAn.respVarSD] = InflationResponse(niAn.secTime, niAn.audioMf0_Secp);
+    [niAn.respVar, niAn.respVarMean, niAn.respVarSD, niAn.InflaStimVar] = InflationResponse(niAn.secTime, niAn.audioMf0_Secp);
 end
     
 lims  = identifyLimits(niAn);
@@ -452,13 +452,15 @@ NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
-function [respVar, respVarm, respVarSD] = InflationResponse(secTime, secAudio)
-[L, numTrial, ~] = size(secAudio);
+function [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+[L, numTrial, ~] = size(secAudio); %Only look at Onsets
 ir.numTrial = numTrial;
 ir.time     = secTime;
 ir.iAtOnset = find(secTime == 0); %Ind
+ir.tAtOnset = 0;
 ir.vAtOnset = [];
 ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); %Ind
+ir.iAtMin = [];
 ir.tAtMin = [];
 ir.vAtMin = [];
 ir.stimMag = [];
@@ -468,6 +470,7 @@ ir.vAtResp = [];
 ir.respMag = [];
 ir.respPer = [];
 
+shpInds = [];
 tAtMin  = []; stimMag = [];
 respMag = []; respPer = [];
 for i = 1:numTrial
@@ -475,7 +478,8 @@ for i = 1:numTrial
     ir.vAtOnset = onset(ir.iAtOnset);
 
     [minOn, minIdx] = min(onset(ir.iPostOnsetR));
-    ir.tAtMin = ir.time(ir.iPostOnsetR(minIdx));
+    ir.iAtMin = ir.iPostOnsetR(minIdx);
+    ir.tAtMin = ir.time(ir.iAtMin);
     ir.vAtMin = minOn;
     ir.stimMag = ir.vAtMin - ir.vAtOnset;
     
@@ -488,6 +492,12 @@ for i = 1:numTrial
         ir.respPer = 0.0;
     end
     
+%     subplot(2,5,i)
+%     plot(secTime, onset)
+    
+%     shpInd   = [ir.iAtOnset ir.iAtMin ir.iAtResp];  
+%     shpInds  = cat(1, shpInds, shpInd); 
+    
     tAtMin   = cat(1, tAtMin, ir.tAtMin);
     stimMag  = cat(1, stimMag, ir.stimMag); 
     respMag  = cat(1, respMag, ir.respMag); 
@@ -497,6 +507,8 @@ end
 respVar  = [tAtMin stimMag respMag respPer];
 respVarm = mean(respVar, 1);
 respVarSD = std(respVar, 0, 1);
+
+InflaStimVar = [respVar(1) respVarm(2)];
 end
 
 function lims = identifyLimits(niAn)
@@ -619,6 +631,7 @@ res.limitsAmean      = lims.audioMean;
 res.respVar   = niAn.respVar;
 res.respVarM  = niAn.respVarMean;
 res.respVarSD = niAn.respVarSD;
+res.InflaStimVar = niAn.InflaStimVar;
 end
 
 function niAn = initAudVar(niAn)
@@ -659,5 +672,6 @@ niAn.audioHf0_meanc = [];
 niAn.respVar        = []; 
 niAn.respVarMean    = [];
 niAn.respVarSD      = [];
+niAn.InflaStimVar   = [];
 
 end

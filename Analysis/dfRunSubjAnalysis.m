@@ -8,9 +8,9 @@ function dfRunSubjAnalysis()
 
 clear all; close all; clc
 AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot22'}; %List of multiple participants.
+AVar.participants  = {'Pilot24'}; %List of multiple participants.
 AVar.numPart      = length(AVar.participants);
-AVar.runs         = {'BDiag5';'BDiag6'};
+AVar.runs         = {'SF1'};
 AVar.numRuns      = length(AVar.runs);
 AVar.debug        = 0;
 
@@ -23,11 +23,17 @@ for i = 1:AVar.numPart
         
         dirs.baselineData  = fullfile(dirs.RecData, participant, 'GT1', [participant 'GT1' 'DRF.mat']); %Where to find data
         dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save results
+        dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save full analyzed results
+        
+        dirs.InflaVarDir  = fullfile(dirs.RecData, participant, 'IV1');
 
         if exist(dirs.baselineData, 'file') == 0
             disp('ERROR')
             return
+        end
+        
+        if exist(dirs.InflaVarDir, 'dir') == 0
+            mkdir(dirs.InflaVarDir)
         end
         
         if exist(dirs.SavResultsDir, 'dir') == 0
@@ -43,10 +49,15 @@ for i = 1:AVar.numPart
         auAn  = []; auRes = [];
 %         [auAn, auRes] = dfAnalysisAudapter(DRF.expParam, DRF.rawData, DRF.DAQin);
 
+        InflaVar = niRes.InflaStimVar;
+
+        dirs.InflaVarFile   = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         if AVar.debug == 0
-            fprintf('Saving Results for %s %s\n\n', participant, run)
+            fprintf('Saving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
+            fprintf('Saving Inflation Stimulus Variables for %s %s\n', participant, run)
+            save(dirs.InflaVarFile, 'InflaVar');
         end
     end
 end

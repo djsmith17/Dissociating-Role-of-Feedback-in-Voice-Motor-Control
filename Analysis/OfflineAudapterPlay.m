@@ -54,15 +54,12 @@ expParam.AudFBSw      = 1; %Voice Shifted
 expParam.trialLen     = 4; %Seconds
 expParam.niDev        = 'Dev2';
 expParam.bVis         = 0;
+expParam.bPlay        = 0;
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 
 expParam.baseRun      = 'BV1';
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
-
-expParam.bf0Vis        = 0;
-expParam.bPlay         = 0;
-expParam.offLineTrial  = 37;
 
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files
@@ -78,7 +75,13 @@ end
 
 dirs.SavBaseFile = fullfile(dirs.SavData, expParam.subject, expParam.baseRun, expParam.baseFile);
 if ~exist(dirs.SavBaseFile, 'file')
-    disp('ERROR: No voice file at this location!')
+    fprintf('ERROR: No voice file at %s!\n', dirs.SavBasFile)
+    return
+end
+
+dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
+if ~exist(dirs.InflaRespFile, 'file')
+    fprintf('ERROR: No Inflation Route file at %s!\n', dirs.InflaRespFile)
     return
 end
 
@@ -127,14 +130,9 @@ if collectNewData == 1
     [PreRMic, PreRfs] = OfflineLoadBaselineVoice(dirs);
     
     %Gives variable of InflaRespRoute. Recorded from previous recording
-    dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
-    try
-        load(dirs.InflaRespFile);
-        expParam.InflaRespRoute = InflaRespRoute;
-        expParam.tStep          = tStep;
-    catch me
-        fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
-    end
+    load(dirs.InflaRespFile);
+    expParam.InflaRespRoute = InflaRespRoute;
+    expParam.tStep          = tStep;
 
     DAQin   = []; rawData = [];
     for ii = 1:expParam.numTrial
@@ -153,24 +151,26 @@ if collectNewData == 1
         queueOutputData(s, NIDAQsig);
 
         %Resample at 48000Hz
-        Mraw_reSamp = resample(PreRMic, data.params.sr * data.params.downFact, PreRfs);
+        mic_reSamp = resample(PreRMic, data.params.sr * data.params.downFact, PreRfs);
         %Split the signal into frames
-        Mraw_frames = makecell(Mraw_reSamp, data.params.frameLen * data.params.downFact);
+        mic_frames = makecell(mic_reSamp, data.params.frameLen * data.params.downFact);
 
         fprintf('Trial %d\n', ii)
         AudapterIO('init', p);
         Audapter('reset');
 
-        for n = 1:length(Mraw_frames)
-            Audapter('runFrame', Mraw_frames{n});
+        for n = 1:length(mic_frames)
+            Audapter('runFrame', mic_frames{n});
         end
 
         [dataDAQ, time] = s.startForeground;
 
-        data = dfSaveRawData(expParam, dirs);
-        DAQin = cat(3, DAQin, dataDAQ);
+        %Save the data
+        data    = dfSaveRawData(expParam, dirs);
+        DAQin   = cat(3, DAQin, dataDAQ);
         rawData = cat(1, rawData, data);
         
+        %Play the sound, if you care to
         if expParam.bPlay; soundsc(data_off.signalIn, data_off.expParam.sRateAnal); end
 
         pause(expParam.resPause)
