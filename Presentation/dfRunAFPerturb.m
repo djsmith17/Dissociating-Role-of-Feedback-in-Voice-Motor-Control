@@ -25,10 +25,11 @@ rng('shuffle');
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Loudness (dB SPL):',...
-          'Gender ("male" or "female"):'};
+          'Gender ("male" or "female"):',...
+          'Inflation Vars:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'AF1', '60', 'female'};
+defaultanswer = {'null', 'AF1', '60', 'female', 'IV1'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -61,6 +62,7 @@ expParam.run          = answer{2};
 expParam.targRMS      = str2double(answer{3});
 expParam.gender       = answer{4};
 expParam.curSess      = [expParam.subject expParam.run];
+expParam.InflaVar     = answer{5};
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
@@ -72,6 +74,8 @@ expParam.bVis         = 0;
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 
+expParam.InflaFile    = [expParam.subject expParam.InflaVar 'DRF.mat'];
+
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
@@ -82,6 +86,12 @@ if exist(dirs.RecFileDir, 'dir') == 0
 end
 if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
+end
+
+dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVar, expParam.InflaFile);
+if ~exist(dirs.InflaRespFile, 'file')
+    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaRespFile)
+    return
 end
 
 %Paradigm Configurations
@@ -117,13 +127,10 @@ expParam.cuePause  = 1.0;
 expParam.resPause  = 2.0;
 expParam.boundsRMS = 3;  %+/- dB
 
-%Gives variable of InflaRespRoute. Recorded from previous recording
-dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
-try
-    load(dirs.InflaRespFile);
-catch me
-    fprintf('\nSubject Data does not exist at %s \n', dirs.InflaRespFile)
-end
+% Gives variable of InflaVar. Analyzed from previous recording
+load(dirs.InflaRespFile);
+expParam.InflaT   = InflaVar(1);
+expParam.InflaV   = InflaVar(2);
 
 %This is where the fun begins
 fprintf('\nStarting Trials\n\n')

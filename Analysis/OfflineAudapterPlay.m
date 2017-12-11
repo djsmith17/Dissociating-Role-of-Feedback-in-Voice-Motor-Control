@@ -77,15 +77,15 @@ if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
 
-dirs.SavBaseFile = fullfile(dirs.SavData, expParam.subject, expParam.baseRun, expParam.baseFile);
-if ~exist(dirs.SavBaseFile, 'file')
-    fprintf('ERROR: No voice file at %s!\n', dirs.SavBasFile)
-    return
-end
-
 dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVar, expParam.InflaFile);
 if ~exist(dirs.InflaRespFile, 'file')
     fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaRespFile)
+    return
+end
+
+dirs.SavBaseFile = fullfile(dirs.SavData, expParam.subject, expParam.baseRun, expParam.baseFile);
+if ~exist(dirs.SavBaseFile, 'file')
+    fprintf('ERROR: No voice file at %s!\n', dirs.SavBasFile)
     return
 end
 
@@ -129,14 +129,14 @@ if collectNewData == 1
     expParam.cuePause  = 1.0;
     expParam.resPause  = 2.0;
     expParam.boundsRMS = 3;  %+/- dB
-   
-    %Load the PreRecorded Baseline Mic signal
-    [PreRMic, PreRfs] = OfflineLoadBaselineVoice(dirs);
     
-    %Gives variable of InflaVar. Analyzed from previous recording
+    % Gives variable of InflaVar. Analyzed from previous recording
     load(dirs.InflaRespFile);
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
+   
+    % Load the PreRecorded Baseline Mic signal
+    [PreRMic, PreRfs] = OfflineLoadBaselineVoice(dirs);
 
     DAQin   = []; rawData = [];
     for ii = 1:expParam.numTrial
