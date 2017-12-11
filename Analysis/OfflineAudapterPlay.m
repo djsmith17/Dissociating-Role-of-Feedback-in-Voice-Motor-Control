@@ -18,10 +18,12 @@ rng('shuffle');
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Loudness (dB SPL):',...
-          'Gender ("male" or "female"):'};
+          'Gender ("male" or "female"):',...
+          'Inflation Vars:',...
+          'Baseline Run:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'AF1', '60', 'female'};
+defaultanswer = {'null', 'AF1', '60', 'female', 'IV1', 'BV1'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -46,6 +48,8 @@ expParam.run          = [answer{2} 'Offline'];
 expParam.targRMS      = str2double(answer{3});
 expParam.gender       = answer{4};
 expParam.curSess      = [expParam.subject expParam.run];
+expParam.InflaVar     = answer{5};
+expParam.baseRun      = answer{6};
 expParam.numTrial     = 10;
 expParam.curTrial     = [];
 expParam.perCatch     = 1.00;
@@ -58,7 +62,7 @@ expParam.bPlay        = 0;
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 
-expParam.baseRun      = 'BV1';
+expParam.InflaFile    = [expParam.subject expParam.InflaVar 'DRF.mat'];
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
 
 dirs = dfDirs(expParam.project);
@@ -79,9 +83,9 @@ if ~exist(dirs.SavBaseFile, 'file')
     return
 end
 
-dirs.InflaRespFile = fullfile(dirs.SavData, expParam.subject, [expParam.subject '_AveInflaResp.mat']);
+dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVar, expParam.InflaFile);
 if ~exist(dirs.InflaRespFile, 'file')
-    fprintf('ERROR: No Inflation Route file at %s!\n', dirs.InflaRespFile)
+    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaRespFile)
     return
 end
 
@@ -129,10 +133,10 @@ if collectNewData == 1
     %Load the PreRecorded Baseline Mic signal
     [PreRMic, PreRfs] = OfflineLoadBaselineVoice(dirs);
     
-    %Gives variable of InflaRespRoute. Recorded from previous recording
+    %Gives variable of InflaVar. Analyzed from previous recording
     load(dirs.InflaRespFile);
-    expParam.InflaRespRoute = InflaRespRoute;
-    expParam.tStep          = tStep;
+    expParam.InflaT   = InflaVar(1);
+    expParam.InflaV   = InflaVar(2);
 
     DAQin   = []; rawData = [];
     for ii = 1:expParam.numTrial
@@ -200,11 +204,12 @@ end
 
 function [mic, fs] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
+trial = 2;
 
 %Load previously recorded voice sample to perturb
 fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
 load(dirs.SavBaseFile);
-baseData = DRF.rawData(2);
+baseData = DRF.rawData(trial);
 
 mic = baseData.signalIn;
 fs  = baseData.expParam.sRateAnal;
