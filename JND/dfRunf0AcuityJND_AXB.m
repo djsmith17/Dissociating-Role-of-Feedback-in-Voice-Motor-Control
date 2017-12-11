@@ -107,7 +107,7 @@ waitForKeyPress = 3 ; % in seconds
 UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for accurate ISI and token length
 
-fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, subjf0)
+fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, UD.subjf0)
 %%%%%Visual Presentation
 [h2, h3, h4] = JNDVisualPresentation;
 pause(5);
