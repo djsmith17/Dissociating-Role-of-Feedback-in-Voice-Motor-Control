@@ -14,13 +14,13 @@ trigs     = expParam.trigs(trial,:,1);
 ost       = expParam.ostFN;
 pcf       = expParam.pcfFN;
 trialLen  = expParam.trialLen;
-stimType  = expParam.stimType;
-stimName  = expParam.stimName;
+pertName  = expParam.AudPert;
+pertSw    = expParam.AudPertSw;
 
-InflaRespRoute = expParam.InflaRespRoute;
-tStep          = expParam.tStep;
+InflaT = expParam.InflaT;
+InflaV = expParam.InflaV;
 
-audStimP = organizeStimulus(trialType, trialLen, trigs, stimType, stimName, InflaRespRoute, tStep);
+audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertName, InflaT, InflaV);
 
 OST_tline = writeOSTportions(audStimP);
 PCF_tline = writePCFportions(audStimP);
