@@ -1,6 +1,8 @@
 
 close all; clear all;
 
+figDir = 'C:\Users\djsmith\OneDrive\Dissertation\Media\Diagrams';
+
 %Plotting Variables
 plotpos    = [100 100];
 plotdim    = [600 800];
@@ -39,3 +41,7 @@ plot(t, pitchSig, 'r', 'LineWidth', lineThick)
 title('Laryngeal Displacement Dynamics', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis([0 4 -5 5]); box off;
 % axis off
+
+fileName = 'LDD Dynamics.jpg';
+figFile = fullfile(figDir, fileName);
+export_fig(figFile)
