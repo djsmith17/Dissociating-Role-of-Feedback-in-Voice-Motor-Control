@@ -50,7 +50,7 @@ expParam.gender       = answer{4};
 expParam.curSess      = [expParam.subject expParam.run];
 expParam.InflaVar     = answer{5};
 expParam.baseRun      = answer{6};
-expParam.numTrial     = 10;
+expParam.numTrial     = 2;
 expParam.curTrial     = [];
 expParam.perCatch     = 1.00;
 expParam.AudFB        = 'Voice Shifted';
@@ -136,7 +136,7 @@ if collectNewData == 1
     expParam.InflaV   = InflaVar(2);
    
     % Load the PreRecorded Baseline Mic signal
-    [PreRMic, PreRfs] = OfflineLoadBaselineVoice(dirs);
+    [mic_frames] = OfflineLoadBaselineVoice(dirs);
 
     DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
@@ -144,7 +144,7 @@ if collectNewData == 1
         expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
 
         %Level of f0 change based on results from Laryngeal pert Exp
-        audStimP = dfSetAudapFiles(expParam, dirs, ii, 1);
+        audStimP = dfSetAudapFiles(expParam, dirs, ii, 0);
 
         %Set the OST and PCF functions
         Audapter('ost', expParam.ostFN, 0);
@@ -153,11 +153,6 @@ if collectNewData == 1
         %Setup which perturb file we want
         NIDAQsig = [expParam.sigs(:,ii) nVS];
         queueOutputData(s, NIDAQsig);
-
-        %Resample at 48000Hz
-        mic_reSamp = resample(PreRMic, data.params.sr * data.params.downFact, PreRfs);
-        %Split the signal into frames
-        mic_frames = makecell(mic_reSamp, data.params.frameLen * data.params.downFact);
 
         fprintf('Trial %d\n', ii)
         AudapterIO('init', p);
@@ -175,7 +170,7 @@ if collectNewData == 1
         rawData = cat(1, rawData, data);
         
         %Play the sound, if you care to
-        if expParam.bPlay; soundsc(data_off.signalIn, data_off.expParam.sRateAnal); end
+        if expParam.bPlay; soundsc(data.signalIn, data.expParam.sRateAnal); end
 
         pause(expParam.resPause)
     end
@@ -202,7 +197,7 @@ close all
 % drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 end
 
-function [mic, fs] = OfflineLoadBaselineVoice(dirs)
+function [mic_frames] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
 trial = 2;
 
@@ -211,6 +206,14 @@ fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
 load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
-mic = baseData.signalIn;
-fs  = DRF.expParam.sRateAnal;
+mic      = baseData.signalIn;
+fs       = DRF.expParam.sRateAnal;
+downFact = baseData.params.downFact;
+sr       = baseData.params.sr;
+frameLen = baseData.params.frameLen;
+
+%Resample at 48000Hz
+mic_reSamp = resample(mic, sr*downFact, fs);
+%Split the signal into frames
+mic_frames = makecell(mic_reSamp, frameLen*downFact);
 end
