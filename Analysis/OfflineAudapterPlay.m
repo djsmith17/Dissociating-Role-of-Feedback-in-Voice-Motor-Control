@@ -90,8 +90,6 @@ if ~exist(dirs.SavBaseFile, 'file')
 end
 
 dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
-dirs.saveFileSuffix = '_offlinePSR';
-
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
@@ -124,7 +122,7 @@ if collectNewData == 1
     
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
 
     expParam.cuePause  = 1.0;
     expParam.resPause  = 2.0;
@@ -140,8 +138,8 @@ if collectNewData == 1
 
     DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
-        expParam.curTrial    = ['Trial' num2str(ii)];
-        expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
+        expParam.curTrial     = ['Trial' num2str(ii)];
+        expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
 
         %Level of f0 change based on results from Laryngeal pert Exp
         audStimP = dfSetAudapFiles(expParam, dirs, ii, 0);
@@ -182,10 +180,10 @@ if collectNewData == 1
     OA.DAQin       = DAQin;
     OA.rawData     = rawData;      
 
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject dirs.saveFileSuffix '.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run '.mat']);
     save(dirs.RecFileDir, 'OA')
 else
-    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject dirs.saveFileSuffix '.mat']);
+    dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run '.mat']);
     load(dirs.RecFileDir)
 end
 close all
