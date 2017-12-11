@@ -89,7 +89,7 @@ if ~exist(dirs.SavBaseFile, 'file')
     return
 end
 
-dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, 'offline');
+dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
 dirs.saveFileSuffix = '_offlinePSR';
 
 if exist(dirs.SavResultsDir, 'dir') == 0

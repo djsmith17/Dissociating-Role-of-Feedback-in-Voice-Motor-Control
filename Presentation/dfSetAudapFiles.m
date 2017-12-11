@@ -51,13 +51,18 @@ audStimP.lenPerT   = audStimP.SpTime - audStimP.StTime;      %Seconds
 audStimP.lenPerP   = round(audStimP.lenPerT*audStimP.AudFs); %Points
 
 audStimP.tStep     = 0.005;   % seconds
+audStimP.fs        = 1/audStimP.tStep;
 audStimP.InflaT    = InflaT;  % seconds
 audStimP.InflaV    = InflaV;  % cents
+audStimP.rampLen   = [];
+audStimP.steadyLen = [];
+audStimP.ramp      = [];
+audStimP.rampRv    = [];
 
 %Define the slope for the Aud. perturbation stimulus
 if pertSw == 0 %Linear Ramp down.
     audStimP.PertT   = 0.15; % seconds          HardSet
-    audStimP.rampLen = audStimP.PertT*audStimP.AudFs;
+    audStimP.rampLen = audStimP.PertT*audStimP.fs;
     
     if trialType == 0;
         audStimP.rampMin = 0;
@@ -68,7 +73,7 @@ if pertSw == 0 %Linear Ramp down.
     end              
 elseif pertSw == 1 %Sigmoid 0 -> LaryngStim Min 
     audStimP.PertT   = InflaT; % seconds
-    audStimP.rampLen = audStimP.PertT*audStimP.AudFs;
+    audStimP.rampLen = audStimP.PertT*audStimP.fs;
     
     if trialType == 0;
         audStimP.rampMin = 0;
@@ -79,16 +84,18 @@ elseif pertSw == 1 %Sigmoid 0 -> LaryngStim Min
         audStimP.ramp     = audStimP.rampMin*sigmf(x, [1 5]);
     end                     
 end
+audStimP.rampRv = fliplr(audStimP.ramp);
 
 audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLen-1);
 audStimP.rampUPRange = (0:audStimP.rampLen-1) + (audStimP.SpPoint - audStimP.rampLen);
 audStimP.steadySt    = audStimP.rampDNRange(end)+1;
 audStimP.steadySp    = audStimP.rampUPRange(1)-1;
 audStimP.steadyRange = audStimP.steadySt:audStimP.steadySp;
+audStimP.steadyLen   = length(audStimP.steadyRange);
 
 stim = zeros(audStimP.lenTrialP,1);
 stim(audStimP.rampDNRange) = audStimP.ramp;
-stim(audStimP.rampUPRange) = fliplr(audStimP.ramp);
+stim(audStimP.rampUPRange) = audStimP.rampRv;
 stim(audStimP.steadyRange) = audStimP.rampMin;
 
 audStimP.stim = stim;
@@ -100,8 +107,13 @@ function OST_tline = writeOSTportions(audStimP)
 %rules outlined in the Audapter Manuel. This has been specifically
 %organized for customized Pitch-Shift Reflex experiments.
 
+tStep     = audStimP.tStep;
+StTime    = audStimP.StTime;
+rampLen   = audStimP.rampLen;
+steadyLen = audStimP.steadyLen;
+
 %The number of changes to f0 + the hold + last THREE clean-up lines
-n = 2*audStimP.rampStps + 1 + 3;
+n = 2*rampLen + 1 + 3;
 
 %p = pre-experiment lines in OST file
 p = 7;
@@ -115,21 +127,21 @@ OST_tline{3} = ' ';
 OST_tline{4} = '# Main section: Heuristic rules for tracking';
 OST_tline{5} = ['n = ' num2str(n)];
 OST_tline{6} = '0 INTENSITY_RISE_HOLD 0.01 0.05 {} # Detect voicing onset';
-OST_tline{7} = ['2 ELAPSED_TIME ' num2str(audStimP.StTime) ' NaN {} #The amount of time pre-perturbation']; %Random start between 1.7 and 2.1s
+OST_tline{7} = ['2 ELAPSED_TIME ' num2str(StTime) ' NaN {} #The amount of time pre-perturbation']; %Random start between 1.7 and 2.1s
 
 %The +2 comes from the numbering on the OST ahead of these commands
 for i = 1:n
-    if i <= audStimP.rampStps
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.rampStps)];
-    elseif i == audStimP.rampStps + 1 
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.lenPerVallT) ' NaN {} #Hold for the pitch-shift hold period'];
-    elseif i <= 2*audStimP.rampStps + 1
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(audStimP.tStep) ' NaN {} #Shift ' num2str(i) ' of ' num2str(audStimP.rampStps)];    
-    elseif i == 2*audStimP.rampStps + 2
+    if i <= rampLen
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #DownShift ' num2str(i) ' of ' num2str(rampLen)];
+    elseif i == rampLen + 1 
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(steadyLen) ' NaN {} #Hold for the pitch-shift hold period'];
+    elseif i <= 2*rampLen + 1
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #UpShift ' num2str(i) ' of ' num2str(rampLen)];    
+    elseif i == 2*rampLen + 2
         OST_tline{i+p} = [num2str(i+2) ' OST_END NaN NaN {} #End the dang thing'];
-    elseif 1 == 2*audStimP.rampStps + 3
+    elseif 1 == 2*rampLen + 3
         OST_tline{i+p} = ' ';
-    elseif i == 2*audStimP.rampStps + 4
+    elseif i == 2*rampLen + 4
         OST_tline{i+p} = 'n = 0';
     end    
 end
@@ -165,8 +177,13 @@ function PCF_tline = writePCFportions(audStimP)
 %The PCF expects f0 in units of semitones. My analysis saves f0 in cents. 
 %Divide by 100 to convert.
 
+rampLen   = audStimP.rampLen;
+ramp      = audStimP.ramp;
+rampMin   = audStimP.rampMin;
+rampRv    = audStimP.rampRv;
+
 %The number of changes to f0 + the hold + the last ONE clean-up line
-n = 2*audStimP.rampStps + 1 + 1;
+n = 2*rampLen + 1 + 1;
 
 %p = pre-experiment lines in PCF file
 p = 8;
@@ -185,13 +202,13 @@ PCF_tline{8} = '2, 0.0, 0.0, 0, 0';
 
 %The +2 comes from the numbering on the PCF ahead of these commands
 for i = 1:n
-    if i <= audStimP.rampStps
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.ramp(i)/100) ', 0.0, 0, 0'];
-    elseif i == audStimP.rampStps + 1 
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.ramp(end)/100) ', 0.0, 0, 0'];
-    elseif i <= 2*audStimP.rampStps + 1
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(audStimP.ramp((2*audStimP.rampStps + 1) - (i-1))/100) ', 0.0, 0, 0'];
-    elseif i == 2*audStimP.rampStps + 2
+    if i <= rampLen
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(ramp(i)/100) ', 0.0, 0, 0'];
+    elseif i == rampLen + 1 
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampMin/100) ', 0.0, 0, 0'];
+    elseif i <= 2*rampLen + 1
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampRv(i-rampLen)/100) ', 0.0, 0, 0'];
+    elseif i == 2*rampLen + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       
 end
@@ -233,6 +250,13 @@ end
 function drawStimulus(audStimP, dirs)
 close all
 
+time     = audStimP.time;
+stim     = audStimP.stim;
+
+pertName = audStimP.pertName;
+pertMag  = audStimP.rampMin;
+pertTime = audStimP.PertT;
+
 pertAx  = [audStimP.StTime, audStimP.SpTime];
 pertAy  = [200 200];
 
@@ -245,16 +269,16 @@ set(AudStim, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
 hold on
 
-plot(audStimP.time, audStimP.stim)
+plot(time, stim)
 
 xlabel('Time (s)', 'FontSize', 12, 'FontWeight', 'bold')
 ylabel('Fundamental Frequency Shift (st)', 'FontSize', 12, 'FontWeight', 'bold')
-title({'Pitch-Shift Reflex Experiment Stimulus'; audStimP.stimName}, 'FontSize', 16, 'FontWeight', 'bold')
+title({'Pitch-Shift Reflex Experiment Stimulus'; pertName}, 'FontSize', 16, 'FontWeight', 'bold')
 axis([0 4 -101 1]); box off;
 
 annotation('textbox',[0.70 0.75 0.40 0.1],...
-           'String', {['Perturbation Magnitude: ' num2str(audStimP.rampFin) ' cents'],...
-                    ['Fall/Rise Time: ' num2str(audStimP.routeLenT) ' seconds']},...
+           'String', {['Perturbation Magnitude: ' num2str(pertMag) ' cents'],...
+                    ['Fall/Rise Time: ' num2str(pertTime) ' seconds']},...
                     'LineStyle','none',...
                     'FontWeight','bold',...
                     'FontSize',10,...
@@ -264,7 +288,7 @@ set(gca, 'FontSize', 16,...
          'FontWeight', 'bold');
      
      
-plTitle = ['PSRStim_' audStimP.stimName '.jpg'];     
+plTitle = ['PSRStim_' pertName '.jpg'];     
 saveFileName = fullfile(dirs.SavResultsDir, plTitle);
 export_fig(saveFileName) 
 
