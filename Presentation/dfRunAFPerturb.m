@@ -89,8 +89,8 @@ if exist(dirs.RecWaveDir, 'dir') == 0
 end
 
 dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVar, expParam.InflaFile);
-if ~exist(dirs.InflaRespFile, 'file')
-    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaRespFile)
+if ~exist(dirs.InflaVarFile, 'file')
+    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
     return
 end
 
@@ -128,7 +128,7 @@ expParam.resPause  = 2.0;
 expParam.boundsRMS = 3;  %+/- dB
 
 % Gives variable of InflaVar. Analyzed from previous recording
-load(dirs.InflaRespFile);
+load(dirs.InflaVarFile);
 expParam.InflaT   = InflaVar(1);
 expParam.InflaV   = InflaVar(2);
 

@@ -78,8 +78,8 @@ if exist(dirs.RecWaveDir, 'dir') == 0
 end
 
 dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVar, expParam.InflaFile);
-if ~exist(dirs.InflaRespFile, 'file')
-    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaRespFile)
+if ~exist(dirs.InflaVarFile, 'file')
+    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
     return
 end
 
@@ -131,14 +131,14 @@ if collectNewData == 1
     expParam.boundsRMS = 3;  %+/- dB
     
     % Gives variable of InflaVar. Analyzed from previous recording
-    load(dirs.InflaRespFile);
+    load(dirs.InflaVarFile);
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
    
     % Load the PreRecorded Baseline Mic signal
     [PreRMic, PreRfs] = OfflineLoadBaselineVoice(dirs);
 
-    DAQin   = []; rawData = [];
+    DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
         expParam.curTrial    = ['Trial' num2str(ii)];
         expParam.curExpTrial = [expParam.subject expParam.run expParam.curTrial];
@@ -195,11 +195,11 @@ else
 end
 close all
 
-[auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
-
-drawAudResp_AllTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
-
-drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
+% [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
+% 
+% drawAudResp_AllTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
+% 
+% drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 end
 
 function [mic, fs] = OfflineLoadBaselineVoice(dirs)
@@ -212,5 +212,5 @@ load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
 mic = baseData.signalIn;
-fs  = baseData.expParam.sRateAnal;
+fs  = DRF.expParam.sRateAnal;
 end
