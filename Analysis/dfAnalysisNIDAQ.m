@@ -37,16 +37,7 @@ niAn.expTrigs = expParam.trigs(:,:,1); %Time
 niAn.numContTrials = sum(niAn.ContTrials);
 niAn.numPertTrials = sum(niAn.PertTrials);
 
-%Identify a few analysis varaibles
-fV.win    = 0.05;  %seconds
-fV.fsA    = 1/fV.win;
-fV.winP   = fV.win*niAn.sRate;
-fV.pOV    = 0.60;  %60% overlap
-fV.tStepP = fV.winP*(1-fV.pOV);
-fV.winSts = 1:fV.tStepP:(niAn.numSamp-fV.winP);
-fV.numWin = length(fV.winSts);
-fV.freqCutOff = 300;
-niAn.fV = fV;
+niAn.fV = setFreqAnalVar(niAn.sRate, niAn.numSamp);
 
 %Unpack the NIDAQ raw data set
 niAn.sRateDN  = sRate/niAn.dnSamp;
@@ -110,8 +101,8 @@ if audioFlag == 1
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [niAn.subject niAn.run 'f0Analysis.mat']);
     
     if exist(dirs.audiof0AnalysisFile, 'file') == 0
-        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, fV, niAn.bTf0b, 1);
-        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, fV, niAn.bTf0b, 1);
+        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioM, niAn.sRate, niAn.fV, niAn.bTf0b, 1);
+        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, niAn.time, niAn.audioH, niAn.sRate, niAn.fV, niAn.bTf0b, 1);
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -318,6 +309,19 @@ for ii = 1:numTrial
     
     sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
 end
+end
+
+function fV = setFreqAnalVar(sRate, numSamp)
+
+%Identify a few analysis varaibles
+fV.win        = 0.05;  %seconds
+fV.fsA        = 1/fV.win;
+fV.winP       = fV.win*sRate;
+fV.pOV        = 0.60;  %60% overlap
+fV.tStepP     = fV.winP*(1-fV.pOV);
+fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
+fV.numWin     = length(fV.winSts);
+fV.freqCutOff = 300;
 end
 
 function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, bTf0b, flag)
