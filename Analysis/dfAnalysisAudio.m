@@ -6,6 +6,7 @@ function [An, Res] = dfAnalysisAudio(dirs, An)
 %Starting Variables that I need
 %An.subject
 %An.run
+%An.curSess
 %An.time
 %An.audioM
 %An.audioH
