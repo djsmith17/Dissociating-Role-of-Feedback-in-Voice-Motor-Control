@@ -1,17 +1,30 @@
-function dfAnalysisAudio(dirs, An)
+function [An, Res] = dfAnalysisAudio(dirs, An)
 %I found that I was mostly writing the same things twice in my scripts for
 %audapter analysis and NIDAQ analysis. Ultimately what I care about is the
 %audio in one form or another. Let's just put it here.
 
+%Starting Variables that I need
+%An.subject
+%An.run
+%An.time
+%An.audioM
+%An.audioH
+%An.sRate
+%An.numSamp
+%An.bTf0b
+
 %Instatiate the variables we intend to use. 
 An = initAudVar(An);
+
+%Set some frequency analysis variables
+An.fV = setFreqAnalVar(An.sRate, An.numSamp);
 
 %Main script that does the Signal Frequency Analysis
 dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [An.subject An.run 'f0Analysis.mat']);
 
 if exist(dirs.audiof0AnalysisFile, 'file') == 0
-    [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioM, An.sRate, fV, An.bTf0b, 1);
-    [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioH, An.sRate, fV, An.bTf0b, 1);
+    [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioM, An.sRate, An.fV, An.bTf0b, 1);
+    [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioH, An.sRate, An.fV, An.bTf0b, 1);
     save(dirs.audiof0AnalysisFile, 'f0A')
 else
     load(dirs.audiof0AnalysisFile)
@@ -59,6 +72,8 @@ An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc);
 %The Inflation Response
 [An.respVar, An.respVarMean, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
 
+lims = identifyLimits(An);
+Res  = packResults(An, lims);
 end
 
 function An = initAudVar(An)
@@ -103,6 +118,19 @@ An.InflaStimVar   = [];
 
 end
 
+function fV = setFreqAnalVar(sRate, numSamp)
+
+%Identify a few analysis varaibles
+fV.win        = 0.05;  %seconds
+fV.fsA        = 1/fV.win;
+fV.winP       = fV.win*sRate;
+fV.pOV        = 0.60;  %60% overlap
+fV.tStepP     = fV.winP*(1-fV.pOV);
+fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
+fV.numWin     = length(fV.winSts);
+fV.freqCutOff = 300;
+end
+
 function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, bTf0b, flag)
 [~, numTrial] = size(audio);
 
@@ -130,4 +158,289 @@ else
     end
     fsA = fV.fsA;
 end
+end
+
+function audioS = smoothf0(audio)
+[~, numTrial] = size(audio);
+
+audioS = [];
+for ii = 1:numTrial
+    audioSmooth = smooth(audio(:,ii), 10);
+    audioS      = cat(2, audioS, audioSmooth);
+end
+end
+
+function audio_norm = normalizeDAQf0(audio, f0b)
+[~, numTrial] = size(audio);
+
+audio_norm = [];
+for ii = 1:numTrial
+    audio_trial = 1200*log2(audio(:,ii)./f0b(ii));
+    audio_norm  = cat(2, audio_norm, audio_trial);
+end
+end
+
+function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(time, audioNormM, audioNormH, numTrialType, trigs, curSess, type)
+
+timeInd = find(time > 0.5 & time < 4);
+
+audioNormMPP = [];
+audioNormHPP = [];
+numTrialTypePP = 0; 
+trigsPP        = [];
+for ii = 1:numTrialType
+    ind = find(audioNormM(timeInd,ii) >= 500 | audioNormM(timeInd,ii) <=  -500);
+    if ~isempty(ind)
+        fprintf('Threw away %s %s trial %s\n', curSess, type, num2str(ii))
+    else
+        numTrialTypePP = numTrialTypePP + 1;
+        trigsPP = cat(1, trigsPP, trigs(ii,:));
+        audioNormMPP = cat(2, audioNormMPP, audioNormM(:,ii));
+        audioNormHPP = cat(2, audioNormHPP, audioNormH(:,ii));
+    end
+end
+end
+
+function [secTime, secAudio] = sectionAudioData(time, audio, fs, trigs)
+[~, numTrial] = size(audio);
+preEve  = 0.5; posEve = 1.0;
+per     = 1/fs;
+preEveP = preEve*fs;
+posEveP = posEve*fs-1;
+
+trigsR   = round2matchfs(trigs);
+
+secAudio   = [];
+OnsetSecs  = [];
+OffsetSecs = [];
+for ii = 1:numTrial 
+    OnsetI  = find(time == trigsR(ii,1));
+    OffsetI = find(time == trigsR(ii,2));
+    
+    OnsetISt = OnsetI - preEveP;
+    OnsetISp = OnsetI + posEveP;
+    
+    OffsetISt = OffsetI - preEveP;
+    OffsetISp = OffsetI + posEveP;
+        
+    OnsetSec  = audio(OnsetISt:OnsetISp, ii);
+    OffsetSec = audio(OffsetISt:OffsetISp, ii);
+    
+    OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
+    OffsetSecs = cat(2, OffsetSecs, OffsetSec);
+end
+
+secTime  = (-0.5+per):per:1.0;
+secAudio(:,:,1) = OnsetSecs; 
+secAudio(:,:,2) = OffsetSecs;
+end
+
+function y = round2matchfs(x)
+%This expects a decimal number as input
+%Input can be given as a set
+
+y = round(x.*200)./200;
+end
+
+function meanAudio = meanAudioData(secAudio)
+
+OnsetSecs  = secAudio(:,:,1);
+OffsetSecs = secAudio(:,:,2);
+[~, numTrial] = size(OnsetSecs);
+
+meanOnset  = mean(OnsetSecs, 2);
+meanOffset = mean(OffsetSecs, 2);
+
+stdOnset   = std(OnsetSecs, 0, 2);
+stdOffset  = std(OffsetSecs, 0, 2);
+
+SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
+SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
+
+NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+
+meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+end
+
+function [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+[L, numTrial, ~] = size(secAudio); %Only look at Onsets
+ir.numTrial = numTrial;
+ir.time     = secTime;
+ir.iAtOnset = find(secTime == 0); %Ind
+ir.tAtOnset = 0;
+ir.vAtOnset = [];
+ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); %Ind
+ir.iAtMin = [];
+ir.tAtMin = [];
+ir.vAtMin = [];
+ir.stimMag = [];
+ir.iAtResp = L; %the last ind
+ir.tAtResp = ir.time(L);
+ir.vAtResp = [];
+ir.respMag = [];
+ir.respPer = [];
+
+shpInds = [];
+tAtMin  = []; stimMag = [];
+respMag = []; respPer = [];
+for i = 1:numTrial
+    onset = secAudio(:,i,1); %First depth dim in Onset
+    ir.vAtOnset = onset(ir.iAtOnset);
+
+    [minOn, minIdx] = min(onset(ir.iPostOnsetR));
+    ir.iAtMin = ir.iPostOnsetR(minIdx);
+    ir.tAtMin = ir.time(ir.iAtMin);
+    ir.vAtMin = minOn;
+    ir.stimMag = ir.vAtMin - ir.vAtOnset;
+    
+    ir.vAtResp = onset(ir.iAtResp);
+    ir.respMag = ir.vAtResp - ir.vAtMin;
+    
+    ir.respPer = 100*(ir.respMag/abs(ir.stimMag));
+    
+    if ir.stimMag == 0
+        ir.respPer = 0.0;
+    end
+    
+%     subplot(2,5,i)
+%     plot(secTime, onset)
+    
+%     shpInd   = [ir.iAtOnset ir.iAtMin ir.iAtResp];  
+%     shpInds  = cat(1, shpInds, shpInd); 
+    
+    tAtMin   = cat(1, tAtMin, ir.tAtMin);
+    stimMag  = cat(1, stimMag, ir.stimMag); 
+    respMag  = cat(1, respMag, ir.respMag); 
+    respPer  = cat(1, respPer, ir.respPer);
+end
+
+respVar  = [tAtMin stimMag respMag respPer];
+respVarm = mean(respVar, 1);
+respVarSD = std(respVar, 0, 1);
+
+InflaStimVar = [respVar(1) respVarm(2)];
+end
+
+function lims = identifyLimits(niAn)
+
+%Full Inidividual Trials: Pressure Sensor
+lims.pressure   = [0 4 0 5];
+
+%Aligned Pressure Data
+lims.pressureAl = [0 3.5 -0.5 5];
+
+%Full Individual Trials: Force Sensors
+lims.force      = [0 4 1 5];
+
+%Full trial f0 analysis
+%Full Individual Trials: f0 Audio
+if ~isempty(niAn.audioMf0_pPP)
+    pertTrials = niAn.audioMf0_pPP;
+    sec = 100:700;
+
+    alluL = max(pertTrials(sec,:));
+    alluL(find(alluL > 150)) = 0;
+    alllL = min(pertTrials(sec,:));
+    alllL(find(alllL < -150)) = 0;
+
+    uL = round(max(alluL)) + 20;
+    lL = round(min(alllL)) - 20;
+    lims.audio      = [0 4 lL uL];
+else
+    lims.audio      = [0 4 -20 20];
+end
+
+%Section Mean Pertrubed Trials: f0 Audio 
+if ~isempty(niAn.audioMf0_meanp)
+    [~, Imax] = max(niAn.audioMf0_meanp(:,1)); %Max Pert Onset
+    upBoundOn = round(niAn.audioMf0_meanp(Imax,1) + niAn.audioMf0_meanp(Imax,2) + 10);
+    [~, Imin] = min(niAn.audioMf0_meanp(:,1)); %Min Pert Onset
+    lwBoundOn = round(niAn.audioMf0_meanp(Imin,1) - niAn.audioMf0_meanp(Imin,2) - 10);
+
+    [~, Imax] = max(niAn.audioMf0_meanp(:,3)); %Max Pert Offset
+    upBoundOf = round(niAn.audioMf0_meanp(Imax,3) + niAn.audioMf0_meanp(Imax,4) + 10);
+    [~, Imin] = min(niAn.audioMf0_meanp(:,3)); %Min Pert Offset
+    lwBoundOf = round(niAn.audioMf0_meanp(Imin,3) - niAn.audioMf0_meanp(Imin,4) - 10);
+
+    if upBoundOn > upBoundOf
+        upBoundSec = upBoundOn;
+    else
+        upBoundSec = upBoundOf;
+    end
+
+    if lwBoundOn < lwBoundOf
+        lwBoundSec = lwBoundOn;
+    else
+        lwBoundSec = lwBoundOf;
+    end
+
+    lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
+else
+    lims.audioMean = [-0.5 1.0 -50 50];
+end
+
+end
+
+function res = packResults(An, lims)
+
+res.subject = An.subject;
+res.run     = An.run;
+res.curSess = An.curSess;
+res.AudFB   = An.AudFB;
+
+res.numTrials     = An.numTrial;
+res.numContTrials = An.numContTrials;
+res.numPertTrials = An.numPertTrials;
+res.contIdx       = An.contIdx;
+res.pertIdx       = An.pertIdx;
+res.pertTrig      = An.pertTrig;
+
+res.timeS      = An.time_DN;
+res.sensorP    = An.sensorP_p; %Individual Processed perturbed trials. 
+res.lagTimeP   = An.lagsPres;
+res.lagTimePm  = An.meanLagTimeP;
+res.riseTimeP  = An.riseTimeP;
+res.riseTimePm = An.riseTimePm;
+res.OnOfValP   = An.OnOfValP;
+res.OnOfValPm  = An.OnOfValPm;
+res.limitsP    = lims.pressure;
+
+res.timeSAl   = An.time_Al;
+res.sensorPAl = An.sensorP_Al;
+res.limitsPAl = lims.pressureAl;
+
+res.timeA     = An.time_audio;
+res.f0b       = An.f0b;
+
+res.numContTrialsPP = An.numContTrialsPP;
+res.numPertTrialsPP = An.numPertTrialsPP;
+res.pertTrigPP      = An.pertTrigPP;
+
+%Full Individual Trials: Mic/Head f0 Trace 
+res.audioMf0TrialPert = An.audioMf0_pPP;
+res.audioMf0TrialCont = An.audioMf0_cPP;
+res.audioHf0TrialPert = An.audioHf0_pPP;
+res.audioHf0TrialCont = An.audioHf0_cPP;
+res.limitsA           = lims.audio;
+
+%Sections Trials: Mic/Head f0
+res.secTime          = An.secTime;
+res.audioMf0SecPert  = An.audioMf0_Secp;
+res.audioMf0SecCont  = An.audioMf0_Secc;
+res.audioHf0SecPert  = An.audioHf0_Secp;
+res.audioHf0SecCont  = An.audioHf0_Secc;
+
+%Mean Sectioned Trials: Mic/Head f0 Trace 
+res.audioMf0MeanPert = An.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
+res.audioMf0MeanCont = An.audioMf0_meanc;
+res.audioHf0MeanPert = An.audioHf0_meanp;
+res.audioHf0MeanCont = An.audioHf0_meanc;
+res.limitsAmean      = lims.audioMean;
+
+%Inflation Response
+res.respVar      = An.respVar;
+res.respVarM     = An.respVarMean;
+res.respVarSD    = An.respVarSD;
+res.InflaStimVar = An.InflaStimVar;
 end
