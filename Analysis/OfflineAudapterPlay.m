@@ -38,7 +38,7 @@ switch pertType
         pertTypeSw = 1;
 end
 
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -57,7 +57,7 @@ expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.trialLen     = 4; %Seconds
 expParam.niDev        = 'Dev2';
-expParam.bVis         = 0;
+expParam.bVis         = 1;
 expParam.bPlay        = 0;
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
@@ -188,8 +188,8 @@ else
 end
 close all
 
-% [auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
-% 
+[auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
+
 % drawAudResp_AllTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 % 
 % drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)

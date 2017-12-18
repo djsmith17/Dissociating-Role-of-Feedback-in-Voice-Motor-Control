@@ -652,11 +652,11 @@ niAn.audioHf0_c     = []; %Control head data (norm)
 niAn.audioMf0_pPP   = []; %
 niAn.audioHf0_pPP   = [];
 niAn.numPertTrialsPP = []; 
-niAn.pertTrigPP     = [];
-niAn.audioMf0_cPP   = []; 
-niAn.audioHf0_cPP   = [];
+niAn.pertTrigPP      = [];
+niAn.audioMf0_cPP    = []; 
+niAn.audioHf0_cPP    = [];
 niAn.numContTrialsPP = [];
-niAn.contTrigPP     = [];
+niAn.contTrigPP      = [];
 
 niAn.secTime        = [];
 niAn.audioMf0_Secp  = []; 
