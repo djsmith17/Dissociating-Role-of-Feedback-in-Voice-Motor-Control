@@ -115,7 +115,6 @@ An.respVar        = [];
 An.respVarMean    = [];
 An.respVarSD      = [];
 An.InflaStimVar   = [];
-
 end
 
 function fV = setFreqAnalVar(sRate, numSamp)

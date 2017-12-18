@@ -7,12 +7,12 @@ function dfRunSubjAnalysis()
 %Require the Signal Processing Toolbox
 
 clear all; close all; clc
-AVar.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot22'}; %List of multiple participants.
-AVar.numPart      = length(AVar.participants);
-AVar.runs         = {'SF1'};
-AVar.numRuns      = length(AVar.runs);
-AVar.debug        = 0;
+AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+AVar.participants  = {'Pilot24'}; %List of multiple participants.
+AVar.numPart       = length(AVar.participants);
+AVar.runs          = {'SF1'};
+AVar.numRuns       = length(AVar.runs);
+AVar.debug         = 0;
 
 dirs               = dfDirs(AVar.project);
 

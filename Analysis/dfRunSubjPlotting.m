@@ -3,9 +3,9 @@ function dfRunSubjPlotting()
 
 clear all; close all; clc
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'Pilot22'}; %List of multiple participants.
+sPlt.participants  = {'Pilot24'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'BDiag6'}; %All runs to consider 
+sPlt.runs          = {'SF1'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
@@ -13,7 +13,7 @@ dirs               = dfDirs(sPlt.project);
 sv2File              = 1;
 sPlt.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
 sPlt.NIDAQ_PresMic   = 0;
-sPlt.NIDAQ_AligSens  = 0;
+sPlt.NIDAQ_AligPress  = 1;
 sPlt.NIDAQ_AllPertTrial   = 0;
 sPlt.NIDAQ_MeanTrialMicf0 = 1;
 sPlt.IntraTrial_T    = 0; %SPL trace of individual trial
@@ -47,7 +47,7 @@ for ii = 1:sPlt.numPart
             drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
         end
         
-        if sPlt.NIDAQ_AligSens == 1
+        if sPlt.NIDAQ_AligPress == 1
             drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2File)
         end
 
