@@ -1,4 +1,4 @@
-function An = dfAnalysisAudio(dirs, An)
+function An = dfAnalysisAudio(dirs, An, AudFlag)
 %I found that I was mostly writing the same things twice in my scripts for
 %audapter analysis and NIDAQ analysis. Ultimately what I care about is the
 %audio in one form or another. Let's just put it here.
@@ -25,61 +25,63 @@ function An = dfAnalysisAudio(dirs, An)
 %Instatiate the variables we intend to use. 
 An = initAudVar(An);
 
-%Set some frequency analysis variables
-An.fV = setFreqAnalVar(An.sRate, An.numSamp);
+if AudFlag == 1
+    %Set some frequency analysis variables
+    An.fV = setFreqAnalVar(An.sRate, An.numSamp);
 
-%Main script that does the Signal Frequency Analysis
-dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [An.subject An.run 'f0Analysis.mat']);
+    %Main script that does the Signal Frequency Analysis
+    dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [An.subject An.run 'f0Analysis.mat']);
 
-if exist(dirs.audiof0AnalysisFile, 'file') == 0
-    [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioM, An.sRate, An.fV, An.bTf0b, 1);
-    [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioH, An.sRate, An.fV, An.bTf0b, 1);
-    save(dirs.audiof0AnalysisFile, 'f0A')
-else
-    load(dirs.audiof0AnalysisFile)
+    if exist(dirs.audiof0AnalysisFile, 'file') == 0
+        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioM, An.sRate, An.fV, An.bTf0b, 1);
+        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioH, An.sRate, An.fV, An.bTf0b, 1);
+        save(dirs.audiof0AnalysisFile, 'f0A')
+    else
+        load(dirs.audiof0AnalysisFile)
+    end
+
+    An.time_audio = f0A.time_audio;
+    An.fsA        = f0A.fsA;
+    An.audioMf0   = f0A.audioMf0; 
+    An.audioHf0   = f0A.audioHf0;    
+
+    %Smooth the f0 data
+    An.audioMf0S   = smoothf0(An.audioMf0);
+    An.audioHf0S   = smoothf0(An.audioHf0);
+
+    %Normalize f0 and convert to cents
+    prePert       = (0.5 < An.time_audio & 1.0 > An.time_audio);
+    An.trialf0b   = mean(An.audioMf0S(prePert,:),1);
+    An.f0b        = mean(An.trialf0b);
+
+    An.audioMf0_norm = normalizeDAQf0(An.audioMf0S, An.trialf0b);
+    An.audioHf0_norm = normalizeDAQf0(An.audioHf0S, An.trialf0b);
+
+    %Find the Perturbed Trials
+    An.audioMf0_p = parseTrialTypes(An.audioMf0_norm, An.pertIdx);
+    An.audioHf0_p = parseTrialTypes(An.audioHf0_norm, An.pertIdx);
+    An.audioMf0_c = parseTrialTypes(An.audioMf0_norm, An.contIdx);
+    An.audioHf0_c = parseTrialTypes(An.audioHf0_norm, An.contIdx);
+
+    %Find troublesome trials and remove
+    [An.audioMf0_pPP, An.audioHf0_pPP, An.numPertTrialsPP, An.pertTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.numPertTrials, An.pertTrig, An.curSess, 'Pert');
+    [An.audioMf0_cPP, An.audioHf0_cPP, An.numContTrialsPP, An.contTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.numContTrials, An.contTrig, An.curSess, 'Cont');
+
+    %Section the data around onset and offset
+    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.fsA, An.pertTrigPP);
+    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.time_audio, An.audioHf0_pPP, An.fsA, An.pertTrigPP);
+    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.time_audio, An.audioMf0_cPP, An.fsA, An.contTrigPP);
+    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.time_audio, An.audioHf0_cPP, An.fsA, An.contTrigPP);
+
+    %Mean around the onset and offset
+    An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
+    An.audioHf0_meanp = meanAudioData(An.audioHf0_Secp);
+    An.audioMf0_meanc = meanAudioData(An.audioMf0_Secc);
+    An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc); 
+
+    %The Inflation Response
+    [An.respVar, An.respVarMean, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
 end
-
-An.time_audio = f0A.time_audio;
-An.fsA        = f0A.fsA;
-An.audioMf0   = f0A.audioMf0; 
-An.audioHf0   = f0A.audioHf0;    
-
-%Smooth the f0 data
-An.audioMf0S   = smoothf0(An.audioMf0);
-An.audioHf0S   = smoothf0(An.audioHf0);
-
-%Normalize f0 and convert to cents
-prePert       = (0.5 < An.time_audio & 1.0 > An.time_audio);
-An.trialf0b   = mean(An.audioMf0S(prePert,:),1);
-An.f0b        = mean(An.trialf0b);
-
-An.audioMf0_norm = normalizeDAQf0(An.audioMf0S, An.trialf0b);
-An.audioHf0_norm = normalizeDAQf0(An.audioHf0S, An.trialf0b);
-
-%Find the Perturbed Trials
-An.audioMf0_p = parseTrialTypes(An.audioMf0_norm, An.pertIdx);
-An.audioHf0_p = parseTrialTypes(An.audioHf0_norm, An.pertIdx);
-An.audioMf0_c = parseTrialTypes(An.audioMf0_norm, An.contIdx);
-An.audioHf0_c = parseTrialTypes(An.audioHf0_norm, An.contIdx);
-
-%Find troublesome trials and remove
-[An.audioMf0_pPP, An.audioHf0_pPP, An.numPertTrialsPP, An.pertTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.numPertTrials, An.pertTrig, An.curSess, 'Pert');
-[An.audioMf0_cPP, An.audioHf0_cPP, An.numContTrialsPP, An.contTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.numContTrials, An.contTrig, An.curSess, 'Cont');
-
-%Section the data around onset and offset
-[An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.fsA, An.pertTrigPP);
-[An.secTime, An.audioHf0_Secp] = sectionAudioData(An.time_audio, An.audioHf0_pPP, An.fsA, An.pertTrigPP);
-[An.secTime, An.audioMf0_Secc] = sectionAudioData(An.time_audio, An.audioMf0_cPP, An.fsA, An.contTrigPP);
-[An.secTime, An.audioHf0_Secc] = sectionAudioData(An.time_audio, An.audioHf0_cPP, An.fsA, An.contTrigPP);
-
-%Mean around the onset and offset
-An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
-An.audioHf0_meanp = meanAudioData(An.audioHf0_Secp);
-An.audioMf0_meanc = meanAudioData(An.audioMf0_Secc);
-An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc); 
-
-%The Inflation Response
-[An.respVar, An.respVarMean, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
 end
 
 function An = initAudVar(An)
