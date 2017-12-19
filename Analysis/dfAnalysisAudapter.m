@@ -1,4 +1,7 @@
-function [auAn, res] = dfAnalysisAudapter(expParam, rawData, DAQin)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, DAQin, bTf0b, AudFlag)
+
+%dirs, expParam, DAQin, bTf0b, AudFlag
+
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -6,26 +9,24 @@ function [auAn, res] = dfAnalysisAudapter(expParam, rawData, DAQin)
 
 %Requires the Signal Processing Toolbox
 
-auAn.curType  = expParam.expType;
-auAn.curSubj  = expParam.subject;
-auAn.run      = expParam.run;
-if isfield(expParam, 'curSess')
-    auAn.curSess  = expParam.curSess;  %Short hand of experiment details
-else
-    auAn.curSess  = [expParam.subject expParam.run]; 
-end
-   
-fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.curSubj, auAn.run)
+%Identify some starting variables
+auAn.subject   = expParam.subject;
+auAn.run       = expParam.run;
+auAn.curSess   = expParam.curSess;
+auAn.gender    = expParam.gender;
+auAn.AudFB     = expParam.AudFB;
+auAn.AudFBSw   = expParam.AudFBSw;
+auAn.bTf0b     = bTf0b;
+auAn.trialType = expParam.trialType;
+
+fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
 auAn.sRate    = expParam.sRateAnal;
-auAn.sRateQ   = expParam.sRateQ;
 auAn.numTrial = expParam.numTrial;
+
 auAn.trigsT   = expParam.trigs(:,:,1);  %Pregenerated start and stop times for time-alignment with audio data
 auAn.trigsA   = expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
 auAn.trigsQ   = expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
-auAn.trialType = expParam.trialType;    %List of trial Order
-auAn.AudFB    = expParam.AudFB;
-auAn.AudFBSw  = expParam.AudFBSw;
 
 auAn.dnSamp  = 10;
 auAn.winLen  = 0.05;                   % Analysis window length (seconds)
@@ -70,21 +71,21 @@ auAn.anaIndsSec(:,1) = auAn.winStsSec;                      % Start indice for a
 auAn.anaIndsSec(:,2) = auAn.winStsSec + auAn.winLenP - 1;   % Stop indice for analysis based on EvalStep
 auAn.timeSec         = mean(auAn.anaIndsSec, 2)/auAn.sRate; % Vector of time points roughly centered on start and stop points of analysis
 
-res.time          = auAn.time;
-res.timeSec       = auAn.timeSec;
-res.runTrialOrder = [];
-res.allTrialf0    = [];
-res.allTrialf0_St = [];
-res.allTrialf0_Sp = [];
-res.allTrialf0b   = [];
-res.allTrialForce = [];
-res.allTrialTrigs = auAn.trigsT;
-res.trialCount    = [];
-res.meanTrialf0_St = [];
-res.meanTrialf0_Sp = [];
-res.meanTrialf0b   = [];
-res.meanTrialForce_St = [];
-res.meanTrialForce_Sp = [];
+auRes.time          = auAn.time;
+auRes.timeSec       = auAn.timeSec;
+auRes.runTrialOrder = [];
+auRes.allTrialf0    = [];
+auRes.allTrialf0_St = [];
+auRes.allTrialf0_Sp = [];
+auRes.allTrialf0b   = [];
+auRes.allTrialForce = [];
+auRes.allTrialTrigs = auAn.trigsT;
+auRes.trialCount    = [];
+auRes.meanTrialf0_St = [];
+auRes.meanTrialf0_Sp = [];
+auRes.meanTrialf0b   = [];
+auRes.meanTrialForce_St = [];
+auRes.meanTrialForce_Sp = [];
 
 for ii = 1:auAn.numTrial
     data = rawData(ii);
@@ -130,27 +131,27 @@ for ii = 1:auAn.numTrial
         
         TrialForce = forceSensorAnalysis(DAQin, auAn.trigsQ(ii,1), auAn.sRateQ, auAn); %At the moment only voltage
 
-        res.runTrialOrder = cat(1, res.runTrialOrder, auAn.trialType(ii));
-        res.allTrialf0 = cat(3, res.allTrialf0, Trialf0Norm);
-        res.allTrialf0_St = cat(3, res.allTrialf0_St, Trialf0Norm_St);
-        res.allTrialf0_Sp = cat(3, res.allTrialf0_Sp, Trialf0Norm_Sp);
-        res.allTrialf0b   = cat(1, res.allTrialf0b, f0b);            %Baseline fundamental frequencies
-        res.allTrialForce = cat(3, res.allTrialForce, TrialForce);   %Force sensor values;
+        auRes.runTrialOrder = cat(1, auRes.runTrialOrder, auAn.trialType(ii));
+        auRes.allTrialf0 = cat(3, auRes.allTrialf0, Trialf0Norm);
+        auRes.allTrialf0_St = cat(3, auRes.allTrialf0_St, Trialf0Norm_St);
+        auRes.allTrialf0_Sp = cat(3, auRes.allTrialf0_Sp, Trialf0Norm_Sp);
+        auRes.allTrialf0b   = cat(1, auRes.allTrialf0b, f0b);            %Baseline fundamental frequencies
+        auRes.allTrialForce = cat(3, auRes.allTrialForce, TrialForce);   %Force sensor values;
     end
 end
 
 %Sort trials within a given run by trial type and find average across trials
-[res.meanTrialf0_St, res.meanTrialForce_St, res.trialCount] = sortTrials(res.allTrialf0_St, res.allTrialForce, res.runTrialOrder);
-[res.meanTrialf0_Sp, res.meanTrialForce_Sp, res.trialCount] = sortTrials(res.allTrialf0_Sp, res.allTrialForce, res.runTrialOrder);
-res.meanTrialf0b = round(mean(res.allTrialf0b,1));
+[auRes.meanTrialf0_St, auRes.meanTrialForce_St, auRes.trialCount] = sortTrials(auRes.allTrialf0_St, auRes.allTrialForce, auRes.runTrialOrder);
+[auRes.meanTrialf0_Sp, auRes.meanTrialForce_Sp, auRes.trialCount] = sortTrials(auRes.allTrialf0_Sp, auRes.allTrialForce, auRes.runTrialOrder);
+auRes.meanTrialf0b = round(mean(auRes.allTrialf0b,1));
 
-lims = identifyLimits(res);
+lims = identifyLimits(auRes);
 
-res.f0Limits         = [0 auAn.recLen lims.lwBoundSec lims.upBoundSec];
-res.f0LimitsSec      = [0 auAn.totEveLen lims.lwBoundSec lims.upBoundSec];
-res.InflaRespLimits  = [0 0.3 -80 10];
-res.ForceLimits      = [0 auAn.totEveLen 1 3.5];
-res.PressureLimits   = [0 auAn.totEveLen 20 30];
+auRes.f0Limits         = [0 auAn.recLen lims.lwBoundSec lims.upBoundSec];
+auRes.f0LimitsSec      = [0 auAn.totEveLen lims.lwBoundSec lims.upBoundSec];
+auRes.InflaRespLimits  = [0 0.3 -80 10];
+auRes.ForceLimits      = [0 auAn.totEveLen 1 3.5];
+auRes.PressureLimits   = [0 auAn.totEveLen 20 30];
 end
 
 function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)

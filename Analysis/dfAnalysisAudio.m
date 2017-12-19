@@ -7,13 +7,14 @@ function An = dfAnalysisAudio(dirs, An, AudFlag)
 %An.subject
 %An.run
 %An.curSess
+%An.bTf0b
+
+%An.sRate
+%An.numSamp
+
 %An.time
 %An.audioM
 %An.audioH
-%An.sRate
-%An.numSamp
-%An.bTf0b
-%An.fV
 
 %An.pertIdx
 %An.contIdx
