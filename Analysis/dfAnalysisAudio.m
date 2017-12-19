@@ -187,6 +187,12 @@ for ii = 1:numTrial
 end
 end
 
+function signalParse = parseTrialTypes(signal, idx)
+%Expects trials to be in columns 
+
+signalParse = signal(:, idx); %This is a little lazy I know. Get over it. 
+end
+
 function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(time, audioNormM, audioNormH, numTrialType, trigs, curSess, type)
 
 timeInd = find(time > 0.5 & time < 4);
