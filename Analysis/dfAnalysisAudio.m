@@ -13,6 +13,13 @@ function [An, Res] = dfAnalysisAudio(dirs, An)
 %An.sRate
 %An.numSamp
 %An.bTf0b
+%An.fV
+%An.pertIdx
+%An.contIdx
+%An.numPertTrials
+%An.numContTrials
+%An.pertTrig
+%An.contTrig
 
 %Instatiate the variables we intend to use. 
 An = initAudVar(An);
