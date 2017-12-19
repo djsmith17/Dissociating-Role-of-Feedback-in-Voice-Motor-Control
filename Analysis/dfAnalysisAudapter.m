@@ -21,14 +21,21 @@ auAn.trialType = expParam.trialType;
 
 fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
+auAn.dnSamp   = 10;
 auAn.sRate    = expParam.sRateAnal;
+auAn.numSamp  = 
 auAn.numTrial = expParam.numTrial;
 
 auAn.trigsT   = expParam.trigs(:,:,1);  %Pregenerated start and stop times for time-alignment with audio data
 auAn.trigsA   = expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
 auAn.trigsQ   = expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
 
-auAn.dnSamp  = 10;
+[auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
+[auAn.PertTrials, auAn.pertIdx] = find(auAn.trialType == 1);
+auAn.numContTrials = sum(auAn.ContTrials);
+auAn.numPertTrials = sum(auAn.PertTrials);
+
+
 auAn.winLen  = 0.05;                   % Analysis window length (seconds)
 auAn.winLenP = auAn.winLen*auAn.sRate; % Analysis window length (points)
 auAn.pOV     = 0.60;                   % Window overlap percentage (decimal)
@@ -416,37 +423,125 @@ saveFileName = fullfile(plotFolder, plTitle);
 export_fig(saveFileName)
 end
 
-function lims = identifyLimits(res)
+function lims = identifyLimits(niAn)
 
+%Full Inidividual Trials: Pressure Sensor
+lims.pressure   = [0 4 0 5];
+
+%Aligned Pressure Data
+lims.pressureAl = [0 3.5 -0.5 5];
+
+%Full Individual Trials: Force Sensors
+lims.force      = [0 4 1 5];
 
 %Full trial f0 analysis
+%Full Individual Trials: f0 Audio
+if ~isempty(niAn.audioMf0_pPP)
+    pertTrials = niAn.audioMf0_pPP;
+    sec = 100:700;
 
+    alluL = max(pertTrials(sec,:));
+    alluL(find(alluL > 150)) = 0;
+    alllL = min(pertTrials(sec,:));
+    alllL(find(alllL < -150)) = 0;
 
-
-
-
-
-%Sectioned f0 Analysis
-[~, Imax] = max(res.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
-upBound_St = round(res.meanTrialf0_St(Imax,1,2) + res.meanTrialf0_St(Imax,2,2) + 10);
-[~, Imin] = min(res.meanTrialf0_St(:,1,2)); %Mean Microphone f0, Perturbed Trials
-lwBound_St = round(res.meanTrialf0_St(Imin,1,2) - res.meanTrialf0_St(Imin,2,2) - 10);
-
-[~, Imax] = max(res.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
-upBound_Sp = round(res.meanTrialf0_Sp(Imax,1,2) + res.meanTrialf0_Sp(Imax,2,2) + 10);
-[~, Imin] = min(res.meanTrialf0_Sp(:,1,2)); %Mean Microphone f0, Perturbed Trials
-lwBound_Sp = round(res.meanTrialf0_Sp(Imin,1,2) - res.meanTrialf0_Sp(Imin,2,2) - 10);
-
-if upBound_St > upBound_Sp
-    lims.upBoundSec = upBound_St;
+    uL = round(max(alluL)) + 20;
+    lL = round(min(alllL)) - 20;
+    lims.audio      = [0 4 lL uL];
 else
-    lims.upBoundSec = upBound_Sp;
+    lims.audio      = [0 4 -20 20];
 end
 
-if lwBound_St < lwBound_Sp
-    lims.lwBoundSec = lwBound_St;
+%Section Mean Pertrubed Trials: f0 Audio 
+if ~isempty(niAn.audioMf0_meanp)
+    [~, Imax] = max(niAn.audioMf0_meanp(:,1)); %Max Pert Onset
+    upBoundOn = round(niAn.audioMf0_meanp(Imax,1) + niAn.audioMf0_meanp(Imax,2) + 10);
+    [~, Imin] = min(niAn.audioMf0_meanp(:,1)); %Min Pert Onset
+    lwBoundOn = round(niAn.audioMf0_meanp(Imin,1) - niAn.audioMf0_meanp(Imin,2) - 10);
+
+    [~, Imax] = max(niAn.audioMf0_meanp(:,3)); %Max Pert Offset
+    upBoundOf = round(niAn.audioMf0_meanp(Imax,3) + niAn.audioMf0_meanp(Imax,4) + 10);
+    [~, Imin] = min(niAn.audioMf0_meanp(:,3)); %Min Pert Offset
+    lwBoundOf = round(niAn.audioMf0_meanp(Imin,3) - niAn.audioMf0_meanp(Imin,4) - 10);
+
+    if upBoundOn > upBoundOf
+        upBoundSec = upBoundOn;
+    else
+        upBoundSec = upBoundOf;
+    end
+
+    if lwBoundOn < lwBoundOf
+        lwBoundSec = lwBoundOn;
+    else
+        lwBoundSec = lwBoundOf;
+    end
+
+    lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
 else
-    lims.lwBoundSec = lwBound_Sp;
+    lims.audioMean = [-0.5 1.0 -50 50];
 end
 
+end
+
+function res = packResults(niAn, lims)
+
+res.subject = niAn.subject;
+res.run     = niAn.run;
+res.curSess = niAn.curSess;
+res.AudFB   = niAn.AudFB;
+
+res.numTrials     = niAn.numTrial;
+res.numContTrials = niAn.numContTrials;
+res.numPertTrials = niAn.numPertTrials;
+res.contIdx       = niAn.contIdx;
+res.pertIdx       = niAn.pertIdx;
+res.pertTrig      = niAn.pertTrig;
+
+res.timeS      = niAn.time_DN;
+res.sensorP    = niAn.sensorP_p; %Individual Processed perturbed trials. 
+res.lagTimeP   = niAn.lagsPres;
+res.lagTimePm  = niAn.meanLagTimeP;
+res.riseTimeP  = niAn.riseTimeP;
+res.riseTimePm = niAn.riseTimePm;
+res.OnOfValP   = niAn.OnOfValP;
+res.OnOfValPm  = niAn.OnOfValPm;
+res.limitsP    = lims.pressure;
+
+res.timeSAl   = niAn.time_Al;
+res.sensorPAl = niAn.sensorP_Al;
+res.limitsPAl = lims.pressureAl;
+
+res.timeA     = niAn.time_audio;
+res.f0b       = niAn.f0b;
+
+res.numContTrialsPP = niAn.numContTrialsPP;
+res.numPertTrialsPP = niAn.numPertTrialsPP;
+res.pertTrigPP      = niAn.pertTrigPP;
+
+%Full Individual Trials: Mic/Head f0 Trace 
+res.audioMf0TrialPert = niAn.audioMf0_pPP;
+res.audioMf0TrialCont = niAn.audioMf0_cPP;
+res.audioHf0TrialPert = niAn.audioHf0_pPP;
+res.audioHf0TrialCont = niAn.audioHf0_cPP;
+res.limitsA           = lims.audio;
+
+%Sections Trials: Mic/Head f0
+res.secTime          = niAn.secTime;
+res.audioMf0SecPert  = niAn.audioMf0_Secp;
+res.audioMf0SecCont  = niAn.audioMf0_Secc;
+res.audioHf0SecPert  = niAn.audioHf0_Secp;
+res.audioHf0SecCont  = niAn.audioHf0_Secc;
+
+%Mean Sectioned Trials: Mic/Head f0 Trace 
+res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
+res.audioMf0MeanCont = niAn.audioMf0_meanc;
+res.audioHf0MeanPert = niAn.audioHf0_meanp;
+res.audioHf0MeanCont = niAn.audioHf0_meanc;
+res.limitsAmean      = lims.audioMean;
+
+%Inflation Response
+res.respVar   = niAn.respVar;
+res.respVarM  = niAn.respVarMean;
+res.respVarSD = niAn.respVarSD;
+res.InflaStimVar = niAn.InflaStimVar;
 end
