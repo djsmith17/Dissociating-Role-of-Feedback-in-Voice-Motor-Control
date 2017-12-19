@@ -1,4 +1,4 @@
-function [An, Res] = dfAnalysisAudio(dirs, An)
+function An = dfAnalysisAudio(dirs, An)
 %I found that I was mostly writing the same things twice in my scripts for
 %audapter analysis and NIDAQ analysis. Ultimately what I care about is the
 %audio in one form or another. Let's just put it here.
@@ -14,6 +14,7 @@ function [An, Res] = dfAnalysisAudio(dirs, An)
 %An.numSamp
 %An.bTf0b
 %An.fV
+
 %An.pertIdx
 %An.contIdx
 %An.numPertTrials
@@ -79,9 +80,6 @@ An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc);
 
 %The Inflation Response
 [An.respVar, An.respVarMean, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
-
-lims = identifyLimits(An);
-Res  = packResults(An, lims);
 end
 
 function An = initAudVar(An)
@@ -327,127 +325,4 @@ respVarm = mean(respVar, 1);
 respVarSD = std(respVar, 0, 1);
 
 InflaStimVar = [respVar(1) respVarm(2)];
-end
-
-function lims = identifyLimits(niAn)
-
-%Full Inidividual Trials: Pressure Sensor
-lims.pressure   = [0 4 0 5];
-
-%Aligned Pressure Data
-lims.pressureAl = [0 3.5 -0.5 5];
-
-%Full Individual Trials: Force Sensors
-lims.force      = [0 4 1 5];
-
-%Full trial f0 analysis
-%Full Individual Trials: f0 Audio
-if ~isempty(niAn.audioMf0_pPP)
-    pertTrials = niAn.audioMf0_pPP;
-    sec = 100:700;
-
-    alluL = max(pertTrials(sec,:));
-    alluL(find(alluL > 150)) = 0;
-    alllL = min(pertTrials(sec,:));
-    alllL(find(alllL < -150)) = 0;
-
-    uL = round(max(alluL)) + 20;
-    lL = round(min(alllL)) - 20;
-    lims.audio      = [0 4 lL uL];
-else
-    lims.audio      = [0 4 -20 20];
-end
-
-%Section Mean Pertrubed Trials: f0 Audio 
-if ~isempty(niAn.audioMf0_meanp)
-    [~, Imax] = max(niAn.audioMf0_meanp(:,1)); %Max Pert Onset
-    upBoundOn = round(niAn.audioMf0_meanp(Imax,1) + niAn.audioMf0_meanp(Imax,2) + 10);
-    [~, Imin] = min(niAn.audioMf0_meanp(:,1)); %Min Pert Onset
-    lwBoundOn = round(niAn.audioMf0_meanp(Imin,1) - niAn.audioMf0_meanp(Imin,2) - 10);
-
-    [~, Imax] = max(niAn.audioMf0_meanp(:,3)); %Max Pert Offset
-    upBoundOf = round(niAn.audioMf0_meanp(Imax,3) + niAn.audioMf0_meanp(Imax,4) + 10);
-    [~, Imin] = min(niAn.audioMf0_meanp(:,3)); %Min Pert Offset
-    lwBoundOf = round(niAn.audioMf0_meanp(Imin,3) - niAn.audioMf0_meanp(Imin,4) - 10);
-
-    if upBoundOn > upBoundOf
-        upBoundSec = upBoundOn;
-    else
-        upBoundSec = upBoundOf;
-    end
-
-    if lwBoundOn < lwBoundOf
-        lwBoundSec = lwBoundOn;
-    else
-        lwBoundSec = lwBoundOf;
-    end
-
-    lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
-else
-    lims.audioMean = [-0.5 1.0 -50 50];
-end
-
-end
-
-function res = packResults(An, lims)
-
-res.subject = An.subject;
-res.run     = An.run;
-res.curSess = An.curSess;
-res.AudFB   = An.AudFB;
-
-res.numTrials     = An.numTrial;
-res.numContTrials = An.numContTrials;
-res.numPertTrials = An.numPertTrials;
-res.contIdx       = An.contIdx;
-res.pertIdx       = An.pertIdx;
-res.pertTrig      = An.pertTrig;
-
-res.timeS      = An.time_DN;
-res.sensorP    = An.sensorP_p; %Individual Processed perturbed trials. 
-res.lagTimeP   = An.lagsPres;
-res.lagTimePm  = An.meanLagTimeP;
-res.riseTimeP  = An.riseTimeP;
-res.riseTimePm = An.riseTimePm;
-res.OnOfValP   = An.OnOfValP;
-res.OnOfValPm  = An.OnOfValPm;
-res.limitsP    = lims.pressure;
-
-res.timeSAl   = An.time_Al;
-res.sensorPAl = An.sensorP_Al;
-res.limitsPAl = lims.pressureAl;
-
-res.timeA     = An.time_audio;
-res.f0b       = An.f0b;
-
-res.numContTrialsPP = An.numContTrialsPP;
-res.numPertTrialsPP = An.numPertTrialsPP;
-res.pertTrigPP      = An.pertTrigPP;
-
-%Full Individual Trials: Mic/Head f0 Trace 
-res.audioMf0TrialPert = An.audioMf0_pPP;
-res.audioMf0TrialCont = An.audioMf0_cPP;
-res.audioHf0TrialPert = An.audioHf0_pPP;
-res.audioHf0TrialCont = An.audioHf0_cPP;
-res.limitsA           = lims.audio;
-
-%Sections Trials: Mic/Head f0
-res.secTime          = An.secTime;
-res.audioMf0SecPert  = An.audioMf0_Secp;
-res.audioMf0SecCont  = An.audioMf0_Secc;
-res.audioHf0SecPert  = An.audioHf0_Secp;
-res.audioHf0SecCont  = An.audioHf0_Secc;
-
-%Mean Sectioned Trials: Mic/Head f0 Trace 
-res.audioMf0MeanPert = An.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
-res.audioMf0MeanCont = An.audioMf0_meanc;
-res.audioHf0MeanPert = An.audioHf0_meanp;
-res.audioHf0MeanCont = An.audioHf0_meanc;
-res.limitsAmean      = lims.audioMean;
-
-%Inflation Response
-res.respVar      = An.respVar;
-res.respVarM     = An.respVarMean;
-res.respVarSD    = An.respVarSD;
-res.InflaStimVar = An.InflaStimVar;
 end
