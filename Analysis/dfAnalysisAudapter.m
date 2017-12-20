@@ -33,7 +33,9 @@ auAn.audioM   = [];
 auAn.audioH   = [];
 
 dnSamp = 20;
+auAn.sRateDN = auAn.sRate/dnSamp;
 auAn.timeDN = dnSampleSignal(auAn.time, dnSamp);
+auAn.anaTrigsDN = auAn.expTrigs*auAn.sRateDN;
 
 for ii = 1:auAn.numTrial
     data = rawData(ii);
@@ -60,8 +62,8 @@ end
 auAn.numContTrials = sum(auAn.ContTrials);
 auAn.numPertTrials = sum(auAn.PertTrials);
 
-auAn.contTrig = auAn.anaTrigs(:, auAn.contIdx);
-auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
+auAn.contTrig = auAn.anaTrigsDN(:, auAn.contIdx);
+auAn.pertTrig = auAn.anaTrigsDN(:, auAn.pertIdx);
 
 %The Audio Analysis
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag);
