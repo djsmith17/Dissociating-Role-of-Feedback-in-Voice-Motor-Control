@@ -12,9 +12,9 @@ function An = dfAnalysisAudio(dirs, An, AudFlag)
 %An.sRate
 %An.numSamp
 
-%An.time
-%An.audioM
-%An.audioH
+%An.time    %Expects a vector (samples x 1)
+%An.audioM  %Expects a matrix (samples x trials)
+%An.audioH  %Expects a matrix (samples x trials)
 
 %An.pertIdx
 %An.contIdx

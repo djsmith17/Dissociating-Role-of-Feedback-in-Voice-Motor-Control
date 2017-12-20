@@ -37,6 +37,7 @@ auAn.numPertTrials = sum(auAn.PertTrials);
 auAn.contTrig = auAn.anaTrigs(:, auAn.contIdx);
 auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
 
+auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 
 auAn.actualRecLen = length(rawData(1).signalIn)/auAn.sRate;
 auAn.frameT       = linspace(0,auAn.actualRecLen, 2053);
