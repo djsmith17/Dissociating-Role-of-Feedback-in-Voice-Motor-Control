@@ -188,6 +188,15 @@ else
 end
 close all
 
+GTFile = [expParam.subject GT1 'DRF.mat'];
+dirs.GTBaseFile = fullfile(dirs.SavData, expParam.subject, 'GT1', GTFile);
+if ~exist(dirs.SavBaseFile, 'file')
+    fprintf('ERROR: No GT file at %s!\n', dirs.GTBasFile)
+    return
+end
+load(dirs.GTBaseFile)
+
+bTf0b = GT.subjf0;
 [auAn, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, bTf0b, 1);
 
 drawDAQMeanTrialMicf0(auRes, dirs.SavResultsDir)
