@@ -188,7 +188,7 @@ else
 end
 close all
 
-[auAn, res] = dfAnalysisAudapter(OA.expParam, OA.rawData, OA.DAQin);
+[auAn, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, bTf0b, 1);
 
 % drawAudResp_AllTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
 % 
