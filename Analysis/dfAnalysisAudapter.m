@@ -23,7 +23,7 @@ fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
 auAn.sRate    = expParam.sRateAnal;
 auAn.trialLen = expParam.trialLen;
-auAn.numSamp  = expParam.sRate*expParam.trialLen;
+auAn.numSamp  = auAn.sRate*auAn.trialLen;
 auAn.numTrial = expParam.numTrial;
 auAn.expTrigs = expParam.trigs(:,:,1); %Time
 auAn.anaTrigs = expParam.trigs(:,:,3);
@@ -46,8 +46,11 @@ for ii = 1:auAn.numTrial
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
     
-    auAn.audioM = cat(1, auAn.audioM, Mraw);
-    auAn.AudioH = cat(1, auAn.audioH, Hraw);
+    Mraw = Mraw(1:auAn.numSamp);
+    Hraw = Hraw(1:auAn.numSamp);
+    
+    auAn.audioM = cat(2, auAn.audioM, Mraw);
+    auAn.audioH = cat(2, auAn.audioH, Hraw);
 %     
 %     OST  = data.ost_stat;
 %     audProcDel = data.params.frameLen*4;
