@@ -1,4 +1,4 @@
-function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, DAQin, bTf0b, AudFlag)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, bTf0b, AudFlag)
 
 %dirs, expParam, DAQin, bTf0b, AudFlag
 
@@ -55,22 +55,6 @@ auAn.anaIndsSec(:,1) = auAn.winStsSec;                      % Start indice for a
 auAn.anaIndsSec(:,2) = auAn.winStsSec + auAn.winLenP - 1;   % Stop indice for analysis based on EvalStep
 auAn.timeSec         = mean(auAn.anaIndsSec, 2)/auAn.sRate; % Vector of time points roughly centered on start and stop points of analysis
 
-auRes.time          = auAn.time;
-auRes.timeSec       = auAn.timeSec;
-auRes.runTrialOrder = [];
-auRes.allTrialf0    = [];
-auRes.allTrialf0_St = [];
-auRes.allTrialf0_Sp = [];
-auRes.allTrialf0b   = [];
-auRes.allTrialForce = [];
-auRes.allTrialTrigs = auAn.trigsT;
-auRes.trialCount    = [];
-auRes.meanTrialf0_St = [];
-auRes.meanTrialf0_Sp = [];
-auRes.meanTrialf0b   = [];
-auRes.meanTrialForce_St = [];
-auRes.meanTrialForce_Sp = [];
-
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
@@ -117,11 +101,6 @@ for ii = 1:auAn.numTrial
         auRes.allTrialForce = cat(3, auRes.allTrialForce, TrialForce);   %Force sensor values;
     end
 end
-
-%Sort trials within a given run by trial type and find average across trials
-[auRes.meanTrialf0_St, auRes.meanTrialForce_St, auRes.trialCount] = sortTrials(auRes.allTrialf0_St, auRes.allTrialForce, auRes.runTrialOrder);
-[auRes.meanTrialf0_Sp, auRes.meanTrialForce_Sp, auRes.trialCount] = sortTrials(auRes.allTrialf0_Sp, auRes.allTrialForce, auRes.runTrialOrder);
-auRes.meanTrialf0b = round(mean(auRes.allTrialf0b,1));
 
 %The Audio Analysis
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag);
@@ -265,62 +244,6 @@ for ii = 1:numWin
 end
 end
 
-function [meanTrialf0, meanTrialForce, trialCount] = sortTrials(allTrialf0, allTrialForce, runTrialOrder)
-%This function separates the trials by control or catch trials and
-%finds the mean f0 trace and 95% Confidence Interval over multiple trials 
-%of a type. 
-
-%Sort Trials by type 
-PertVals  = unique(runTrialOrder(:,1));
-nPertVals = length(PertVals);
-
-meanTrialf0    = [];
-meanTrialForce = [];
-trialCount   = zeros(1, nPertVals);
-for i = 1:nPertVals
-    ind   = runTrialOrder == PertVals(i);
-    nType = sum(ind);
-    
-    TrialsofaType_f0  = allTrialf0(:,:,ind);    
-    micMean_f0   = mean(squeeze(TrialsofaType_f0(:,1,:)),2);
-    headMean_f0  = mean(squeeze(TrialsofaType_f0(:,2,:)),2);
-    
-    micSTD_f0    = std(squeeze(TrialsofaType_f0(:,1,:)),0,2);
-    headSTD_f0   = std(squeeze(TrialsofaType_f0(:,2,:)),0,2);    
-    
-    SEM_f0 = micSTD_f0/sqrt(nType); % Standard Error
-    CIM_f0 = 1.96*SEM_f0; % 95% confidence Interval
-    
-    SEH_f0 = headSTD_f0/sqrt(nType); % Standard Error
-    CIH_f0 = 1.96*SEH_f0; % 95% confidence Interval
-                    
-%     ts  = tinv([0.025  0.975],numT-1);      % T-Score
-%     CIM = micMean + ts*SEM; 
-               
-%     ts  = tinv([0.025  0.975],numT-1);      % T-Score
-%     CIH = headMean + ts*SEM; 
-   f0resultSet  = [micMean_f0 CIM_f0 headMean_f0 CIH_f0];
-   meanTrialf0  = cat(3, meanTrialf0, f0resultSet);
-   
-   TrialsofaType_Force  = allTrialForce(:,:,ind);
-   collMean_F = mean(squeeze(TrialsofaType_Force(:,1,:)),2);
-   neckMean_F = mean(squeeze(TrialsofaType_Force(:,2,:)),2);
-   
-   collSTD_F  = std(squeeze(TrialsofaType_Force(:,1,:)),0,2);
-   neckSTD_F  = std(squeeze(TrialsofaType_Force(:,2,:)),0,2);
-   
-   SEC_F = collSTD_F/sqrt(nType); % Standard Error
-   CIC_F = 1.96*SEC_F; % 95% confidence Interval
-    
-   SEN_F = neckSTD_F/sqrt(nType); % Standard Error
-   CIN_F = 1.96*SEN_F; % 95% confidence Interval 
-   
-   ForceresultSet = [collMean_F CIC_F neckMean_F CIN_F];
-   meanTrialForce = cat(3, meanTrialForce, ForceresultSet);
-   
-   trialCount(i)= nType;
-end
-end
 
 function lims = identifyLimits(An)
 
