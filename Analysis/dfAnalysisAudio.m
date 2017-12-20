@@ -137,6 +137,13 @@ fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
 fV.numWin     = length(fV.winSts);
 fV.freqCutOff = 300;
+
+
+% [~, numTrial] = size(audio);
+% preEve  = 0.5; posEve = 1.0;
+% per     = 1/fs;
+% preEveP = preEve*fs;
+% posEveP = posEve*fs-1;
 end
 
 function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, bTf0b, flag)

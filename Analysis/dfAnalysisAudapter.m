@@ -41,20 +41,7 @@ auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 
 auAn.actualRecLen = length(rawData(1).signalIn)/auAn.sRate;
 auAn.frameT       = linspace(0,auAn.actualRecLen, 2053);
-
-auAn.preEveLen  = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
-auAn.posEveLen  = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
-auAn.totEveLen  = auAn.preEveLen + auAn.posEveLen; %Total length (seconds) of observation time
-
-auAn.preEveLenP = round(auAn.preEveLen*auAn.sRate);  %Amount of points of observation period before event (onset/offset) for Audapter signal
-auAn.posEveLenP = round(auAn.posEveLen*auAn.sRate);  %Amount of points of observation period after event (onset/offset) for Audapter signal
-auAn.totEveLenP = auAn.preEveLenP + auAn.posEveLenP; %Total length (points) of observation time for Audapter signal
-      
-auAn.preEveLenQ = round(auAn.preEveLen*auAn.sRateQ);  %Amount of points of observation period before event (onset/offset) for NIDAQ signal
-auAn.posEveLenQ = round(auAn.posEveLen*auAn.sRateQ);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
-auAn.totEveLenQ = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
-auAn.timeQ      = (0:1:(auAn.totEveLenQ-1))/auAn.sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
-
+    
 auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
 auAn.anaInds(:,2) = auAn.winSts + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
 auAn.time         = mean(auAn.anaInds, 2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
@@ -142,13 +129,8 @@ end
 [auRes.meanTrialf0_Sp, auRes.meanTrialForce_Sp, auRes.trialCount] = sortTrials(auRes.allTrialf0_Sp, auRes.allTrialForce, auRes.runTrialOrder);
 auRes.meanTrialf0b = round(mean(auRes.allTrialf0b,1));
 
-lims = identifyLimits(auRes);
-
-auRes.f0Limits         = [0 auAn.recLen lims.lwBoundSec lims.upBoundSec];
-auRes.f0LimitsSec      = [0 auAn.totEveLen lims.lwBoundSec lims.upBoundSec];
-auRes.InflaRespLimits  = [0 0.3 -80 10];
-auRes.ForceLimits      = [0 auAn.totEveLen 1 3.5];
-auRes.PressureLimits   = [0 auAn.totEveLen 20 30];
+%The Audio Analysis
+auAn = dfAnalysisAudio(dirs, auAn, AudFlag);
 
 lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
@@ -375,45 +357,6 @@ for i = 1:nPertVals
    
    trialCount(i)= nType;
 end
-end
-
-function InflaRespRoute = CalcInflationResponse(auAn, meanTrialf0b, meanRunsf0, limits, plotFolder)
-%This calculates the shape of the change in f0 in response to the
-%perturbation onset
-
-time   = auAn.time;
-curExp = auAn.curExp;
-tStep  = auAn.tStep;
-
-disp('Calculating Inflation Response Route')
-
-meanPertMicf0 = meanRunsf0(:,1,2);           %Grabbing the mean mic f0 for all perturbed trials
-postOnset     = find(time > 0.5); %Trials are centered at 0.5s before inflation. 
-[~, ind]      = min(meanPertMicf0);          %Find the lowest point in whole mean signal
-
-timeFram = postOnset(1):ind;
-InflaRespRoute = meanPertMicf0(timeFram);
-
-plotpos = [200 400];
-plotdim = [600 600];
-InflaRespFig = figure('Color',[1 1 1]);
-set(InflaRespFig, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-t = 0:tStep:(tStep*(length(timeFram)-1)); %meanPertMicf0(timeFram,1) - meanPertMicf0(postOnset(1));
-plot(t, InflaRespRoute, 'blue', 'LineWidth',3)
-
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-title({'Average Acoustic Response to Inflation'; [curExp '   f0: ' num2str(meanTrialf0b) 'Hz']},...
-                     'FontSize', 18,...
-                     'FontWeight', 'bold')
-axis(limits); box off
-
-set(gca, 'FontSize', 16,...
-         'FontWeight','bold');
-
-plTitle = [curExp '_Inflation Response Route.png'];
-saveFileName = fullfile(plotFolder, plTitle);
-export_fig(saveFileName)
 end
 
 function lims = identifyLimits(An)
