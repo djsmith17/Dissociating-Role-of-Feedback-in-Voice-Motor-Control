@@ -32,27 +32,27 @@ auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM   = [];
 auAn.audioH   = [];
 
+dnSamp = 20;
+auAn.timeDN = dnSampleSignal(auAn.time, dnSamp);
+
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
-    
-    Mraw = Mraw(1:auAn.numSamp);
-    Hraw = Hraw(1:auAn.numSamp);
-    
+   
+    auAn.audProcDel = data.params.frameLen*4;
+    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.numSamp, auAn.audProcDel, auAn.expTrigs(ii,1));
+
+%     OST  = data.ost_stat;
+    if saveT == 0 %Don't save the trial :(
+        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
+    elseif saveT == 1 %Save the Trial
+
+    end
+
     auAn.audioM = cat(2, auAn.audioM, Mraw);
     auAn.audioH = cat(2, auAn.audioH, Hraw);
-%     
-%     OST  = data.ost_stat;
-%     audProcDel = data.params.frameLen*4;
-%     [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, audProcDel, auAn.expTrigs(ii,1));
-% 
-%     if saveT == 0 %Don't save the trial :(
-%         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
-%     elseif saveT == 1 %Save the Trial
-% 
-%     end
 end
 
 [auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
@@ -63,7 +63,6 @@ auAn.numPertTrials = sum(auAn.PertTrials);
 auAn.contTrig = auAn.anaTrigs(:, auAn.contIdx);
 auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
 
-
 %The Audio Analysis
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag);
 
@@ -71,7 +70,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)
+function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, numSamp, audProcDel, spanSt)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
@@ -85,6 +84,12 @@ function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, s
 %headP:    Processed Headphone signal
 %saveT:    Boolean toggle to determine if the trial should be saved
 %saveTmsg: Reason, if any, that the trial was thrown out
+
+Mfull = micR(1:numSamp);
+Hfull = headR(1:numSamp);
+
+dnSamp = 20;
+
 
 mic  = micR(1:(end-audProcDel));
 head = headR((audProcDel+1):end); 
@@ -123,6 +128,9 @@ filty    = filtfilt(B,A,y); %Low-pass filtered under 500Hz
 micP     = filtx; %Take the whole signal for now
 headP    = filty; %Same indices as for mic 
 
+micP     = Mfull;
+headP    = Hfull;
+
 if pp.t(pp.voiceOnsetInd) > spanSt
     saveT = 0;  
     saveTmsg = 'Participant started too late!!';
@@ -136,6 +144,16 @@ end
 
 pp.saveT    = saveT;
 pp.SaveTmsg = saveTmsg;
+end
+
+function sensorDN = dnSampleSignal(sensor, dnSamp)
+[numSamp, numTrial] = size(sensor);
+numSampDN = numSamp/dnSamp;
+
+sensorDN = zeros(numSampDN, numTrial);
+for i = 1:numSampDN
+    sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
+end
 end
 
 function lims = identifyLimits(An)
