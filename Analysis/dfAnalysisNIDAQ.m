@@ -31,15 +31,14 @@ niAn.numTrial = n;
 niAn.numCh    = c;
 niAn.expTrigs = expParam.trigs(:,:,1); %Time
 
-%Find all the pertrubed trials
+%Find all the perturbed trials
 [niAn.ContTrials, niAn.contIdx] = find(niAn.trialType == 0);
 [niAn.PertTrials, niAn.pertIdx] = find(niAn.trialType == 1);
 niAn.numContTrials = sum(niAn.ContTrials);
 niAn.numPertTrials = sum(niAn.PertTrials);
 
 %Unpack the NIDAQ raw data set
-niAn.sRateDN  = sRate/niAn.dnSamp;
-niAn.time     = (0:1/sRate:(r-1)/sRate)';
+niAn.time     = (0:1/niAn.sRate:(niAn.numSamp-1)/niAn.sRate)';
 niAn.pertSig  = squeeze(DAQin(:,1,:));
 niAn.sensorFC = squeeze(DAQin(:,2,:));
 niAn.sensorFN = squeeze(DAQin(:,3,:));
@@ -48,14 +47,14 @@ niAn.audioM   = squeeze(DAQin(:,5,:));
 niAn.audioH   = squeeze(DAQin(:,6,:));
 niAn.sensorO  = squeeze(DAQin(:,7,:));
 
-%Preprocessing and downsampling
-niAn.sensorFC_aug = 4*(niAn.sensorFC-2);
-niAn.sensorFN_aug = 4*(niAn.sensorFN-2);
+%ZeroMean the Offset
+niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
 
-[B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 10
-niAn.sensorFC = filter(B,A,abs(niAn.sensorFC));
-niAn.sensorFN = filter(B,A,abs(niAn.sensorFN));
+%Preprocessing some of the Force sensors
+sensorFCPP = sensorPreProcessing(sensorFC, sRate);
+sensorFNPP = sensorPreProcessing(sensorFN, sRate);
 
+niAn.sRateDN     = sRate/niAn.dnSamp;
 niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
 niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
@@ -63,7 +62,7 @@ niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 
 %ZeroMean the Offset
-niAn.sensorP_DNz = correctPOffset(niAn.sensorP_DN, niAn.sRateDN);
+niAn.sensorP_DNz = correctBaseline(niAn.sensorP_DN, niAn.sRateDN);
 
 %Parse out the pertrubed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
@@ -100,6 +99,27 @@ lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
 end
 
+function sensorZeroed = correctBaseline(sensor, fs)
+%The first second of the first trial will have the baseline pressure reading
+%from the sensor. We will use this to fix the offset in all the trials. 
+
+firstS  = 1:(1*fs);          % Grab the first second
+firstT  = sensor(firstS, 1); % Grab the very first trial
+meanRec = mean(firstT);      % I really mean it
+
+sensorZeroed = sensor - meanRec;
+end
+
+function sensorPP     = sensorPreProcessing(sensor, sRate)
+%This was mostly to mess around with the force sensor, but for right now we
+%will hide that all in here. Likely will never need this again. 
+
+sensorRed = 4*(sensor-2);
+
+[B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 10
+sensorPP = filter(B,A,abs(sensorRed));
+end
+
 function sensorDN = dnSampleSignal(sensor, dnSamp)
 [numSamp, numTrial] = size(sensor);
 numSampDN = numSamp/dnSamp;
@@ -108,17 +128,6 @@ sensorDN = zeros(numSampDN, numTrial);
 for i = 1:numSampDN
     sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
 end
-end
-
-function sensorZeroed = correctPOffset(sensor, fs)
-%The first second of the trial will have the baseline pressure reading
-%from the sensor. We will use this to fix the offset in all the trials. 
-
-firstS  = 1:(1*fs);
-firstT  = sensor(firstS, 1);
-meanRec = mean(firstT);
-
-sensorZeroed = sensor - meanRec;
 end
 
 function signalParse = parseTrialTypes(signal, idx)
