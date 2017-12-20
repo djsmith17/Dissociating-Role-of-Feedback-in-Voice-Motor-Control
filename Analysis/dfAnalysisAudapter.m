@@ -108,10 +108,6 @@ for ii = 1:auAn.numTrial
 
 %         prePertInd = auAn.time < 0.5;                    % Grab the first 0.5s, should be no stimulus
         f0b = round(mean(Trialf0Raw(auAn.baseTimeInd, 1))); % Baseline fundamental frequency of mic data
-
-        Trialf0Norm    = normf0(Trialf0Raw, f0b);    % Coverted to cents and normalized        
-        Trialf0Norm_St = normf0(Trialf0Raw_St, f0b); % Coverted to cents and normalized
-        Trialf0Norm_Sp = normf0(Trialf0Raw_Sp, f0b); % Coverted to cents and normalized
         
         TrialForce = forceSensorAnalysis(DAQin, auAn.trigsQ(ii,1), auAn.sRateQ, auAn); %At the moment only voltage
 
@@ -287,19 +283,6 @@ neck  = filter(B,A,abs(neck));
 %Eventually some conversion of voltage to force
 
 TrialForce = [coll neck];
-end
-
-function [Trialf0Norm] = normf0(Trialf0Raw, f0b)
-
-[r, c] = size(Trialf0Raw);
-
-Trialf0Norm = zeros(r, c);
-for i = 1:r
-    for j = 1:c
-        f = Trialf0Raw(i,j);
-        Trialf0Norm(i,j) = (1200*log2(f/f0b));
-    end
-end
 end
 
 function [meanTrialf0, meanTrialForce, trialCount] = sortTrials(allTrialf0, allTrialForce, runTrialOrder)
