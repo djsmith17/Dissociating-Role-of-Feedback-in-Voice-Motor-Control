@@ -21,7 +21,6 @@ auAn.trialType = expParam.trialType;
 
 fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
-auAn.dnSamp   = 10;
 auAn.sRate    = expParam.sRateAnal;
 auAn.trialLen = expParam.trialLen;
 auAn.numSamp  = expParam.sRate*expParam.trialLen;
@@ -38,22 +37,27 @@ auAn.contTrig = auAn.anaTrigs(:, auAn.contIdx);
 auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
 
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
+auAn.audioM   = [];
+auAn.audioH   = [];
 
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
-    OST  = data.ost_stat;
-    audProcDel = data.params.frameLen*4;
     
-    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, audProcDel, auAn.trigsT(ii,1));
-
-    if saveT == 0 %Don't save the trial :(
-        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
-    elseif saveT == 1 %Save the Trial
-
-    end
+    auAn.audioM = cat(1, auAn.audioM, Mraw);
+    auAn.AudioH = cat(1, auAn.audioH, Hraw);
+%     
+%     OST  = data.ost_stat;
+%     audProcDel = data.params.frameLen*4;
+%     [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, audProcDel, auAn.expTrigs(ii,1));
+% 
+%     if saveT == 0 %Don't save the trial :(
+%         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
+%     elseif saveT == 1 %Save the Trial
+% 
+%     end
 end
 
 %The Audio Analysis
@@ -195,20 +199,6 @@ res.numPertTrials = auAn.numPertTrials;
 res.contIdx       = auAn.contIdx;
 res.pertIdx       = auAn.pertIdx;
 res.pertTrig      = auAn.pertTrig;
-
-res.timeS      = auAn.time_DN;
-res.sensorP    = auAn.sensorP_p; %Individual Processed perturbed trials. 
-res.lagTimeP   = auAn.lagsPres;
-res.lagTimePm  = auAn.meanLagTimeP;
-res.riseTimeP  = auAn.riseTimeP;
-res.riseTimePm = auAn.riseTimePm;
-res.OnOfValP   = auAn.OnOfValP;
-res.OnOfValPm  = auAn.OnOfValPm;
-res.limitsP    = lims.pressure;
-
-res.timeSAl   = auAn.time_Al;
-res.sensorPAl = auAn.sensorP_Al;
-res.limitsPAl = lims.pressureAl;
 
 res.timeA     = auAn.time_audio;
 res.f0b       = auAn.f0b;
