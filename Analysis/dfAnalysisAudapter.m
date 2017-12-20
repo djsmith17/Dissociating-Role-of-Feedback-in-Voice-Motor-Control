@@ -39,22 +39,6 @@ auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
 
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 
-auAn.actualRecLen = length(rawData(1).signalIn)/auAn.sRate;
-auAn.frameT       = linspace(0,auAn.actualRecLen, 2053);
-    
-auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
-auAn.anaInds(:,2) = auAn.winSts + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
-auAn.time         = mean(auAn.anaInds, 2)/auAn.sRate;  %Vector of time points roughly centered on start and stop points of analysis
-auAn.baseTimeInd  = auAn.time > 0.5 & auAn.time < 1.0; %The period 0.5s before perturbations
-
-%Analysis Time Steps for Sectioned trial
-auAn.winStsSec  = 1:auAn.tStepP:(auAn.totEveLenP-auAn.winLenP); %Starting indices for each analysis window
-auAn.numWinSec  = length(auAn.winStsSec); %Number of analysis windows;       
-
-auAn.anaIndsSec(:,1) = auAn.winStsSec;                      % Start indice for analysis based on EvalStep
-auAn.anaIndsSec(:,2) = auAn.winStsSec + auAn.winLenP - 1;   % Stop indice for analysis based on EvalStep
-auAn.timeSec         = mean(auAn.anaIndsSec, 2)/auAn.sRate; % Vector of time points roughly centered on start and stop points of analysis
-
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
@@ -68,37 +52,7 @@ for ii = 1:auAn.numTrial
     if saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
     elseif saveT == 1 %Save the Trial
-%         fprintf('%s Trial %d saved\n', auAn.curSess, ii)
-        
-        %Pert Full Trial
-        Trialf0Raw = signalFrequencyAnalysis(mic, head, auAn.sRate, auAn, [], 0);
-              
-        %Pert Section: Start
-        Trialf0Raw_St = signalFrequencyAnalysis(mic, head, auAn.sRate, auAn, auAn.trigsA(ii,1), 1);
-        %Pert Section: Stop
-        Trialf0Raw_Sp = signalFrequencyAnalysis(mic, head, auAn.sRate, auAn, auAn.trigsA(ii,2), 1);
-        
-%         trig = auAn.trigsT(ii,1);
-%         trigSt = trig - 0.5;
-%         trigSp = trig + 1.0; 
-%         tFramesSt = find(trigSt >= auAn.frameT); tFrameSt = tFramesSt(end);
-%         tFramesSp = find(trigSp >= auAn.frameT); tFrameSp = tFramesSp(end);
-%         frameT_Start = auAn.frameT(tFrameSt:tFrameSp);
-%         OST_Start = OST(tFrameSt:tFrameSp);
-%         headedup = find(OST_Start == 3); headUp = headedup(1);
-%         whenitactuallystarted = frameT_Start(headUp);
-%         whatTHEDIFF = whenitactuallystarted - trig
-        
 
-%         prePertInd = auAn.time < 0.5;                    % Grab the first 0.5s, should be no stimulus
-        f0b = round(mean(Trialf0Raw(auAn.baseTimeInd, 1))); % Baseline fundamental frequency of mic data
-        
-        auRes.runTrialOrder = cat(1, auRes.runTrialOrder, auAn.trialType(ii));
-        auRes.allTrialf0 = cat(3, auRes.allTrialf0, Trialf0Norm);
-        auRes.allTrialf0_St = cat(3, auRes.allTrialf0_St, Trialf0Norm_St);
-        auRes.allTrialf0_Sp = cat(3, auRes.allTrialf0_Sp, Trialf0Norm_Sp);
-        auRes.allTrialf0b   = cat(1, auRes.allTrialf0b, f0b);            %Baseline fundamental frequencies
-        auRes.allTrialForce = cat(3, auRes.allTrialForce, TrialForce);   %Force sensor values;
     end
 end
 
@@ -175,75 +129,6 @@ end
 pp.saveT    = saveT;
 pp.SaveTmsg = saveTmsg;
 end
-
-function Trialf0ResultsRaw = signalFrequencyAnalysis(mic, head, fs, auAn, trig, sec)
-%Finds the change in fundamental frequency of windowed signal
-
-%Inputs
-%mic:  post-processed single-trial Microphone signal
-%head: post-processed signle-trial Headphone signal
-%fs:   sampling frequency of audio signals
-%auAn: audapter analysis structure containing other relevant var
-%trig: trigger points in audio signals when event occurs (onset/offset)
-%sec:  boolean to check for full signal analysis or sectioned analysis
-
-%Outputs:
-%Trialf0ResultsRaw: Array with rows equal to the number of windows. 
-%                   The first column is the time value that the window is 
-%                   centered around. 
-%                   The second column is the fundamental frequency of the 
-%                   windowed microphone signal. 
-%                   The third column is the fundamental frequency of the 
-%                   windowed headphone signal.
-
-St = trig - auAn.preEveLenP; 
-Sp = trig + auAn.posEveLenP - 1;
-
-%Grab a big chuck of the signal centered around the event
-if sec == 1
-    try
-        mic = mic(St:Sp);
-        head = head(St:Sp);
-    catch
-        disp('Sp was too long yo!')
-        numSamp = length(mic);
-        mic = mic(St:numSamp);
-        head = head(St:numSamp);
-    end
-    
-    numWin  = auAn.numWinSec;
-    anaInds = auAn.anaIndsSec; 
-else
-    numWin  = auAn.numWin;
-    anaInds = auAn.anaInds;    
-end
-
-Trialf0ResultsRaw = [];
-for ii = 1:numWin
-    startPt  = anaInds(ii,1);
-    stopPt   = anaInds(ii,2);
-
-    mic_win   = mic(startPt:stopPt);
-    head_win  = head(startPt:stopPt);
-    
-    f0_M = dfCalcf0Chile(mic_win,fs);
-    f0_H = dfCalcf0Chile(head_win,fs);
-    
-%     [f0_time, f0_value, SHR, f0_candidates] = shrp(mic_win, fs);
-    if f0_M < 50 || f0_M > 300
-        fprintf('I calculated a f0 of %d. Replacing it.\n', f0_M)
-        f0_M = 0; %Trialf0ResultsRaw(ii-1,2);
-    end
-    
-    if f0_H < 50 || f0_H > 300
-        disp('I had some difficulty calculating f0_H')
-        f0_H = 0;
-    end
-    
-    Trialf0ResultsRaw = cat(1, Trialf0ResultsRaw, [f0_M f0_H]);
-end
-end
-
 
 function lims = identifyLimits(An)
 
