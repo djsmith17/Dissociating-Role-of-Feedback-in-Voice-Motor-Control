@@ -28,14 +28,6 @@ auAn.numTrial = expParam.numTrial;
 auAn.expTrigs = expParam.trigs(:,:,1); %Time
 auAn.anaTrigs = expParam.trigs(:,:,3);
 
-[auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
-[auAn.PertTrials, auAn.pertIdx] = find(auAn.trialType == 1);
-auAn.numContTrials = sum(auAn.ContTrials);
-auAn.numPertTrials = sum(auAn.PertTrials);
-
-auAn.contTrig = auAn.anaTrigs(:, auAn.contIdx);
-auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
-
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM   = [];
 auAn.audioH   = [];
@@ -62,6 +54,15 @@ for ii = 1:auAn.numTrial
 % 
 %     end
 end
+
+[auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
+[auAn.PertTrials, auAn.pertIdx] = find(auAn.trialType == 1);
+auAn.numContTrials = sum(auAn.ContTrials);
+auAn.numPertTrials = sum(auAn.PertTrials);
+
+auAn.contTrig = auAn.anaTrigs(:, auAn.contIdx);
+auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
+
 
 %The Audio Analysis
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag);

@@ -65,8 +65,8 @@ if AudFlag == 1
     An.audioHf0_c = parseTrialTypes(An.audioHf0_norm, An.contIdx);
 
     %Find troublesome trials and remove
-    [An.audioMf0_pPP, An.audioHf0_pPP, An.numPertTrialsPP, An.pertTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.numPertTrials, An.pertTrig, An.curSess, 'Pert');
-    [An.audioMf0_cPP, An.audioHf0_cPP, An.numContTrialsPP, An.contTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.numContTrials, An.contTrig, An.curSess, 'Cont');
+    [An.audioMf0_pPP, An.audioHf0_pPP, An.numPertTrialsPP, An.pertTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.pertTrig, An.curSess, 'Pert');
+    [An.audioMf0_cPP, An.audioHf0_cPP, An.numContTrialsPP, An.contTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.contTrig, An.curSess, 'Cont');
 
     %Section the data around onset and offset
     [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.fsA, An.pertTrigPP);
@@ -129,7 +129,7 @@ end
 function fV = setFreqAnalVar(sRate, numSamp)
 
 %Identify a few analysis varaibles
-fV.win        = 0.05;  %seconds
+fV.win        = 0.005;  %seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
 fV.pOV        = 0.60;  %60% overlap
@@ -206,7 +206,13 @@ function signalParse = parseTrialTypes(signal, idx)
 signalParse = signal(:, idx); %This is a little lazy I know. Get over it. 
 end
 
-function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(time, audioNormM, audioNormH, numTrialType, trigs, curSess, type)
+function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(time, audioNormM, audioNormH, trigs, curSess, type)
+%This function checks to see if there are any realllllly weird f0 values as
+%a result of the spectral analysis. This throws away trials and tells you
+%when it happens. It combines new data audio files of the saved trials, and
+%ammends the trig matrix of those files removed. Also gives a new value of
+%total number of trials kept.
+[~, numTrialType] = size(audioNormM);
 
 timeInd = find(time > 0.5 & time < 4);
 
@@ -220,7 +226,8 @@ for ii = 1:numTrialType
         fprintf('Threw away %s %s trial %s\n', curSess, type, num2str(ii))
     else
         numTrialTypePP = numTrialTypePP + 1;
-        trigsPP = cat(1, trigsPP, trigs(ii,:));
+        
+        trigsPP      = cat(1, trigsPP, trigs(ii,:));
         audioNormMPP = cat(2, audioNormMPP, audioNormM(:,ii));
         audioNormHPP = cat(2, audioNormHPP, audioNormH(:,ii));
     end
