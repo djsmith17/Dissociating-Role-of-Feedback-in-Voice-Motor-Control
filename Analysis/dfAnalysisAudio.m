@@ -63,8 +63,8 @@ if AudFlag == 1
     An.audioHf0_c = parseTrialTypes(An.audioHf0_norm, An.contIdx);
 
     %Find troublesome trials and remove
-    [An.audioMf0_pPP, An.audioHf0_pPP, An.numPertTrialsPP, An.pertTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.pertTrig, An.curSess, 'Pert');
-    [An.audioMf0_cPP, An.audioHf0_cPP, An.numContTrialsPP, An.contTrigPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.contTrig, An.curSess, 'Cont');
+    [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.pertTrig, An.curSess, 'Pert');
+    [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.contTrig, An.curSess, 'Cont');
 
     %Section the data around onset and offset
     [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.fsA, An.pertTrigPP);
@@ -204,7 +204,7 @@ function signalParse = parseTrialTypes(signal, idx)
 signalParse = signal(:, idx); %This is a little lazy I know. Get over it. 
 end
 
-function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProcessing(time, audioNormM, audioNormH, trigs, curSess, type)
+function [audioNormMPP, audioNormHPP, trigsPP, numTrialTypePP] = audioPostProcessing(time, audioNormM, audioNormH, trigs, curSess, type)
 %This function checks to see if there are any realllllly weird f0 values as
 %a result of the spectral analysis. This throws away trials and tells you
 %when it happens. It combines new data audio files of the saved trials, and
@@ -214,20 +214,19 @@ function [audioNormMPP, audioNormHPP, numTrialTypePP, trigsPP] = audioPostProces
 
 timeInd = find(time > 0.5 & time < 4);
 
-audioNormMPP = [];
-audioNormHPP = [];
-numTrialTypePP = 0; 
+audioNormMPP   = [];
+audioNormHPP   = [];
 trigsPP        = [];
+numTrialTypePP = 0; 
 for ii = 1:numTrialType
     ind = find(audioNormM(timeInd,ii) >= 500 | audioNormM(timeInd,ii) <=  -500);
     if ~isempty(ind)
         fprintf('Threw away %s %s trial %s\n', curSess, type, num2str(ii))
     else
+        trigsPP        = cat(1, trigsPP, trigs(ii,:));
+        audioNormMPP   = cat(2, audioNormMPP, audioNormM(:,ii));
+        audioNormHPP   = cat(2, audioNormHPP, audioNormH(:,ii));
         numTrialTypePP = numTrialTypePP + 1;
-        
-        trigsPP      = cat(1, trigsPP, trigs(ii,:));
-        audioNormMPP = cat(2, audioNormMPP, audioNormM(:,ii));
-        audioNormHPP = cat(2, audioNormHPP, audioNormH(:,ii));
     end
 end
 end
@@ -296,6 +295,7 @@ end
 
 function [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
 [L, numTrial, ~] = size(secAudio); %Only look at Onsets
+
 ir.numTrial = numTrial;
 ir.time     = secTime;
 ir.iAtOnset = find(secTime == 0); %Ind
