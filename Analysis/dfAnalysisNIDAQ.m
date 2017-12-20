@@ -51,6 +51,7 @@ niAn.sensorO  = squeeze(DAQin(:,7,:));
 niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
 
 %Preprocessing some of the Force sensors
+niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
 niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
 
 niAn.sRateDN     = niAn.sRate/niAn.dnSamp;
