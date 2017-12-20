@@ -51,10 +51,9 @@ niAn.sensorO  = squeeze(DAQin(:,7,:));
 niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
 
 %Preprocessing some of the Force sensors
-niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, sRate);
-niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, sRate);
+niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
 
-niAn.sRateDN     = sRate/niAn.dnSamp;
+niAn.sRateDN     = niAn.sRate/niAn.dnSamp;
 niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
 niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
