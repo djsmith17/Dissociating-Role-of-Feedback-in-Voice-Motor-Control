@@ -23,30 +23,23 @@ fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
 auAn.dnSamp   = 10;
 auAn.sRate    = expParam.sRateAnal;
-auAn.numSamp  = 24;
+auAn.trialLen = expParam.trialLen;
+auAn.numSamp  = expParam.sRate*expParam.trialLen;
 auAn.numTrial = expParam.numTrial;
-
-auAn.trigsT   = expParam.trigs(:,:,1);  %Pregenerated start and stop times for time-alignment with audio data
-auAn.trigsA   = expParam.trigs(:,:,3);  %Pregenerated start and stop points (Audapter) for time-alignment with audio data
-auAn.trigsQ   = expParam.trigs(:,:,2);  %Pregenerated start and stop points (NIDAQ) for time-alignment with audio data
+auAn.expTrigs = expParam.trigs(:,:,1); %Time
+auAn.anaTrigs = expParam.trigs(:,:,3);
 
 [auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
 [auAn.PertTrials, auAn.pertIdx] = find(auAn.trialType == 1);
 auAn.numContTrials = sum(auAn.ContTrials);
 auAn.numPertTrials = sum(auAn.PertTrials);
 
+auAn.contTrig = auAn.anaTrigs(:, auAn.contIdx);
+auAn.pertTrig = auAn.anaTrigs(:, auAn.pertIdx);
 
-auAn.winLen  = 0.05;                   % Analysis window length (seconds)
-auAn.winLenP = auAn.winLen*auAn.sRate; % Analysis window length (points)
-auAn.pOV     = 0.60;                   % Window overlap percentage (decimal)
-auAn.tStepP  = auAn.winLenP*(1-auAn.pOV); %Number of points between each analysis window starting indice (Changes with Percent of overlap)
-auAn.tStep   = auAn.tStepP/auAn.sRate;    %Amount of time(s) between each analysis window           
 
 auAn.actualRecLen = length(rawData(1).signalIn)/auAn.sRate;
 auAn.frameT       = linspace(0,auAn.actualRecLen, 2053);
-
-auAn.recLen  = expParam.trialLen;
-auAn.recLenP = expParam.trialLen*auAn.sRate;
 
 auAn.preEveLen  = 0.5; %Amount of time in seconds of observation period before event (onset/offset)
 auAn.posEveLen  = 1.0; %Amount of time in seconds of observation period after event (onset/offset)
@@ -60,10 +53,6 @@ auAn.preEveLenQ = round(auAn.preEveLen*auAn.sRateQ);  %Amount of points of obser
 auAn.posEveLenQ = round(auAn.posEveLen*auAn.sRateQ);  %Amount of points of observation period after event (onset/offset) for NIDAQ signal
 auAn.totEveLenQ = auAn.preEveLenQ + auAn.posEveLenQ; %Total length (points_NIDAQ) of observation time
 auAn.timeQ      = (0:1:(auAn.totEveLenQ-1))/auAn.sRateQ; %Time points_NIDAQ roughly center of start and stop points of analysis
-
-%Analysis Time Steps for Full trial
-auAn.winSts  = 1:auAn.tStepP:(auAn.recLenP-auAn.winLenP); %Starting indices for each analysis window
-auAn.numWin  = length(auAn.winSts); %Number of analysis windows;       
 
 auAn.anaInds(:,1) = auAn.winSts;                      %Start indice for analysis based on EvalStep
 auAn.anaInds(:,2) = auAn.winSts + auAn.winLenP - 1;   %Stop indice for analysis based on EvalStep
