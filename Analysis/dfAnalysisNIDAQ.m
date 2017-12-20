@@ -54,27 +54,27 @@ niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
 niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
 niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
 
-% niAn.sRateDN     = niAn.sRate/niAn.dnSamp;
-% niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
-% niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
-% niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
-% niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFCz, niAn.dnSamp);
-% niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFNz, niAn.dnSamp);
+niAn.sRateDN     = niAn.sRate/niAn.dnSamp;
+niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
+niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
+niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
+niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFCz, niAn.dnSamp);
+niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFNz, niAn.dnSamp);
 
 %Parse out the pertrubed trials
-niAn.pertSig_p  = parseTrialTypes(niAn.pertSig, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorP_p  = parseTrialTypes(niAn.sensorPz, niAn.pertIdx); % Only Perturbed Trials
-niAn.sensorFC_p = parseTrialTypes(niAn.sensorFCz, niAn.pertIdx); % Only Perturbed Trials
-niAn.sensorFN_p = parseTrialTypes(niAn.sensorFNz, niAn.pertIdx); % Only Perturbed Trials
+niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
+niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
 %Make a dummy set of contTrig
 niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 
 %Find Rising and Falling Edges of sensor signals
-[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_p, niAn.sRate);
-[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time, niAn.sensorP_p, niAn.sRate);
-[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time, niAn.sensorFC_p, niAn.sRate);  
-[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time, niAn.sensorFN_p, niAn.sRate); 
+[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
+[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
+[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
+[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_p, niAn.sRateDN); 
 
 [niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
@@ -83,11 +83,11 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 %Sensor Dynamics of the Pressure Sensor
 [niAn.OnOfValP,  niAn.OnOfValPm, ...
  niAn.riseTimeP, niAn.riseTimePm] = ...
-analyzeSensorDynamics(niAn.time, niAn.sensorP_p, niAn.sRate, niAn.presTrig);
+analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
 
 %Aligning pressure signal for perturbed trials
-niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRate, niAn.idxPert);
-niAn.time_Al    = (0:1/niAn.sRate:(length(niAn.sensorP_Al)-1)/niAn.sRate)';
+niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
+niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 
 %The Audio Analysis
 niAn = dfAnalysisAudio(dirs, niAn, AudFlag);
@@ -336,7 +336,7 @@ res.contIdx       = niAn.contIdx;
 res.pertIdx       = niAn.pertIdx;
 res.pertTrig      = niAn.pertTrig;
 
-res.timeS      = niAn.time;
+res.timeS      = niAn.time_DN;
 res.sensorP    = niAn.sensorP_p; %Individual Processed perturbed trials. 
 res.lagTimeP   = niAn.lagsPres;
 res.lagTimePm  = niAn.meanLagTimeP;
