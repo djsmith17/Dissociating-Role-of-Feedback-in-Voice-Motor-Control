@@ -44,10 +44,14 @@ for i = 1:AVar.numPart
         load(dirs.baselineData)
         load(dirs.SavFileDir)
         
+        %Initialize this so I can stop worrying about it
+        niAn = []; niRes = [];
+        auAn = []; auRes = [];
+        InflaVar = [];
+                
         bTf0b = GT.subjf0;
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, 1);
-        auAn = []; auRes = [];
-%         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
         InflaVar = niRes.InflaStimVar;
 
