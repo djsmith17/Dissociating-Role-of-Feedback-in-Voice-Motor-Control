@@ -9,19 +9,17 @@ function An = dfAnalysisAudio(dirs, An, AudFlag)
 %An.curSess
 %An.bTf0b
 
-%An.sRate
+%An.sRate   %8000Hz (NIDAQ), 16000Hz (Audapter)
 %An.numSamp
 
-%An.time    %Expects a vector (samples x 1)
-%An.audioM  %Expects a matrix (samples x trials)
-%An.audioH  %Expects a matrix (samples x trials)
+%An.time    % Expects a vector (samples x 1)
+%An.audioM  % Expects a matrix (samples x trials)
+%An.audioH  % Expects a matrix (samples x trials)
 
-%An.pertIdx
-%An.contIdx
-%An.numPertTrials
-%An.numContTrials
-%An.pertTrig
-%An.contTrig
+%An.pertIdx   % Vector of indices pertaining to perturbed trials
+%An.contIdx   % Vector of indices pertaining to control trials
+%An.pertTrig  % Matrix of start/stop indices pertaining to pert period
+%An.contTrig  % Matrix of start/stop indices pertaining to 'pert' period
 
 %Instatiate the variables we intend to use. 
 An = initAudVar(An);
