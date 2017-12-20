@@ -51,22 +51,19 @@ niAn.sensorO  = squeeze(DAQin(:,7,:));
 niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
 
 %Preprocessing some of the Force sensors
-sensorFCPP = sensorPreProcessing(sensorFC, sRate);
-sensorFNPP = sensorPreProcessing(sensorFN, sRate);
+niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, sRate);
+niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, sRate);
 
 niAn.sRateDN     = sRate/niAn.dnSamp;
 niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
 niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
-niAn.sensorP_DN  = dnSampleSignal(niAn.sensorP, niAn.dnSamp);
-niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
-niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
-
-%ZeroMean the Offset
-niAn.sensorP_DNz = correctBaseline(niAn.sensorP_DN, niAn.sRateDN);
+niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
+niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFCz, niAn.dnSamp);
+niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFNz, niAn.dnSamp);
 
 %Parse out the pertrubed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DNz, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
