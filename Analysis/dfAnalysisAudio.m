@@ -55,8 +55,8 @@ if AudFlag == 1
     An.trialf0b   = mean(An.audioMf0S(prePert,:),1);
     An.f0b        = mean(An.trialf0b);
 
-    An.audioMf0_norm = normalizeDAQf0(An.audioMf0S, An.trialf0b);
-    An.audioHf0_norm = normalizeDAQf0(An.audioHf0S, An.trialf0b);
+    An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0b);
+    An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0b);
 
     %Find the Perturbed Trials
     An.audioMf0_p = parseTrialTypes(An.audioMf0_norm, An.pertIdx);
@@ -185,7 +185,12 @@ for ii = 1:numTrial
 end
 end
 
-function audio_norm = normalizeDAQf0(audio, f0b)
+function audio_norm = normf0(audio, f0b)
+%audio_norm = normf0(audio, f0b) is a function that takes a set of audio signals and 
+%normalizes each piece of audio by its corresponding fundamental fequency.
+%It is expected that audio and f0b will be a matrices of size numSamp x
+%numTrial 
+
 [~, numTrial] = size(audio);
 
 audio_norm = [];
