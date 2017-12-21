@@ -44,7 +44,7 @@ for ii = 1:auAn.numTrial
     Hraw = data.signalOut;    % Headphones
    
     auAn.audProcDel = data.params.frameLen*4;
-    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.numSamp, auAn.audProcDel, auAn.expTrigs(ii,1));
+    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.audProcDel, auAn.expTrigs(ii,1));
 
 %     OST  = data.ost_stat;
     if saveT == 0 %Don't save the trial :(
@@ -53,8 +53,8 @@ for ii = 1:auAn.numTrial
 
     end
 
-    auAn.audioM = cat(2, auAn.audioM, Mraw);
-    auAn.audioH = cat(2, auAn.audioH, Hraw);
+    auAn.audioM = cat(2, auAn.audioM, mic);
+    auAn.audioH = cat(2, auAn.audioH, head);
 end
 
 [auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
@@ -62,8 +62,8 @@ end
 auAn.numContTrials = sum(auAn.ContTrials);
 auAn.numPertTrials = sum(auAn.PertTrials);
 
-auAn.contTrig = auAn.expTrigs(:, auAn.contIdx);
-auAn.pertTrig = auAn.expTrigs(:, auAn.pertIdx);
+auAn.contTrig = auAn.expTrigs(auAn.contIdx,:);
+auAn.pertTrig = auAn.expTrigs(auAn.pertIdx,:);
 
 %The Audio Analysis
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag);
@@ -72,7 +72,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, numSamp, audProcDel, spanSt)
+function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 

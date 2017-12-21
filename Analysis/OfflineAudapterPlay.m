@@ -38,7 +38,7 @@ switch pertType
         pertTypeSw = 1;
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -50,7 +50,7 @@ expParam.gender       = answer{4};
 expParam.curSess      = [expParam.subject expParam.run];
 expParam.InflaVar     = answer{5};
 expParam.baseRun      = answer{6};
-expParam.numTrial     = 2;
+expParam.numTrial     = 1;
 expParam.curTrial     = [];
 expParam.perCatch     = 1.00;
 expParam.AudFB        = 'Voice Shifted';
