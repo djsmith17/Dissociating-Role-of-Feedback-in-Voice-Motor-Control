@@ -205,7 +205,7 @@ end
 
 function [mic_frames] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
-trial = 2;
+trial = 1;
 
 %Load previously recorded voice sample to perturb
 fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
