@@ -7,7 +7,7 @@ AudFB            = res.AudFB;
 time             = res.timeA;
 micf0Trials      = res.audioMf0TrialPert;
 heaf0Trials      = res.audioHf0TrialPert;
-limits           = res.limitsA;
+limits           = res.limitsAudRes;
 numTrial         = res.numPertTrialsPP;
 trigs            = res.pertTrigPP;
 
