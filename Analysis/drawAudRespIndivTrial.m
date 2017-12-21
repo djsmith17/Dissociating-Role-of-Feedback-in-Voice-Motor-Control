@@ -3,16 +3,16 @@ function drawAudRespIndivTrial(res, plotFolder)
 curSess          = res.curSess;
 f0b              = round(10*res.f0b)/10;
 AudFB            = res.AudFB;
-numPT            = res.numPertTrialsPP;
 
 time             = res.timeA;
 micf0Trials      = res.audioMf0TrialPert;
 heaf0Trials      = res.audioHf0TrialPert;
 limits           = res.limitsA;
+numTrial         = res.numPertTrialsPP;
 trigs            = res.pertTrigPP;
 
 plotpos = [10 100];
-plotdim = [1800 800];
+plotdim = [1200 1050];
 IndivTrialAudResp = figure('Color', [1 1 1]);
 set(IndivTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
@@ -25,7 +25,7 @@ titleFSize   = 10;
 axisLSize    = 6;
 lineThick    = 4;
 
-ha = tight_subplot(1, 5, [0.1 0.02],[0.05 0.12],[0.05 0.03]);
+ha = tight_subplot(5, 1, [0.1 0.02],[0.05 0.12],[0.05 0.03]);
 
 for ii = 1:numTrial      
     axes(ha(ii))
@@ -51,7 +51,7 @@ for ii = 1:numTrial
              'FontSize', axisLSize,...
              'FontWeight','bold')
 end
-legend([mH.mainLine hH.mainLine],{'Microphone', 'Headphones'},...
+legend([mH hH],{'Microphone', 'Headphones'},...
             'Position', [0.8 0.30 0.1 0.1],...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...
@@ -59,7 +59,7 @@ legend([mH.mainLine hH.mainLine],{'Microphone', 'Headphones'},...
             'FontSize', legAnnoFSize,...
             'FontWeight', 'bold');
         
-sup = suptitle({curSess; ['AudFB: ' AudFB]; ['f0: ' num2str(f0b) 'Hz, ' num2str(numPT) ' trial(s)']});
+sup = suptitle({curSess; ['AudFB: ' AudFB]; ['f0: ' num2str(f0b) 'Hz']});
 set(sup, 'FontName', fontN,...
          'FontSize', titleFSize,...
          'FontWeight','bold')

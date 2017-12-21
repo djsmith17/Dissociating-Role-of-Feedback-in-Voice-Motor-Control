@@ -50,7 +50,7 @@ expParam.gender       = answer{4};
 expParam.curSess      = [expParam.subject expParam.run];
 expParam.InflaVar     = answer{5};
 expParam.baseRun      = answer{6};
-expParam.numTrial     = 1;
+expParam.numTrial     = 5;
 expParam.curTrial     = [];
 expParam.perCatch     = 1.00;
 expParam.AudFB        = 'Voice Shifted';
@@ -200,6 +200,7 @@ bTf0b = GT.subjf0;
 [auAn, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, bTf0b, 1);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
 end
 
 function [mic_frames] = OfflineLoadBaselineVoice(dirs)
