@@ -6,17 +6,17 @@ f0b              = round(10*res.f0b)/10;
 AudFB            = res.AudFB;
 numPT            = res.numPertTrialsPP;
 
-time             = niRes.secTime;
-meanf0MicOnset  = niRes.audioMf0MeanPert(:,1);
-CIf0MicOnset    = niRes.audioMf0MeanPert(:,2);
-meanf0MicOffset = niRes.audioMf0MeanPert(:,3);
-CIf0MicOffset   = niRes.audioMf0MeanPert(:,4);
+time             = res.secTime;
+meanf0MicOnset   = res.audioMf0MeanPert(:,1);
+CIf0MicOnset     = res.audioMf0MeanPert(:,2);
+meanf0MicOffset  = res.audioMf0MeanPert(:,3);
+CIf0MicOffset    = res.audioMf0MeanPert(:,4);
 
-meanf0HeadOnset  = niRes.audioHf0MeanPert(:,1);
-CIf0HeadOnset    = niRes.audioHf0MeanPert(:,2);
-meanf0HeadOffset = niRes.audioHf0MeanPert(:,3);
-CIf0HeadOffset   = niRes.audioHf0MeanPert(:,4);
-limits           = niRes.limitsAmean;
+meanf0HeadOnset  = res.audioHf0MeanPert(:,1);
+CIf0HeadOnset    = res.audioHf0MeanPert(:,2);
+meanf0HeadOffset = res.audioHf0MeanPert(:,3);
+CIf0HeadOffset   = res.audioHf0MeanPert(:,4);
+limits           = res.limitsAmean;
 
 plotpos = [10 100];
 plotdim = [1600 600];
@@ -43,9 +43,6 @@ axis(limits); box off
 set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold')
-
-l0 = legend([mH.mainLine hH.mainLine], 'Microphone', 'Headphones'); 
-set(l0,'box', 'off','FontSize', 14, 'FontWeight', 'bold');
 
 %Offset of Perturbation
 axes(ha(2))

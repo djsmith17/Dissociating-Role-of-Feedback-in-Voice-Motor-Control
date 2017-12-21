@@ -87,17 +87,11 @@ function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, numSamp, audP
 %saveT:    Boolean toggle to determine if the trial should be saved
 %saveTmsg: Reason, if any, that the trial was thrown out
 
-Mfull = micR(1:numSamp);
-Hfull = headR(1:numSamp);
+Mfull = micR(1:(end-audProcDel));
+Hfull = headR((audProcDel+1):end); 
 
-dnSamp = 20;
-
-
-mic  = micR(1:(end-audProcDel));
-head = headR((audProcDel+1):end); 
-
-x = double(mic); 
-y = double(head);
+x = double(Mfull); 
+y = double(Hfull);
 
 pp.lenSig = length(x);
 pp.t = 0:1/fs:(pp.lenSig-1)/fs;
