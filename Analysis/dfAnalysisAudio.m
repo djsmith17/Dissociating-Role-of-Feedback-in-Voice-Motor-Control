@@ -218,7 +218,7 @@ function [audioNormMPP, audioNormHPP, trigsPP, numTrialTypePP] = audioPostProces
 %total number of trials kept.
 [~, numTrialType] = size(audioNormM);
 
-timeInd = find(time > 0.5 & time < 4);
+timeInd = find(time > 0.5 & time < 3.5);
 
 audioNormMPP   = [];
 audioNormHPP   = [];
