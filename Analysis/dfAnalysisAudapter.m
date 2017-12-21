@@ -187,20 +187,62 @@ if ~isempty(An.audioMf0_meanp)
     lwBoundOf = round(An.audioMf0_meanp(Imin,3) - An.audioMf0_meanp(Imin,4) - 10);
 
     if upBoundOn > upBoundOf
-        upBoundSec = upBoundOn;
+        upBoundM = upBoundOn;
     else
-        upBoundSec = upBoundOf;
+        upBoundM = upBoundOf;
     end
 
     if lwBoundOn < lwBoundOf
-        lwBoundSec = lwBoundOn;
+        lwBoundM = lwBoundOn;
     else
-        lwBoundSec = lwBoundOf;
+        lwBoundM = lwBoundOf;
     end
 
-    lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
+    lims.audioMean = [-0.5 1.0 lwBoundM upBoundM];
 else
     lims.audioMean = [-0.5 1.0 -50 50];
+end
+
+%%%%%%%%%%%lims.audioMH%%%%%%%%%%%%
+%Section Mean Pertrubed Trials: f0 Audio 
+if ~isempty(An.audioHf0_meanp)
+    [~, Imax] = max(An.audioHf0_meanp(:,1)); %Max Pert Onset
+    upBoundOn = round(An.audioHf0_meanp(Imax,1) + An.audioHf0_meanp(Imax,2) + 10);
+    [~, Imin] = min(An.audioHf0_meanp(:,1)); %Min Pert Onset
+    lwBoundOn = round(An.audioHf0_meanp(Imin,1) - An.audioHf0_meanp(Imin,2) - 10);
+
+    [~, Imax] = max(An.audioHf0_meanp(:,3)); %Max Pert Offset
+    upBoundOf = round(An.audioHf0_meanp(Imax,3) + An.audioHf0_meanp(Imax,4) + 10);
+    [~, Imin] = min(An.audioHf0_meanp(:,3)); %Min Pert Offset
+    lwBoundOf = round(An.audioHf0_meanp(Imin,3) - An.audioHf0_meanp(Imin,4) - 10);
+
+    if upBoundOn > upBoundOf
+        upBoundH = upBoundOn;
+    else
+        upBoundH = upBoundOf;
+    end
+
+    if lwBoundOn < lwBoundOf
+        lwBoundH = lwBoundOn;
+    else
+        lwBoundH = lwBoundOf;
+    end
+    
+    if upBoundH > upBoundM
+        upBoundMH = upBoundH;
+    else
+        upBoundMH = upBoundM;
+    end
+    
+    if lwBoundH < lwBoundM
+        lwBoundMH = lwBoundH;
+    else
+        lwBoundMH = lwBoundM;
+    end
+
+    lims.audioMH = [-0.5 1.0 lwBoundMH upBoundMH];
+else
+    lims.audioMH = [-0.5 1.0 -100 50];
 end
 
 end
@@ -246,6 +288,7 @@ res.audioMf0MeanCont = auAn.audioMf0_meanc;
 res.audioHf0MeanPert = auAn.audioHf0_meanp;
 res.audioHf0MeanCont = auAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
+res.limitsAMH        = lims.audioMH;
 
 %Inflation Response
 res.respVar   = auAn.respVar;
