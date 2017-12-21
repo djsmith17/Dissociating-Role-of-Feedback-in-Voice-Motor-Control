@@ -155,19 +155,43 @@ function lims = identifyLimits(An)
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
 %Full Individual Trials: f0 Audio
 if ~isempty(An.audioMf0_pPP)
-    pertTrials = An.audioMf0_pPP;
+    pertTrialsM = An.audioMf0_pPP;
+    pertTrialsH  = An.audioHf0_pPP;
     sec = 100:700;
 
-    alluL = max(pertTrials(sec,:));
-    alluL(find(alluL > 150)) = 0;
-    alllL = min(pertTrials(sec,:));
-    alllL(find(alllL < -150)) = 0;
+    uLMa = max(pertTrialsM(sec,:));
+    uLMa(find(uLMa > 150)) = 0;
+    lLMa = min(pertTrialsM(sec,:));
+    lLMa(find(lLMa < -150)) = 0;
 
-    uL = round(max(alluL)) + 20;
-    lL = round(min(alllL)) - 20;
-    lims.audio      = [0 4 lL uL];
+    uLM = round(max(uLMa)) + 20;
+    lLM = round(min(lLMa)) - 20;
+       
+    uLHa = max(pertTrialsH(sec,:));
+    uLHa(find(uLHa > 150)) = 0;
+    lLHa = min(pertTrialsH(sec,:));
+    lLHa(find(lLHa < -150)) = 0;
+    
+    uLH = round(max(uLHa)) + 20;
+    lLH = round(min(lLHa)) - 20;
+    
+    if uLH > uLM
+        uLMH = uLH;
+    else
+        uLMH = uLM;
+    end
+
+    if lLH < lLM
+        lLMH = lLH;
+    else
+        lLMH = lLM;
+    end
+    
+    lims.audioM         = [0 4 lLM uLM];
+    lims.audioAudRespMH = [0 4 lLMH uLMH];
 else
-    lims.audio      = [0 4 -20 20];
+    lims.audioM         = [0 4 -20 20];
+    lims.audioAudRespMH = [0 4 -100 100];
 end
 
 %%%%%%%%%%%lims.audioMean%%%%%%%%%%%
@@ -270,7 +294,8 @@ res.audioMf0TrialPert = auAn.audioMf0_pPP;
 res.audioMf0TrialCont = auAn.audioMf0_cPP;
 res.audioHf0TrialPert = auAn.audioHf0_pPP;
 res.audioHf0TrialCont = auAn.audioHf0_cPP;
-res.limitsA           = lims.audio;
+res.limitsA           = lims.audioM;
+res.limitsAudRes      = lims.audioAudRespMH;
 
 %Sections Trials: Mic/Head f0
 res.secTime          = auAn.secTime;

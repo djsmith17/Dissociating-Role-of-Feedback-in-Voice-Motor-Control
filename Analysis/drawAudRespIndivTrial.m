@@ -11,7 +11,7 @@ limits           = res.limitsA;
 numTrial         = res.numPertTrialsPP;
 trigs            = res.pertTrigPP;
 
-plotpos = [10 100];
+plotpos = [10 0];
 plotdim = [1200 1050];
 IndivTrialAudResp = figure('Color', [1 1 1]);
 set(IndivTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -22,10 +22,10 @@ pertBoxC     = [0.8 0.8 0.8];
 fontN        = 'Arial';
 legAnnoFSize = 12;
 titleFSize   = 10;
-axisLSize    = 6;
+axisLSize    = 10;
 lineThick    = 4;
 
-ha = tight_subplot(5, 1, [0.1 0.02],[0.05 0.12],[0.05 0.03]);
+ha = tight_subplot(5, 1, [0.02 0.02],[0.05 0.12],[0.03 0.03]);
 
 for ii = 1:numTrial      
     axes(ha(ii))
