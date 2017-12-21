@@ -43,7 +43,7 @@ for ii = 1:auAn.numTrial
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
    
-    auAn.audProcDel = data.params.frameLen*4;
+    auAn.audProcDel = data.params.frameLen*12;
     [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.audProcDel, auAn.expTrigs(ii,1));
 
 %     OST  = data.ost_stat;
