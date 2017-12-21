@@ -199,11 +199,7 @@ load(dirs.GTBaseFile)
 bTf0b = GT.subjf0;
 [auAn, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, bTf0b, 1);
 
-drawDAQMeanTrialMicf0(auRes, dirs.SavResultsDir)
-
-% drawAudResp_AllTrial(res, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
-% 
-% drawAudResp_InterTrial(res.timeSec, res.meanTrialf0_St, res.meanTrialf0_Sp, res.f0LimitsSec, res.trialCount, res.meanTrialf0b, auAn.curSess, OA.expParam.curRec, dirs.SavResultsDir)
+drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
 end
 
 function [mic_frames] = OfflineLoadBaselineVoice(dirs)
