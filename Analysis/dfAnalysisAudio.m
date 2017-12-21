@@ -1,4 +1,4 @@
-function An = dfAnalysisAudio(dirs, An, AudFlag)
+function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 %I found that I was mostly writing the same things twice in my scripts for
 %audapter analysis and NIDAQ analysis. Ultimately what I care about is the
 %audio in one form or another. Let's just put it here.
@@ -21,6 +21,12 @@ function An = dfAnalysisAudio(dirs, An, AudFlag)
 %An.pertTrig  % Matrix of start/stop indices pertaining to pert period
 %An.contTrig  % Matrix of start/stop indices pertaining to 'pert' period
 
+if isempty(varargin)
+    f0Flag = 0;
+else
+    f0Flag = varargin{1};
+end
+
 %Instatiate the variables we intend to use. 
 An = initAudVar(An);
 
@@ -31,7 +37,7 @@ if AudFlag == 1
     %Main script that does the Signal Frequency Analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [An.subject An.run 'f0Analysis.mat']);
 
-    if exist(dirs.audiof0AnalysisFile, 'file') == 0
+    if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
         [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioM, An.sRate, An.fV, An.bTf0b, 1);
         [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioH, An.sRate, An.fV, An.bTf0b, 1);
         save(dirs.audiof0AnalysisFile, 'f0A')

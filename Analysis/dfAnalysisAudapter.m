@@ -66,7 +66,8 @@ auAn.contTrig = auAn.expTrigs(auAn.contIdx,:);
 auAn.pertTrig = auAn.expTrigs(auAn.pertIdx,:);
 
 %The Audio Analysis
-auAn = dfAnalysisAudio(dirs, auAn, AudFlag);
+f0Flag = 1;
+auAn = dfAnalysisAudio(dirs, auAn, AudFlag, f0Flag);
 
 lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);

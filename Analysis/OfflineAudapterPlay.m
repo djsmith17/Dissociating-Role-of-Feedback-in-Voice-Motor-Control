@@ -38,7 +38,7 @@ switch pertType
         pertTypeSw = 1;
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -122,7 +122,7 @@ if collectNewData == 1
     
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
 
     expParam.cuePause  = 1.0;
     expParam.resPause  = 2.0;
