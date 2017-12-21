@@ -1,4 +1,6 @@
-function drawAudResp_AllTrial(res, curSess, curRec, plotFolder)
+function drawAudRespIndivTrial(res, curSess, curRec, plotFolder)
+
+
 
 time  = res.time;
 trigs = res.allTrialTrigs;
