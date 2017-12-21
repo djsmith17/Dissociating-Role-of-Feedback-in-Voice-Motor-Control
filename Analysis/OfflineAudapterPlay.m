@@ -38,7 +38,7 @@ switch pertType
         pertTypeSw = 1;
 end
 
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
