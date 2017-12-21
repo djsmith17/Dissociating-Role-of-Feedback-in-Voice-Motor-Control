@@ -62,8 +62,8 @@ end
 auAn.numContTrials = sum(auAn.ContTrials);
 auAn.numPertTrials = sum(auAn.PertTrials);
 
-auAn.contTrig = auAn.anaTrigsDN(:, auAn.contIdx);
-auAn.pertTrig = auAn.anaTrigsDN(:, auAn.pertIdx);
+auAn.contTrig = auAn.expTrigs(:, auAn.contIdx);
+auAn.pertTrig = auAn.expTrigs(:, auAn.pertIdx);
 
 %The Audio Analysis
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag);
