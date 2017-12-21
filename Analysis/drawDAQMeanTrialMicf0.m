@@ -1,4 +1,8 @@
 function drawDAQMeanTrialMicf0(niRes, plotFolder)
+%drawDAQMeanTrialMicf0(niRes, plotFolder) is plotting function for
+%displaying differences in microphone channel recordings between perturbed
+%and control trials. If your data set does not have any control trials,
+%this will give an error
 
 curSess          = niRes.curSess;
 f0b              = round(10*niRes.f0b)/10;
