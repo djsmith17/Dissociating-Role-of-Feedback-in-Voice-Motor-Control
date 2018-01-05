@@ -80,6 +80,13 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
+
+niAn.OnOfValP  = [];
+niAn.OnOfValPm = [];
+niAn.riseTimeP = [];
+niAn.riseTimePm = [];
+niAn.sensorP_Al = [];
+niAn.time_Al    = [];
 if PresFlag == 1
     %Sensor Dynamics of the Pressure Sensor
     [niAn.OnOfValP,  niAn.OnOfValPm, ...
