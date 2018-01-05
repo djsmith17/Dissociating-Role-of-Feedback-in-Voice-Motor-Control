@@ -53,8 +53,8 @@ for i = 1:numTrial
     span = St_p:Sp_p; 
 
     sig  = zeros(trialLenP,1);
-    if trialType(i) == 1 && strcmp(expType, expChk{1}) %Only do this for SFPerturb
-        sig(span) = 3; %For SFPerturb  (sometimes) =3. For AFPerturb always =0
+    if trialType(i) == 1 %Only do this for perturbed trials
+        sig(span) = 3;
     end
     
     sigs(:,i)    = sig;
