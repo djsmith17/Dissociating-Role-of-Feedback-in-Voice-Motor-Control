@@ -41,10 +41,12 @@ for i = 1:AVar.numPart
         end
 
         fprintf('Loading Files for %s %s\n', participant, run)
-        load(dirs.baselineData)
-        load(dirs.SavFileDir)
+        load(dirs.baselineData) % Expect GT
+        load(dirs.SavFileDir)   % Expect DRF
         
-        %Initialize this so I can stop worrying about it
+        AVar.expType = DRF.expParam.expType;
+        
+        %Initialize these so I can stop worrying about it
         niAn = []; niRes = [];
         auAn = []; auRes = [];
         InflaVar = [];
@@ -53,16 +55,27 @@ for i = 1:AVar.numPart
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, 1, 0);
 %         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
-        InflaVar = niRes.InflaStimVar;
-
-        dirs.InflaVarFile   = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
+        
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         if AVar.debug == 0
             fprintf('Saving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
-            fprintf('Saving Inflation Stimulus Variables for %s %s\n', participant, run)
-            save(dirs.InflaVarFile, 'InflaVar');
+        end
+        
+        if strcmp(AVar.expType, 'Somatosensory Perturbation_Perceptual') == 1
+            saveInflationResponse(dirs, niRes, participant, run, AVar.debug)
         end
     end
+end
+end
+
+function saveInflationResponse(dirs, res, participant, run, debug)
+
+InflaVar = res.InflaStimVar;
+
+dirs.InflaVarFile = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
+if debug == 0
+    fprintf('Saving Inflation Stimulus Variables for %s %s\n', participant, run)
+    save(dirs.InflaVarFile, 'InflaVar');
 end
 end
