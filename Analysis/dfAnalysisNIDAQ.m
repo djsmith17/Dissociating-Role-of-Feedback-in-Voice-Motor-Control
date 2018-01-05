@@ -1,4 +1,4 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag, PresFlag)
 %A quick reference
 %
 %Pert: Perturbation signal
@@ -80,14 +80,16 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
-%Sensor Dynamics of the Pressure Sensor
-[niAn.OnOfValP,  niAn.OnOfValPm, ...
- niAn.riseTimeP, niAn.riseTimePm] = ...
-analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
+if PresFlag == 1
+    %Sensor Dynamics of the Pressure Sensor
+    [niAn.OnOfValP,  niAn.OnOfValPm, ...
+     niAn.riseTimeP, niAn.riseTimePm] = ...
+    analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
 
-%Aligning pressure signal for perturbed trials
-niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
+    %Aligning pressure signal for perturbed trials
+    niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
+    niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
+end
 
 %The Audio Analysis
 niAn = dfAnalysisAudio(dirs, niAn, AudFlag);
