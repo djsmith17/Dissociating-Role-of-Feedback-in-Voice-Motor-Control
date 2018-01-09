@@ -1,4 +1,4 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag, PresFlag)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag, PresFlag, iRF)
 %A quick reference
 %
 %Pert: Perturbation signal
@@ -99,7 +99,7 @@ if PresFlag == 1
 end
 
 %The Audio Analysis
-niAn = dfAnalysisAudio(dirs, niAn, AudFlag);
+niAn = dfAnalysisAudio(dirs, niAn, AudFlag, iRF);
     
 lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
