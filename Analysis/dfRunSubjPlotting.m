@@ -57,6 +57,7 @@ for ii = 1:sPlt.numPart
         end
         
         if sPlt.NIDAQ_MeanAudResp == 1
+            drawAudRespIndivTrial(niRes, dirs.SavResultsDir)
             drawAudRespMeanTrial(niRes, dirs.SavResultsDir)
         end
 
