@@ -337,18 +337,18 @@ if ~isempty(An.audioMf0_meanp)
     lwBoundOf = round(An.audioMf0_meanp(Imin,3) - An.audioMf0_meanp(Imin,4) - 10);
 
     if upBoundOn > upBoundOf
-        upBoundSec = upBoundOn;
+        upBoundM = upBoundOn;
     else
-        upBoundSec = upBoundOf;
+        upBoundM = upBoundOf;
     end
 
     if lwBoundOn < lwBoundOf
-        lwBoundSec = lwBoundOn;
+        lwBoundM = lwBoundOn;
     else
-        lwBoundSec = lwBoundOf;
+        lwBoundM = lwBoundOf;
     end   
 
-    lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
+    lims.audioMean = [-0.5 1.0 lwBoundM upBoundM];
 else
     lims.audioMean = [-0.5 1.0 -50 50];
 end
