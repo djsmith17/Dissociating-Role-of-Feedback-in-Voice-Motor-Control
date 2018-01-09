@@ -156,7 +156,7 @@ function lims = identifyLimits(An)
 %Full Individual Trials: f0 Audio
 if ~isempty(An.audioMf0_pPP)
     pertTrialsM = An.audioMf0_pPP;
-    pertTrialsH  = An.audioHf0_pPP;
+    pertTrialsH = An.audioHf0_pPP;
     sec = 100:700;
 
     uLMa = max(pertTrialsM(sec,:));

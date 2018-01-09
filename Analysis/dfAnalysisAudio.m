@@ -22,7 +22,8 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 %An.contTrig  % Matrix of start/stop indices pertaining to 'pert' period
 
 if isempty(varargin)
-    f0Flag = 0;
+    infResFlag = 0; 
+    f0Flag     = 0;
 else
     f0Flag = varargin{1};
 end
