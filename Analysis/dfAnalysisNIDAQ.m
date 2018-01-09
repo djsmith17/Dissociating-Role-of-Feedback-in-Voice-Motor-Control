@@ -437,7 +437,8 @@ res.audioMf0TrialPert = niAn.audioMf0_pPP;
 res.audioMf0TrialCont = niAn.audioMf0_cPP;
 res.audioHf0TrialPert = niAn.audioHf0_pPP;
 res.audioHf0TrialCont = niAn.audioHf0_cPP;
-res.limitsA           = lims.audio;
+res.limitsA           = lims.audioM;
+res.limitsAudRes      = lims.audioAudRespMH;
 
 %Sections Trials: Mic/Head f0
 res.secTime          = niAn.secTime;
@@ -452,6 +453,7 @@ res.audioMf0MeanCont = niAn.audioMf0_meanc;
 res.audioHf0MeanPert = niAn.audioHf0_meanp;
 res.audioHf0MeanCont = niAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
+res.limitsAMH        = lims.audioMH;
 
 %Inflation Response
 res.respVar   = niAn.respVar;
