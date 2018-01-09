@@ -8,9 +8,9 @@ function dfRunSubjAnalysis()
 
 clear all; close all; clc
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot24'}; %List of multiple participants.
+AVar.participants  = {'PureTone200'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF1'};
+AVar.runs          = {'AF2'};
 AVar.numRuns       = length(AVar.runs);
 AVar.debug         = 0;
 
@@ -41,28 +41,48 @@ for i = 1:AVar.numPart
         end
 
         fprintf('Loading Files for %s %s\n', participant, run)
-        load(dirs.baselineData)
-        load(dirs.SavFileDir)
+        load(dirs.baselineData) % Expect GT
+        load(dirs.SavFileDir)   % Expect DRF
         
-        %Initialize this so I can stop worrying about it
+        AVar.expType = DRF.expParam.expType;
+        if strcmp(AVar.expType, 'Somatosensory Perturbation_Perceptual') == 1
+            pF  = 1;      %Pressure Analysis Flag
+            iRF = 1;      %Inflation Response Flag
+        else
+            pF  = 0;      %Pressure Analysis Flag
+            iRF = 0;      %Inflation Response Flag
+        end
+        
+        %Initialize these so I can stop worrying about it
         niAn = []; niRes = [];
         auAn = []; auRes = [];
         InflaVar = [];
                 
         bTf0b = GT.subjf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, 1);
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, 1, pF, iRF);
+%         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
-        InflaVar = niRes.InflaStimVar;
-
-        dirs.InflaVarFile   = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
+        
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         if AVar.debug == 0
             fprintf('Saving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
-            fprintf('Saving Inflation Stimulus Variables for %s %s\n', participant, run)
-            save(dirs.InflaVarFile, 'InflaVar');
+        end
+        
+        if iRF == 1
+            saveInflationResponse(dirs, niRes, participant, run, AVar.debug)
         end
     end
+end
+end
+
+function saveInflationResponse(dirs, res, participant, run, debug)
+
+InflaVar = res.InflaStimVar;
+
+dirs.InflaVarFile = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
+if debug == 0
+    fprintf('Saving Inflation Stimulus Variables for %s %s\n', participant, run)
+    save(dirs.InflaVarFile, 'InflaVar');
 end
 end

@@ -3,9 +3,9 @@ function dfRunSubjPlotting()
 
 clear all; close all; clc
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'Pilot24'}; %List of multiple participants.
+sPlt.participants  = {'PureTone200'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'SF1'}; %All runs to consider 
+sPlt.runs          = {'AF2'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
@@ -13,9 +13,10 @@ dirs               = dfDirs(sPlt.project);
 sv2File              = 1;
 sPlt.NIDAQ_allCh     = 0; %Voltage trace of force sensor signal
 sPlt.NIDAQ_PresMic   = 0;
-sPlt.NIDAQ_AligPress  = 1;
+sPlt.NIDAQ_AligPress  = 0;
 sPlt.NIDAQ_AllPertTrial   = 0;
-sPlt.NIDAQ_MeanTrialMicf0 = 1;
+sPlt.NIDAQ_MeanTrialMicf0 = 0;
+sPlt.NIDAQ_MeanAudResp = 1;
 sPlt.IntraTrial_T    = 0; %SPL trace of individual trial
 sPlt.IntraTrial_f0   = 0; %f0 trace for each individual trial
 sPlt.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
@@ -53,6 +54,11 @@ for ii = 1:sPlt.numPart
 
         if sPlt.InterTrial_f0 == 1
             drawInterTrialf0(auRes.timeSec, auRes.meanTrialf0_St, auRes.meanTrialf0_Sp, auRes.f0LimitsSec, auRes.trialCount, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
+        end
+        
+        if sPlt.NIDAQ_MeanAudResp == 1
+            drawAudRespIndivTrial(niRes, dirs.SavResultsDir)
+            drawAudRespMeanTrial(niRes, dirs.SavResultsDir)
         end
 
         if sPlt.NIDAQ_PresMic == 1

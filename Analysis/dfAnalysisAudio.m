@@ -22,9 +22,14 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 %An.contTrig  % Matrix of start/stop indices pertaining to 'pert' period
 
 if isempty(varargin)
+    iRF    = 0; 
+    f0Flag = 0;
+elseif length(varargin) == 1
+    iRF    = varargin{1};
     f0Flag = 0;
 else
-    f0Flag = varargin{1};
+    iRF    = varargin{1};
+    f0Flag = varargin{2};
 end
 
 %Instatiate the variables we intend to use. 
@@ -85,7 +90,9 @@ if AudFlag == 1
     An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc); 
 
     %The Inflation Response
-    [An.respVar, An.respVarMean, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
+    if iRF == 1
+        [An.respVar, An.respVarMean, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
+    end
 end
 end
 

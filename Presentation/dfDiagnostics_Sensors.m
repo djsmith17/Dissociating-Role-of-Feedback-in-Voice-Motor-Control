@@ -90,7 +90,7 @@ else
     load(dirs.RecFileDir)
 end
 
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0, 0);
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0, 0, 1);
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
