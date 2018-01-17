@@ -46,13 +46,14 @@ for i = 1:AVar.numPart
         
         AVar.expType = DRF.expParam.expType;
         [pF, iRF] = checkDRFExpType(AVar.expType);
+        AudFlag = 1;
         
         %Initialize these so I can stop worrying about it
         niAn = []; niRes = [];
         auAn = []; auRes = [];
                 
         bTf0b = GT.subjf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, 1, pF, iRF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
 %         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
         
