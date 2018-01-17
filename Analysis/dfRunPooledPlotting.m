@@ -1,5 +1,12 @@
-function dfPooledPlotting()
-%The function that draws the plots from analyzed results
+function dfRunPooledPlotting()
+%This function loads results to be plotted by a handful of plotting
+%functions. Specifically this is to plot pooled results, as oppose to
+%individual subject results.
+
+%This uses the following plot functions
+%drawDAQMeanTrialMicf0
+%drawMaskvVoiceMeanf0
+%drawMeanSubjf0Resp
 
 clear all; close all; clc
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
