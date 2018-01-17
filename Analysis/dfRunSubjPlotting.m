@@ -18,8 +18,6 @@ sPlt.drawDAQMeanTrialMicf0   = 0; % Mean Trials Microphone input. Control vs Per
 sPlt.drawDAQMeanTrialAudResp = 1; % Mean Perturbed Trials. Microphone vs Headphones
 
 sPlt.NIDAQ_AllPertTrial      = 0; % 
-sPlt.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
-sPlt.IntraTrialP_f0  = 0; %f0 trace of pertrubed trials of a run
 
 for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
@@ -56,22 +54,10 @@ for ii = 1:sPlt.numPart
             drawAudRespMeanTrial(niRes, dirs.SavResultsDir)
         end
         
-        
-        
+              
         if sPlt.drawDAQ == 1
             drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
         end 
-        
-
-        if sPlt.InterTrial_f0 == 1
-            drawInterTrialf0(auRes.timeSec, auRes.meanTrialf0_St, auRes.meanTrialf0_Sp, auRes.f0LimitsSec, auRes.trialCount, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
-        end
-        
-
-        if sPlt.IntraTrialP_f0 == 1
-            drawAllTrialf0(auRes.time, auRes.allTrialf0, auRes.runTrialOrder, auAn.trigsT, auRes.f0Limits, auRes.meanTrialf0b, auAn.curSess, '', dirs.SavResultsDir)
-        end
-
     end
 end
 end
