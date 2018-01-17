@@ -63,7 +63,7 @@ for ii = 1:sPlt.numPart
         end
         
               
-        if sPlt.drawDAQ == 1
+        if sPlt.NIDAQ_AllPertTrial == 1
             drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
         end 
     end
