@@ -1,6 +1,14 @@
 function dfRunSubjPlotting()
 %The function that draws the plots from analyzed results
 
+%This uses the following plot functions
+%drawDAQAll
+%drawDAQPresMic
+%drawDAQAlignedPressure
+%drawDAQMeanTrialMicf0
+%drawAudRespIndivTrial
+%drawAudRespMeanTrial
+
 clear all; close all; clc
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'PureTone200'}; %List of multiple participants.
