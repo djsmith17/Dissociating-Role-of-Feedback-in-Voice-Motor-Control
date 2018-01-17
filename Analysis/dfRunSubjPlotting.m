@@ -18,11 +18,8 @@ sPlt.drawDAQMeanTrialMicf0   = 0; % Mean Trials Microphone input. Control vs Per
 sPlt.drawDAQMeanTrialAudResp = 1; % Mean Perturbed Trials. Microphone vs Headphones
 
 sPlt.NIDAQ_AllPertTrial      = 0; % 
-sPlt.IntraTrial_T    = 0; %SPL trace of individual trial
-sPlt.IntraTrial_f0   = 0; %f0 trace for each individual trial
 sPlt.InterTrial_f0   = 0; %Average f0 trace over all trials of a run
 sPlt.IntraTrialP_f0  = 0; %f0 trace of pertrubed trials of a run
-sPlt.InterRun_f0       = 0; %Average f0 trace over all runs analyzed
 
 for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
@@ -34,10 +31,9 @@ for ii = 1:sPlt.numPart
         if exist(dirs.SavResultsFile, 'file') == 0
             fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
             return
-        end
-
-        %Load 'auAn' 'auRes' 'niAn' 'niRes'
-        load(dirs.SavResultsFile)
+        else
+            load(dirs.SavResultsFile)
+        end        
         
         if sPlt.drawDAQAll == 1
             drawDAQAll(niAn, dirs.SavResultsDir, sv2File)
