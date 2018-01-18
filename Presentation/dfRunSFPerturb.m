@@ -4,7 +4,6 @@ function dfRunSFPerturb()
 %NIDAQ signal provides Pertrubatron stimulus and Audapter collects and
 %manages the recorded acoustic data.
 
-
 %This script calls the following (7) functions:
 %dfDirs.m
 %initNIDAQ.m
@@ -13,7 +12,6 @@ function dfRunSFPerturb()
 %dfMakePertSignal.m
 %dfSetVisFB.m
 %dfUpdateVisFB.m
-
 
 %This uses the toolbox from MATLAB-Toolboxes
 %speechres
