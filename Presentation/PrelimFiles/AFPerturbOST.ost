@@ -4,11 +4,11 @@ rmsSlopeWin = 0.030000
 # Main section: Heuristic rules for tracking
 n = 10
 0 INTENSITY_RISE_HOLD 0.01 0.05 {} # Detect voicing onset
-2 ELAPSED_TIME 1.2095 NaN {} #The amount of time pre-perturbation
+2 ELAPSED_TIME 1.4 NaN {} #The amount of time pre-perturbation
 3 ELAPSED_TIME 0.05 NaN {} #DownShift 1 of 3
 4 ELAPSED_TIME 0.05 NaN {} #DownShift 2 of 3
 5 ELAPSED_TIME 0.05 NaN {} #DownShift 3 of 3
-6 ELAPSED_TIME 1.1 NaN {} #Hold for the pitch-shift hold period
+6 ELAPSED_TIME 0.7 NaN {} #Hold for the pitch-shift hold period
 7 ELAPSED_TIME 0.05 NaN {} #UpShift 5 of 3
 8 ELAPSED_TIME 0.05 NaN {} #UpShift 6 of 3
 9 ELAPSED_TIME 0.05 NaN {} #UpShift 7 of 3
