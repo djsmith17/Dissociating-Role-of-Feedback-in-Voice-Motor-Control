@@ -13,7 +13,7 @@ clear all; close all; clc
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'PureTone200'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'AF1'}; %All runs to consider 
+sPlt.runs          = {'AF4'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
