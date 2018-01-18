@@ -10,7 +10,7 @@ clear all; close all; clc
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'PureTone200'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF2'};
+AVar.runs          = {'AF4'};
 AVar.numRuns       = length(AVar.runs);
 AVar.debug         = 0;
 
@@ -45,21 +45,15 @@ for i = 1:AVar.numPart
         load(dirs.SavFileDir)   % Expect DRF
         
         AVar.expType = DRF.expParam.expType;
-        if strcmp(AVar.expType, 'Somatosensory Perturbation_Perceptual') == 1
-            pF  = 1;      %Pressure Analysis Flag
-            iRF = 1;      %Inflation Response Flag
-        else
-            pF  = 0;      %Pressure Analysis Flag
-            iRF = 0;      %Inflation Response Flag
-        end
+        [pF, iRF] = checkDRFExpType(AVar.expType);
+        AudFlag = 1;
         
         %Initialize these so I can stop worrying about it
         niAn = []; niRes = [];
         auAn = []; auRes = [];
-        InflaVar = [];
                 
         bTf0b = GT.subjf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, 1, pF, iRF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
 %         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
         
@@ -73,6 +67,17 @@ for i = 1:AVar.numPart
             saveInflationResponse(dirs, niRes, participant, run, AVar.debug)
         end
     end
+end
+end
+
+function [pF, iRF] = checkDRFExpType(expType)
+
+if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
+    pF  = 1;      %Pressure Analysis Flag
+    iRF = 1;      %Inflation Response Flag
+else
+    pF  = 0;      %Pressure Analysis Flag
+    iRF = 0;      %Inflation Response Flag
 end
 end
 

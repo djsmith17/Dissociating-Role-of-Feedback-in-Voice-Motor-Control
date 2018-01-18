@@ -25,7 +25,7 @@ titleFSize   = 10;
 axisLSize    = 10;
 lineThick    = 4;
 
-ha = tight_subplot(5, 1, [0.02 0.02],[0.05 0.12],[0.03 0.03]);
+ha = tight_subplot(5, 2, [0.02 0.02],[0.05 0.12],[0.03 0.03]);
 
 for ii = 1:numTrial      
     axes(ha(ii))

@@ -85,7 +85,7 @@ end
 
 dirs.SavBaseFile = fullfile(dirs.SavData, expParam.subject, expParam.baseRun, expParam.baseFile);
 if ~exist(dirs.SavBaseFile, 'file')
-    fprintf('ERROR: No voice file at %s!\n', dirs.SavBasFile)
+    fprintf('ERROR: No voice file at %s!\n', dirs.SavBaseFile)
     return
 end
 
