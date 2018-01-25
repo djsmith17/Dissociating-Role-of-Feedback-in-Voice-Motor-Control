@@ -4,7 +4,7 @@ function dfDiagnostics_Voice()
 %beginning of recording session to determine a baseline voice amplitude. 
 %This script assumes:
 %1: The participant speaks at a comfortable and typical speaking volume
-%2: The microphone is placed at a consistent distance for each participant
+%2: The microphone is placed at a fixed distance (e.g. 7cm) from the participant
 %3: The microphone gain levels are constant for each participant and through the trials
 %4: The participant phonates a steady-state vowel sound through these recordings
 

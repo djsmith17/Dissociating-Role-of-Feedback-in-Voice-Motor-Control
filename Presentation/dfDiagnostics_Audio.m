@@ -17,8 +17,8 @@ else
     numTrial = varargin{1};
 end
 
-collectNewData         = 0; %Boolean
-sv2F                   = 1; %Boolean
+CnD         = 0; % Coolect New Data? Boolean
+sv2F        = 1; % Save to file?     Boolean
 
 expParam.project       = 'Diagnostics_Audio';
 expParam.expType       = 'Auditory Perturbation_Perceptual';
@@ -48,7 +48,7 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-if collectNewData == 1
+if CnD == 1
     %Paradigm Configurations
     expParam.sRate              = 48000;
     expParam.downFact           = 3;

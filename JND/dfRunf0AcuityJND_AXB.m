@@ -228,9 +228,9 @@ end
 
 function [h2, h3, h4] = JNDVisualPresentation
 monitorSize = get(0,'Monitor');
-if size(monitorSize,1) == 1
+if size(monitorSize, 1) == 1
     figPosition = [1 200 monitorSize(3) monitorSize(4)-200];
-elseif size(monitorSize,1) == 2
+elseif size(monitorSize, 1) == 2
     figPosition = [monitorSize(2,1) monitorSize(2,2) monitorSize(1,3) monitorSize(2,4)];
 end
 
