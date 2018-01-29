@@ -11,9 +11,9 @@ function dfRunSubjPlotting()
 
 clear all; close all; clc
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'PureTone200'}; %List of multiple participants.
+sPlt.participants  = {'Pilot27'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'AF4'}; %All runs to consider 
+sPlt.runs          = {'SF2'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
@@ -21,9 +21,9 @@ dirs               = dfDirs(sPlt.project);
 sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
-sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
-sPlt.drawDAQMeanTrialMicf0   = 0; % Mean Trials Microphone input. Control vs Perturbed Trials
-sPlt.drawDAQMeanTrialAudResp = 1; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
+sPlt.drawDAQMeanTrialMicf0   = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
+sPlt.drawDAQMeanTrialAudResp = 0; % Mean Perturbed Trials. Microphone vs Headphones
 
 sPlt.NIDAQ_AllPertTrial      = 0; % 
 

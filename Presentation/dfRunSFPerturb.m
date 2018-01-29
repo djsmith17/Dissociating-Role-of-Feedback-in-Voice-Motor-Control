@@ -51,8 +51,8 @@ switch num_trials
         numTrials = 4;
         perCatch  = 0.25;
     case 'Full'
-        numTrials = 40;
-        perCatch  = 0.25;
+        numTrials = 10;
+        perCatch  = 0.5;
 end
 
 %Experiment Configurations
