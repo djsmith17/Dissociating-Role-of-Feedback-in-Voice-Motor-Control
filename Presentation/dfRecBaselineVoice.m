@@ -167,8 +167,13 @@ end
 function f0 = quikFFT(data)
 x  = data.signalIn;
 fs = data.params.sRate;
+L = length(x);
+NFFT = 2^nextpow2(L);
+win = 0.005;
+winN = fs*win;
+nOverLap = winN*0.5;
 
-[pxx, f] = pwelch(x, 500,300,500,fs);
+[pxx, f] = pwelch(x, winN, nOverLap, NFFT, fs);
 
 [~, ind] = max(pxx);
 f0 = f(ind);
