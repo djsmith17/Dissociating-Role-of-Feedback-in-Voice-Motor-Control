@@ -135,9 +135,9 @@ close all
 allf0Mean  = [];
 allrmsMean = [];
 for i = 1:expParam.numTrial
-    f0Mean     = quikFFT(data(i));
-    allf0Mean = cat(1, allf0Mean, f0Mean); 
-    rmsMean    = calcMeanRMS(data(i), refSPL);
+    f0Mean     = quikFFT(rawData(i));
+    allf0Mean  = cat(1, allf0Mean, f0Mean); 
+    rmsMean    = calcMeanRMS(rawData(i), refSPL);
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
 finalrmsMean = mean(allrmsMean);
