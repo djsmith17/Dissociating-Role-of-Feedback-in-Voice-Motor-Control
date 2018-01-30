@@ -98,7 +98,6 @@ pause(5); %Let them breathe a sec
 set(H3,'Visible','off');
 
 rawData = [];
-allrmsMean = [];
 for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
@@ -133,13 +132,17 @@ for ii = 1:expParam.numTrial
 end
 close all
 
+allf0Mean  = [];
+allrmsMean = [];
 for i = 1:expParam.numTrial
+    f0Mean     = quikFFT(data(i));
+    allf0Mean = cat(1, allf0Mean, f0Mean); 
     rmsMean    = calcMeanRMS(data(i), refSPL);
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
 finalrmsMean = mean(allrmsMean);
 
-
+expParam.finalf0Mean  = finalf0Mean;
 expParam.finalrmsMean = finalrmsMean;
 
 DRF.dirs        = dirs;
@@ -149,6 +152,9 @@ DRF.rawData     = rawData;
 
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
+
+fprintf('\nThe mean f0 of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allf0Mean)
+fprintf('\nThe mean f0 of all voice recordings\n is %4.2f dB\n', finalf0Mean)
 
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', finalrmsMean)
@@ -161,14 +167,14 @@ rmsMean = mean(rmsdB);
 end
 
 function quikFFT(data)
-x = data.signalIn;
+x  = data.signalIn;
 fs = data.params.sRate;
-Y = fft(x);
-L = length(x);
+Y  = fft(x);
+L  = length(x);
 P2 = abs(Y/L);
 P1 = P2(1:L/2+1);
 P1(2:end-1) = 2*P1(2:end-1);
-f = fs*(0:(L/2))/L;
+f  = fs*(0:(L/2))/L;
 
 figure
 plot(f,P1)
