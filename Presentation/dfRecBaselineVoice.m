@@ -33,7 +33,6 @@ expParam.gender     = answer{3};
 expParam.numTrial   = str2double(answer{4});
 expParam.AudFBSw    = 0;
 expParam.trialLen   = 4; %Seconds
-expParam.CueMixTrimMic = 39;
 
 dirs = dfDirs(expParam.project);
 
@@ -50,8 +49,8 @@ end
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact;
-expParam.frameLen           = 96;  % Before downsampling
-expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
+expParam.frameLen           = 96;               % Before downsampling
+expParam.audioInterfaceName = 'MOTU MicroBook'; % 'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
 Audapter('deviceName', expParam.audioInterfaceName);
@@ -60,34 +59,48 @@ Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
 Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
-%Set up OST and PCF Files. Just for the sake of having them
+%Set up OST and PCF Files.
 expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Sets some p params
 
+
+expParam.cuePause = 1.0;
+expParam.resPause = 2.0;
+expParam.boundsRMS = 3;
+expParam.targRMS   = 60;
 refSPL  = 0.00002; %20 micropascals
 
 %%%%%Visual Presentation
-[h2, h3, h4] = JNDVisualPresentation;
-pause(5);
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
+
+%Open the curtains
+pause(5); %Let them breathe a sec
+set(H3,'Visible','off');
 
 rawData = [];
 allrmsMean = [];
 for ii = 1:expParam.numTrial
-    set(h2,'String','+')
-    drawnow;
-    pause(2)
-    
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
-    set(h2, 'String', '"EEE"', 'FontSize', 80)
-    drawnow
+    %Used later in audio version
+    audStimP = [];
+    
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
     Audapter('pcf', expParam.pcfFN, 0);
     
+    %Cue to begin trial
+    set(H1,'Visible','on');
+    pause(expParam.cuePause)
+    
+    %Phonation Start
+    set(H1,'Visible','off');
+    set([H2 trigCirc],'Visible','on');
+    
+    fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
@@ -95,9 +108,9 @@ for ii = 1:expParam.numTrial
     pause(expParam.trialLen);
     
     Audapter('stop');
-    set(h2, 'String','','FontSize', 120)
-    drawnow
+    set([H2 trigCirc],'Visible','off');
     
+    % Save the data
     data    = AudapterIO('getData');
     rmsMean = calcMeanRMS(data, refSPL);
 
@@ -105,6 +118,8 @@ for ii = 1:expParam.numTrial
     rawData = cat(1, rawData, data);
     
     allrmsMean = cat(1, allrmsMean, rmsMean); 
+    
+    pause(expParam.resPause)
 end
 close all
 
@@ -119,8 +134,8 @@ DRF.rawData     = rawData;
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
-fprintf('\nThe mean amplitude from each of the three voice recordings were %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
-fprintf('\nThe mean amplitude from all three voice recordings is %4.2f dB\n', finalrmsMean)
+fprintf('\nThe mean RMS of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
+fprintf('\nThe mean RMS of all voice recordings\n is %4.2f dB\n', finalrmsMean)
 end
 
 function rmsMean = calcMeanRMS(data, refSPL)
