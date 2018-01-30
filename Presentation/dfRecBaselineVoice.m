@@ -5,6 +5,10 @@ function dfRecBaselineVoice()
 % This should be used at the beginning of an audapter recording session to 
 % determine a baseline voice amplitude and pitch. 
 % 
+% This can also be used to calibrate the microphone. There is a switch case
+% that can be activated when the script is run. Make sure to save it as MC
+% instead of BV.
+%
 % This script assumes:
 % 1: The participant speaks at a comfortable and typical speaking volume
 % 2: The microphone is placed at a fixed distance (e.g. 7cm) from the participant
@@ -12,8 +16,6 @@ function dfRecBaselineVoice()
 % 4: The participant phonates a steady-state vowel sound through these recordings
 
 close all;
-ET = tic;
-rng('shuffle');
 
 prompt = {'Subject ID:',...
           'Session ID:',...
@@ -23,6 +25,18 @@ name = 'Subject Information';
 numlines = 1;
 defaultanswer = {'null', 'BV1', 'female', '3'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
+
+if isempty(answer)
+    return
+end
+
+VoiceRec = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
+switch VoiceRec
+    case 'Calibrate Microphone'
+        VoiceRecsw = 0;
+    case 'Baseline Voice'
+        VoiceRecsw = 1;
+end
 
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -65,15 +79,19 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 [expParam, p]      = dfSetAudFB(expParam, dirs, p); %Sets some p params
 
-
-expParam.cuePause = 1.0;
-expParam.resPause = 2.0;
 expParam.boundsRMS = 3;
 expParam.targRMS   = 60;
 refSPL  = 0.00002; %20 micropascals
+if VoiceRecsw == 1
+    expParam.cuePause = 1.0;
+    expParam.resPause = 2.0;
+else
+    expParam.cuePause = 0;
+    expParam.resPause = 0;
+end
 
 %%%%%Visual Presentation
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
+[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
 pause(5); %Let them breathe a sec
@@ -84,9 +102,6 @@ allrmsMean = [];
 for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
-    
-    %Used later in audio version
-    audStimP = [];
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
@@ -111,19 +126,20 @@ for ii = 1:expParam.numTrial
     set([H2 trigCirc],'Visible','off');
     
     % Save the data
-    data    = AudapterIO('getData');
-    rmsMean = calcMeanRMS(data, refSPL);
-
-    data = dfSaveRawData(expParam, dirs);
-    rawData = cat(1, rawData, data);
-    
-    allrmsMean = cat(1, allrmsMean, rmsMean); 
+    data    = dfSaveRawData(expParam, dirs);
+    rawData = cat(1, rawData, data);  
     
     pause(expParam.resPause)
 end
 close all
 
+for i = 1:expParam.numTrial
+    rmsMean    = calcMeanRMS(data(i), refSPL);
+    allrmsMean = cat(1, allrmsMean, rmsMean); 
+end
 finalrmsMean = mean(allrmsMean);
+
+
 expParam.finalrmsMean = finalrmsMean;
 
 DRF.dirs        = dirs;
@@ -134,13 +150,13 @@ DRF.rawData     = rawData;
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
-fprintf('\nThe mean RMS of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
-fprintf('\nThe mean RMS of all voice recordings\n is %4.2f dB\n', finalrmsMean)
+fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
+fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', finalrmsMean)
 end
 
 function rmsMean = calcMeanRMS(data, refSPL)
-rms   = data.rms(:,1);
-rmsdB = 20*log10(rms/refSPL);
+rms     = data.rms(:,1);
+rmsdB   = 20*log10(rms/refSPL);
 rmsMean = mean(rmsdB);
 end
 
