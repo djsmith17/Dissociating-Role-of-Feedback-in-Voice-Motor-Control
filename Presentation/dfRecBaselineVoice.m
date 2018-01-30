@@ -151,11 +151,11 @@ DRF.rawData     = rawData;
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
-fprintf('\nThe mean f0 of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allf0Mean)
-fprintf('\nThe mean f0 of all voice recordings\n is %4.2f dB\n', finalf0Mean)
+fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', allf0Mean)
+fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', expParam.finalf0Mean)
 
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
-fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', finalrmsMean)
+fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
 end
 
 function rmsMean = calcMeanRMS(data, refSPL)
@@ -164,16 +164,24 @@ rmsdB   = 20*log10(rms/refSPL);
 rmsMean = mean(rmsdB);
 end
 
-function quikFFT(data)
+function f0 = quikFFT(data)
 x  = data.signalIn;
 fs = data.params.sRate;
-Y  = fft(x);
-L  = length(x);
-P2 = abs(Y/L);
-P1 = P2(1:L/2+1);
-P1(2:end-1) = 2*P1(2:end-1);
-f  = fs*(0:(L/2))/L;
 
-figure
-plot(f,P1)
+[pxx, f] = pwelch(x, 500,300,500,fs);
+
+[~, ind] = max(pxx);
+f0 = f(ind);
+
+% L  = length(x);
+% f  = fs*(0:(L/2))/L;
+% 
+% Y  = fft(x);
+% P2 = abs(Y/L);
+% P1 = P2(1:L/2+1);
+% P1(2:end-1) = 2*P1(2:end-1);
+
+
+% figure
+% plot(f,P1)
 end
