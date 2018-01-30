@@ -71,6 +71,7 @@ end
 end
 
 function [pF, iRF] = checkDRFExpType(expType)
+% This sets different variables so that the analyzes are done differently. 
 
 if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
     pF  = 1;      %Pressure Analysis Flag
