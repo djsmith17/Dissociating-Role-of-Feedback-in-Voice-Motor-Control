@@ -26,6 +26,9 @@ statSM = round(10*niRes.respVarM(2))/10;
 statRM = round(10*niRes.respVarM(3))/10;
 statRP = round(niRes.respVarM(4));
 
+lgdCurv = [];
+lgdLabl = {};
+
 plotpos = [10 100];
 plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
@@ -38,9 +41,15 @@ ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
 
 %Onset of Perturbation
 axes(ha(1))
-uH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'b', 1); %Unperturbed
-hold on
+if ~isempty(meanf0ContOnset)
+    uH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'b', 1); %Unperturbed
+    lgdCurv = [lgdCurv uH.mainLine];
+    lgdLabl = [lgdLabl, [num2str(numCT) ' Control Trials']];
+    hold on
+end
 pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'r', 1); %Perturbed
+lgdCurv = [lgdCurv pH.mainLine];
+lgdLabl = [lgdLabl, [num2str(numPT) ' Perturbed Trials']];
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
@@ -54,8 +63,10 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 
 %Offset of Perturbation
 axes(ha(2))
-shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'b', 1)  %Unperturbed
-hold on
+if ~isempty(meanf0ContOffset)
+    shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'b', 1)  %Unperturbed
+    hold on
+end
 shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'r', 1) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
@@ -83,7 +94,7 @@ statBox = annotation('textbox',[.38 .75 0.45 0.1],...
                         'FontSize',12,...
                         'FontName','Arial');
                     
-legend([uH.mainLine pH.mainLine],{[num2str(numCT) ' Control Trials'], [num2str(numPT) ' Perturbed Trials']},...
+legend(lgdCurv, lgdLabl,...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...
             'FontSize', 14,...
