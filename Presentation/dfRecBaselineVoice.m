@@ -140,11 +140,8 @@ for i = 1:expParam.numTrial
     rmsMean    = calcMeanRMS(rawData(i), refSPL);
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
-finalf0Mean  = mean(allf0Mean);
-finalrmsMean = mean(allrmsMean);
-
-expParam.finalf0Mean  = finalf0Mean;
-expParam.finalrmsMean = finalrmsMean;
+expParam.finalf0Mean  = mean(allf0Mean);
+expParam.finalrmsMean = mean(allrmsMean);
 
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
