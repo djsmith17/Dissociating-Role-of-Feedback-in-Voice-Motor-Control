@@ -135,12 +135,12 @@ close all
 allf0Mean  = [];
 allrmsMean = [];
 for i = 1:expParam.numTrial
-    f0Mean     = quikFFT(rawData(i));
-    allf0Mean  = cat(1, allf0Mean, f0Mean); 
+%     f0Mean     = quikFFT(rawData(i));
+%     allf0Mean  = cat(1, allf0Mean, f0Mean); 
     rmsMean    = calcMeanRMS(rawData(i), refSPL);
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
-expParam.finalf0Mean  = mean(allf0Mean);
+% expParam.finalf0Mean  = mean(allf0Mean);
 expParam.finalrmsMean = mean(allrmsMean);
 
 DRF.dirs        = dirs;
@@ -151,8 +151,8 @@ DRF.rawData     = rawData;
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
-fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', allf0Mean)
-fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', expParam.finalf0Mean)
+% fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', allf0Mean)
+% fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', expParam.finalf0Mean)
 
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
