@@ -61,7 +61,7 @@ niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
 niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFCz, niAn.dnSamp);
 niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFNz, niAn.dnSamp);
 
-%Parse out the pertrubed trials
+%Parse out the perturbed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
 niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
@@ -79,7 +79,6 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 [niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
-
 
 niAn.OnOfValP  = [];
 niAn.OnOfValPm = [];
@@ -216,32 +215,48 @@ function [endRiseInd, startFallInd] = findCrossings(sensor, fs, man)
 [B, A] = butter(8, (50/(fs/2)), 'low'); 
 sensorFilt = filtfilt(B,A, sensor);
 
-sensDiff  = [0; diff(sensorFilt)]*50;
-sensDiff2 = [0; diff(sensDiff)]*50;
+sensDiff  = smooth([0; diff(sensorFilt)]*50, 10);
+
+diffPeakMax = 0.05;
+peakLeadLag = fs*0.5; % How many seconds past he peak to look for the level off. 
 
 if man == 0
-    %This is a bit lazy, I know. For right now it will work.
-    rangeU = 1*fs:2*fs;
-    rangeD = 2*fs:3*fs;
     
     %yes its a bit lazy. I am sorry. 
-    [pksU, locU] = findpeaks(sensDiff2, 'MinPeakHeight', 6);
-    [pksD, locD] = findpeaks(-1*sensDiff2, 'MinPeakHeight', 10);
+    [pksU, locU] = findpeaks(sensDiff);
+    [pksD, locD] = findpeaks(-1*sensDiff);    
 
     if isempty(pksU)
         disp('No rise found')
         endRiseInd = [];
     else
-        endRiseInd = locU(end);
+        [~, maxInd] = max(pksU);
+        maxIndFull = locU(maxInd);
+        searchR = maxIndFull:maxIndFull+peakLeadLag;
+        diffDownRamp = find(sensDiff(searchR) > diffPeakMax);
+        
+        endRiseInd = searchR(diffDownRamp(end));
     end
     
     if isempty(pksD)
         disp('No fall found')
         startFallInd = [];
     else
-        startFallInd = locD(1);
+        [~, minInd] = max(pksD);
+        minIndFull = locD(minInd);
+        searchR = minIndFull-peakLeadLag:minIndFull;
+        diffUpRamp = find(sensDiff(searchR) > diffPeakMax);
+        
+        startFallInd = searchR(diffUpRamp(1));
     end
     
+%     figure
+%     plot(sensor,'k')
+%     hold on
+%     plot([endRiseInd endRiseInd], [-100 100], 'b')
+%     hold on
+%     plot([startFallInd startFallInd], [-100 100], 'r')
+%     axis([0 3200 -0.05 4])
 else
     PresFig = figure;
     plot(sensor, 'k'); hold on
