@@ -1,12 +1,15 @@
-function dfDiagnostics_Voice()
-%This takes a few sample recordings of the participant's voice and returns
-%the average RMS value of the recorded voice. This should be used at the
-%beginning of recording session to determine a baseline voice amplitude. 
-%This script assumes:
-%1: The participant speaks at a comfortable and typical speaking volume
-%2: The microphone is placed at a fixed distance (e.g. 7cm) from the participant
-%3: The microphone gain levels are constant for each participant and through the trials
-%4: The participant phonates a steady-state vowel sound through these recordings
+function dfRecBaselineVoice()
+% dfRecBaselineVoice() is a simple script for recording short samples of a 
+% speakers voice using Audapter and a MOTU Audio Card. The output of these 
+% recordings sill give you an average RMS, and pitch of the samples. 
+% This should be used at the beginning of an audapter recording session to 
+% determine a baseline voice amplitude and pitch. 
+% 
+% This script assumes:
+% 1: The participant speaks at a comfortable and typical speaking volume
+% 2: The microphone is placed at a fixed distance (e.g. 7cm) from the participant
+% 3: The microphone gain levels are constant for each participant and through the trials
+% 4: The participant phonates a steady-state vowel sound through these recordings
 
 close all;
 ET = tic;
