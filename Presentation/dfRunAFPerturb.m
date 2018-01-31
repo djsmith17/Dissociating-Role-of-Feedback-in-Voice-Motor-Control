@@ -148,7 +148,7 @@ for ii = 1:expParam.numTrial
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from Laryngeal pert Exp
-    audStimP = dfSetAudapFiles(expParam, dirs, ii, 0);
+    audStimP = dfSetAudapFiles(expParam, dirs, ii, 1);
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);

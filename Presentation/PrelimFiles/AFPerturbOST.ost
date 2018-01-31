@@ -2,16 +2,66 @@
 rmsSlopeWin = 0.030000
  
 # Main section: Heuristic rules for tracking
-n = 10
+n = 60
 0 INTENSITY_RISE_HOLD 0.01 0.05 {} # Detect voicing onset
-2 ELAPSED_TIME 1.1841 NaN {} #The amount of time pre-perturbation
-3 ELAPSED_TIME 0.05 NaN {} #DownShift 1 of 3
-4 ELAPSED_TIME 0.05 NaN {} #DownShift 2 of 3
-5 ELAPSED_TIME 0.05 NaN {} #DownShift 3 of 3
-6 ELAPSED_TIME 1.15 NaN {} #Hold for the pitch-shift hold period
-7 ELAPSED_TIME 0.05 NaN {} #UpShift 5 of 3
-8 ELAPSED_TIME 0.05 NaN {} #UpShift 6 of 3
-9 ELAPSED_TIME 0.05 NaN {} #UpShift 7 of 3
-10 OST_END NaN NaN {} #End the dang thing
+2 ELAPSED_TIME 1.0155 NaN {} #The amount of time pre-perturbation
+3 ELAPSED_TIME 0.005 NaN {} #DownShift 1 of 28
+4 ELAPSED_TIME 0.005 NaN {} #DownShift 2 of 28
+5 ELAPSED_TIME 0.005 NaN {} #DownShift 3 of 28
+6 ELAPSED_TIME 0.005 NaN {} #DownShift 4 of 28
+7 ELAPSED_TIME 0.005 NaN {} #DownShift 5 of 28
+8 ELAPSED_TIME 0.005 NaN {} #DownShift 6 of 28
+9 ELAPSED_TIME 0.005 NaN {} #DownShift 7 of 28
+10 ELAPSED_TIME 0.005 NaN {} #DownShift 8 of 28
+11 ELAPSED_TIME 0.005 NaN {} #DownShift 9 of 28
+12 ELAPSED_TIME 0.005 NaN {} #DownShift 10 of 28
+13 ELAPSED_TIME 0.005 NaN {} #DownShift 11 of 28
+14 ELAPSED_TIME 0.005 NaN {} #DownShift 12 of 28
+15 ELAPSED_TIME 0.005 NaN {} #DownShift 13 of 28
+16 ELAPSED_TIME 0.005 NaN {} #DownShift 14 of 28
+17 ELAPSED_TIME 0.005 NaN {} #DownShift 15 of 28
+18 ELAPSED_TIME 0.005 NaN {} #DownShift 16 of 28
+19 ELAPSED_TIME 0.005 NaN {} #DownShift 17 of 28
+20 ELAPSED_TIME 0.005 NaN {} #DownShift 18 of 28
+21 ELAPSED_TIME 0.005 NaN {} #DownShift 19 of 28
+22 ELAPSED_TIME 0.005 NaN {} #DownShift 20 of 28
+23 ELAPSED_TIME 0.005 NaN {} #DownShift 21 of 28
+24 ELAPSED_TIME 0.005 NaN {} #DownShift 22 of 28
+25 ELAPSED_TIME 0.005 NaN {} #DownShift 23 of 28
+26 ELAPSED_TIME 0.005 NaN {} #DownShift 24 of 28
+27 ELAPSED_TIME 0.005 NaN {} #DownShift 25 of 28
+28 ELAPSED_TIME 0.005 NaN {} #DownShift 26 of 28
+29 ELAPSED_TIME 0.005 NaN {} #DownShift 27 of 28
+30 ELAPSED_TIME 0.005 NaN {} #DownShift 28 of 28
+31 ELAPSED_TIME 0.91 NaN {} #Hold for the pitch-shift hold period
+32 ELAPSED_TIME 0.005 NaN {} #UpShift 30 of 28
+33 ELAPSED_TIME 0.005 NaN {} #UpShift 31 of 28
+34 ELAPSED_TIME 0.005 NaN {} #UpShift 32 of 28
+35 ELAPSED_TIME 0.005 NaN {} #UpShift 33 of 28
+36 ELAPSED_TIME 0.005 NaN {} #UpShift 34 of 28
+37 ELAPSED_TIME 0.005 NaN {} #UpShift 35 of 28
+38 ELAPSED_TIME 0.005 NaN {} #UpShift 36 of 28
+39 ELAPSED_TIME 0.005 NaN {} #UpShift 37 of 28
+40 ELAPSED_TIME 0.005 NaN {} #UpShift 38 of 28
+41 ELAPSED_TIME 0.005 NaN {} #UpShift 39 of 28
+42 ELAPSED_TIME 0.005 NaN {} #UpShift 40 of 28
+43 ELAPSED_TIME 0.005 NaN {} #UpShift 41 of 28
+44 ELAPSED_TIME 0.005 NaN {} #UpShift 42 of 28
+45 ELAPSED_TIME 0.005 NaN {} #UpShift 43 of 28
+46 ELAPSED_TIME 0.005 NaN {} #UpShift 44 of 28
+47 ELAPSED_TIME 0.005 NaN {} #UpShift 45 of 28
+48 ELAPSED_TIME 0.005 NaN {} #UpShift 46 of 28
+49 ELAPSED_TIME 0.005 NaN {} #UpShift 47 of 28
+50 ELAPSED_TIME 0.005 NaN {} #UpShift 48 of 28
+51 ELAPSED_TIME 0.005 NaN {} #UpShift 49 of 28
+52 ELAPSED_TIME 0.005 NaN {} #UpShift 50 of 28
+53 ELAPSED_TIME 0.005 NaN {} #UpShift 51 of 28
+54 ELAPSED_TIME 0.005 NaN {} #UpShift 52 of 28
+55 ELAPSED_TIME 0.005 NaN {} #UpShift 53 of 28
+56 ELAPSED_TIME 0.005 NaN {} #UpShift 54 of 28
+57 ELAPSED_TIME 0.005 NaN {} #UpShift 55 of 28
+58 ELAPSED_TIME 0.005 NaN {} #UpShift 56 of 28
+59 ELAPSED_TIME 0.005 NaN {} #UpShift 57 of 28
+60 OST_END NaN NaN {} #End the dang thing
 
 n = 0

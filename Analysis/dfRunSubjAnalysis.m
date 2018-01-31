@@ -10,7 +10,7 @@ clear all; close all; clc
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'PureTone200'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF5'};
+AVar.runs          = {'AF6'};
 AVar.numRuns       = length(AVar.runs);
 AVar.debug         = 0;
 
