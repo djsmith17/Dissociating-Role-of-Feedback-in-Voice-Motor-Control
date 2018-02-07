@@ -36,23 +36,6 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
-    case 'dhcp-wifi-8021x-155-41-87-124.bu.edu'
-        dirs.RecData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');  % Dir to save raw Data to
-        dirs.SavData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');                  % Dir to open raw Data from
-                                                                                     % RecData must be moved to SavData for backup and local disk space consolidation
-        dirs.Project        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project);
-        dirs.Prelim         = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project, 'Presentation\PrelimFiles'); % Dir for project specific helper files
-        dirs.Code           = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project, 'Analysis');                 % Dir w/ data analysis Code
-        dirs.Results        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project, 'Results');                  % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/MATLAB-Toolboxes';                               % Dir to multiple function used for general analysis
-        
-        dirs.RecFileDir     = '';
-        dirs.RecWaveDir     = '';
-        dirs.SavFileDir     = '';
-        dirs.SavResultsDir  = '';
-       
-        dirs.InflaRespFile  = '';
-        dirs.saveFileSuffix = '';
     case 'CNS-WS5'
         dirs.RecData        = fullfile('C:\Users\djsmith\My Documents\DATA', project); % Dir w/ raw datafiles
         dirs.SavData        = fullfile('W:\Experiments\', project);
