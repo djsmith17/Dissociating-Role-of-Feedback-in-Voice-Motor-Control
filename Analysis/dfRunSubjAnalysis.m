@@ -53,8 +53,8 @@ for i = 1:AVar.numPart
         auAn = []; auRes = [];
                 
         bTf0b = GT.subjf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
-%         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
+%         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
         
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
