@@ -8,9 +8,9 @@ function dfRunSubjAnalysis()
 
 clear all; close all; clc
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'PureTone200'}; %List of multiple participants.
+AVar.participants  = {'Pilot28'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF4'};
+AVar.runs          = {'SF2'};
 AVar.numRuns       = length(AVar.runs);
 AVar.debug         = 0;
 
@@ -53,8 +53,8 @@ for i = 1:AVar.numPart
         auAn = []; auRes = [];
                 
         bTf0b = GT.subjf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
-%         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
+%         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
         
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
@@ -71,6 +71,7 @@ end
 end
 
 function [pF, iRF] = checkDRFExpType(expType)
+% This sets different variables so that the analyzes are done differently. 
 
 if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
     pF  = 1;      %Pressure Analysis Flag

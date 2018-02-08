@@ -1,11 +1,11 @@
 % clear all; close all; clc;
 
 s = daq.createSession('ni');
-addAnalogOutputChannel(s,'Dev3',0,'Voltage');
+addAnalogOutputChannel(s,'Dev2',0,'Voltage');
 
 s.Rate = 8000;
-outputSingleValue = 2;
-outputSingleScan(s,outputSingleValue);
+% outputSingleValue = 2;
+% outputSingleScan(s,outputSingleValue);
 
 outputSignal1 = [zeros(1,6000) 3*ones(1,12000) zeros(1,6000)]';
 

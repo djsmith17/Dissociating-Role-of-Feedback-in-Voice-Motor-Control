@@ -50,8 +50,8 @@ for ii = 1:auAn.numTrial
 
     end
 
-    auAn.audioM = cat(2, auAn.audioM, mic);
-    auAn.audioH = cat(2, auAn.audioH, head);
+    auAn.audioM = cat(2, auAn.audioM, mic(1:64000));
+    auAn.audioH = cat(2, auAn.audioH, head(1:64000));
 end
 
 [auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
