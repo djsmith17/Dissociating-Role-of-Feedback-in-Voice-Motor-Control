@@ -6,9 +6,9 @@ function dfRunSubjAnalysis()
 
 %Require the Signal Processing Toolbox
 
-clear all; close all; clc
+clear all; close all;
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot22' 'Pilot24' 'Pilot25' 'Pilot26'}; %List of multiple participants.
+AVar.participants  = {'Pilot25' 'Pilot26'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
 AVar.runs          = {'SF1' 'SF2' 'SF3' 'SF4'};
 AVar.numRuns       = length(AVar.runs);
@@ -21,11 +21,11 @@ for i = 1:AVar.numPart
         participant = AVar.participants{i};
         run         = AVar.runs{j};
         
-        dirs.baselineData  = fullfile(dirs.RecData, participant, 'GT1', [participant 'GT1' 'DRF.mat']); %Where to find data
-        dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
+        dirs.baselineData  = fullfile(dirs.SavData, participant, 'GT1', [participant 'GT1' 'DRF.mat']); %Where to find data
+        dirs.SavFileDir    = fullfile(dirs.SavData, participant, run, [participant run 'DRF.mat']); %Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save full analyzed results
         
-        dirs.InflaVarDir  = fullfile(dirs.RecData, participant, 'IV1');
+        dirs.InflaVarDir  = fullfile(dirs.SavData, participant, 'IV1');
 
         if exist(dirs.baselineData, 'file') == 0
             disp('ERROR')
