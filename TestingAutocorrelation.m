@@ -33,7 +33,6 @@ end
 pitch_period_To = (20+sample_no)*(1/Fs);
 pitch_freq_Fo = 1/pitch_period_To;
 
-
 figure
 subplot(2,1,1);
 plot(t,y);
