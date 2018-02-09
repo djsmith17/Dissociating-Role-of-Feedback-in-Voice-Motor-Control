@@ -8,9 +8,9 @@ function dfRunSubjAnalysis()
 
 clear all; close all; clc
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot28'}; %List of multiple participants.
+AVar.participants  = {'Pilot22' 'Pilot24' 'Pilot25' 'Pilot26'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF2'};
+AVar.runs          = {'SF1' 'SF2' 'SF3' 'SF4'};
 AVar.numRuns       = length(AVar.runs);
 AVar.debug         = 0;
 
@@ -53,7 +53,7 @@ for i = 1:AVar.numPart
         auAn = []; auRes = [];
                 
         bTf0b = GT.subjf0;
-%         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
         
