@@ -13,7 +13,7 @@ clear all; close all; clc
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'Pilot28'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'LDDdiag4'}; %All runs to consider 
+sPlt.runs          = {'LDDdiag1'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
@@ -55,7 +55,8 @@ for ii = 1:sPlt.numPart
         
         if sPlt.drawDAQMeanTrialMicf0 == 1
             drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
-            drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
+            drawDAQMeanTrialMicf0(auRes, dirs.SavResultsDir)
+%             drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
         end
         
         if sPlt.drawDAQMeanTrialAudResp == 1

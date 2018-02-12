@@ -10,7 +10,7 @@ clear all; close all;
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot28'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'LDDdiag4'};
+AVar.runs          = {'LDDdiag1'};
 AVar.numRuns       = length(AVar.runs);
 AVar.debug         = 0;
 
