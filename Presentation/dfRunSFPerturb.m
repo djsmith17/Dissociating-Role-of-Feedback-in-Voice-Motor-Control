@@ -162,7 +162,7 @@ for ii = 1:expParam.numTrial
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
-    [dataDAQ, time] = s.startForeground;
+    [dataDAQ, ~] = s.startForeground;
      
     %Phonation End
     Audapter('stop');
@@ -195,6 +195,8 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
+quickAnalysisPlot(DRF);
+
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 switch num_trials
     case 'Practice'
@@ -207,6 +209,33 @@ if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
 end
+end
+
+function quickAnalysisPlot(DRF)
+dirs = DRF.dirs;
+expParam = DRF.expParam;
+rawData = DRF.rawData;
+
+An.subject  = expParam.subject;
+An.run      = expParam.run;
+An.curSess  = expParam.curSess;
+% An.bTf0b    = expParam.bTf0b;
+An.sRate    = expParam.sRateAnal;
+An.numSamp  = expParam.trialLen*expParam.sRateAnal;
+An.pertIdx  = find(expParam.trialType == 1);
+An.contIdx  = find(expParam.trialType == 0);
+An.pertTrig = expParam.trigs(An.pertIdx, :, 1);
+An.contTrig = expParam.trigs(An.contIdx, :, 1);
+
+
+
+AudFlag = 1;
+iRF     = 1;
+f0Flag  = 1;
+An = dfAnalysisAudio(dirs, An, AudFlag, iRF, f0Flag);
+
+
+
 end
 
 function visSignals(data, fs, OST_MULT, savedResdir)
