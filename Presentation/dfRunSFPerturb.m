@@ -195,7 +195,7 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
-quickAnalysisPlot(DRF);
+% quickAnalysisPlot(DRF);
 
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 switch num_trials

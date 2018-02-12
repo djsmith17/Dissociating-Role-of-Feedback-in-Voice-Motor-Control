@@ -10,7 +10,7 @@ clear all; close all;
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot28'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF3'};
+AVar.runs          = {'LDDdiag4'};
 AVar.numRuns       = length(AVar.runs);
 AVar.debug         = 0;
 
@@ -21,8 +21,8 @@ for i = 1:AVar.numPart
         participant = AVar.participants{i};
         run         = AVar.runs{j};
         
-        dirs.baselineData  = fullfile(dirs.SavData, participant, 'GT2', [participant 'GT2' 'DRF.mat']); %Where to find data
-        dirs.SavFileDir    = fullfile(dirs.SavData, participant, run, [participant run 'DRF.mat']); %Where to find data
+        dirs.baselineData  = fullfile(dirs.RecData, participant, 'GT2', [participant 'GT2' 'DRF.mat']); %Where to find data
+        dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save full analyzed results
         
         dirs.InflaVarDir  = fullfile(dirs.SavData, participant, 'IV1');
@@ -53,7 +53,7 @@ for i = 1:AVar.numPart
         auAn = []; auRes = [];
                 
         bTf0b = GT.subjf0;
-%         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
 
         
