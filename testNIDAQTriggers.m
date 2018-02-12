@@ -1,9 +1,10 @@
 function testNIDAQTriggers()
 
-%Uses
-%dfSetTrialOrder
-%dfMakePertSignal
-%initNIDAQSess
+% This function uses:
+% -dfSetTrialOrder
+% -dfMakePertSignal
+% -dfSetVisFB
+% -initNIDAQSess
 
 close all; clc
 expParam.expType  = 'Somatosensory Perturbation_Perceptual';

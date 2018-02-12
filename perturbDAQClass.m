@@ -13,13 +13,13 @@ classdef perturbDAQClass < handle
     
     methods
         function obj = perturbDAQClass(PerturbSigs, nVS)
-            obj.curTrial = 1;
-            obj.recTime  = [];
-            obj.recData  = [];
-            obj.trialTime = [];
-            obj.trialData = [];
+            obj.curTrial    = 1;
+            obj.recTime     = [];
+            obj.recData     = [];
+            obj.trialTime   = [];
+            obj.trialData   = [];
             obj.PerturbSigs = PerturbSigs;
-            obj.nVS      = nVS;
+            obj.nVS         = nVS;
         end 
         
         function queuePertOutputData(obj, s)
