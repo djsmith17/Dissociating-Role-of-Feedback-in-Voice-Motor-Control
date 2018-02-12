@@ -7,9 +7,11 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, bTf0b, AudF
 %Requires the Signal Processing Toolbox
 
 %Identify some starting variables
+auAn.AnaType  = 'Audapter';
 auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
 auAn.curSess   = expParam.curSess;
+auAn.f0AnaFile = [auAn.subject auAn.run 'f0AnalysisA.mat'];
 auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;

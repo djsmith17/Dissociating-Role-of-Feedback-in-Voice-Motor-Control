@@ -14,9 +14,11 @@ sv2File = 0;
 sRate = expParam.sRateQ;
 
 %Identify some starting variables
+niAn.AnaType  = 'NIDAQ';
 niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
 niAn.curSess  = expParam.curSess;
+niAn.f0AnaFile = [niAn.subject niAn.run 'f0AnalysisN.mat'];
 niAn.gender   = expParam.gender;
 niAn.AudFB    = expParam.AudFB;
 niAn.bTf0b    = bTf0b;

@@ -40,7 +40,7 @@ if AudFlag == 1
     An.fV = setFreqAnalVar(An.sRate, An.numSamp);
 
     %Main script that does the Signal Frequency Analysis
-    dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, [An.subject An.run 'f0Analysis.mat']);
+    dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
 
     %Sometimes frequency analysis takes a while, this allows you to save
     %results from last time if you want to. 
@@ -54,8 +54,8 @@ if AudFlag == 1
 
     An.time_audio = f0A.time_audio;
     An.fsA        = f0A.fsA;
-    An.audioMf0   = f0A.audioMf0; 
-    An.audioHf0   = f0A.audioHf0;    
+    An.audioMf0   = f0A.audioMf0;
+    An.audioHf0   = f0A.audioHf0;
 
     %Smooth the f0 data
     An.audioMf0S   = smoothf0(An.audioMf0);
