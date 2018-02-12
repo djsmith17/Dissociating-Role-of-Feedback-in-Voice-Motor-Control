@@ -6,11 +6,12 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 %Starting Variables that I need
 %An.subject
 %An.run
+%An.f0AnaFile
 %An.curSess
 %An.bTf0b
 
-%An.sRate   %8000Hz (NIDAQ), 16000Hz (Audapter)
-%An.numSamp
+%An.sRate   % 8000Hz (NIDAQ), 16000Hz (Audapter)
+%An.numSamp % sRate X trialLen
 
 %An.time    % Expects a vector (samples x 1)
 %An.audioM  % Expects a matrix (samples x trials)
