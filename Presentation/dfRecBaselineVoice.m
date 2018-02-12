@@ -81,7 +81,7 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 expParam.boundsRMS = 3;
 expParam.targRMS   = 60;
-refSPL  = 0.00002; %20 micropascals
+
 if VoiceRecsw == 1
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
@@ -137,7 +137,7 @@ allrmsMean = [];
 for i = 1:expParam.numTrial
 %     f0Mean     = quikFFT(rawData(i));
 %     allf0Mean  = cat(1, allf0Mean, f0Mean); 
-    rmsMean    = calcMeanRMS(rawData(i), refSPL);
+    rmsMean    = dfCalcMeanRMS(rawData(i));
     allrmsMean = cat(1, allrmsMean, rmsMean); 
 end
 % expParam.finalf0Mean  = mean(allf0Mean);
@@ -156,12 +156,6 @@ save(dirs.RecFileDir, 'DRF')
 
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
-end
-
-function rmsMean = calcMeanRMS(data, refSPL)
-rms     = data.rms(:,1);
-rmsdB   = 20*log10(rms/refSPL);
-rmsMean = mean(rmsdB);
 end
 
 function f0 = quikFFT(data)

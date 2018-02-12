@@ -184,8 +184,10 @@ for ii = 1:expParam.numTrial
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
     
-    %Grab smooth RMS trace from 'data' structure, compare against baseline
-    [color, newPos] = dfUpdateVisFB(anMsr, data.rms(:,1));
+    %Grab smooth RMS trace from 'data' structure
+    rmsMean = dfCalcMeanRMS(data);
+    %Compare against baseline and updated Visual Feedback
+    [color, newPos] = dfUpdateVisFB(anMsr, rmsMean);
     
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
