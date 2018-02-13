@@ -93,6 +93,9 @@ end
 %%%%%Visual Presentation
 [~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
+%%Some quick Analysis Variables
+fV = setFreqAnalVar(expParam.sRateAnal, numSamp);
+
 %Open the curtains
 pause(5); %Let them breathe a sec
 set(H3,'Visible','off');
@@ -156,6 +159,52 @@ save(dirs.RecFileDir, 'DRF')
 
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
+end
+
+function fV = setFreqAnalVar(sRate, numSamp)
+
+%Identify a few analysis varaibles
+fV.win        = 0.005;  %seconds
+fV.fsA        = 1/fV.win;
+fV.winP       = fV.win*sRate;
+fV.pOV        = 0.60;  %60% overlap
+fV.tStepP     = fV.winP*(1-fV.pOV);
+fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
+fV.numWin     = length(fV.winSts);
+fV.freqCutOff = 300;
+
+
+% [~, numTrial] = size(audio);
+% preEve  = 0.5; posEve = 1.0;
+% per     = 1/fs;
+% preEveP = preEve*fs;
+% posEveP = posEve*fs-1;
+end
+
+function [timef0, audiof0, fsA] = signalFrequencyAnalysis(time, audio, fs, fV)
+[~, numTrial] = size(audio);
+
+%Low-Pass filter for the given cut off frequency
+[B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
+
+audiof0 = zeros(fV.numWin, numTrial);
+for j = 1:numTrial %Trial by Trial
+    sensorHP = filtfilt(B,A,audio(:,j));
+
+    timef0 = [];
+    for i = 1:fV.numWin
+        winIdx = fV.winSts(i):fV.winSts(i)+ fV.winP - 1;
+        timef0 = cat(1, timef0, mean(time(winIdx)));
+        f0 = dfCalcf0Chile(sensorHP(winIdx), fs);
+        if isnan(f0)
+%                 disp('hit')
+            f0 = 100;
+        end
+        audiof0(i,j) = f0;
+    end
+end
+fsA = fV.fsA;
+
 end
 
 function f0 = quikFFT(data)
