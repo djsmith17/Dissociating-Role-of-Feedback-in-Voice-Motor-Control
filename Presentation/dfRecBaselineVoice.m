@@ -61,9 +61,10 @@ if exist(dirs.RecWaveDir, 'dir') == 0
 end
 
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
+expParam.frameLen           = 96;      % Before downsampling
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact;
-expParam.frameLen           = 96;               % Before downsampling
+expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
 expParam.audioInterfaceName = 'MOTU MicroBook'; % 'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
@@ -132,14 +133,7 @@ for ii = 1:expParam.numTrial
 end
 close all
 
-% Find the indices at which voicing starts
-[voiceInd] = preProcessVoice(rawData);
-
-expParam.numSamp = expParam.sRateAnal*expParam.trialLen;
-%%Some quick Analysis Variables
-fV = setFreqAnalVar(expParam.sRateAnal, expParam.numSamp);
-% Some quick pitch analysis of each trial. 
-[timef0, audiof0, fsA] = signalFrequencyAnalysis(fV, audio);
+dfAnalysisAudioQuick(DRF)
 
 allrmsMean = [];
 for i = 1:expParam.numTrial
@@ -166,69 +160,7 @@ fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and 
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
 end
 
-function [voiceInd] = preProcessVoice(rawData)
-[numTrial, ~] = size(rawData);
 
-thresh = 0.01;
-voiceInd = [];
-for jj = 1:numTrial
-    audioTrial = rawData(jj);
-    ind = find(audioTrial.rms(:,1) > thresh);
-    voiceInd = cat(1, voiceInd, ind(1));    
-end
-
-end
-
-function fV = setFreqAnalVar(sRate, numSamp)
-
-%Identify a few analysis varaibles
-fV.sRate      = sRate;
-fV.numSamp    = numSamp;
-fV.win        = 0.005;  %seconds
-fV.fsA        = 1/fV.win;
-fV.winP       = fV.win*sRate;
-fV.pOV        = 0.60;  %60% overlap
-fV.tStepP     = fV.winP*(1-fV.pOV);
-fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
-fV.numWin     = length(fV.winSts);
-fV.freqCutOff = 300;
-fV.time       = (0:1/sRate:(numSamp-1)/sRate)';
-
-% [~, numTrial] = size(audio);
-% preEve  = 0.5; posEve = 1.0;
-% per     = 1/fs;
-% preEveP = preEve*fs;
-% posEveP = posEve*fs-1;
-end
-
-function [timef0, audiof0, fsA] = signalFrequencyAnalysis(fV, audio)
-[~, numTrial] = size(audio);
-
-time = fV.time;
-fs   = fV.sRate;
-
-%Low-Pass filter for the given cut off frequency
-[B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
-
-audiof0 = zeros(fV.numWin, numTrial);
-for j = 1:numTrial %Trial by Trial
-    sensorHP = filtfilt(B,A,audio(:,j));
-
-    timef0 = [];
-    for i = 1:fV.numWin
-        winIdx = fV.winSts(i):fV.winSts(i)+ fV.winP - 1;
-        timef0 = cat(1, timef0, mean(time(winIdx)));
-        f0 = dfCalcf0Chile(sensorHP(winIdx), fs);
-        if isnan(f0)
-%                 disp('hit')
-            f0 = 100;
-        end
-        audiof0(i,j) = f0;
-    end
-end
-fsA = fV.fsA;
-
-end
 
 function f0 = quikFFT(data)
 x  = data.signalIn;
