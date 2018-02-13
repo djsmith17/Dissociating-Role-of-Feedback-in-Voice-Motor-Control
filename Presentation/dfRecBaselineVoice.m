@@ -97,7 +97,7 @@ end
 pause(5); %Let them breathe a sec
 set(H3,'Visible','off');
 
-rawData = [];
+rawData = []; rmsData = [];
 for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
@@ -126,11 +126,14 @@ for ii = 1:expParam.numTrial
     
     % Save the data
     data    = dfSaveRawData(expParam, dirs);
-    rawData = cat(1, rawData, data);  
+    rawData = cat(1, rawData, data);
     
     pause(expParam.resPause)
 end
 close all
+
+% Find the indices at which voicing starts
+[voiceInd] = preProcessVoice(rawData);
 
 expParam.numSamp = expParam.sRateAnal*expParam.trialLen;
 %%Some quick Analysis Variables
@@ -163,6 +166,19 @@ fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and 
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
 end
 
+function [voiceInd] = preProcessVoice(rawData)
+[numTrial, ~] = size(rawData);
+
+thresh = 0.01;
+voiceInd = [];
+for jj = 1:numTrial
+    audioTrial = rawData(jj);
+    ind = find(audioTrial.rms(:,1) > thresh);
+    voiceInd = cat(1, voiceInd, ind(1));    
+end
+
+end
+
 function fV = setFreqAnalVar(sRate, numSamp)
 
 %Identify a few analysis varaibles
@@ -177,7 +193,6 @@ fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
 fV.numWin     = length(fV.winSts);
 fV.freqCutOff = 300;
 fV.time       = (0:1/sRate:(numSamp-1)/sRate)';
-
 
 % [~, numTrial] = size(audio);
 % preEve  = 0.5; posEve = 1.0;
