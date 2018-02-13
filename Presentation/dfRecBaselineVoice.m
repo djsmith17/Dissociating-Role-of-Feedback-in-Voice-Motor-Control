@@ -93,9 +93,6 @@ end
 %%%%%Visual Presentation
 [~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
-%%Some quick Analysis Variables
-fV = setFreqAnalVar(expParam.sRateAnal, numSamp);
-
 %Open the curtains
 pause(5); %Let them breathe a sec
 set(H3,'Visible','off');
@@ -135,7 +132,12 @@ for ii = 1:expParam.numTrial
 end
 close all
 
-allf0Mean  = [];
+expParam.numSamp = expParam.sRateAnal*expParam.trialLen;
+%%Some quick Analysis Variables
+fV = setFreqAnalVar(expParam.sRateAnal, expParam.numSamp);
+% Some quick pitch analysis of each trial. 
+[timef0, audiof0, fsA] = signalFrequencyAnalysis(fV, audio);
+
 allrmsMean = [];
 for i = 1:expParam.numTrial
 %     f0Mean     = quikFFT(rawData(i));
@@ -164,6 +166,8 @@ end
 function fV = setFreqAnalVar(sRate, numSamp)
 
 %Identify a few analysis varaibles
+fV.sRate      = sRate;
+fV.numSamp    = numSamp;
 fV.win        = 0.005;  %seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
@@ -172,6 +176,7 @@ fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
 fV.numWin     = length(fV.winSts);
 fV.freqCutOff = 300;
+fV.time       = (0:1/sRate:(numSamp-1)/sRate)';
 
 
 % [~, numTrial] = size(audio);
@@ -181,8 +186,11 @@ fV.freqCutOff = 300;
 % posEveP = posEve*fs-1;
 end
 
-function [timef0, audiof0, fsA] = signalFrequencyAnalysis(time, audio, fs, fV)
+function [timef0, audiof0, fsA] = signalFrequencyAnalysis(fV, audio)
 [~, numTrial] = size(audio);
+
+time = fV.time;
+fs   = fV.sRate;
 
 %Low-Pass filter for the given cut off frequency
 [B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
