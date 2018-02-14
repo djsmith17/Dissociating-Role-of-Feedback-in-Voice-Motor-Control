@@ -40,7 +40,7 @@ for i = 1:AVar.numPart
         end
 
         fprintf('Loading Files for %s %s\n', participant, run)
-        load(dirs.baselineData) % Expect GT
+        load(dirs.baselineData) % Expect DRF
         bV = DRF;
         load(dirs.SavFileDir)   % Expect DRF
         
@@ -52,9 +52,9 @@ for i = 1:AVar.numPart
         niAn = []; niRes = [];
         auAn = []; auRes = [];
                 
-        f0b = bV.quickResult.meanf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, AudFlag, pF, iRF);
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, 1);
+        f0b = bV.qRes.meanf0;
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, 0, pF, iRF);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, niAn, f0b, AudFlag);
 
         
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
