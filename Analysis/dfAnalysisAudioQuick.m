@@ -1,5 +1,6 @@
 function dfAnalysisAudioQuick(DRF)
 
+close all
 rawData  = DRF.rawData;
 expParam = DRF.expParam;
 expParam.numSamp            = expParam.sRateAnal*expParam.trialLen;
@@ -13,6 +14,7 @@ fV = setFreqAnalVar(expParam.sRateAnal, expParam.numSamp, voiceInd);
 % Some quick pitch analysis of each trial. 
 [audiof0] = signalFrequencyAnalysis(fV, rawData);
 
+plotBaseTrials(audiof0)
 end
 
 function [voiceInd] = preProcessVoice(rawData, frameLen)
@@ -35,11 +37,11 @@ fV.sRate      = sRate;
 fV.numSamp    = numSamp;
 fV.time       = (0:1/sRate:(numSamp-1)/sRate)';
 
-fV.freqCutOff = 500;
-fV.win        = 0.05;       % seconds
+fV.freqCutOff = 400;
+fV.win        = 0.015;       % seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
-fV.pOV        = 0.60;        % 60% overlap
+fV.pOV        = 0.80;        % 60% overlap
 fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.voiceInd   = voiceInd;
 fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
@@ -49,7 +51,6 @@ end
 function [audiof0] = signalFrequencyAnalysis(fV, rawData)
 [numTrial, ~] = size(rawData);
 
-time = fV.time;
 fs   = fV.sRate;
 
 %Low-Pass filter for the given cut off frequency
@@ -57,42 +58,45 @@ fs   = fV.sRate;
 
 audiof0 = [];
 for j = 1:numTrial %Trial by Trial
-    trialData   = rawData(j);
-    trialVoiceW = trialData.signalIn(1:fV.numSamp);
+    trialData = rawData(j);
+    voiceInd  = fV.voiceInd(j);
+   
+    voiceW    = trialData.signalIn;
+    numSampW  = length(voiceW);
+    voiceT    = voiceW(voiceInd:end);
+    numSampT  = length(voiceT);
     
-    voiceInd     = fV.voiceInd(j);
-    trialTime    = time(voiceInd:end);
-    trialVoice   = trialVoiceW(voiceInd:end);
-    numSampTrial = length(trialVoice);    
+    timeW     = (0:1/fs:(numSampW-1)/fs)';
+    timeT     = timeW(voiceInd:voiceInd+numSampT-1);       
     
-    trialWinSt = 1:fV.tStepP:(numSampTrial-fV.winP);
+    trialWinSt = round(1:fV.tStepP:(numSampT-fV.winP));
     numWinStT  = length(trialWinSt);
     
     timef0 = []; voicef0 = [];
     for i = 1:numWinStT
         winIdx  = trialWinSt(i):trialWinSt(i)+ fV.winP - 1;
-        timeWin = mean(trialTime(winIdx));
+        timeWin = mean(timeT(winIdx));
         
-        voiceWin   = trialVoice(winIdx);
+        voiceWin   = voiceT(winIdx);
         voiceWinHP = filtfilt(B, A, voiceWin);
          
-%         f0Win = quickDirtyAutoCorr(voiceWinHP, fV)
-        f0Win = quickFFT(voiceWin, fs, fV);
-%         f0Win = dfCalcf0Chile(voiceWinHP, fs);       
+        f0Win = quickDirtyAutoCorr(voiceWinHP, fV);      
         
         timef0  = cat(1, timef0, timeWin);
         voicef0 = cat(1, voicef0, f0Win);
     end
     
-    audiof0(j).time = timef0;
-    audiof0(j).f0   = voicef0;    
+    audiof0(j).time = smooth(timef0,10);
+    audiof0(j).f0   = smooth(voicef0,10);  
 end
 end
 
 function f0Win = quickDirtyAutoCorr(voice, fV)
+fs            = fV.sRate;
 [autoC, lags] = autocorr(voice, fV.winP-1);
-[~, pkInd]    = findpeaks(autoC);
-FLag          = lags(pkInd(1));
+[pks, pkInd]  = findpeaks(autoC);
+[~, mxInd]    = max(pks);
+FLag          = lags(pkInd(mxInd));
 per           = FLag/fs;
 f0Win         = 1/per;
 end
@@ -109,4 +113,31 @@ nOverLap = winN*fV.pOV;
 
 [~, ind] = max(pxx);
 f0 = f(ind);
+end
+
+function plotBaseTrials(audiof0)
+numTrial = length(audiof0);
+
+plotpos = [10 30];
+plotdim = [600 900];
+pitchTrace = figure('Color', [1 1 1]);
+set(pitchTrace, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+ha = tight_subplot(numTrial, 1, [0.1 0.05],[0.08 0.05],[0.1 0.05]);
+
+for j = 1:numTrial
+    axes(ha(j))
+    plot(audiof0(j).time, audiof0(j).f0, 'b', 'LineWidth', 2)
+    xlabel('Time (s)')
+    ylabel('Frequency (Hz)')
+    title(['Trial ' num2str(j)]);
+    axis([0 4 200 240])
+    box off
+    
+    set(gca,'FontSize', 11,...
+        'FontWeight','bold')
+    
+end
+
+suptitle('Pilot28')
 end
