@@ -139,8 +139,8 @@ DRF.p           = p;
 DRF.rawData     = rawData; 
 
 %Do some quick analysis
-quickResult = dfAnalysisAudioQuick(DRF);
-DRF.quickResult = quickResult;
+qRes     = dfAnalysisAudioQuick(DRF);
+DRF.qRes = qRes;
 
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
