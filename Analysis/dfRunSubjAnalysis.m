@@ -6,7 +6,6 @@ function dfRunSubjAnalysis()
 
 %Require the Signal Processing Toolbox
 
-clear all; close all;
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot28'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
@@ -21,7 +20,7 @@ for i = 1:AVar.numPart
         participant = AVar.participants{i};
         run         = AVar.runs{j};
         
-        dirs.baselineData  = fullfile(dirs.RecData, participant, 'GT2', [participant 'GT2' 'DRF.mat']); %Where to find data
+        dirs.baselineData  = fullfile(dirs.RecData, participant, 'BV2', [participant 'BV2' 'DRF.mat']); %Where to find data
         dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save full analyzed results
         
