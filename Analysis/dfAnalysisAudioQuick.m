@@ -105,8 +105,8 @@ for j = 1:numTrial %Trial by Trial
     trialf0 = cat(1, trialf0, voicef0Mean);
     
     %Range of frequencies in this trial
-    trialf0Max = max(voicef0);
-    trialf0Min = min(voicef0);
+    trialf0Max = max(voicef0(10:end));
+    trialf0Min = min(voicef0(10:end));
     if j == 1 || trialf0Max > f0Max
         f0Max = trialf0Max;
     end
