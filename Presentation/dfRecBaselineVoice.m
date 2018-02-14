@@ -133,29 +133,21 @@ for ii = 1:expParam.numTrial
 end
 close all
 
-dfAnalysisAudioQuick(DRF)
-
-allrmsMean = [];
-for i = 1:expParam.numTrial
-%     f0Mean     = quikFFT(rawData(i));
-%     allf0Mean  = cat(1, allf0Mean, f0Mean); 
-    rmsMean    = dfCalcMeanRMS(rawData(i));
-    allrmsMean = cat(1, allrmsMean, rmsMean); 
-end
-% expParam.finalf0Mean  = mean(allf0Mean);
-expParam.finalrmsMean = mean(allrmsMean);
-
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
 DRF.p           = p;
 DRF.rawData     = rawData; 
 
+%Do some quick analysis
+quickResult = dfAnalysisAudioQuick(DRF);
+DRF.quickResult = quickResult;
+
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
-% fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', allf0Mean)
-% fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', expParam.finalf0Mean)
+fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', quickResult.trialf0)
+fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', expParam.meanf0)
 
-fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
-fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
+fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', quickResult.audioRMS)
+fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', quickResult.meanRMS)
 end
