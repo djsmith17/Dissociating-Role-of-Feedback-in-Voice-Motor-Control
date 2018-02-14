@@ -3,18 +3,17 @@ function dfAnalysisAudioQuick(DRF)
 close all
 rawData  = DRF.rawData;
 expParam = DRF.expParam;
-expParam.numSamp            = expParam.sRateAnal*expParam.trialLen;
-expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
+expParam.frameLenDown    = expParam.frameLen/expParam.downFact;
 
 % Find the indices at which voicing starts
 [voiceInd] = preProcessVoice(rawData, expParam.frameLenDown);
 
-fV = setFreqAnalVar(expParam.sRateAnal, expParam.numSamp, voiceInd);
+fV = setFreqAnalVar(expParam.sRateAnal, voiceInd);
 
 % Some quick pitch analysis of each trial. 
 [audiof0] = signalFrequencyAnalysis(fV, rawData);
 
-plotBaseTrials(audiof0)
+% plotBaseTrials(audiof0)
 end
 
 function [voiceInd] = preProcessVoice(rawData, frameLen)
@@ -30,22 +29,18 @@ for jj = 1:numTrial
 end
 end
 
-function fV = setFreqAnalVar(sRate, numSamp, voiceInd)
+function fV = setFreqAnalVar(sRate, voiceInd)
 
 %Identify a few analysis varaibles
 fV.sRate      = sRate;
-fV.numSamp    = numSamp;
-fV.time       = (0:1/sRate:(numSamp-1)/sRate)';
 
 fV.freqCutOff = 400;
 fV.win        = 0.015;       % seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
-fV.pOV        = 0.80;        % 60% overlap
+fV.pOV        = 0.80;        % 80% overlap
 fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.voiceInd   = voiceInd;
-fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
-fV.numWin     = length(fV.winSts);
 end
 
 function [audiof0] = signalFrequencyAnalysis(fV, rawData)
@@ -99,20 +94,6 @@ fs            = fV.sRate;
 FLag          = lags(pkInd(mxInd));
 per           = FLag/fs;
 f0Win         = 1/per;
-end
-
-function f0 = quickFFT(voice, fs, fV)
-
-L = length(voice);
-NFFT = 2^nextpow2(L);
-
-winN = fV.winP;
-nOverLap = winN*fV.pOV;
-
-[pxx, f] = pwelch(voice, winN, nOverLap, NFFT, fs);
-
-[~, ind] = max(pxx);
-f0 = f(ind);
 end
 
 function plotBaseTrials(audiof0)
