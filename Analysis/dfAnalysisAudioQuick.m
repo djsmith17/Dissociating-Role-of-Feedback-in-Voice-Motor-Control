@@ -34,7 +34,7 @@ end
 function [voiceInd] = preProcessVoice(rawData, frameLen)
 [numTrial, ~] = size(rawData);
 
-thresh = 0.01;
+thresh = 0.02;
 voiceInd = [];
 for jj = 1:numTrial
     trialData = rawData(jj);
@@ -59,6 +59,7 @@ fV.voiceInd   = voiceInd;
 end
 
 function [audiof0, trialf0, f0Bounds, audioRMS] = signalFrequencyAnalysis(fV, rawData)
+ET = tic;
 [numTrial, ~] = size(rawData);
 
 fs   = fV.sRate;
@@ -85,6 +86,7 @@ for j = 1:numTrial %Trial by Trial
     
     timef0 = []; voicef0 = [];
     for i = 1:numWinStT
+        fprintf('Trial %d, window %d\n', j, i)
         winIdx  = trialWinSt(i):trialWinSt(i)+ fV.winP - 1;
         timeWin = mean(timeT(winIdx));
         
@@ -97,16 +99,18 @@ for j = 1:numTrial %Trial by Trial
         voicef0 = cat(1, voicef0, f0Win);
     end
     
-    audiof0(j).time = smooth(timef0,10);
-    audiof0(j).f0   = smooth(voicef0,10);
+    voicef0S = smooth(voicef0, 10);
+    
+    audiof0(j).time = timef0;
+    audiof0(j).f0   = voicef0S;
     
     %Overall steady-state f0
-    voicef0Mean = round(mean(voicef0), 2);
+    voicef0Mean = round(mean(voicef0S), 2);
     trialf0 = cat(1, trialf0, voicef0Mean);
     
     %Range of frequencies in this trial
-    trialf0Max = max(voicef0(10:end));
-    trialf0Min = min(voicef0(10:end));
+    trialf0Max = max(voicef0S(10:end));
+    trialf0Min = min(voicef0S(10:end));
     if j == 1 || trialf0Max > f0Max
         f0Max = trialf0Max;
     end
@@ -123,6 +127,9 @@ end
 f0Max = round(f0Max) + 5;
 f0Min = round(f0Min) - 5;
 f0Bounds = [f0Min f0Max];
+
+elapsed_time = toc(ET)/60;
+fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 end
 
 function f0Win = simpleAutoCorr(voice, fV)
@@ -132,8 +139,12 @@ fs            = fV.sRate;
 win           = fV.winP;
 [autoC, lags] = autocorr(voice, win-1);
 [pks, pkInd]  = findpeaks(autoC);
-[~, mxInd]    = max(pks);
-FLag          = lags(pkInd(mxInd));
+if isempty(pks)
+    FLag      = lags(end);
+else
+    [~, mxInd]= max(pks);
+    FLag      = lags(pkInd(mxInd));
+end
 per           = FLag/fs;
 f0Win         = 1/per;
 end
