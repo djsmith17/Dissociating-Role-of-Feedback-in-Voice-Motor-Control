@@ -159,32 +159,3 @@ save(dirs.RecFileDir, 'DRF')
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', allrmsMean)
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', expParam.finalrmsMean)
 end
-
-
-
-function f0 = quikFFT(data)
-x  = data.signalIn;
-fs = data.params.sRate;
-L = length(x);
-NFFT = 2^nextpow2(L);
-win = 0.005;
-winN = fs*win;
-nOverLap = winN*0.5;
-
-[pxx, f] = pwelch(x, winN, nOverLap, NFFT, fs);
-
-[~, ind] = max(pxx);
-f0 = f(ind);
-
-% L  = length(x);
-% f  = fs*(0:(L/2))/L;
-% 
-% Y  = fft(x);
-% P2 = abs(Y/L);
-% P1 = P2(1:L/2+1);
-% P1(2:end-1) = 2*P1(2:end-1);
-
-
-% figure
-% plot(f,P1)
-end

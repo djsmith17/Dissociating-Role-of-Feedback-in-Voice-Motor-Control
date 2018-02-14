@@ -1,4 +1,4 @@
-function dfAnalysisAudioQuick(DRF)
+function audiof0 = dfAnalysisAudioQuick(DRF)
 
 close all
 rawData  = DRF.rawData;
