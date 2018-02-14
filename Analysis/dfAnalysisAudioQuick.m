@@ -17,17 +17,18 @@ expParam.frameLenDown    = expParam.frameLen/expParam.downFact;
 fV = setFreqAnalVar(expParam.sRateAnal, voiceInd);
 
 % Some quick pitch analysis of each trial. 
-[audiof0, trialf0, audioRMS] = signalFrequencyAnalysis(fV, rawData);
-
-if pltFlg == 1
-    plotBaseTrials(audiof0, subj)
-end
+[audiof0, trialf0, f0Bounds, audioRMS] = signalFrequencyAnalysis(fV, rawData);
 
 quickResult.audiof0  = audiof0;
 quickResult.trialf0  = trialf0;
 quickResult.meanf0   = mean(trialf0);
+quickResult.f0Bounds = f0Bounds;
 quickResult.audioRMS = audioRMS;
 quickResult.meanRMS  = mean(audioRMS);
+
+if pltFlg == 1
+    plotBaseTrials(subj, quickResult)
+end
 end
 
 function [voiceInd] = preProcessVoice(rawData, frameLen)
@@ -57,7 +58,7 @@ fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.voiceInd   = voiceInd;
 end
 
-function [audiof0, trialf0, audioRMS] = signalFrequencyAnalysis(fV, rawData)
+function [audiof0, trialf0, f0Bounds, audioRMS] = signalFrequencyAnalysis(fV, rawData)
 [numTrial, ~] = size(rawData);
 
 fs   = fV.sRate;
@@ -66,6 +67,7 @@ fs   = fV.sRate;
 [B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
 
 audiof0 = []; trialf0 = []; audioRMS = [];
+f0Max = 0; f0Min = 0;
 for j = 1:numTrial %Trial by Trial
     trialData = rawData(j);
     voiceInd  = fV.voiceInd(j);
@@ -99,13 +101,28 @@ for j = 1:numTrial %Trial by Trial
     audiof0(j).f0   = smooth(voicef0,10);
     
     %Overall steady-state f0
-    voicef0Mean = mean(voicef0);
+    voicef0Mean = round(mean(voicef0), 2);
     trialf0 = cat(1, trialf0, voicef0Mean);
+    
+    %Range of frequencies in this trial
+    trialf0Max = max(voicef0);
+    trialf0Min = min(voicef0);
+    if j == 1 || trialf0Max > f0Max
+        f0Max = trialf0Max;
+    end
+
+    if j == 1 || trialf0Min < f0Min
+        f0Min = trialf0Min;
+    end
     
     %RMS Calculation
     voiceRMS = dfCalcMeanRMS(trialData);
     audioRMS = cat(1, audioRMS, voiceRMS);    
 end
+
+f0Max = round(f0Max) + 5;
+f0Min = round(f0Min) - 5;
+f0Bounds = [f0Min f0Max];
 end
 
 function f0Win = simpleAutoCorr(voice, fV)
@@ -121,8 +138,15 @@ per           = FLag/fs;
 f0Win         = 1/per;
 end
 
-function plotBaseTrials(audiof0, subj)
+function plotBaseTrials(subj, quickResult)
+audiof0 = quickResult.audiof0;
+trialf0 = quickResult.trialf0;
+meanf0 = quickResult.meanf0;
+lB = quickResult.f0Bounds(1);
+hB = quickResult.f0Bounds(2);
+
 numTrial = length(audiof0);
+if numTrial > 3; numTrial = 3; end
 
 plotpos = [10 30];
 plotdim = [600 900];
@@ -136,14 +160,12 @@ for j = 1:numTrial
     plot(audiof0(j).time, audiof0(j).f0, 'b', 'LineWidth', 2)
     xlabel('Time (s)')
     ylabel('Frequency (Hz)')
-    title(['Trial ' num2str(j)]);
-    axis([0 4 200 240])
+    title(['Trial ' num2str(j) ' f0: ' num2str(trialf0(j)) ' Hz']);
+    axis([0 4 lB hB])
     box off
     
     set(gca,'FontSize', 11,...
-        'FontWeight','bold')
-    
+            'FontWeight','bold')
 end
-
-suptitle(subj)
+suptitle([subj '  f0Ave: ' num2str(meanf0) ' Hz']);
 end
