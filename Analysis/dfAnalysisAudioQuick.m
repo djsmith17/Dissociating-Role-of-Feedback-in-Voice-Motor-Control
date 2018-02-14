@@ -1,4 +1,4 @@
-function quickResult = dfAnalysisAudioQuick(DRF, varargin)
+function res = dfAnalysisAudioQuick(DRF, varargin)
 
 if isempty(varargin)
     pltFlg = 0;
@@ -9,6 +9,7 @@ end
 rawData  = DRF.rawData;
 expParam = DRF.expParam;
 subj     = expParam.subject;
+run      = expParam.run;
 expParam.frameLenDown    = expParam.frameLen/expParam.downFact;
 
 % Find the indices at which voicing starts
@@ -17,17 +18,18 @@ expParam.frameLenDown    = expParam.frameLen/expParam.downFact;
 fV = setFreqAnalVar(expParam.sRateAnal, voiceInd);
 
 % Some quick pitch analysis of each trial. 
-[audiof0, trialf0, f0Bounds, audioRMS] = signalFrequencyAnalysis(fV, rawData);
+[audiof0, trialf0, f0Bounds, audioRMS, elapsed_time] = signalFrequencyAnalysis(fV, rawData);
 
-quickResult.audiof0  = audiof0;
-quickResult.trialf0  = trialf0;
-quickResult.meanf0   = mean(trialf0);
-quickResult.f0Bounds = f0Bounds;
-quickResult.audioRMS = audioRMS;
-quickResult.meanRMS  = mean(audioRMS);
+res.audiof0  = audiof0;
+res.trialf0  = trialf0;
+res.meanf0   = mean(trialf0);
+res.f0Bounds = f0Bounds;
+res.audioRMS = audioRMS;
+res.meanRMS  = mean(audioRMS);
+res.anaTime  = round(elapsed_time, 2);
 
 if pltFlg == 1
-    plotBaseTrials(subj, quickResult)
+    plotBaseTrials(subj, run, res)
 end
 end
 
@@ -58,7 +60,7 @@ fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.voiceInd   = voiceInd;
 end
 
-function [audiof0, trialf0, f0Bounds, audioRMS] = signalFrequencyAnalysis(fV, rawData)
+function [audiof0, trialf0, f0Bounds, audioRMS, elapsed_time] = signalFrequencyAnalysis(fV, rawData)
 ET = tic;
 [numTrial, ~] = size(rawData);
 
@@ -149,12 +151,13 @@ per           = FLag/fs;
 f0Win         = 1/per;
 end
 
-function plotBaseTrials(subj, quickResult)
-audiof0 = quickResult.audiof0;
-trialf0 = quickResult.trialf0;
-meanf0 = quickResult.meanf0;
-lB = quickResult.f0Bounds(1);
-hB = quickResult.f0Bounds(2);
+function plotBaseTrials(subj, run, res)
+audiof0 = res.audiof0;
+trialf0 = res.trialf0;
+meanf0  = res.meanf0;
+lB      = res.f0Bounds(1);
+hB      = res.f0Bounds(2);
+anaTime = res.anaTime;
 
 numTrial = length(audiof0);
 if numTrial > 3; numTrial = 3; end
@@ -178,5 +181,6 @@ for j = 1:numTrial
     set(gca,'FontSize', 11,...
             'FontWeight','bold')
 end
-suptitle([subj '  f0Ave: ' num2str(meanf0) ' Hz']);
+suptitle({[subj run '  f0Ave: ' num2str(meanf0) ' Hz'],...
+          ['Analysis Time: ' num2str(anaTime) ' sec']});
 end
