@@ -24,7 +24,7 @@ for i = 1:AVar.numPart
         dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save full analyzed results
         
-        dirs.InflaVarDir  = fullfile(dirs.SavData, participant, 'IV1');
+        dirs.InflaVarDir  = fullfile(dirs.RecData, participant, 'IV1');
 
         if exist(dirs.baselineData, 'file') == 0
             disp('ERROR')
@@ -41,6 +41,7 @@ for i = 1:AVar.numPart
 
         fprintf('Loading Files for %s %s\n', participant, run)
         load(dirs.baselineData) % Expect GT
+        bV = DRF;
         load(dirs.SavFileDir)   % Expect DRF
         
         AVar.expType = DRF.expParam.expType;
@@ -51,9 +52,9 @@ for i = 1:AVar.numPart
         niAn = []; niRes = [];
         auAn = []; auRes = [];
                 
-        bTf0b = GT.subjf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, bTf0b, AudFlag, pF, iRF);
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, bTf0b, 1);
+        f0b = bV.quickResult.meanf0;
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, AudFlag, pF, iRF);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, 1);
 
         
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
