@@ -86,7 +86,7 @@ for j = 1:numTrial %Trial by Trial
     
     timef0 = []; voicef0 = [];
     for i = 1:numWinStT
-        fprintf('Trial %d, window %d\n', j, i)
+%         fprintf('Trial %d, window %d\n', j, i)
         winIdx  = trialWinSt(i):trialWinSt(i)+ fV.winP - 1;
         timeWin = mean(timeT(winIdx));
         
