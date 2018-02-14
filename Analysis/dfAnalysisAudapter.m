@@ -1,4 +1,4 @@
-function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, bTf0b, AudFlag)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, bTf0b, AudFlag)
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -32,18 +32,28 @@ auAn.audioM   = [];
 auAn.audioH   = [];
 
 dnSamp = 20;
-auAn.sRateDN = auAn.sRate/dnSamp;
-auAn.timeDN = dnSampleSignal(auAn.time, dnSamp);
+auAn.sRateDN    = auAn.sRate/dnSamp;
+auAn.timeDN     = dnSampleSignal(auAn.time, dnSamp);
 auAn.anaTrigsDN = auAn.expTrigs*auAn.sRateDN;
 
+allSignalDelays = [];
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
+    
+    niM = niAn.audioM(:,ii);
+    nifs = 8000;
+    MrawDS = resample(Mraw, nifs, auAn.sRate);
+    [r, lags] = xcorr(MrawDS, niM);
+    [~, peakInd] = max(r);
+    maxLag = lags(peakInd);
+    sigTrialDelay = maxLag/nifs;
+    allSignalDelays = cat(1, allSingalDelays, sigTrialDelay);
    
     auAn.audProcDel = data.params.frameLen*12;
-    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.audProcDel, auAn.expTrigs(ii,1));
+    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.audProcDel, auAn.expTrigs(ii,1), sigTrialDelay);
 
 %     OST  = data.ost_stat;
     if saveT == 0 %Don't save the trial :(
