@@ -146,9 +146,9 @@ DRF.qRes = qRes;
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 
-fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', quickResult.trialf0)
-fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', expParam.meanf0)
+fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
+fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
 
-fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', quickResult.audioRMS)
-fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', quickResult.meanRMS)
+fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', qRes.audioRMS)
+fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', qRes.meanRMS)
 end
