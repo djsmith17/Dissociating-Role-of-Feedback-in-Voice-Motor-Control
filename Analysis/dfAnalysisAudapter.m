@@ -55,8 +55,8 @@ for ii = 1:auAn.numTrial
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
     elseif saveT == 1 %Save the Trial
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
-        auAn.audioM = cat(2, auAn.audioM, mic(1:64000));
-        auAn.audioH = cat(2, auAn.audioH, head(1:64000));
+        auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
+        auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
     end
 end
 
@@ -76,14 +76,15 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, sigDelay, saveT, saveTmsg] = preProc(An, micR, headR, micRNi, pO)
+function [micP, headP, AuNidelay, saveT, saveTmsg] = preProc(An, micR, headR, micRNi, trigs)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
-%micR:       Raw Microphone signal
-%headR:      Raw Headphone signal
-%fs:         Recording sampling rate
-%audProcDel: The delay that results from Audapter processing audio
+%An:     Set of useful analysis variables
+%micR:   Raw Microphone (audapter) signal
+%headR:  Raw Headphone (audapter) signal
+%micRNI: Raw Microphone (NIDAQ) signal
+%trigs:  Triggers for the given trial
 
 %This function outputs the following
 %micP:     Processed Microphone signal
@@ -91,32 +92,28 @@ function [micP, headP, sigDelay, saveT, saveTmsg] = preProc(An, micR, headR, mic
 %saveT:    Boolean toggle to determine if the trial should be saved
 %saveTmsg: Reason, if any, that the trial was thrown out
 
+AudFB     = An.AudFB;
 fs        = An.sRate;
 fsNI      = An.sRateNi;
 frameLen  = An.frameLenDown;
-
-pertOnset = pO;
+pertOnset = trigs;
 
 micRds    = resample(micR, fsNI, fs);
-headRds   = resample(headR, fsNI, fs);
+AuNidelay = xCorrTimeLag(micRNi, micRds, fsNI);
 
-sigDelay  = xCorrTimeLag(micRNi, micRds, fsNI);
-sigDelay2 = xCorrTimeLag(micRNi, headRds, fsNI);
-sigDelay3 = xCorrTimeLag(micRds, headRds, fsNI);
+if strcmp(AudFB, 'Masking Noise')
+    AuMHdelay = (frameLen*12)/fs;
+else
+    AuMHdelay = xCorrTimeLag(micR, headR, fs);
+end
+AuNidelayP = AuNidelay*fs;
+AuMHdelayP = AuMHdelay*fs;
 
-% figure
-% subplot(3,1,1); plot(micR)
-% subplot(3,1,2); plot(micRds)
-% subplot(3,1,3); plot(micRNi)
-% suptitle(num2str(sigDelay))
+micAuAl  = micR(1:(end-AuMHdelayP));
+headAuAl = headR((AuMHdelayP+1):end); 
 
-audProcDel = frameLen*4;
-
-Mfull = micR(1:(end-audProcDel));
-Hfull = headR((audProcDel+1):end); 
-
-x = double(Mfull); 
-y = double(Hfull);
+x = double(micAuAl); 
+y = double(headAuAl);
 
 pp.lenSig = length(x);
 pp.t = 0:1/fs:(pp.lenSig-1)/fs;
@@ -149,8 +146,8 @@ filty    = filtfilt(B,A,y); %Low-pass filtered under 500Hz
 micP     = filtx; %Take the whole signal for now
 headP    = filty; %Same indices as for mic 
 
-micP     = Mfull;
-headP    = Hfull;
+micP     = micAuAl;
+headP    = headAuAl;
 
 if pp.t(pp.voiceOnsetInd) > pertOnset
     saveT = 0;  
@@ -168,13 +165,14 @@ pp.SaveTmsg = saveTmsg;
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
-%if timeLag is positive, then sig1 lags sig2. 
-%if timeLag is negative, then sig1 leads sig2.
+%if timeLag is positive, then sig1 leads sig2. 
+%if timeLag is negative, then sig1 lags sig2.
 
 [r, lags]    = xcorr(sig1, sig2);
 [~, peakInd] = max(r);
 maxLag       = lags(peakInd);
 timeLag      = maxLag/fs;
+timeLag      = -timeLag;
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
