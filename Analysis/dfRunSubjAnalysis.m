@@ -7,9 +7,9 @@ function dfRunSubjAnalysis()
 %Require the Signal Processing Toolbox
 
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'S200Hz'}; %List of multiple participants.
+AVar.participants  = {'Pilot0'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF1'};
+AVar.runs          = {'AF1'};
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -54,7 +54,7 @@ for i = 1:AVar.numPart
         auAn = []; auRes = [];
                 
         f0b = bV.qRes.meanf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, 0, 0, iRF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, 0, pF, iRF);
         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, niAn, f0b, AudFlag);
 
         
@@ -65,7 +65,7 @@ for i = 1:AVar.numPart
         end
         
         if iRF == 1
-            saveInflationResponse(dirs, niRes, participant, run, AVar.debug)
+            saveInflationResponse(dirs, auRes, participant, run, AVar.debug)
         end
     end
 end

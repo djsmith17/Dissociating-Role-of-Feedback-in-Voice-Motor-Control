@@ -97,13 +97,20 @@ frameLen  = An.frameLenDown;
 
 pertOnset = pO;
 
-micRds       = resample(micR, fsNI, fs);
-[r, lags]    = xcorr(micRds, micRNi);
-[~, peakInd] = max(r);
-maxLag       = lags(peakInd);
-sigDelay     = maxLag/fsNI;
+micRds    = resample(micR, fsNI, fs);
+headRds   = resample(headR, fsNI, fs);
 
-audProcDel = frameLen*12;
+sigDelay  = xCorrTimeLag(micRNi, micRds, fsNI);
+sigDelay2 = xCorrTimeLag(micRNi, headRds, fsNI);
+sigDelay3 = xCorrTimeLag(micRds, headRds, fsNI);
+
+% figure
+% subplot(3,1,1); plot(micR)
+% subplot(3,1,2); plot(micRds)
+% subplot(3,1,3); plot(micRNi)
+% suptitle(num2str(sigDelay))
+
+audProcDel = frameLen*4;
 
 Mfull = micR(1:(end-audProcDel));
 Hfull = headR((audProcDel+1):end); 
@@ -158,6 +165,16 @@ end
 
 pp.saveT    = saveT;
 pp.SaveTmsg = saveTmsg;
+end
+
+function timeLag = xCorrTimeLag(sig1, sig2, fs)
+%if timeLag is positive, then sig1 lags sig2. 
+%if timeLag is negative, then sig1 leads sig2.
+
+[r, lags]    = xcorr(sig1, sig2);
+[~, peakInd] = max(r);
+maxLag       = lags(peakInd);
+timeLag      = maxLag/fs;
 end
 
 function sensorDN = dnSampleSignal(sensor, dnSamp)
