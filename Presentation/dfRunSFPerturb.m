@@ -51,7 +51,7 @@ switch num_trials
         numTrials = 4;
         perCatch  = 0.25;
     case 'Full'
-        numTrials = 40;
+        numTrials = 4;
         perCatch  = 0.25;
 end
 
