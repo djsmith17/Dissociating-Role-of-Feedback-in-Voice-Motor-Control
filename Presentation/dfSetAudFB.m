@@ -3,7 +3,7 @@ function [expParam, p] = dfSetAudFB(expParam, dirs, p)
 %experiment involving Audapter. If the Auditory feedback is speech-shaped
 %masking noise, then you will need the masking noise wave file, SSN.wav.
 
-%PITCH-SHIFTED AUDITORY FEEDBACK OF THEIR VOICE
+%NORMAL AUDITORY FEEDBACK OF THEIR VOICE
 if  expParam.AudFBSw == 0
     p.fb          = 1;  % Microphone FB
     p.bPitchShift = 0;  % No pitch-shifting
