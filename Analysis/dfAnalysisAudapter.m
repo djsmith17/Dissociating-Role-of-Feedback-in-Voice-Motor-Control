@@ -21,6 +21,8 @@ auAn.trialType = expParam.trialType;
 fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
 auAn.sRate    = expParam.sRateAnal;
+auAn.sRateNi  = niAn.sRate;
+auAn.frameLenDown = expParam.frameLen/expParam.downFact;
 auAn.trialLen = expParam.trialLen;
 auAn.numSamp  = auAn.sRate*auAn.trialLen;
 auAn.numTrial = expParam.numTrial;
@@ -36,34 +38,26 @@ auAn.sRateDN    = auAn.sRate/dnSamp;
 auAn.timeDN     = dnSampleSignal(auAn.time, dnSamp);
 auAn.anaTrigsDN = auAn.expTrigs*auAn.sRateDN;
 
-allSignalDelays = [];
+auAn.allAuNiDelays = [];
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
+    pertOnset = auAn.expTrigs(ii,1);
     
-    niM = niAn.audioM(:,ii);
-    nifs = 8000;
-    MrawDS = resample(Mraw, nifs, auAn.sRate);
-    [r, lags] = xcorr(MrawDS, niM);
-    [~, peakInd] = max(r);
-    maxLag = lags(peakInd);
-    sigTrialDelay = maxLag/nifs;
-    allSignalDelays = cat(1, allSignalDelays, sigTrialDelay);
+    MrawNi = niAn.audioM(:,ii);   
    
-    auAn.audProcDel = data.params.frameLen*12;
-    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.audProcDel, auAn.expTrigs(ii,1), sigTrialDelay);
+    [mic, head, sigDelay, saveT, saveTmsg] = preProc(auAn, Mraw, Hraw, MrawNi, pertOnset);
 
 %     OST  = data.ost_stat;
     if saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
     elseif saveT == 1 %Save the Trial
-
+        auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
+        auAn.audioM = cat(2, auAn.audioM, mic(1:64000));
+        auAn.audioH = cat(2, auAn.audioH, head(1:64000));
     end
-
-    auAn.audioM = cat(2, auAn.audioM, mic(1:64000));
-    auAn.audioH = cat(2, auAn.audioH, head(1:64000));
 end
 
 [auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
@@ -82,7 +76,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt, NiAuDelay)
+function [micP, headP, sigDelay, saveT, saveTmsg] = preProc(An, micR, headR, micRNi, pO)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
@@ -96,6 +90,20 @@ function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, s
 %headP:    Processed Headphone signal
 %saveT:    Boolean toggle to determine if the trial should be saved
 %saveTmsg: Reason, if any, that the trial was thrown out
+
+fs        = An.sRate;
+fsNI      = An.sRateNi;
+frameLen  = An.frameLenDown;
+
+pertOnset = pO;
+
+micRds       = resample(micR, fsNI, fs);
+[r, lags]    = xcorr(micRds, micRNi);
+[~, peakInd] = max(r);
+maxLag       = lags(peakInd);
+sigDelay     = maxLag/fsNI;
+
+audProcDel = frameLen*12;
 
 Mfull = micR(1:(end-audProcDel));
 Hfull = headR((audProcDel+1):end); 
@@ -137,7 +145,7 @@ headP    = filty; %Same indices as for mic
 micP     = Mfull;
 headP    = Hfull;
 
-if pp.t(pp.voiceOnsetInd) > spanSt
+if pp.t(pp.voiceOnsetInd) > pertOnset
     saveT = 0;  
     saveTmsg = 'Participant started too late!!';
 elseif pp.chk4Break
