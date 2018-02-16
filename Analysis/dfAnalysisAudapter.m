@@ -44,11 +44,12 @@ for ii = 1:auAn.numTrial
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
-    pertOnset = auAn.expTrigs(ii,1);
+    expTrigs = auAn.expTrigs(ii,:);
+    anaTrigs = auAn.anaTrigs(ii,:);
     
     MrawNi = niAn.audioM(:,ii);   
    
-    [mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, pertOnset);
+    [mic, head, sigDelay, expTrigsShift, anaTrigsShift, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
 
 %     OST  = data.ost_stat;
     if preProSt.saveT == 0 %Don't save the trial :(
