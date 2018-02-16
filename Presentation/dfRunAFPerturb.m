@@ -21,6 +21,7 @@ function dfRunAFPerturb(varargin)
 close all;
 ET = tic;
 rng('shuffle');
+debug = 0;
 
 prompt = {'Subject ID:',...
           'Session ID:',...
@@ -50,8 +51,8 @@ switch num_trials
         numTrials = 4;
         perCatch  = 0.25;
     case 'Full'
-        numTrials = 10;
-        perCatch  = 1.0;
+        numTrials = 4;
+        perCatch  = 0.0;
 end
 
 %Experiment Configurations
@@ -148,7 +149,7 @@ for ii = 1:expParam.numTrial
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from Laryngeal pert Exp
-    audStimP = dfSetAudapFiles(expParam, dirs, ii, 1);
+    audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);

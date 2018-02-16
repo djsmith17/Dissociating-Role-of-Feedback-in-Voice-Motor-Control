@@ -140,7 +140,7 @@ DRF.p           = p;
 DRF.rawData     = rawData; 
 
 %Do some quick analysis
-qRes     = dfAnalysisAudioQuick(DRF);
+qRes     = dfAnalysisAudioQuick(DRF, 1);
 DRF.qRes = qRes;
 
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
@@ -150,5 +150,5 @@ fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f H
 fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
 
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', qRes.audioRMS)
-fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n', qRes.meanRMS)
+fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n\n', qRes.meanRMS)
 end
