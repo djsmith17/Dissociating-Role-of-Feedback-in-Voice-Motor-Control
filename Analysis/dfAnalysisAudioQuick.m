@@ -36,11 +36,13 @@ end
 function [voiceInd] = preProcessVoice(rawData, frameLen)
 [numTrial, ~] = size(rawData);
 
-thresh = 0.02;
+thresh = 0.50;
 voiceInd = [];
 for jj = 1:numTrial
     trialData = rawData(jj);
-    ind = find(trialData.rms(:,1) > thresh);
+    trialDataRMS = trialData.rms(:,1);
+    maxtrialRMS  = max(trialDataRMS);
+    ind = find(trialDataRMS > maxtrialRMS*thresh);
     indSig = ind(1)*frameLen;
     voiceInd = cat(1, voiceInd, indSig);    
 end
