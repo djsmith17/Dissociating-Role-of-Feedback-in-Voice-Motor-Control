@@ -43,6 +43,7 @@ expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
 expParam.subject    = answer{1}; %Subject#, Pilot#, null
 expParam.run        = answer{2};
+expParam.curSess    = [expParam.subject expParam.run];
 expParam.gender     = answer{3};
 expParam.numTrial   = str2double(answer{4});
 expParam.AudFBSw    = 0;
