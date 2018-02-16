@@ -48,12 +48,12 @@ for ii = 1:auAn.numTrial
     
     MrawNi = niAn.audioM(:,ii);   
    
-    [mic, head, sigDelay, saveT, saveTmsg] = preProc(auAn, Mraw, Hraw, MrawNi, pertOnset);
+    [mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, pertOnset);
 
 %     OST  = data.ost_stat;
-    if saveT == 0 %Don't save the trial :(
-        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
-    elseif saveT == 1 %Save the Trial
+    if preProSt.saveT == 0 %Don't save the trial :(
+        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
+    elseif preProSt.saveT == 1 %Save the Trial
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
         auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
         auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
@@ -76,7 +76,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, AuNidelay, saveT, saveTmsg] = preProc(An, micR, headR, micRNi, trigs)
+function [micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, trigs)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
@@ -87,10 +87,10 @@ function [micP, headP, AuNidelay, saveT, saveTmsg] = preProc(An, micR, headR, mi
 %trigs:  Triggers for the given trial
 
 %This function outputs the following
-%micP:     Processed Microphone signal
-%headP:    Processed Headphone signal
-%saveT:    Boolean toggle to determine if the trial should be saved
-%saveTmsg: Reason, if any, that the trial was thrown out
+%micP:   Processed Microphone signal
+%headP:  Processed Headphone signal
+%AuNidelay: Calculated delay between NIDAQ and Audapter
+%pp:     preprocessing structure Reason, if any, that the trial was thrown out
 
 AudFB     = An.AudFB;
 fs        = An.sRate;
@@ -99,7 +99,7 @@ frameLen  = An.frameLenDown;
 pertOnset = trigs;
 
 micRds    = resample(micR, fsNI, fs);
-AuNidelay = xCorrTimeLag(micRNi, micRds, fsNI);
+AuNidelay = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
 
 if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
