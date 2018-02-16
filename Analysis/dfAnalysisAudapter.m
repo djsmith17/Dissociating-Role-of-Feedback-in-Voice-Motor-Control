@@ -50,7 +50,7 @@ for ii = 1:auAn.numTrial
     [~, peakInd] = max(r);
     maxLag = lags(peakInd);
     sigTrialDelay = maxLag/nifs;
-    allSignalDelays = cat(1, allSingalDelays, sigTrialDelay);
+    allSignalDelays = cat(1, allSignalDelays, sigTrialDelay);
    
     auAn.audProcDel = data.params.frameLen*12;
     [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.audProcDel, auAn.expTrigs(ii,1), sigTrialDelay);
@@ -82,7 +82,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)
+function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt, NiAuDelay)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
