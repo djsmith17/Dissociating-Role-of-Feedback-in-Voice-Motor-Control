@@ -38,6 +38,10 @@ auAn.sRateDN    = auAn.sRate/dnSamp;
 auAn.timeDN     = dnSampleSignal(auAn.time, dnSamp);
 auAn.anaTrigsDN = auAn.expTrigs*auAn.sRateDN;
 
+auAn.contIdx = [];
+auAn.pertIdx = [];
+
+
 auAn.allAuNiDelays = [];
 for ii = 1:auAn.numTrial
     data = rawData(ii);
@@ -49,7 +53,7 @@ for ii = 1:auAn.numTrial
     
     MrawNi = niAn.audioM(:,ii);   
    
-    [mic, head, sigDelay, expTrigsShift, anaTrigsShift, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
+    [mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
 
 %     OST  = data.ost_stat;
     if preProSt.saveT == 0 %Don't save the trial :(
@@ -58,13 +62,17 @@ for ii = 1:auAn.numTrial
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
         auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
         auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
+        
+        if auAn.trialType(ii) == 0
+            auAn.contIdx = cat(1, auAn.contIdx, ii);
+        else
+            auAn.pertIdx = cat(1, auAn.pertIdx, ii);
+        end        
     end
 end
 
-[auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
-[auAn.PertTrials, auAn.pertIdx] = find(auAn.trialType == 1);
-auAn.numContTrials = sum(auAn.ContTrials);
-auAn.numPertTrials = sum(auAn.PertTrials);
+auAn.numContTrials = length(auAn.contIdx);
+auAn.numPertTrials = length(auAn.pertIdx);
 
 auAn.contTrig = auAn.expTrigs(auAn.contIdx,:);
 auAn.pertTrig = auAn.expTrigs(auAn.pertIdx,:);
@@ -77,7 +85,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, trigs)
+function [micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, expTrigs, auTrigs)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
@@ -97,7 +105,7 @@ AudFB     = An.AudFB;
 fs        = An.sRate;
 fsNI      = An.sRateNi;
 frameLen  = An.frameLenDown;
-pertOnset = trigs;
+pertOnset = expTrigs;
 
 micRds    = resample(micR, fsNI, fs);
 AuNidelay = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
