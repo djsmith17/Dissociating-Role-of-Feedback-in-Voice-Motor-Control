@@ -49,7 +49,7 @@ for ii = 1:auAn.numTrial
     
     MrawNi = niAn.audioM(:,ii);   
    
-    [mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
+    [time, mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
 
 %     OST  = data.ost_stat;
     if preProSt.saveT == 0 %Don't save the trial :(
@@ -80,7 +80,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, expTrigs, auTrigs)
+function [timeSec, micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, expTrigs, auTrigs)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
@@ -102,42 +102,56 @@ AudFB     = An.AudFB;
 fs        = An.sRate;
 fsNI      = An.sRateNi;
 frameLen  = An.frameLenDown;
-pertOn    = expTrigs(1);
-pertOff   = expTrigs(2);
 
-micRds     = resample(micR, fsNI, fs);
+%We are going to section the audio recording from 0.5s ahead of 
+%perturbation onset to 1.0s after perturbation offset.
+preOn   = 0.5*fs;
+postOff = 1.0*fs;
+
+%Low Pass filter under 300Hz
+cutOff   = 300; %Hz
+[B,A]    = butter(4,(cutOff)/(fs/2));
+micFilt  = filtfilt(B, A, micR); %Low-pass filtered under 500Hz
+headFilt = filtfilt(B, A, headR); %Low-pass filtered under 500Hz
+
+micRds     = resample(micFilt, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
 AuNidelayP = AuNidelay*fs;
 
 if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
 else
-    AuMHdelay = xCorrTimeLag(micR, headR, fs);
+    AuMHdelay = xCorrTimeLag(micFilt, headFilt, fs); %Expected that Mic will lead Head
 end
 AuMHdelayP = AuMHdelay*fs;
 
 %Adjust for delay between Audapter Mic and Audapter Headphones
-micAuAl  = micR(1:(end-AuMHdelayP));
-headAuAl = headR((AuMHdelayP+1):end); 
+micAuAl  = micFilt(1:(end-AuMHdelayP));
+headAuAl = headFilt((AuMHdelayP+1):end); 
 
 %Adjust for delay between Audapter and NIDAQ
 micAuNi    = micAuAl(AuNidelayP:end);
 headAuNi   = headAuAl(AuNidelayP:end);
-auTrigsDel = auTrigs - AuNidelayP;
+
+%The period on either side of the pertrubation period.
+audioSecSt = auTrigs(1) - preOn;
+audioSecSp = auTrigs(2) + postOff;
+
+%Section the both audio samples around section period. 
+sectionInd = audioSecSt:audioSecSp;
+
+time    = sectionInd/fs;
+micSec  = micAuNi(sectionInd);
+headSec = headAuNi(sectionInd);
 
 %Find the onset of Voicing
-pp = findVoiceOnsetThresh(micAuAl, fs);
+pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
 
-%Low Pass filter under 300Hz
-cutOff   = 300; %Hz
-[B,A]    = butter(4,(cutOff)/(fs/2));
-filtMic  = filtfilt(B,A,micAuAl); %Low-pass filtered under 500Hz
-filtHead = filtfilt(B,A,headAuAl); %Low-pass filtered under 500Hz
- 
-micP     = filtMic;  % Take the whole signal for now
-headP    = filtHead; % Same indices as for mic 
+timeSec  = time;
+micP     = micSec;  % Take the whole signal for now
+headP    = headSec; % Same indices as for mic 
 
-if pp.t(pp.voiceOnsetInd) > pertOn
+if pp.voiceOnsetLate
     saveT = 0;  
     saveTmsg = 'Participant started too late!!';
 elseif pp.chk4Break
@@ -149,7 +163,7 @@ else
 end
 
 pp.saveT    = saveT;
-pp.SaveTmsg = saveTmsg;
+pp.saveTmsg = saveTmsg;
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
@@ -163,12 +177,18 @@ timeLag      = maxLag/fs;
 timeLag      = -timeLag;
 end
 
-function pp = findVoiceOnsetThresh(audio, fs)
+function pp = findVoiceOnsetThresh(audio, fs, audioSt)
 
-pp.thresh = 0.3;
+%audioSt is the index in the full audio signal from where we will start to
+%do frequency analysis
+
+pp.thresh   = 0.3;
 pp.breakTol = 0.1;
-pp.lenSig = length(audio);
-pp.t = 0:1/fs:(pp.lenSig-1)/fs;
+pp.fs       = fs;
+pp.audio    = audio;
+pp.audioSt  = audioSt;
+pp.lenSig   = length(audio);
+pp.t        = 0:1/fs:(pp.lenSig-1)/fs;
 
 [B,A] = butter(4,40/(fs/2)); %Low-pass filter under 40
 
@@ -185,6 +205,9 @@ pp.threshIdx     = find(pp.env > pp.thresh*pp.maxPeak);
 
 %The first index of the theoretical useable signal (Voice onset)
 pp.voiceOnsetInd = pp.threshIdx(1);
+
+%Check the voice onset time against when we want to start analyzing data
+pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
 
 %The rest of the signal base the first index...are there any dead zones??
 pp.fallOffLog = pp.env(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
