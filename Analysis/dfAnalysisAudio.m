@@ -38,8 +38,8 @@ An = initAudVar(An);
 
 if AudFlag == 1
     %Set some frequency analysis variables
-    An.fV = setFreqAnalVar(An.sRate, An.numSamp);
-
+    An.fV = setFreqAnalVar(fs, An.numSamp);
+    
     %Main script that does the Signal Frequency Analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
 
@@ -47,8 +47,8 @@ if AudFlag == 1
     %results from last time if you want to. 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
         ET = tic;
-        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioM, An.sRate, An.fV, An.bTf0b, 1);
-        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.time, An.audioH, An.sRate, An.fV, An.bTf0b, 1);
+        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.audioM, An.sRate, An.bTf0b, 1);
+        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.audioH, An.sRate, An.bTf0b, 1);
         
         elapsed_time = toc(ET)/60/2;
         fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
@@ -146,28 +146,23 @@ An.respVarSD      = [];
 An.InflaStimVar   = [];
 end
 
-function fV = setFreqAnalVar(sRate, numSamp)
+function fV = setFreqAnalVar(sRate)
 
 %Identify a few analysis varaibles
-fV.win        = 0.005;  %seconds
+fV.sRate      = sRate;
+
+fV.freqCutOff = 400;
+fV.win        = 0.005;      % seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
-fV.pOV        = 0.60;  %60% overlap
+fV.pOV        = 0.80;       % 80% overlap
 fV.tStepP     = fV.winP*(1-fV.pOV);
-fV.winSts     = 1:fV.tStepP:(numSamp-fV.winP);
-fV.numWin     = length(fV.winSts);
-fV.freqCutOff = 300;
-
-
-% [~, numTrial] = size(audio);
-% preEve  = 0.5; posEve = 1.0;
-% per     = 1/fs;
-% preEveP = preEve*fs;
-% posEveP = posEve*fs-1;
 end
 
-function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, time, audio, fs, fV, bTf0b, flag)
+function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, audio, fV, bTf0b, flag)
 [~, numTrial] = size(audio);
+
+fs = fV.sRate;
 
 if flag == 1
     [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
@@ -175,21 +170,34 @@ else
     %Low-Pass filter for the given cut off frequency
     [B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
 
-    audiof0 = zeros(fV.numWin, numTrial);
-    for j = 1:numTrial %Trial by Trial
-        sensorHP = filtfilt(B,A,audio(:,j));
+    audiof0 = [];
+    for j = 1:numTrial %Trial by Trial      
+        voiceW   = audio(:,j);
+        numSampW = length(audio);
         
-        timef0 = [];
-        for i = 1:fV.numWin
-            winIdx = fV.winSts(i):fV.winSts(i)+ fV.winP - 1;
-            timef0 = cat(1, timef0, mean(time(winIdx)));
-            f0 = dfCalcf0Chile(sensorHP(winIdx), fs);
-            if isnan(f0)
-%                 disp('hit')
-                f0 = 100;
-            end
-            audiof0(i,j) = f0;
+        timeT    = (0:1/fs:(numSampW-1)/fs)';
+        
+        trialWinSt   = round(1:fV.tStepP:(numSampW-fV.winP));
+        numWinStT    = length(trialWinSt);
+                
+        timef0 = []; voicef0 = [];
+        for i = 1:numWinStT
+            winIdx  = trialWinSt(i):trialWinSt(i)+ fV.winP - 1;
+            timeWin = mean(timeT(winIdx));
+            
+            voiceWin   = voiceW(winIdx);
+            voiceWinHP = filtfilt(B, A, voiceWin);
+            
+            % What is the f0??
+            f0Win = dfCalcf0Chile(voiceWinHP, fs);
+            if isnan(f0Win); f0Win = bTf0b; end
+            
+            timef0  = cat(1, timef0, timeWin);
+            voicef0 = cat(1, voicef0, f0Win);
         end
+        
+        audiof0(j).timef0  = timef0;
+        audiof0(j).voicef0 = voicef0;        
     end
     fsA = fV.fsA;
 end
