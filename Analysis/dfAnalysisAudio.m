@@ -11,9 +11,6 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 %An.bTf0b
 
 %An.sRate   % 8000Hz (NIDAQ), 16000Hz (Audapter)
-%An.numSamp % sRate X trialLen
-
-%An.time    % Expects a vector (samples x 1)
 %An.audioM  % Expects a matrix (samples x trials)
 %An.audioH  % Expects a matrix (samples x trials)
 
@@ -38,7 +35,7 @@ An = initAudVar(An);
 
 if AudFlag == 1
     %Set some frequency analysis variables
-    An.fV = setFreqAnalVar(fs, An.numSamp);
+    An.fV = setFreqAnalVar(An.sRate);
     
     %Main script that does the Signal Frequency Analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
@@ -47,8 +44,8 @@ if AudFlag == 1
     %results from last time if you want to. 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
         ET = tic;
-        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.audioM, An.sRate, An.bTf0b, 1);
-        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.audioH, An.sRate, An.bTf0b, 1);
+        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, fV, An.audioM, An.bTf0b, 1);
+        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, fV, An.audioH, An.bTf0b, 1);
         
         elapsed_time = toc(ET)/60/2;
         fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
@@ -159,7 +156,7 @@ fV.pOV        = 0.80;       % 80% overlap
 fV.tStepP     = fV.winP*(1-fV.pOV);
 end
 
-function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, audio, fV, bTf0b, flag)
+function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, fV, audio, bTf0b, flag)
 [~, numTrial] = size(audio);
 
 fs = fV.sRate;
@@ -173,12 +170,12 @@ else
     audiof0 = [];
     for j = 1:numTrial %Trial by Trial      
         voiceW   = audio(:,j);
-        numSampW = length(audio);
+        numSampW = length(voiceW);
         
-        timeT    = (0:1/fs:(numSampW-1)/fs)';
+        timeT    = (0:1/fs:(numSampW-1)/fs)'; %Time vector for full mic
         
-        trialWinSt   = round(1:fV.tStepP:(numSampW-fV.winP));
-        numWinStT    = length(trialWinSt);
+        trialWinSt   = round(1:fV.tStepP:(numSampW-fV.winP)); % Window start frames based on length of voice onset mic
+        numWinStT    = length(trialWinSt);                    % Number of windows based on WinSt
                 
         timef0 = []; voicef0 = [];
         for i = 1:numWinStT
