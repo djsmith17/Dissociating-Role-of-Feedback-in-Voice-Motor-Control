@@ -67,10 +67,10 @@ for ii = 1:auAn.numTrial
 
         if auAn.trialType(ii) == 0
             auAn.contIdx  = cat(1, auAn.contIdx, ii);
-            auAn.contTrig = cat(1, auAn.contTrig, auAn.expTrig(ii, :));
+            auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
         else
-            auAn.pertIdx = cat(1, auAn.pertIdx, ii);
-            auAn.perTrig = cat(1, auAn.pertTrig, auAn.expTrig(ii, :));
+            auAn.pertIdx  = cat(1, auAn.pertIdx, ii);
+            auAn.pertTrig = cat(1, auAn.pertTrig, expTrigs);
         end   
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
