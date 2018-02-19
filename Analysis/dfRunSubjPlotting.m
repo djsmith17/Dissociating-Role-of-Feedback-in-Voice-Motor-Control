@@ -9,7 +9,7 @@ function dfRunSubjPlotting()
 %drawAudRespIndivTrial
 %drawAudRespMeanTrial
 
-clear all; close all; clc
+close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'Pilot28'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);

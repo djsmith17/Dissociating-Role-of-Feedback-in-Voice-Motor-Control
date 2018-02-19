@@ -41,6 +41,8 @@ auAn.anaTrigsDN = auAn.expTrigs*auAn.sRateDN;
 auAn.contIdx = [];
 auAn.pertIdx = [];
 
+auAn.contTrig = [];
+auAn.pertTrig = [];
 
 auAn.allAuNiDelays = [];
 for ii = 1:auAn.numTrial
@@ -59,23 +61,22 @@ for ii = 1:auAn.numTrial
     if preProSt.saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
     elseif preProSt.saveT == 1 %Save the Trial
-        auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
+
         auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
         auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
-        
+
         if auAn.trialType(ii) == 0
-            auAn.contIdx = cat(1, auAn.contIdx, ii);
+            auAn.contIdx  = cat(1, auAn.contIdx, ii);
+            auAn.contTrig = cat(1, auAn.contTrig, auAn.expTrig(ii, :));
         else
             auAn.pertIdx = cat(1, auAn.pertIdx, ii);
-        end        
+            auAn.perTrig = cat(1, auAn.pertTrig, auAn.expTrig(ii, :));
+        end   
+        auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
-
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
-
-auAn.contTrig = auAn.expTrigs(auAn.contIdx,:);
-auAn.pertTrig = auAn.expTrigs(auAn.pertIdx,:);
 
 %The Audio Analysis
 f0Flag = 1;
