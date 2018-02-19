@@ -32,10 +32,8 @@ auAn.anaTrigs = expParam.trigs(:,:,3);
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM   = [];
 auAn.audioH   = [];
-
 auAn.contIdx  = [];
 auAn.contTrig = [];
-
 auAn.pertIdx  = [];
 auAn.pertTrig = [];
 
