@@ -74,19 +74,19 @@ fs   = fV.sRate;
 audiof0 = []; trialf0 = []; audioRMS = [];
 f0Max = 0; f0Min = 0;
 for j = 1:numTrial %Trial by Trial
-    trialData = rawData(j);
-    voiceInd  = fV.voiceInd(j);
+    trialData = rawData(j);     % Grab the data set for this trial
+    voiceInd  = fV.voiceInd(j); % Pre-calculated RMS threshold
    
-    voiceW    = trialData.signalIn;
-    numSampW  = length(voiceW);
-    voiceT    = voiceW(voiceInd:end);
-    numSampT  = length(voiceT);
+    voiceW    = trialData.signalIn;   % Microphone Channel
+    numSampW  = length(voiceW);       % Length of Mic Channel
+    voiceT    = voiceW(voiceInd:end); % Microphone Channel, starting at Voice Onset
+    numSampT  = length(voiceT);       % Length of Mic Channel, starting at Voice Onset
     
-    timeW     = (0:1/fs:(numSampW-1)/fs)';
-    timeT     = timeW(voiceInd:voiceInd+numSampT-1);       
+    timeW     = (0:1/fs:(numSampW-1)/fs)';           % Time vector for full mic
+    timeT     = timeW(voiceInd:voiceInd+numSampT-1); % Time vector for mic starting at Voice Onset
     
-    trialWinSt = round(1:fV.tStepP:(numSampT-fV.winP));
-    numWinStT  = length(trialWinSt);
+    trialWinSt = round(1:fV.tStepP:(numSampT-fV.winP)); % Window start frames based on length of voice onset mic
+    numWinStT  = length(trialWinSt);                    % Number of windows based on WinSt
     
     timef0 = []; voicef0 = [];
     for i = 1:numWinStT
@@ -97,6 +97,7 @@ for j = 1:numTrial %Trial by Trial
         voiceWin   = voiceT(winIdx);
         voiceWinHP = filtfilt(B, A, voiceWin);
          
+        % What is the f0??
         f0Win = simpleAutoCorr(voiceWinHP, fV);      
         
         timef0  = cat(1, timef0, timeWin);
