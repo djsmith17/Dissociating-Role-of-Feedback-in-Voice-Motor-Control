@@ -36,15 +36,15 @@ auAn.contIdx  = [];
 auAn.contTrig = [];
 auAn.pertIdx  = [];
 auAn.pertTrig = [];
-
 auAn.allAuNiDelays = [];
+
+audioPP = [];
 sTC = 0; %Saved Trials Count
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
-    trRMS  = data.rms(:,1);     % RMS
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
@@ -56,11 +56,14 @@ for ii = 1:auAn.numTrial
     if preProSt.saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
     elseif preProSt.saveT == 1 %Save the Trial
-
+        sTC = sTC + 1;
+        
+        audioPP(sTC).time = time;
+        audioPP(sTC).mic  = mic;
+        audioPP(sTC).head = head;
         auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
         auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
         
-        sTC = sTC + 1;
         if auAn.trialType(ii) == 0
             auAn.contIdx  = cat(1, auAn.contIdx, sTC);
             auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
@@ -74,6 +77,8 @@ end
 auAn.totSaveTrials = sTC;
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
+
+auAn.audioPP = audioPP;
 
 %The Audio Analysis
 iRF = 1; f0Flag = 0;
