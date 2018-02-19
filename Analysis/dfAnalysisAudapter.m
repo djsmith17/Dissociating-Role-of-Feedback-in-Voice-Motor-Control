@@ -38,6 +38,7 @@ auAn.pertIdx  = [];
 auAn.pertTrig = [];
 
 auAn.allAuNiDelays = [];
+sTC = 0; %Saved Trials Count
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
@@ -58,22 +59,24 @@ for ii = 1:auAn.numTrial
 
         auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
         auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
-
+        
+        sTC = sTC + 1;
         if auAn.trialType(ii) == 0
-            auAn.contIdx  = cat(1, auAn.contIdx, ii);
+            auAn.contIdx  = cat(1, auAn.contIdx, sTC);
             auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
         else
-            auAn.pertIdx  = cat(1, auAn.pertIdx, ii);
+            auAn.pertIdx  = cat(1, auAn.pertIdx, sTC);
             auAn.pertTrig = cat(1, auAn.pertTrig, expTrigs);
         end   
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
+auAn.totSaveTrials = sTC;
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
 
 %The Audio Analysis
-iRF = 1; f0Flag = 1;
+iRF = 1; f0Flag = 0;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
