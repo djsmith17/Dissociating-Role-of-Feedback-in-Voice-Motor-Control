@@ -97,22 +97,23 @@ function [micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, expTrig
 %pp:     preprocessing structure Reason, if any, that the trial was thrown out
 
 micR      = double(micR);
-headR     = dougle(headR);
+headR     = double(headR);
 AudFB     = An.AudFB;
 fs        = An.sRate;
 fsNI      = An.sRateNi;
 frameLen  = An.frameLenDown;
-pertOnset = expTrigs(1);
+pertOn    = expTrigs(1);
+pertOff   = expTrigs(2);
 
-micRds    = resample(micR, fsNI, fs);
-AuNidelay = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
+micRds     = resample(micR, fsNI, fs);
+AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
+AuNidelayP = AuNidelay*fs;
 
 if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
 else
     AuMHdelay = xCorrTimeLag(micR, headR, fs);
 end
-AuNidelayP = AuNidelay*fs;
 AuMHdelayP = AuMHdelay*fs;
 
 %Adjust for delay between Audapter Mic and Audapter Headphones
@@ -120,19 +121,23 @@ micAuAl  = micR(1:(end-AuMHdelayP));
 headAuAl = headR((AuMHdelayP+1):end); 
 
 %Adjust for delay between Audapter and NIDAQ
-micAuNi  = micAuAl;
-headAuNi = headAuAl;
+micAuNi    = micAuAl(AuNidelayP:end);
+headAuNi   = headAuAl(AuNidelayP:end);
+auTrigsDel = auTrigs - AuNidelayP;
 
+%Find the onset of Voicing
 pp = findVoiceOnsetThresh(micAuAl, fs);
 
-[B,A]    = butter(4,(300)/(fs/2));
+%Low Pass filter under 300Hz
+cutOff   = 300; %Hz
+[B,A]    = butter(4,(cutOff)/(fs/2));
 filtMic  = filtfilt(B,A,micAuAl); %Low-pass filtered under 500Hz
 filtHead = filtfilt(B,A,headAuAl); %Low-pass filtered under 500Hz
  
-micP     = filtMic; %Take the whole signal for now
-headP    = filtHead; %Same indices as for mic 
+micP     = filtMic;  % Take the whole signal for now
+headP    = filtHead; % Same indices as for mic 
 
-if pp.t(pp.voiceOnsetInd) > pertOnset
+if pp.t(pp.voiceOnsetInd) > pertOn
     saveT = 0;  
     saveTmsg = 'Participant started too late!!';
 elseif pp.chk4Break
@@ -169,7 +174,7 @@ pp.t = 0:1/fs:(pp.lenSig-1)/fs;
 
 %Envelope the signal removing all high frequncies. 
 %This shows the general change in amplitude over time (~RMS). 
-pp.env  = filter(B,A,abs(micAuAl));  
+pp.env  = filter(B,A,abs(audio));  
 
 %The largest peak in the envelope theoretically occurs during voicing
 pp.maxPeak = max(pp.env); 
@@ -183,7 +188,7 @@ pp.voiceOnsetInd = pp.threshIdx(1);
 
 %The rest of the signal base the first index...are there any dead zones??
 pp.fallOffLog = pp.env(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
-pp.chk4Break  = sum(pp.fallOffLog) > breakTol*fs; %Last longer than 300ms
+pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; %Last longer than 300ms
 end
 
 function lims = identifyLimits(An)
