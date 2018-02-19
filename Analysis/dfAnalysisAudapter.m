@@ -50,6 +50,7 @@ for ii = 1:auAn.numTrial
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
+    trRMS  = data.rms(:,1);     % RMS
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
@@ -106,7 +107,7 @@ AudFB     = An.AudFB;
 fs        = An.sRate;
 fsNI      = An.sRateNi;
 frameLen  = An.frameLenDown;
-pertOnset = expTrigs;
+pertOnset = expTrigs(1);
 
 micRds    = resample(micR, fsNI, fs);
 AuNidelay = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
@@ -122,10 +123,10 @@ AuMHdelayP = AuMHdelay*fs;
 micAuAl  = micR(1:(end-AuMHdelayP));
 headAuAl = headR((AuMHdelayP+1):end); 
 
-x = double(micAuAl); 
-y = double(headAuAl);
+micAuAl  = double(micAuAl); 
+headAuAl = double(headAuAl);
 
-pp.lenSig = length(x);
+pp.lenSig = length(micAuAl);
 pp.t = 0:1/fs:(pp.lenSig-1)/fs;
 
 pp.thresh = 0.3;
@@ -133,31 +134,28 @@ pp.thresh = 0.3;
 
 %Envelope the signal removing all high frequncies. 
 %This shows the general change in amplitude over time. 
-pp.xenv  = filter(B,A,abs(x));  
+pp.env  = filter(B,A,abs(micAuAl));  
 
 %The largest peak in the envelope theoretically occurs during voicing
-pp.maxPeak = max(pp.xenv); 
+pp.maxPeak = max(pp.env); 
 
 %I don't want to start my signal at the max value, so start lower down on
 %the envelope as a threshold
-pp.threshIdx     = find(pp.xenv > pp.thresh*pp.maxPeak); 
+pp.threshIdx     = find(pp.env > pp.thresh*pp.maxPeak); 
 
 %The first index of the theoretical useable signal (Voice onset)
 pp.voiceOnsetInd = pp.threshIdx(1);  
 
 %The rest of the signal base the first index...are there any dead zones??
-pp.fallOffLog = pp.xenv(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
+pp.fallOffLog = pp.env(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
 pp.chk4Break = sum(pp.fallOffLog) > 0.3*fs; %Last longer than 300ms
 
 [B,A]    = butter(4,(300)/(fs/2));
-filtx    = filtfilt(B,A,x); %Low-pass filtered under 500Hz
-filty    = filtfilt(B,A,y); %Low-pass filtered under 500Hz
+filtMic  = filtfilt(B,A,micAuAl); %Low-pass filtered under 500Hz
+filtHead  = filtfilt(B,A,headAuAl); %Low-pass filtered under 500Hz
  
-micP     = filtx; %Take the whole signal for now
-headP    = filty; %Same indices as for mic 
-
-micP     = micAuAl;
-headP    = headAuAl;
+micP     = filtMic; %Take the whole signal for now
+headP    = filtHead; %Same indices as for mic 
 
 if pp.t(pp.voiceOnsetInd) > pertOnset
     saveT = 0;  
