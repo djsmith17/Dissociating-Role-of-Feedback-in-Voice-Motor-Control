@@ -38,10 +38,10 @@ auAn.sRateDN    = auAn.sRate/dnSamp;
 auAn.timeDN     = dnSampleSignal(auAn.time, dnSamp);
 auAn.anaTrigsDN = auAn.expTrigs*auAn.sRateDN;
 
-auAn.contIdx = [];
-auAn.pertIdx = [];
-
+auAn.contIdx  = [];
 auAn.contTrig = [];
+
+auAn.pertIdx  = [];
 auAn.pertTrig = [];
 
 auAn.allAuNiDelays = [];
@@ -79,8 +79,8 @@ auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
 
 %The Audio Analysis
-f0Flag = 1;
-auAn = dfAnalysisAudio(dirs, auAn, AudFlag, f0Flag);
+iRF = 1; f0Flag = 1;
+auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);

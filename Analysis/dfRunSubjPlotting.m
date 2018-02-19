@@ -21,7 +21,7 @@ dirs               = dfDirs(sPlt.project);
 sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
-sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
+sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawDAQMeanTrialMicf0   = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
 sPlt.drawDAQMeanTrialAudResp = 0; % Mean Perturbed Trials. Microphone vs Headphones
 
@@ -54,7 +54,7 @@ for ii = 1:sPlt.numPart
         end
         
         if sPlt.drawDAQMeanTrialMicf0 == 1
-            drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
+%             drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
             drawDAQMeanTrialMicf0(auRes, dirs.SavResultsDir)
 %             drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
         end
