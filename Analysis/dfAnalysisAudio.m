@@ -34,8 +34,9 @@ end
 An = initAudVar(An);
 
 if AudFlag == 1
+    An.numSamp = length(An.audioM);
     %Set some frequency analysis variables
-    An.fV = setFreqAnalVar(An.sRate);
+    An.fV = setFreqAnalVar(An.sRate, An.numSamp);
     
     %Main script that does the Signal Frequency Analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
@@ -43,12 +44,9 @@ if AudFlag == 1
     %Sometimes frequency analysis takes a while, this allows you to save
     %results from last time if you want to. 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
-        ET = tic;
-        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.bTf0b, 1);
-        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.bTf0b, 1);
-        
-        elapsed_time = toc(ET)/60/2;
-        fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+
+        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.bTf0b, 2);
+        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.bTf0b, 2);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -143,10 +141,12 @@ An.respVarSD      = [];
 An.InflaStimVar   = [];
 end
 
-function fV = setFreqAnalVar(sRate)
+function fV = setFreqAnalVar(sRate, numSamp)
 
 %Identify a few analysis varaibles
 fV.sRate      = sRate;
+fV.numSamp    = numSamp;
+fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; %Time vector for full mic
 
 fV.freqCutOff = 400;
 fV.win        = 0.005;      % seconds
@@ -154,50 +154,46 @@ fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
 fV.pOV        = 0.80;       % 80% overlap
 fV.tStepP     = fV.winP*(1-fV.pOV);
+
+fV.trialWin = round(1:fV.tStepP:(fV.numSamp-fV.winP)); % Window start frames based on length of voice onset mic
+fV.numWin   = length(fV.trialWin);                    % Number of windows based on WinSt
 end
 
-function [timef0, audiof0, fsA] = signalFrequencyAnalysis(dirs, fV, audio, bTf0b, flag)
+function [timef0, voicef0, fsA] = signalFrequencyAnalysis(dirs, fV, audio, bTf0b, flag)
+ET = tic;
 [~, numTrial] = size(audio);
 
 fs = fV.sRate;
 
 if flag == 1
-    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
+    [timef0, voicef0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
 else
-    %Low-Pass filter for the given cut off frequency
-    [B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
-
-    audiof0 = [];
-    for j = 1:numTrial %Trial by Trial      
-        voiceW   = audio(:,j);
-        numSampW = length(voiceW);
-        
-        timeT    = (0:1/fs:(numSampW-1)/fs)'; %Time vector for full mic
-        
-        trialWinSt   = round(1:fV.tStepP:(numSampW-fV.winP)); % Window start frames based on length of voice onset mic
-        numWinStT    = length(trialWinSt);                    % Number of windows based on WinSt
-                
-        timef0 = []; voicef0 = [];
-        for i = 1:numWinStT
-            winIdx  = trialWinSt(i):trialWinSt(i)+ fV.winP - 1;
-            timeWin = mean(timeT(winIdx));
+    
+    for j = 1:numTrial %Trial by Trial             
+        time  = fV.time;
+        voice = audio(:,j);
+         
+        timef0  = []; 
+        voicef0 = [];
+        for i = 1:fV.numWin
+            winIdx  = fV.trialWin(i):fV.trialWin(i)+ fV.winP - 1;
             
-            voiceWin   = voiceW(winIdx);
-            voiceWinHP = filtfilt(B, A, voiceWin);
+            timeWin  = mean(time(winIdx));
+            voiceWin = voice(winIdx);
             
             % What is the f0??
-            f0Win = dfCalcf0Chile(voiceWinHP, fs);
+            f0Win = dfCalcf0Chile(voiceWin, fs);
             if isnan(f0Win); f0Win = bTf0b; end
             
             timef0  = cat(1, timef0, timeWin);
             voicef0 = cat(1, voicef0, f0Win);
-        end
-        
-        audiof0(j).timef0  = timef0;
-        audiof0(j).voicef0 = voicef0;        
+        end             
     end
     fsA = fV.fsA;
 end
+
+elapsed_time = toc(ET)/60;
+fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 end
 
 function audioS = smoothf0(audio)
