@@ -182,8 +182,10 @@ else
             voiceWin = voice(winIdx);
             
             % What is the f0??
-            f0Win = dfCalcf0Chile(voiceWin, fs);
-            if isnan(f0Win); f0Win = bTf0b; end
+%             f0Win = dfCalcf0Chile(voiceWin, fs);
+%             if isnan(f0Win); f0Win = bTf0b; end
+            
+            f0Win = simpleAutoCorr(voiceWin, fV);
             
             timef0  = cat(1, timef0, timeWin);
             voicef0 = cat(1, voicef0, f0Win);
@@ -194,6 +196,23 @@ end
 
 elapsed_time = toc(ET)/60;
 fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+end
+
+function f0Win = simpleAutoCorr(voice, fV)
+%Simple version of an autocorrelation for finding pitch
+
+fs            = fV.sRate;
+win           = fV.winP;
+[autoC, lags] = autocorr(voice, win-1);
+[pks, pkInd]  = findpeaks(autoC);
+if isempty(pks)
+    FLag      = lags(end);
+else
+    [~, mxInd]= max(pks);
+    FLag      = lags(pkInd(mxInd));
+end
+per           = FLag/fs;
+f0Win         = 1/per;
 end
 
 function audioS = smoothf0(audio)
