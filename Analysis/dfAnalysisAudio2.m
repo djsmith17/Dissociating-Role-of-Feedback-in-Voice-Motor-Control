@@ -56,7 +56,7 @@ if AudFlag == 1
     audiof0Pert = f0A.audiof0Pert;
     audiof0Cont = f0A.audiof0Cont;
 
-    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.audiof0Pert);
+    [An.secTime, An.audioMf0_Secp] = sectionAudioData(audiof0Cont);
 
     %Section the data around onset and offset
 %     [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.pertTrigPP);
@@ -310,14 +310,16 @@ for ii = 1:numTrial
     
     OnsetTSt  = round(OnsetT - preEve, 4);   % Accurate to nearest ms
     OnsetTSp  = round(OnsetT + posEve, 4);   % Accurate to nearest ms
-    OnsetSpan = time >= OnsetTSt & time <= OnsetTSp;
+    OnsetSpan = find(time <= OnsetTSp);
+    OnsetSpanInd = OnsetSpan(end);
     
     OffsetTSt  = round(OffsetT - preEve, 4); % Accurate to nearest ms
     OffsetTSp  = round(OffsetT + posEve, 4); % Accurate to nearest ms
-    OffsetSpan = time >= OffsetTSt & time <= OffsetTSp;
+    OffsetSpan = find(time >= OffsetTSt);
+    OffsetSpanInd = OffsetSpan(1);
             
-    OnsetSec  = micf0(OnsetSpan);
-    OffsetSec = micf0(OffsetSpan);
+    OnsetSec  = micf0(1:OnsetSpanInd);
+    OffsetSec = micf0(OffsetSpanInd:end);
     
     OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
     OffsetSecs = cat(2, OffsetSecs, OffsetSec);
