@@ -32,6 +32,7 @@ auAn.anaTrigs = expParam.trigs(:,:,3);
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM   = [];
 auAn.audioH   = [];
+auAn.expTrigsPP = [];
 auAn.contIdx  = [];
 auAn.contTrig = [];
 auAn.pertIdx  = [];
@@ -64,6 +65,7 @@ for ii = 1:auAn.numTrial
         auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
         auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
         
+        auAn.expTrigsPP = cat(1, auAn.expTrigsPP, expTrigs);
         if auAn.trialType(ii) == 0
             auAn.contIdx  = cat(1, auAn.contIdx, sTC);
             auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
@@ -82,7 +84,7 @@ auAn.audioPP = audioPP;
 
 %The Audio Analysis
 iRF = 1; f0Flag = 1;
-auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
+auAn = dfAnalysisAudio2(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
