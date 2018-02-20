@@ -62,8 +62,8 @@ for ii = 1:auAn.numTrial
         audioPP(sTC).time = time;
         audioPP(sTC).mic  = mic;
         audioPP(sTC).head = head;
-        auAn.audioM = cat(2, auAn.audioM, Mraw(1:64000));
-        auAn.audioH = cat(2, auAn.audioH, Hraw(1:64000));
+        auAn.audioM = cat(2, auAn.audioM, mic);
+        auAn.audioH = cat(2, auAn.audioH, head);
         
         auAn.expTrigsPP = cat(1, auAn.expTrigsPP, expTrigs);
         if auAn.trialType(ii) == 0
@@ -80,11 +80,11 @@ auAn.totSaveTrials = sTC;
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
 
-auAn.audioPP = audioPP;
+% auAn.audioPP = audioPP;
 
 %The Audio Analysis
 iRF = 1; f0Flag = 1;
-auAn = dfAnalysisAudio2(dirs, auAn, AudFlag, iRF, f0Flag);
+auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
@@ -157,18 +157,23 @@ headSec = headAuNi(sectionInd);
 %Find the onset of Voicing
 pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
 
-timeSec  = time;
-micP     = micSec;
-headP    = headSec;
-
+timeSec = [];
+micP    = [];
+headP   = [];
 if pp.voiceOnsetLate
-    saveT = 0;  
+    saveT    = 0;  
     saveTmsg = 'Participant started too late!!';
 elseif pp.chk4Break
-    saveT = 0;
+    saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
+elseif length(micAuNi) < 64000
+    saveT    = 0;
+    saveTmsg = 'Recording too short';
 else
-    saveT = 1;
+    timeSec  = time;
+    micP     = micAuNi(1:64000);
+    headP    = headAuNi(1:64000);
+    saveT    = 1;
     saveTmsg = 'Everything is good'; 
 end
 
