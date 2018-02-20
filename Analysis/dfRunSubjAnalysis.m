@@ -12,7 +12,7 @@ AVar.numPart       = length(AVar.participants);
 AVar.runs          = {'LDDDiag1'};
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV2';
-AVar.debug         = 0;
+AVar.debug         = 1;
 
 dirs               = dfDirs(AVar.project);
 

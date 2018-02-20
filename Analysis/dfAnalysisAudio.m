@@ -273,12 +273,12 @@ for ii = 1:numTrial
     OnsetT   = trigs(ii, 1);
     OffsetT  = trigs(ii, 2);
     
-    OnsetTSt = OnsetT - preEve;
-    OnsetTSp = OnsetT + posEve;
+    OnsetTSt = round(OnsetT - preEve, 3);   % Accurate to nearest ms
+    OnsetTSp = round(OnsetT + posEve, 3);   % Accurate to nearest ms
     OnsetSpan = time >= OnsetTSt & time <= OnsetTSp;
     
-    OffsetTSt = OffsetT - preEve;
-    OffsetTSp = OffsetT + posEve;
+    OffsetTSt = round(OffsetT - preEve, 3); % Accurate to nearest ms
+    OffsetTSp = round(OffsetT + posEve, 3); % Accurate to nearest ms
     OffsetSpan = time >= OffsetTSt & time <= OffsetTSp;
     
 %     OnsetI  = find(time == trigsR(ii,1));
@@ -299,7 +299,7 @@ end
 
 numSamp = length(OnsetSec);
 
-secTime  = linspace(-preEve, posEve, numSamp);
+secTime = linspace(-preEve, posEve, numSamp);
 secAudio(:,:,1) = OnsetSecs; 
 secAudio(:,:,2) = OffsetSecs;
 end
