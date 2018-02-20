@@ -12,7 +12,7 @@ AVar.numPart       = length(AVar.participants);
 AVar.runs          = {'LDDDiag1'};
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV2';
-AVar.debug         = 1;
+AVar.debug         = 0;
 
 dirs               = dfDirs(AVar.project);
 
@@ -61,7 +61,7 @@ for i = 1:AVar.numPart
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         if AVar.debug == 0
             fprintf('Saving Results for %s %s\n', participant, run)
-            save(dirs.SavResultsFile, 'auAn', 'auRes', 'niAn', 'niRes')
+            save(dirs.SavResultsFile, 'auRes', 'niRes')
         end
         
         if iRF == 1

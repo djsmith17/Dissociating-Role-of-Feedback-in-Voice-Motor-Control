@@ -264,14 +264,14 @@ preEve  = 0.5; posEve = 1.0;
 % per     = 1/fs;
 % preEveP = preEve*fs;
 % posEveP = posEve*fs-1;
-% trigsR   = round2matchfs(trigs);
+trigsR   = round2matchfs(trigs);
 
 secAudio   = [];
 OnsetSecs  = [];
 OffsetSecs = [];
 for ii = 1:numTrial
-    OnsetT   = trigs(ii, 1);
-    OffsetT  = trigs(ii, 2);
+    OnsetT   = trigsR(ii, 1);
+    OffsetT  = trigsR(ii, 2);
     
     OnsetTSt = round(OnsetT - preEve, 3);   % Accurate to nearest ms
     OnsetTSp = round(OnsetT + posEve, 3);   % Accurate to nearest ms
