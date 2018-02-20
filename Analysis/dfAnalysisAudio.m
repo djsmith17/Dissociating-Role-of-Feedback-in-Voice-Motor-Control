@@ -44,8 +44,8 @@ if AudFlag == 1
     %results from last time if you want to. 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
         ET = tic;
-        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, fV, An.audioM, An.bTf0b, 1);
-        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, fV, An.audioH, An.bTf0b, 1);
+        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.bTf0b, 1);
+        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.bTf0b, 1);
         
         elapsed_time = toc(ET)/60/2;
         fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
@@ -82,10 +82,10 @@ if AudFlag == 1
     [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.contTrig, An.curSess, 'Cont');
 
     %Section the data around onset and offset
-    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.fsA, An.pertTrigPP);
-    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.time_audio, An.audioHf0_pPP, An.fsA, An.pertTrigPP);
-    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.time_audio, An.audioMf0_cPP, An.fsA, An.contTrigPP);
-    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.time_audio, An.audioHf0_cPP, An.fsA, An.contTrigPP);
+    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.pertTrigPP);
+    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.time_audio, An.audioHf0_pPP, An.pertTrigPP);
+    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.time_audio, An.audioMf0_cPP, An.contTrigPP);
+    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.time_audio, An.audioHf0_cPP, An.contTrigPP);
 
     %Mean around the onset and offset
     An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
@@ -258,36 +258,48 @@ for ii = 1:numTrialType
 end
 end
 
-function [secTime, secAudio] = sectionAudioData(time, audio, fs, trigs)
+function [secTime, secAudio] = sectionAudioData(time, audio, trigs)
 [~, numTrial] = size(audio);
 preEve  = 0.5; posEve = 1.0;
-per     = 1/fs;
-preEveP = preEve*fs;
-posEveP = posEve*fs-1;
-
-trigsR   = round2matchfs(trigs);
+% per     = 1/fs;
+% preEveP = preEve*fs;
+% posEveP = posEve*fs-1;
+% trigsR   = round2matchfs(trigs);
 
 secAudio   = [];
 OnsetSecs  = [];
 OffsetSecs = [];
-for ii = 1:numTrial 
-    OnsetI  = find(time == trigsR(ii,1));
-    OffsetI = find(time == trigsR(ii,2));
+for ii = 1:numTrial
+    OnsetT   = trigs(ii, 1);
+    OffsetT  = trigs(ii, 2);
     
-    OnsetISt = OnsetI - preEveP;
-    OnsetISp = OnsetI + posEveP;
+    OnsetTSt = OnsetT - preEve;
+    OnsetTSp = OnsetT + posEve;
+    OnsetSpan = time >= OnsetTSt & time <= OnsetTSp;
     
-    OffsetISt = OffsetI - preEveP;
-    OffsetISp = OffsetI + posEveP;
+    OffsetTSt = OffsetT - preEve;
+    OffsetTSp = OffsetT + posEve;
+    OffsetSpan = time >= OffsetTSt & time <= OffsetTSp;
+    
+%     OnsetI  = find(time == trigsR(ii,1));
+%     OffsetI = find(time == trigsR(ii,2));
+%     
+%     OnsetISt = OnsetI - preEveP;
+%     OnsetISp = OnsetI + posEveP;
+%     
+%     OffsetISt = OffsetI - preEveP;
+%     OffsetISp = OffsetI + posEveP;
         
-    OnsetSec  = audio(OnsetISt:OnsetISp, ii);
-    OffsetSec = audio(OffsetISt:OffsetISp, ii);
+    OnsetSec  = audio(OnsetSpan, ii);
+    OffsetSec = audio(OffsetSpan, ii);
     
     OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
     OffsetSecs = cat(2, OffsetSecs, OffsetSec);
 end
 
-secTime  = (-0.5+per):per:1.0;
+numSamp = length(OnsetSec);
+
+secTime  = linspace(-preEve, posEve, numSamp);
 secAudio(:,:,1) = OnsetSecs; 
 secAudio(:,:,2) = OffsetSecs;
 end
