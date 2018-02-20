@@ -158,8 +158,8 @@ headSec = headAuNi(sectionInd);
 pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
 
 timeSec  = time;
-micP     = micSec;  % Take the whole signal for now
-headP    = headSec; % Same indices as for mic 
+micP     = micSec;
+headP    = headSec;
 
 if pp.voiceOnsetLate
     saveT = 0;  
