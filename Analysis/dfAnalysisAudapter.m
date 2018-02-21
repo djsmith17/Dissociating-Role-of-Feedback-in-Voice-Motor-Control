@@ -32,7 +32,7 @@ auAn.anaTrigs = expParam.trigs(:,:,3);
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM   = [];
 auAn.audioH   = [];
-auAn.expTrigsPP = [];
+auAn.expTrigsP = [];
 auAn.contIdx  = [];
 auAn.contTrig = [];
 auAn.pertIdx  = [];
@@ -65,7 +65,7 @@ for ii = 1:auAn.numTrial
         auAn.audioM = cat(2, auAn.audioM, mic);
         auAn.audioH = cat(2, auAn.audioH, head);
         
-        auAn.expTrigsPP = cat(1, auAn.expTrigsPP, expTrigs);
+        auAn.expTrigsP = cat(1, auAn.expTrigsP, expTrigs);
         if auAn.trialType(ii) == 0
             auAn.contIdx  = cat(1, auAn.contIdx, sTC);
             auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
