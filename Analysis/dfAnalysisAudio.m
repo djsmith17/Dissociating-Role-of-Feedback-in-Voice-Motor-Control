@@ -151,10 +151,10 @@ fV.numSamp    = numSamp;
 fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; %Time vector for full mic
 
 fV.freqCutOff = 400;
-fV.win        = 0.005;      % seconds
+fV.win        = 0.010;      % seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
-fV.pOV        = 0.80;       % 80% overlap
+fV.pOV        = 0.60;       % 80% overlap
 fV.tStepP     = round(fV.winP*(1-fV.pOV));
 
 fV.trialWin = round(1:fV.tStepP:(fV.numSamp-fV.winP)); % Window start frames based on length of voice onset mic
@@ -317,7 +317,7 @@ function y = round2matchfs(x, rFact, winHalf)
 %This expects a decimal number as input
 %Input can be given as a set
 
-y = round(x.*rFact)./rFact + winHalf;
+y = round((x-winHalf).*rFact)./rFact + winHalf;
 end
 
 function meanAudio = meanAudioData(secAudio)
