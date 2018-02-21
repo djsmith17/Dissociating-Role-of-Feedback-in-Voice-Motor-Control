@@ -45,15 +45,15 @@ if AudFlag == 1
     %results from last time if you want to. 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.time_audio, f0A.audioMf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.bTf0b, 2);
-        [f0A.time_audio, f0A.audioHf0, f0A.fsA] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.bTf0b, 2);        
+        [f0A.time_audio, f0A.audioMf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.expTrigsP, An.bTf0b, 2);
+        [f0A.time_audio, f0A.audioHf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.expTrigsP, An.bTf0b, 2);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
     end
 
     An.time_audio = f0A.time_audio;
-    An.fsA        = f0A.fsA;
+    An.expTrigR   = f0A.expTrigR;
     An.audioMf0   = f0A.audioMf0;
     An.audioHf0   = f0A.audioHf0;
 
@@ -70,14 +70,16 @@ if AudFlag == 1
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0b);
 
     %Find the Perturbed Trials
+    An.pertTrigR  = An.expTrigR(An.pertIdx,:);
     An.audioMf0_p = parseTrialTypes(An.audioMf0_norm, An.pertIdx);
     An.audioHf0_p = parseTrialTypes(An.audioHf0_norm, An.pertIdx);
+    An.contTrigR  = An.expTrigR(An.contIdx,:);
     An.audioMf0_c = parseTrialTypes(An.audioMf0_norm, An.contIdx);
     An.audioHf0_c = parseTrialTypes(An.audioHf0_norm, An.contIdx);
-
+    
     %Find troublesome trials and remove
-    [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.pertTrig, An.curSess, 'Pert');
-    [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.contTrig, An.curSess, 'Cont');
+    [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.pertTrigR, An.curSess, 'Pert');
+    [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.contTrigR, An.curSess, 'Cont');
 
     %Section the data around onset and offset
     [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.pertTrigPP);
@@ -153,22 +155,25 @@ fV.win        = 0.005;      % seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
 fV.pOV        = 0.80;       % 80% overlap
-fV.tStepP     = fV.winP*(1-fV.pOV);
+fV.tStepP     = round(fV.winP*(1-fV.pOV));
 
 fV.trialWin = round(1:fV.tStepP:(fV.numSamp-fV.winP)); % Window start frames based on length of voice onset mic
-fV.numWin   = length(fV.trialWin);                    % Number of windows based on WinSt
+fV.numWin   = length(fV.trialWin);                     % Number of windows based on WinSt
+
+fV.roundFact = fV.sRate/fV.tStepP;
+fV.winHalf   = fV.win/2;
 end
 
-function [timef0, voicef0, fsA] = signalFrequencyAnalysis(dirs, fV, audio, bTf0b, flag)
+function [timef0, audiof0, expTrigR] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, bTf0b, flag)
 ET = tic;
 [~, numTrial] = size(audio);
 
 fs = fV.sRate;
 
 if flag == 1
-    [timef0, voicef0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
+    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
 else
-    
+    audiof0 = [];
     for j = 1:numTrial %Trial by Trial             
         time  = fV.time;
         voice = audio(:,j);
@@ -176,9 +181,9 @@ else
         timef0  = []; 
         voicef0 = [];
         for i = 1:fV.numWin
-            winIdx  = fV.trialWin(i):fV.trialWin(i)+ fV.winP - 1;
+            winIdx  = fV.trialWin(i):fV.trialWin(i)+ fV.winP-1;
             
-            timeWin  = mean(time(winIdx));
+            timeWin  = round(mean(time(winIdx)),4);
             voiceWin = voice(winIdx);
             
             % What is the f0??
@@ -189,10 +194,12 @@ else
             
             timef0  = cat(1, timef0, timeWin);
             voicef0 = cat(1, voicef0, f0Win);
-        end             
+        end    
+        audiof0 = cat(2, audiof0, voicef0);
     end
-    fsA = fV.fsA;
 end
+
+expTrigR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
 fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
@@ -276,17 +283,13 @@ end
 function [secTime, secAudio] = sectionAudioData(time, audio, trigs)
 [~, numTrial] = size(audio);
 preEve  = 0.5; posEve = 1.0;
-% per     = 1/fs;
-% preEveP = preEve*fs;
-% posEveP = posEve*fs-1;
-trigsR   = round2matchfs(trigs);
 
 secAudio   = [];
 OnsetSecs  = [];
 OffsetSecs = [];
 for ii = 1:numTrial
-    OnsetT   = trigsR(ii, 1);
-    OffsetT  = trigsR(ii, 2);
+    OnsetT   = trigs(ii, 1);
+    OffsetT  = trigs(ii, 2);
     
     OnsetTSt = round(OnsetT - preEve, 3);   % Accurate to nearest ms
     OnsetTSp = round(OnsetT + posEve, 3);   % Accurate to nearest ms
@@ -295,15 +298,6 @@ for ii = 1:numTrial
     OffsetTSt = round(OffsetT - preEve, 3); % Accurate to nearest ms
     OffsetTSp = round(OffsetT + posEve, 3); % Accurate to nearest ms
     OffsetSpan = time >= OffsetTSt & time <= OffsetTSp;
-    
-%     OnsetI  = find(time == trigsR(ii,1));
-%     OffsetI = find(time == trigsR(ii,2));
-%     
-%     OnsetISt = OnsetI - preEveP;
-%     OnsetISp = OnsetI + posEveP;
-%     
-%     OffsetISt = OffsetI - preEveP;
-%     OffsetISp = OffsetI + posEveP;
         
     OnsetSec  = audio(OnsetSpan, ii);
     OffsetSec = audio(OffsetSpan, ii);
@@ -319,11 +313,11 @@ secAudio(:,:,1) = OnsetSecs;
 secAudio(:,:,2) = OffsetSecs;
 end
 
-function y = round2matchfs(x)
+function y = round2matchfs(x, rFact, winHalf)
 %This expects a decimal number as input
 %Input can be given as a set
 
-y = round(x.*200)./200;
+y = round(x.*rFact)./rFact + winHalf;
 end
 
 function meanAudio = meanAudioData(secAudio)
