@@ -74,6 +74,7 @@ end
 
 function res = combineRes(niRes, auRes)
 
+res.expType = auRes.expType;
 res.subject = auRes.subject;
 res.run     = auRes.run;
 res.curSess = auRes.curSess;
