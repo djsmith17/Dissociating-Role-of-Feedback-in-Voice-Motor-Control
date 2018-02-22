@@ -15,6 +15,7 @@ sRate = expParam.sRateQ;
 
 %Identify some starting variables
 niAn.AnaType  = 'NIDAQ';
+niAn.expType  = expParam.expType;
 niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
 niAn.curSess  = expParam.curSess;
@@ -416,6 +417,7 @@ end
 
 function res = packResults(niAn, lims)
 
+res.expType = niAn.expType;
 res.subject = niAn.subject;
 res.run     = niAn.run;
 res.curSess = niAn.curSess;

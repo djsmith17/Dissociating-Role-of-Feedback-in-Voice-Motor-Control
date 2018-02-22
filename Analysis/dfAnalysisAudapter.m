@@ -8,6 +8,7 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, bTf0b
 
 %Identify some starting variables
 auAn.AnaType  = 'Audapter';
+auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
 auAn.curSess   = expParam.curSess;
@@ -83,7 +84,7 @@ auAn.numPertTrials = length(auAn.pertIdx);
 % auAn.audioPP = audioPP;
 
 %The Audio Analysis
-iRF = 1; f0Flag = 1;
+iRF = 1; f0Flag = 0;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
@@ -349,6 +350,7 @@ end
 
 function res = packResults(auAn, lims)
 
+res.expType = auAn.expType;
 res.subject = auAn.subject;
 res.run     = auAn.run;
 res.curSess = auAn.curSess;
@@ -392,8 +394,8 @@ res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
 %Inflation Response
-res.respVar   = auAn.respVar;
-res.respVarM  = auAn.respVarMean;
-res.respVarSD = auAn.respVarSD;
+res.respVar      = auAn.respVar;
+res.respVarM     = auAn.respVarMean;
+res.respVarSD    = auAn.respVarSD;
 res.InflaStimVar = auAn.InflaStimVar;
 end
