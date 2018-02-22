@@ -6,9 +6,9 @@ curSess  = niRes.curSess;       % The current experiment details (Subject/Run)
 numTrial = niRes.numPertTrials; % Number of Catch Trials (Only relevant ones)
 AudFB    = niRes.AudFB;
 
-time   = niRes.timeSAl;
-sensor = niRes.sensorPAl;
-limits = niRes.limitsPAl;
+time     = niRes.timeSAl;
+sensor   = niRes.sensorPAl;
+limits   = niRes.limitsPAl;
 
 meanLagTime  = niRes.lagTimePm;
 meanRiseTime = niRes.riseTimePm;

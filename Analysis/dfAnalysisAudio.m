@@ -45,8 +45,8 @@ if AudFlag == 1
     %results from last time if you want to. 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.time_audio, f0A.audioMf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.expTrigsP, An.bTf0b, 2);
-        [f0A.time_audio, f0A.audioHf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.expTrigsP, An.bTf0b, 2);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.expTrigsP, An.bTf0b, 2);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.expTrigsP, An.bTf0b, 2);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -103,7 +103,7 @@ end
 function An = initAudVar(An)
 %Initialize some variables to keep track of them
 
-An.time_audio     = []; %time vector of audio samples recorded
+An.timef0         = []; %time vector of audio samples recorded
 An.fsA            = []; %sampling rate of audio samples
 An.audioMf0       = []; %Raw Microphone Audio Data
 An.audioHf0       = []; %Raw Headphone Audio Data

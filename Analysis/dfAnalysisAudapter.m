@@ -361,8 +361,8 @@ res.contIdx       = auAn.contIdx;
 res.pertIdx       = auAn.pertIdx;
 res.pertTrig      = auAn.pertTrig;
 
-res.timeA     = auAn.time_audio;
-res.f0b       = auAn.f0b;
+res.timef0        = auAn.timef0;
+res.f0b           = auAn.f0b;
 
 res.numContTrialsPP = auAn.numContTrialsPP;
 res.numPertTrialsPP = auAn.numPertTrialsPP;

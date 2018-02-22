@@ -15,7 +15,7 @@ riseTimeP    = niRes.riseTimeP;
 OnOfValP     = niRes.OnOfValP;
 limitsP      = niRes.limitsP;
 
-timeA        = niRes.timeA;
+timeA        = niRes.timef0;
 audioM       = niRes.audioMf0TrialPert;
 limitsA      = niRes.limitsA;
 

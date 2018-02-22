@@ -6,7 +6,7 @@ f0b              = round(10*niRes.f0b)/10;
 numPT            = niRes.numPertTrialsPP;
 pertTrig         = niRes.pertTrigPP;
 
-time             = niRes.timeA;
+time             = niRes.timef0;
 sigs             = niRes.audioMf0TrialPert;
 limits           = niRes.limitsA;
 
