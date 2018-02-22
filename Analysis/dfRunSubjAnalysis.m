@@ -57,18 +57,30 @@ for i = 1:AVar.numPart
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, 0, pF, iRF);
         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, niAn, f0b, AudFlag);
 
+        res = combineRes(niRes, auRes);
         
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         if AVar.debug == 0
             fprintf('Saving Results for %s %s\n', participant, run)
-            save(dirs.SavResultsFile, 'auRes', 'niRes')
+            save(dirs.SavResultsFile, 'res')
         end
         
         if iRF == 1
-            saveInflationResponse(dirs, auRes, participant, run, AVar.debug)
+            saveInflationResponse(dirs, res, participant, run, AVar.debug)
         end
     end
 end
+end
+
+function res = combineRes(niRes, auRes)
+
+res.subject = auRes.subject;
+res.run     = auRes.run;
+res.curSess = auRes.curSess;
+res.AudFB   = auRes.AudFB;
+
+
+
 end
 
 function [pF, iRF] = checkDRFExpType(expType)
