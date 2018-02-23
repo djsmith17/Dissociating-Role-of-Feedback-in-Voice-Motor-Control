@@ -95,7 +95,7 @@ if AudFlag == 1
 
     %The Inflation Response
     if iRF == 1
-        [An.respVar, An.respVarMean, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
+        [An.respVar, An.respVarM, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
     end
 end
 end

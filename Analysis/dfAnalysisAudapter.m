@@ -395,7 +395,7 @@ res.limitsAMH        = lims.audioMH;
 
 %Inflation Response
 res.respVar      = auAn.respVar;
-res.respVarM     = auAn.respVarMean;
+res.respVarM     = auAn.respVarM;
 res.respVarSD    = auAn.respVarSD;
 res.InflaStimVar = auAn.InflaStimVar;
 end

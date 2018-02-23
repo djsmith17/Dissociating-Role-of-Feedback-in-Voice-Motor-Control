@@ -475,8 +475,8 @@ res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
 %Inflation Response
-res.respVar   = niAn.respVar;
-res.respVarM  = niAn.respVarMean;
-res.respVarSD = niAn.respVarSD;
+res.respVar      = niAn.respVar;
+res.respVarM     = niAn.respVarM;
+res.respVarSD    = niAn.respVarSD;
 res.InflaStimVar = niAn.InflaStimVar;
 end
