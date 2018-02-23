@@ -52,7 +52,7 @@ if AudFlag == 1
         load(dirs.audiof0AnalysisFile)
     end
 
-    An.time_audio = f0A.time_audio;
+    An.timef0     = f0A.timef0;
     An.expTrigR   = f0A.expTrigR;
     An.audioMf0   = f0A.audioMf0;
     An.audioHf0   = f0A.audioHf0;
@@ -62,7 +62,7 @@ if AudFlag == 1
     An.audioHf0S   = smoothf0(An.audioHf0);
 
     %Normalize f0 and convert to cents
-    prePert       = (0.5 < An.time_audio & 1.0 > An.time_audio);
+    prePert       = (0.5 < An.timef0 & 1.0 > An.timef0);
     An.trialf0b   = mean(An.audioMf0S(prePert,:),1);
     An.f0b        = mean(An.trialf0b);
 
@@ -78,14 +78,14 @@ if AudFlag == 1
     An.audioHf0_c = parseTrialTypes(An.audioHf0_norm, An.contIdx);
     
     %Find troublesome trials and remove
-    [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_p, An.audioHf0_p, An.pertTrigR, An.curSess, 'Pert');
-    [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An.time_audio, An.audioMf0_c, An.audioHf0_c, An.contTrigR, An.curSess, 'Cont');
+    [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An.timef0, An.audioMf0_p, An.audioHf0_p, An.pertTrigR, An.curSess, 'Pert');
+    [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An.timef0, An.audioMf0_c, An.audioHf0_c, An.contTrigR, An.curSess, 'Cont');
 
     %Section the data around onset and offset
-    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.time_audio, An.audioMf0_pPP, An.pertTrigPP);
-    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.time_audio, An.audioHf0_pPP, An.pertTrigPP);
-    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.time_audio, An.audioMf0_cPP, An.contTrigPP);
-    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.time_audio, An.audioHf0_cPP, An.contTrigPP);
+    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.timef0, An.audioMf0_pPP, An.pertTrigPP);
+    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.timef0, An.audioHf0_pPP, An.pertTrigPP);
+    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.timef0, An.audioMf0_cPP, An.contTrigPP);
+    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.timef0, An.audioHf0_cPP, An.contTrigPP);
 
     %Mean around the onset and offset
     An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
@@ -138,7 +138,7 @@ An.audioMf0_meanc = [];
 An.audioHf0_meanc = [];
 
 An.respVar        = []; 
-An.respVarMean    = [];
+An.respVarM       = [];
 An.respVarSD      = [];
 An.InflaStimVar   = [];
 end

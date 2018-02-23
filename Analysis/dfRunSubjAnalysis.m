@@ -80,26 +80,26 @@ res.run     = auRes.run;
 res.curSess = auRes.curSess;
 res.AudFB   = auRes.AudFB;
 
-res.numTrials     = auRes.numTrial;
+res.numTrials     = auRes.numTrials;
 res.numContTrials = auRes.numContTrials;
 res.numPertTrials = auRes.numPertTrials;
 res.contIdx       = auRes.contIdx;
 res.pertIdx       = auRes.pertIdx;
 res.pertTrig      = auRes.pertTrig;
 
-res.timeS      = niRes.timeS;
-res.sensorP    = niRes.sensorP;        % Individual Processed perturbed trials. 
-res.lagTimeP   = niRes.lagTimeP;
-res.lagTimePm  = niRes.lagTimePm;
-res.riseTimeP  = niRes.riseTimeP;
-res.riseTimePm = niRes.riseTimePm;
-res.OnOfValP   = niRes.OnOfValP;
-res.OnOfValPm  = niRes.OnOfValPm;
-res.limitsP    = niRes.limitsP;
+res.timeS         = niRes.timeS;
+res.sensorP       = niRes.sensorP;        % Individual Processed perturbed trials. 
+res.lagTimeP      = niRes.lagTimeP;
+res.lagTimePm     = niRes.lagTimePm;
+res.riseTimeP     = niRes.riseTimeP;
+res.riseTimePm    = niRes.riseTimePm;
+res.OnOfValP      = niRes.OnOfValP;
+res.OnOfValPm     = niRes.OnOfValPm;
+res.limitsP       = niRes.limitsP;
 
-res.timeSAl   = niRes.timeSAl;
-res.sensorPAl = niRes.sensorPAl;
-res.limitsPAl = niRes.limitsPAl;
+res.timeSAl       = niRes.timeSAl;
+res.sensorPAl     = niRes.sensorPAl;
+res.limitsPAl     = niRes.limitsPAl;
 
 res.timef0        = auRes.timef0;
 res.f0b           = auRes.f0b;
@@ -109,25 +109,25 @@ res.numPertTrialsPP = auRes.numPertTrialsPP;
 res.pertTrigPP      = auRes.pertTrigPP;
 
 %Full Individual Trials: Mic/Head f0 Trace 
-res.audioMf0TrialPert = auRes.audioMf0_pPP;
-res.audioMf0TrialCont = auRes.audioMf0_cPP;
-res.audioHf0TrialPert = auRes.audioHf0_pPP;
-res.audioHf0TrialCont = auRes.audioHf0_cPP;
+res.audioMf0TrialPert = auRes.audioMf0TrialPert;
+res.audioMf0TrialCont = auRes.audioMf0TrialCont;
+res.audioHf0TrialPert = auRes.audioHf0TrialPert;
+res.audioHf0TrialCont = auRes.audioHf0TrialCont;
 res.limitsA           = auRes.limitsA;
 res.limitsAudRes      = auRes.limitsAudRes;
 
 %Sections Trials: Mic/Head f0
 res.secTime          = auRes.secTime;
-res.audioMf0SecPert  = auRes.audioMf0_Secp;
-res.audioMf0SecCont  = auRes.audioMf0_Secc;
-res.audioHf0SecPert  = auRes.audioHf0_Secp;
-res.audioHf0SecCont  = auRes.audioHf0_Secc;
+res.audioMf0SecPert  = auRes.audioMf0SecPert;
+res.audioMf0SecCont  = auRes.audioMf0SecCont;
+res.audioHf0SecPert  = auRes.audioHf0SecPert;
+res.audioHf0SecCont  = auRes.audioHf0SecCont;
 
 %Mean Sectioned Trials: Mic/Head f0 Trace 
-res.audioMf0MeanPert = auRes.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
-res.audioMf0MeanCont = auRes.audioMf0_meanc;
-res.audioHf0MeanPert = auRes.audioHf0_meanp;
-res.audioHf0MeanCont = auRes.audioHf0_meanc;
+res.audioMf0MeanPert = auRes.audioMf0MeanPert; % [MeanSigOn 90%CI MeanSigOff 90%CI]
+res.audioMf0MeanCont = auRes.audioMf0MeanCont;
+res.audioHf0MeanPert = auRes.audioHf0MeanPert;
+res.audioHf0MeanCont = auRes.audioHf0MeanCont;
 res.limitsAmean      = auRes.limitsAmean;
 res.limitsAMH        = auRes.limitsAMH;      % Limits Audio Corrected for MicXHead
 
