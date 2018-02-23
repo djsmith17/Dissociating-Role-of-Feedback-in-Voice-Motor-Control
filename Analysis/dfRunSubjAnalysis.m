@@ -80,6 +80,27 @@ res.run     = auRes.run;
 res.curSess = auRes.curSess;
 res.AudFB   = auRes.AudFB;
 
+res.numTrials     = auRes.numTrial;
+res.numContTrials = auRes.numContTrials;
+res.numPertTrials = auRes.numPertTrials;
+res.contIdx       = auRes.contIdx;
+res.pertIdx       = auRes.pertIdx;
+res.pertTrig      = auRes.pertTrig;
+
+res.timeS      = niRes.timeS;
+res.sensorP    = niRes.sensorP;        % Individual Processed perturbed trials. 
+res.lagTimeP   = niRes.lagTimeP;
+res.lagTimePm  = niRes.lagTimePm;
+res.riseTimeP  = niRes.riseTimeP;
+res.riseTimePm = niRes.riseTimePm;
+res.OnOfValP   = niRes.OnOfValP;
+res.OnOfValPm  = niRes.OnOfValPm;
+res.limitsP    = niRes.limitsP;
+
+res.timeSAl   = niRes.timeSAl;
+res.sensorPAl = niRes.sensorPAl;
+res.limitsPAl = niRes.limitsPAl;
+
 res.timef0        = auRes.timef0;
 res.f0b           = auRes.f0b;
 

@@ -444,8 +444,8 @@ res.timeSAl   = niAn.time_Al;
 res.sensorPAl = niAn.sensorP_Al;
 res.limitsPAl = lims.pressureAl;
 
-res.timef0    = niAn.timef0;
-res.f0b       = niAn.f0b;
+res.timef0          = niAn.timef0;
+res.f0b             = niAn.f0b;
 
 res.numContTrialsPP = niAn.numContTrialsPP;
 res.numPertTrialsPP = niAn.numPertTrialsPP;
