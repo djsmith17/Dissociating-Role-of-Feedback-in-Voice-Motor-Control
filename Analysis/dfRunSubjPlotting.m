@@ -42,31 +42,29 @@ for ii = 1:sPlt.numPart
         end        
         
         if sPlt.drawDAQAll == 1
-            drawDAQAll(niAn, dirs.SavResultsDir, sv2File)
+            drawDAQAll(res, dirs.SavResultsDir, sv2File)
         end
         
         if sPlt.drawDAQPresMic == 1
-            drawDAQPresMic(niRes, dirs.SavResultsDir, sv2File)
+            drawDAQPresMic(res, dirs.SavResultsDir, sv2File)
         end
         
         if sPlt.drawDAQAlignedPressure == 1
-            drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2File)
+            drawDAQAlignedPressure(res, dirs.SavResultsDir, sv2File)
         end
         
         if sPlt.drawDAQMeanTrialMicf0 == 1
-%             drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
-            drawDAQMeanTrialMicf0(auRes, dirs.SavResultsDir)
-%             drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
+            drawDAQMeanTrialMicf0(res, dirs.SavResultsDir)
+            drawDAQAllPertTrialMicf0(res, dirs.SavResultsDir)
         end
         
         if sPlt.drawDAQMeanTrialAudResp == 1
-            drawAudRespIndivTrial(niRes, dirs.SavResultsDir)
-            drawAudRespMeanTrial(niRes, dirs.SavResultsDir)
+            drawAudRespIndivTrial(res, dirs.SavResultsDir)
+            drawAudRespMeanTrial(res, dirs.SavResultsDir)
         end
-        
-              
+                      
         if sPlt.NIDAQ_AllPertTrial == 1
-            drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
+            drawDAQAllPertTrialMicf0(res, dirs.SavResultsDir)
         end 
     end
 end
