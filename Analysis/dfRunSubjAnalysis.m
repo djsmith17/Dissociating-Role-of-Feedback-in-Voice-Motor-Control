@@ -80,8 +80,41 @@ res.run     = auRes.run;
 res.curSess = auRes.curSess;
 res.AudFB   = auRes.AudFB;
 
+res.timef0        = auRes.timef0;
+res.f0b           = auRes.f0b;
 
+res.numContTrialsPP = auRes.numContTrialsPP;
+res.numPertTrialsPP = auRes.numPertTrialsPP;
+res.pertTrigPP      = auRes.pertTrigPP;
 
+%Full Individual Trials: Mic/Head f0 Trace 
+res.audioMf0TrialPert = auRes.audioMf0_pPP;
+res.audioMf0TrialCont = auRes.audioMf0_cPP;
+res.audioHf0TrialPert = auRes.audioHf0_pPP;
+res.audioHf0TrialCont = auRes.audioHf0_cPP;
+res.limitsA           = auRes.limitsA;
+res.limitsAudRes      = auRes.limitsAudRes;
+
+%Sections Trials: Mic/Head f0
+res.secTime          = auRes.secTime;
+res.audioMf0SecPert  = auRes.audioMf0_Secp;
+res.audioMf0SecCont  = auRes.audioMf0_Secc;
+res.audioHf0SecPert  = auRes.audioHf0_Secp;
+res.audioHf0SecCont  = auRes.audioHf0_Secc;
+
+%Mean Sectioned Trials: Mic/Head f0 Trace 
+res.audioMf0MeanPert = auRes.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
+res.audioMf0MeanCont = auRes.audioMf0_meanc;
+res.audioHf0MeanPert = auRes.audioHf0_meanp;
+res.audioHf0MeanCont = auRes.audioHf0_meanc;
+res.limitsAmean      = auRes.limitsAmean;
+res.limitsAMH        = auRes.limitsAMH;      % Limits Audio Corrected for MicXHead
+
+%Inflation Response
+res.respVar      = auRes.respVar;
+res.respVarM     = auRes.respVarM;
+res.respVarSD    = auRes.respVarSD;
+res.InflaStimVar = auRes.InflaStimVar;
 end
 
 function [pF, iRF] = checkDRFExpType(expType)
