@@ -53,33 +53,32 @@ for ii = 1:auAn.numTrial
     MrawNi = niAn.audioM(:,ii);   
    
     [time, mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
+    
+%     audioPP(ii).time = time;
+%     audioPP(ii).mic  = mic;
+%     audioPP(ii).head = head;
+    auAn.audioM = cat(2, auAn.audioM, mic);
+    auAn.audioH = cat(2, auAn.audioH, head);
 
 %     OST  = data.ost_stat;
     if preProSt.saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
     elseif preProSt.saveT == 1 %Save the Trial
-        sTC = sTC + 1;
-        
-        audioPP(sTC).time = time;
-        audioPP(sTC).mic  = mic;
-        audioPP(sTC).head = head;
-        auAn.audioM = cat(2, auAn.audioM, mic);
-        auAn.audioH = cat(2, auAn.audioH, head);
         
         auAn.expTrigsP = cat(1, auAn.expTrigsP, expTrigs);
         if auAn.trialType(ii) == 0
-            auAn.contIdx  = cat(1, auAn.contIdx, sTC);
+            auAn.contIdx  = cat(1, auAn.contIdx, ii);
             auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
         else
-            auAn.pertIdx  = cat(1, auAn.pertIdx, sTC);
+            auAn.pertIdx  = cat(1, auAn.pertIdx, ii);
             auAn.pertTrig = cat(1, auAn.pertTrig, expTrigs);
         end   
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
-auAn.totSaveTrials = sTC;
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
+auAn.totSaveTrials = auAn.numContTrials + auAn.numPertTrials;
 
 % auAn.audioPP = audioPP;
 
@@ -357,6 +356,11 @@ res.curSess = auAn.curSess;
 res.AudFB   = auAn.AudFB;
 
 res.numTrials     = auAn.numTrial;
+
+
+
+
+res.totSaveTrials = auAn.totSaveTrials;
 res.numContTrials = auAn.numContTrials;
 res.numPertTrials = auAn.numPertTrials;
 res.contIdx       = auAn.contIdx;
@@ -398,4 +402,7 @@ res.respVar      = auAn.respVar;
 res.respVarM     = auAn.respVarM;
 res.respVarSD    = auAn.respVarSD;
 res.InflaStimVar = auAn.InflaStimVar;
+
+%NIAu Delay
+res.allAuNiDelays = auAn.allAuNiDelays;
 end

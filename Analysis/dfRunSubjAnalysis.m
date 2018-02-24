@@ -136,6 +136,9 @@ res.respVar      = auRes.respVar;
 res.respVarM     = auRes.respVarM;
 res.respVarSD    = auRes.respVarSD;
 res.InflaStimVar = auRes.InflaStimVar;
+
+%NIAu Delay
+res.auAn.allAuNiDelays = auRes.allAuNiDelays;
 end
 
 function [pF, iRF] = checkDRFExpType(expType)
