@@ -50,8 +50,8 @@ if AudFlag == 1
         
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioMSv, An.expTrigsSv, An.bTf0b, 2);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioHSv, An.expTrigsSv, An.bTf0b, 2);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigR, f0A.etM] = signalFrequencyAnalysis(dirs, An.fV, An.audioMSv, An.expTrigsSv, An.bTf0b, 2);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigR, f0A.etH] = signalFrequencyAnalysis(dirs, An.fV, An.audioHSv, An.expTrigsSv, An.bTf0b, 2);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -61,6 +61,7 @@ if AudFlag == 1
     An.expTrigR   = f0A.expTrigR;
     An.audioMf0   = f0A.audioMf0;
     An.audioHf0   = f0A.audioHf0;
+    An.etMH       = f0A.etM + f0A.etH; % Minutes
 
     %Smooth the f0 data
     An.audioMf0S   = smoothf0(An.audioMf0);
@@ -169,7 +170,7 @@ fV.roundFact = fV.sRate/fV.tStepP;
 fV.winHalf   = fV.win/2;
 end
 
-function [timef0, audiof0, expTrigR] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, bTf0b, flag)
+function [timef0, audiof0, expTrigR, elapsed_time] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, bTf0b, flag)
 ET = tic;
 [~, numTrial] = size(audio);
 

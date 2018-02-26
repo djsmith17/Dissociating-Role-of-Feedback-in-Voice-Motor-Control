@@ -80,6 +80,9 @@ res.run     = auRes.run;
 res.curSess = auRes.curSess;
 res.AudFB   = auRes.AudFB;
 
+res.f0Type  = auRes.f0Type;
+res.etMH    = auRes.etMH;
+
 res.numTrials     = auRes.numTrials;
 res.audioM        = auRes.audioM;
 res.audioH        = auRes.audioH;

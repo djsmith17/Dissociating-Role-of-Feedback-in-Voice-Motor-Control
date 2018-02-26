@@ -12,7 +12,8 @@ auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
 auAn.curSess   = expParam.curSess;
-auAn.f0AnaFile = [auAn.subject auAn.run 'f0AnalysisA.mat'];
+auAn.f0Type    = 'Praat';
+auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis' auAn.f0Type '.mat'];
 auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
@@ -88,7 +89,7 @@ auAn.numPertTrials = length(auAn.pertIdx);
 % auAn.audioPP = audioPP;
 
 %The Audio Analysis
-iRF = 1; f0Flag = 0;
+iRF = 1; f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
@@ -358,6 +359,9 @@ res.subject = auAn.subject;
 res.run     = auAn.run;
 res.curSess = auAn.curSess;
 res.AudFB   = auAn.AudFB;
+
+res.f0Type = auAn.f0Type;
+res.etMH   = auAn.etMH;
 
 res.numTrials     = auAn.numTrial;
 res.audioM        = auAn.audioM;
