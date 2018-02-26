@@ -46,7 +46,7 @@ for ii = 1:sPlt.numPart
         end
         
         if sPlt.drawDAQPresMic == 1
-            drawDAQPresMic(res, dirs.SavResultsDir, sv2File)
+            drawDAQPresMic(res, dirs.SavResultsDir)
         end
         
         if sPlt.drawDAQAlignedPressure == 1

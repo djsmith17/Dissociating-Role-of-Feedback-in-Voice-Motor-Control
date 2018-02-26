@@ -9,10 +9,10 @@ trialIdx = res.pertIdx;
 trigs    = res.pertTrig; % Where the perturbations occur
 
 timeS        = res.timeS;
-sensorP      = res.sensorP;
-lagTimeP     = res.lagTimeP;
-riseTimeP    = res.riseTimeP;
-OnOfValP     = res.OnOfValP;
+sensorP      = res.sensorPsv;
+lagTimeP     = res.lagTimePsv;
+riseTimeP    = res.riseTimePsv;
+OnOfValP     = res.OnOfValPsv;
 limitsP      = res.limitsP;
 
 timef0       = res.timef0;

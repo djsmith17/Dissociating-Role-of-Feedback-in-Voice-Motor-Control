@@ -292,10 +292,15 @@ end
 function lims = identifyLimits(An)
 
 %Full Inidividual Trials: Pressure Sensor
-lims.pressure   = [0 4 0 5];
+maxPres = max(max(An.sensorP_p));
+minPres = min(min(An.sensorP_p));
+uLP = maxPres + 0.2;
+lLP = minPres - 0.2;
+
+lims.pressure   = [0 4 lLP uLP];
 
 %Aligned Pressure Data
-lims.pressureAl = [0 3.5 -0.5 5];
+lims.pressureAl = [0 3.5 lLP uLP];
 
 %Full Individual Trials: Force Sensors
 lims.force      = [0 4 1 5];
