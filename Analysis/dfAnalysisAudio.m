@@ -43,10 +43,15 @@ if AudFlag == 1
 
     %Sometimes frequency analysis takes a while, this allows you to save
     %results from last time if you want to. 
+    
+    %Find only the trials we care about
+     An.audioMSv = An.audioM(:, An.svIdx);
+     An.audioHSv = An.audioH(:, An.svIdx);
+        
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioM, An.expTrigsP, An.bTf0b, 2);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioH, An.expTrigsP, An.bTf0b, 2);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioMSv, An.expTrigsSv, An.bTf0b, 2);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigR] = signalFrequencyAnalysis(dirs, An.fV, An.audioHSv, An.expTrigsSv, An.bTf0b, 2);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)

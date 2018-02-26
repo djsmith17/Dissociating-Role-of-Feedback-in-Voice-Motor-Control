@@ -33,15 +33,18 @@ auAn.anaTrigs = expParam.trigs(:,:,3);
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM   = [];
 auAn.audioH   = [];
-auAn.expTrigsP = [];
+auAn.audioMSv   = [];
+auAn.audioHSv   = [];
+auAn.svIdx      = [];
+auAn.expTrigsSv = [];
 auAn.contIdx  = [];
 auAn.contTrig = [];
 auAn.pertIdx  = [];
 auAn.pertTrig = [];
 auAn.allAuNiDelays = [];
 
-audioPP = [];
-sTC = 0; %Saved Trials Count
+% audioPP = [];
+svC = 0;
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
@@ -64,21 +67,23 @@ for ii = 1:auAn.numTrial
     if preProSt.saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
     elseif preProSt.saveT == 1 %Save the Trial
+        svC = svC + 1;
         
-        auAn.expTrigsP = cat(1, auAn.expTrigsP, expTrigs);
+        auAn.svIdx      = cat(1, auAn.svIdx, ii);
+        auAn.expTrigsSv = cat(1, auAn.expTrigsSv, expTrigs);
         if auAn.trialType(ii) == 0
-            auAn.contIdx  = cat(1, auAn.contIdx, ii);
+            auAn.contIdx  = cat(1, auAn.contIdx, svC);
             auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
         else
-            auAn.pertIdx  = cat(1, auAn.pertIdx, ii);
+            auAn.pertIdx  = cat(1, auAn.pertIdx, svC);
             auAn.pertTrig = cat(1, auAn.pertTrig, expTrigs);
         end   
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
+auAn.numSaveTrials = length(auAn.svIdx);
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
-auAn.totSaveTrials = auAn.numContTrials + auAn.numPertTrials;
 
 % auAn.audioPP = audioPP;
 
@@ -112,6 +117,7 @@ AudFB     = An.AudFB;
 fs        = An.sRate;
 fsNI      = An.sRateNi;
 frameLen  = An.frameLenDown;
+numSamp   = An.numSamp;
 
 %We are going to section the audio recording from 0.5s ahead of 
 %perturbation onset to 1.0s after perturbation offset.
@@ -157,25 +163,23 @@ headSec = headAuNi(sectionInd);
 %Find the onset of Voicing
 pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
 
-timeSec = [];
-micP    = [];
-headP   = [];
 if pp.voiceOnsetLate
     saveT    = 0;  
     saveTmsg = 'Participant started too late!!';
 elseif pp.chk4Break
     saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
-elseif length(micAuNi) < 64000
+elseif length(micAuNi) < numSamp
     saveT    = 0;
     saveTmsg = 'Recording too short';
 else
-    timeSec  = time;
-    micP     = micAuNi(1:64000);
-    headP    = headAuNi(1:64000);
     saveT    = 1;
     saveTmsg = 'Everything is good'; 
 end
+
+timeSec = time; 
+micP    = micAuNi(1:numSamp);
+headP   = headAuNi(1:numSamp);
 
 pp.saveT    = saveT;
 pp.saveTmsg = saveTmsg;
