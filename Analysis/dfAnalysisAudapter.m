@@ -17,18 +17,18 @@ auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = bTf0b;
-auAn.trialType = expParam.trialType;
 
 fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
 auAn.sRate    = expParam.sRateAnal;
 auAn.sRateNi  = niAn.sRate;
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
-auAn.trialLen = expParam.trialLen;
-auAn.numSamp  = auAn.sRate*auAn.trialLen;
-auAn.numTrial = expParam.numTrial;
-auAn.expTrigs = expParam.trigs(:,:,1); %Time
-auAn.anaTrigs = expParam.trigs(:,:,3);
+auAn.trialLen  = expParam.trialLen;
+auAn.numSamp   = auAn.sRate*auAn.trialLen;
+auAn.numTrial  = expParam.numTrial;
+auAn.trialType = expParam.trialType;
+auAn.expTrigs  = expParam.trigs(:,:,1); %Time
+auAn.anaTrigs  = expParam.trigs(:,:,3);
 
 auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM   = [];
@@ -360,16 +360,18 @@ res.curSess = auAn.curSess;
 res.AudFB   = auAn.AudFB;
 
 res.numTrials     = auAn.numTrial;
-
-
-
-
-res.totSaveTrials = auAn.totSaveTrials;
+res.audioM        = auAn.audioM;
+res.audioH        = auAn.audioH;
+res.svIdx         = auAn.svIdx;
+res.expTrigsSv    = auAn.expTrigsSv;
+res.pertIdx       = auAn.pertIdx;     % The indices of the svIdx;
+res.pertTrig      = auAn.pertTrig;
+res.contIdx       = auAn.contIdx;     % The indices of the svIdx;
+res.contTrig      = auAn.contTrig;
+res.numSaveTrials = auAn.numSaveTrials;
 res.numContTrials = auAn.numContTrials;
 res.numPertTrials = auAn.numPertTrials;
-res.contIdx       = auAn.contIdx;
-res.pertIdx       = auAn.pertIdx;
-res.pertTrig      = auAn.pertTrig;
+res.allAuNiDelays = auAn.allAuNiDelays;
 
 res.timef0        = auAn.timef0;
 res.f0b           = auAn.f0b;
