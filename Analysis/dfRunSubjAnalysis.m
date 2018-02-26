@@ -92,9 +92,9 @@ res.contTrig      = auRes.contTrig;
 res.numSaveTrials = auRes.numSaveTrials;
 res.numContTrials = auRes.numContTrials;
 res.numPertTrials = auRes.numPertTrials;
-res.allAuNiDelays = auRes.allAuNiDelays;
 
 res.numPertTrialsNi = niRes.numPertTrials;
+res.numContTrialsNi = niRes.numContTrials;
 res.timeS           = niRes.timeS;
 res.sensorP         = niRes.sensorP;        % Individual Processed perturbed trials. 
 res.lagTimeP        = niRes.lagTimeP;
@@ -146,7 +146,25 @@ res.respVarSD    = auRes.respVarSD;
 res.InflaStimVar = auRes.InflaStimVar;
 
 %NIAu Delay
-res.auAn.allAuNiDelays = auRes.allAuNiDelays;
+res.allAuNiDelays = auRes.allAuNiDelays;
+
+%Check the Ni trials against the Au trials
+presInd = [];
+if res.numPertTrialsPP < res.numPertTrialsNi
+    setPertTrials = res.svIdx(res.pertIdx);
+    for ii = 1:length(niRes.pertIdx)
+        ind = [];
+        ind = find(setPertTrials == niRes.pertIdx(ii));
+        if ~isempty(ind)
+            presInd = cat(1, presInd, ii);
+        end
+    end
+    
+    res.sensorPsv  = res.sensorP(:, presInd);
+    res.lagTimePsv = res.lagTimeP(presInd, :);
+    res.riseTimePsv= res.riseTimeP(presInd);
+    res.OnOfValPsv = res.OnOfValP(presInd, :);
+end
 end
 
 function [pF, iRF] = checkDRFExpType(expType)
