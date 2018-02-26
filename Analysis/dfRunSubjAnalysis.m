@@ -81,11 +81,18 @@ res.curSess = auRes.curSess;
 res.AudFB   = auRes.AudFB;
 
 res.numTrials     = auRes.numTrials;
+res.audioM        = auRes.audioM;
+res.audioH        = auRes.audioH;
+res.svIdx         = auRes.svIdx;
+res.expTrigsSv    = auRes.expTrigsSv;
+res.pertIdx       = auRes.pertIdx;     % The indices of the svIdx;
+res.pertTrig      = auRes.pertTrig;
+res.contIdx       = auRes.contIdx;     % The indices of the svIdx;
+res.contTrig      = auRes.contTrig;
+res.numSaveTrials = auRes.numSaveTrials;
 res.numContTrials = auRes.numContTrials;
 res.numPertTrials = auRes.numPertTrials;
-res.contIdx       = auRes.contIdx;
-res.pertIdx       = auRes.pertIdx;
-res.pertTrig      = auRes.pertTrig;
+res.allAuNiDelays = auRes.allAuNiDelays;
 
 res.timeS         = niRes.timeS;
 res.sensorP       = niRes.sensorP;        % Individual Processed perturbed trials. 
