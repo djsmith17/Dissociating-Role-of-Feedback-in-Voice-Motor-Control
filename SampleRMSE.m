@@ -1,8 +1,8 @@
 clear
 
-resultsFolder = 'C:\Users\djsmith\Documents\MATLAB\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Results\Pilot28\LDDdiag1';
+resultsFolder = 'C:\Users\djsmith\Documents\MATLAB\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Results\Pilot28\LDDdiag4';
 
-run = 'LDDDiag1';
+run = 'LDDDiag4';
 
 AudFile = fullfile(resultsFolder, ['Pilot28' run 'ResultsAudDRF.mat']);
 load(AudFile)

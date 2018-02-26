@@ -47,6 +47,7 @@ if AudFlag == 1
     %Find only the trials we care about
     An.audioMSv = An.audioM(:, An.svIdx);
     An.audioHSv = An.audioH(:, An.svIdx);
+    [~, numSvTrial] = size(An.audioMSv);
 
     %Which analysis type?
     if strcmp(An.f0Type, 'Praat') == 1
@@ -77,6 +78,17 @@ if AudFlag == 1
 
     %Normalize f0 and convert to cents
     prePert       = (0.5 < An.timef0 & 1.0 > An.timef0);
+    
+%     An.trialf0b = [];
+%     for yy = 1:numSvTrial
+%         prePert = round((An.expTrigR(yy,1)- 0.5)*fV.sRate);
+%         atPert  = round((An.expTrigR(yy,1))*fV.sRate);
+%         trialf0 = mean(An.audioMf0S(prePert:atPert,yy),1);       
+%         
+%         An.trialf0b = cat(2,  An.trialf0b, trialf0);
+%     end
+        
+    
     An.trialf0b   = mean(An.audioMf0S(prePert,:),1);
     An.f0b        = mean(An.trialf0b);
 
@@ -123,6 +135,8 @@ An.timef0         = []; %time vector of audio samples recorded
 An.fsA            = []; %sampling rate of audio samples
 An.audioMf0       = []; %Raw Microphone Audio Data
 An.audioHf0       = []; %Raw Headphone Audio Data
+An.expTrigR       = [];
+An.etMH           = [];
 An.audioMf0S      = [];
 An.audioHf0S      = [];
 An.trialf0b       = []; %Per Trial calculated f0

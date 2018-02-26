@@ -9,7 +9,7 @@ function dfRunSubjAnalysis()
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot28'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'LDDDiag1'};
+AVar.runs          = {'LDDDiag4'};
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV2';
 AVar.debug         = 0;
@@ -167,6 +167,11 @@ if res.numPertTrialsPP < res.numPertTrialsNi
     res.lagTimePsv = res.lagTimeP(presInd, :);
     res.riseTimePsv= res.riseTimeP(presInd);
     res.OnOfValPsv = res.OnOfValP(presInd, :);
+else
+    res.sensorPsv    = res.sensorP;
+    res.lagTimePsv   = res.lagTimeP;
+    res.riseTimePsv  = res.riseTimeP;
+    res.OnOfValPsv   = res.OnOfValP;   
 end
 end
 
