@@ -20,9 +20,9 @@ dirs               = dfDirs(sPlt.project);
 %Plot Toggles. This could eventually become an input variable
 sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
-sPlt.drawDAQPresMic          = 1; % Pressure vs Microphone Data
+sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
-sPlt.drawMeanTrial_PertCont = 0; % Mean Trials Microphone input. Control vs Perturbed Trials
+sPlt.drawMeanTrial_PertCont = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
 sPlt.drawMeanTrial_MicHead  = 0; % Mean Perturbed Trials. Microphone vs Headphones
 
 sPlt.NIDAQ_AllPertTrial      = 0; % 

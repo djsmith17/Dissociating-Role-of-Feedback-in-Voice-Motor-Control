@@ -45,13 +45,20 @@ if AudFlag == 1
     %results from last time if you want to. 
     
     %Find only the trials we care about
-     An.audioMSv = An.audioM(:, An.svIdx);
-     An.audioHSv = An.audioH(:, An.svIdx);
+    An.audioMSv = An.audioM(:, An.svIdx);
+    An.audioHSv = An.audioH(:, An.svIdx);
+
+    %Which analysis type?
+    if strcmp(An.f0Type, 'Praat') == 1
+        anaFlag = 1;
+    else
+        anaFlag = 2;
+    end
         
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigR, f0A.etM] = signalFrequencyAnalysis(dirs, An.fV, An.audioMSv, An.expTrigsSv, An.bTf0b, 2);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigR, f0A.etH] = signalFrequencyAnalysis(dirs, An.fV, An.audioHSv, An.expTrigsSv, An.bTf0b, 2);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigR, f0A.etM] = signalFrequencyAnalysis(dirs, An.fV, An.audioMSv, An.expTrigsSv, An.bTf0b, anaFlag);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigR, f0A.etH] = signalFrequencyAnalysis(dirs, An.fV, An.audioHSv, An.expTrigsSv, An.bTf0b, anaFlag);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -108,6 +115,8 @@ end
 
 function An = initAudVar(An)
 %Initialize some variables to keep track of them
+
+An.fV             = []; %frequency analysis variables
 
 An.timef0         = []; %time vector of audio samples recorded
 An.fsA            = []; %sampling rate of audio samples
@@ -177,6 +186,13 @@ ET = tic;
 fs = fV.sRate;
 
 if flag == 1
+    fV.win       = 0.005;
+    fV.winP      = fV.win*fs;
+    fV.pOV       = 0.00;
+    fV.tStepP    = round(fV.winP*(1-fV.pOV));
+    fV.roundFact = fV.sRate/fV.tStepP;
+    fV.winHalf   = 0;
+    
     [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
 else
     audiof0 = [];
