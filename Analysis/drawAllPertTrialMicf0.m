@@ -1,14 +1,14 @@
-function drawDAQAllPertTrialMicf0(niRes, plotFolder)
+function drawAllPertTrialMicf0(res, plotFolder)
 
-curSess          = niRes.curSess;
-AudFB            = niRes.AudFB;
-f0b              = round(10*niRes.f0b)/10;
-numPT            = niRes.numPertTrialsPP;
-pertTrig         = niRes.pertTrigPP;
+curSess          = res.curSess;
+AudFB            = res.AudFB;
+f0b              = round(10*res.f0b)/10;
+numPT            = res.numPertTrialsPP;
+pertTrig         = res.pertTrigPP;
 
-time             = niRes.timef0;
-sigs             = niRes.audioMf0TrialPert;
-limits           = niRes.limitsA;
+time             = res.timef0;
+sigs             = res.audioMf0TrialPert;
+limits           = res.limitsA;
 
 plotpos = [10 100];
 plotdim = [1600 800];

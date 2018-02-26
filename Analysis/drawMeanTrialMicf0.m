@@ -1,30 +1,30 @@
-function drawDAQMeanTrialMicf0(niRes, plotFolder)
+function drawMeanTrialMicf0(res, plotFolder)
 %drawDAQMeanTrialMicf0(niRes, plotFolder) is plotting function for
 %displaying differences in microphone channel recordings between perturbed
 %and control trials. If your data set does not have any control trials,
 %this will give an error
 
-curSess          = niRes.curSess;
-f0b              = round(10*niRes.f0b)/10;
-AudFB            = niRes.AudFB;
-numCT            = niRes.numContTrialsPP;
-numPT            = niRes.numPertTrialsPP;
+curSess          = res.curSess;
+f0b              = round(10*res.f0b)/10;
+AudFB            = res.AudFB;
+numCT            = res.numContTrialsPP;
+numPT            = res.numPertTrialsPP;
 
-time             = niRes.secTime;
-meanf0PertOnset  = niRes.audioMf0MeanPert(:,1);
-CIf0PertOnset    = niRes.audioMf0MeanPert(:,2);
-meanf0PertOffset = niRes.audioMf0MeanPert(:,3);
-CIf0PertOffset   = niRes.audioMf0MeanPert(:,4);
+time             = res.secTime;
+meanf0PertOnset  = res.audioMf0MeanPert(:,1);
+CIf0PertOnset    = res.audioMf0MeanPert(:,2);
+meanf0PertOffset = res.audioMf0MeanPert(:,3);
+CIf0PertOffset   = res.audioMf0MeanPert(:,4);
 
-meanf0ContOnset  = niRes.audioMf0MeanCont(:,1);
-CIf0ContOnset    = niRes.audioMf0MeanCont(:,2);
-meanf0ContOffset = niRes.audioMf0MeanCont(:,3);
-CIf0ContOffset   = niRes.audioMf0MeanCont(:,4);
-limits           = niRes.limitsAmean;
+meanf0ContOnset  = res.audioMf0MeanCont(:,1);
+CIf0ContOnset    = res.audioMf0MeanCont(:,2);
+meanf0ContOffset = res.audioMf0MeanCont(:,3);
+CIf0ContOffset   = res.audioMf0MeanCont(:,4);
+limits           = res.limitsAmean;
 
-statSM = round(10*niRes.respVarM(2))/10;
-statRM = round(10*niRes.respVarM(3))/10;
-statRP = round(niRes.respVarM(4));
+statSM = round(10*res.respVarM(2))/10;
+statRM = round(10*res.respVarM(3))/10;
+statRP = round(res.respVarM(4));
 
 lgdCurv = [];
 lgdLabl = {};
