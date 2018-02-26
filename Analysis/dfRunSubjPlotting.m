@@ -13,7 +13,7 @@ close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'Pilot28'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'LDDdiag1'}; %All runs to consider 
+sPlt.runs          = {'LDDDiag1'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
@@ -32,7 +32,7 @@ for ii = 1:sPlt.numPart
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
         dirs.SavResultsDir  = fullfile(dirs.Results, participant, run); %The Analyzed Results Folder...Where Plots will go
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']); %The Analyzed Results FIle
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsAudDRF.mat']); %The Analyzed Results FIle
 
         if exist(dirs.SavResultsFile, 'file') == 0
             fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)

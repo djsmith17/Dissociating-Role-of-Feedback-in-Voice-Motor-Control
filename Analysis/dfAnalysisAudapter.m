@@ -38,10 +38,10 @@ auAn.audioMSv   = [];
 auAn.audioHSv   = [];
 auAn.svIdx      = [];
 auAn.expTrigsSv = [];
-auAn.contIdx  = [];
-auAn.contTrig = [];
-auAn.pertIdx  = [];
-auAn.pertTrig = [];
+auAn.contIdx    = [];
+auAn.contTrig   = [];
+auAn.pertIdx    = [];
+auAn.pertTrig   = [];
 auAn.allAuNiDelays = [];
 
 % audioPP = [];

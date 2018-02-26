@@ -6,6 +6,8 @@ function drawMeanTrialMicf0(res, plotFolder)
 
 curSess          = res.curSess;
 f0b              = round(10*res.f0b)/10;
+f0Type           = res.f0Type;
+etMH             = res.etMH;
 AudFB            = res.AudFB;
 numCT            = res.numContTrialsPP;
 numPT            = res.numPertTrialsPP;
@@ -100,10 +102,18 @@ legend(lgdCurv, lgdLabl,...
             'FontSize', 12,...
             'FontWeight', 'bold',...
             'Position', [0.35 0.2 0.1 0.1]);
+        
+timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
+                     'string', {f0Type;
+                            ['Analysis Time: ' num2str(etMH) ' min']},...
+                        'LineStyle','none',...
+                        'FontWeight','bold',...
+                        'FontSize',8,...
+                        'FontName','Arial');
 
-plots = {'InterTrialf0DAQ'};
+plots = {'InterTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curSess '_' plots{i} '.jpg'];
+    plTitle = [curSess '_' plots{i} f0Type '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

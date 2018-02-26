@@ -3,6 +3,8 @@ function drawAllTrialMicf0(res, plotFolder)
 curSess          = res.curSess;
 AudFB            = res.AudFB;
 f0b              = round(10*res.f0b)/10;
+f0Type           = res.f0Type;
+etMH             = res.etMH;
 numPT            = res.numPertTrialsPP;
 pertTrig         = res.pertTrigPP;
 
@@ -41,9 +43,17 @@ end
 sup = suptitle({curSess; [ 'AudFB: ' AudFB]; ['f0: ' num2str(f0b) ' Hz']});
 set(sup, 'FontSize', 18, 'FontWeight', 'bold')
 
-plots = {'IntraTrialf0DAQ'};
+timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
+                     'string', {f0Type;
+                            ['Analysis Time: ' num2str(etMH) ' min']},...
+                        'LineStyle','none',...
+                        'FontWeight','bold',...
+                        'FontSize',8,...
+                        'FontName','Arial');
+
+plots = {'IntraTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curSess '_' plots{i} '.jpg'];
+    plTitle = [curSess '_' plots{i} f0Type '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

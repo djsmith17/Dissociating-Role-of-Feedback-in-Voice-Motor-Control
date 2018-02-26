@@ -59,7 +59,7 @@ for i = 1:AVar.numPart
 
         res = combineRes(niRes, auRes);
         
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'Results' res.f0Type 'DRF.mat']);
         if AVar.debug == 0
             fprintf('Saving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')

@@ -191,7 +191,7 @@ if flag == 1
     fV.pOV       = 0.00;
     fV.tStepP    = round(fV.winP*(1-fV.pOV));
     fV.roundFact = fV.sRate/fV.tStepP;
-    fV.winHalf   = 0;
+    fV.winHalf   = 1.0*fV.win;
     
     [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
 else
