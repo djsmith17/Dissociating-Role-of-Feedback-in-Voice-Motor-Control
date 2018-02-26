@@ -16,11 +16,15 @@ auOn    = auRes.audioMf0MeanPert(:,1);
 auOnCI  = auRes.audioMf0MeanPert(:,2);
 auOf    = auRes.audioMf0MeanPert(:,3);
 auOfCI  = auRes.audioMf0MeanPert(:,4);
+auNumTrial = auRes.numPertTrialsPP;
+auetMH = auRes.etMH;
 
 prOn    = prRes.audioMf0MeanPert(:,1);
 prOnCI  = prRes.audioMf0MeanPert(:,2);
 prOf    = prRes.audioMf0MeanPert(:,3);
 prOfCI  = prRes.audioMf0MeanPert(:,4);
+prNumTrial = prRes.numPertTrialsPP;
+pretMH = prRes.etMH;
 
 auLen = length(auOn);
 prLen = length(prOn);
@@ -58,3 +62,5 @@ figure
 plot(auOn)
 hold on
 plot(prOn,'r')
+legend(['Audapter: ' num2str(auNumTrial) ' trials, ' num2str(auetMH) ' min'],...
+       ['Praat: ' num2str(prNumTrial) ' trials, ' num2str(pretMH) ' min'])
