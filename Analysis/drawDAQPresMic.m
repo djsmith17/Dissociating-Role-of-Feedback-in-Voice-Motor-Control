@@ -1,23 +1,23 @@
-function drawDAQPresMic(niRes, saveResultsDir, sv2F)
+function drawDAQPresMic(res, saveResultsDir)
 %Plots multiple signals against each other. Creates a new plot for each 
 %trial. Displays relevant information
 
-curSess  = niRes.curSess;  % The current experiment details (Subject/Run)
-f0b      = niRes.f0b;
-numPT    = niRes.numPertTrials;
-trialIdx = niRes.pertIdx;
-trigs    = niRes.pertTrig; % Where the perturbations occur
+curSess  = res.curSess;  % The current experiment details (Subject/Run)
+f0b      = res.f0b;
+numPT    = res.numPertTrials;
+trialIdx = res.pertIdx;
+trigs    = res.pertTrig; % Where the perturbations occur
 
-timeS        = niRes.timeS;
-sensorP      = niRes.sensorP;
-lagTimeP     = niRes.lagTimeP;
-riseTimeP    = niRes.riseTimeP;
-OnOfValP     = niRes.OnOfValP;
-limitsP      = niRes.limitsP;
+timeS        = res.timeS;
+sensorP      = res.sensorP;
+lagTimeP     = res.lagTimeP;
+riseTimeP    = res.riseTimeP;
+OnOfValP     = res.OnOfValP;
+limitsP      = res.limitsP;
 
-timeA        = niRes.timef0;
-audioM       = niRes.audioMf0TrialPert;
-limitsA      = niRes.limitsA;
+timef0       = res.timef0;
+audioM       = res.audioMf0TrialPert;
+limitsf0     = res.limitsA;
 
 curSess(strfind(curSess, '_')) = ' ';
 
@@ -36,7 +36,7 @@ for ii = 1:numPT
     pA = area(pertAx, pertAy, -200, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     
     hold on
-    [aX, mS, pS] = plotyy(timeA, audioM(:,ii), timeS, sensorP(:,ii));
+    [aX, mS, pS] = plotyy(timef0, audioM(:,ii), timeS, sensorP(:,ii));
 
     set(mS, 'LineWidth', 2,... 
             'Color', micColor);    
@@ -49,7 +49,7 @@ for ii = 1:numPT
     ylabel(aX(2), 'Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
     title({'Pressure and f0 changes due to Balloon Inflation';
             [curSess ' Trial ' num2str(trialIdx(ii))]}, 'FontSize', 12, 'FontWeight', 'bold')
-    axis(aX(1), limitsA); 
+    axis(aX(1), limitsf0); 
     axis(aX(2), limitsP);
     box off
 
@@ -71,10 +71,10 @@ for ii = 1:numPT
                     'FontName','Arial');
     plotTitle =  '_DAQMicPres ';
 
-    if sv2F == 1
-        plTitle = [curSess  plotTitle num2str(ii) '.jpg'];     
-        saveFileName = fullfile(saveResultsDir, plTitle);
-        export_fig(saveFileName) 
-    end
+
+    plTitle = [curSess  plotTitle num2str(ii) '.jpg'];     
+    saveFileName = fullfile(saveResultsDir, plTitle);
+    export_fig(saveFileName) 
+
 end
 end
