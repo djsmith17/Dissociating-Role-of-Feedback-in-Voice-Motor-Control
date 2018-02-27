@@ -6,7 +6,7 @@ function RMSFeedback_testbed
 %updateVisualFeed.m
 
 recordedRMS = (5+rand(1991,1))/1000;
-numTrial = 1;
+numTrial = 2;
 
 targRMS   = 50; %dB just to test
 boundsRMS = 3; %+/- dB
@@ -50,10 +50,15 @@ end
 
 function triggerTest(anMsr, H1, H2, H3, fbLines, rec, trigCirc, numTrial)
 %Close the curtains
+
 pause(1); %Let them breathe a sec
 set(H3,'Visible','off');
 
 for i = 1:numTrial
+    set(H1, 'Visible', 'on');
+    pause(1.0)
+    set(H1, 'Visible', 'off');
+    
     set([H2 trigCirc],'Visible','on');
     pause(1.0)
     set([H2 trigCirc],'Visible','off');
