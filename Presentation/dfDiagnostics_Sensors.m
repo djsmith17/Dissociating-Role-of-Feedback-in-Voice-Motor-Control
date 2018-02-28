@@ -90,10 +90,118 @@ else
     load(dirs.RecFileDir)
 end
 
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0, 0, 1);
+f0b = 100;
+pF  = 1;
+iRF = 0;
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, pF, iRF);
+
+niRes.numPertTrialsNi = niRes.numPertTrials;
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
 % drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
 % drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
+end
+
+function res = combineRes(niRes, auRes)
+
+res.expType = auRes.expType;
+res.subject = auRes.subject;
+res.run     = auRes.run;
+res.curSess = auRes.curSess;
+res.AudFB   = auRes.AudFB;
+
+res.f0Type  = auRes.f0Type;
+res.etMH    = auRes.etMH;
+
+res.numTrials     = auRes.numTrials;
+res.audioM        = auRes.audioM;
+res.audioH        = auRes.audioH;
+res.svIdx         = auRes.svIdx;
+res.expTrigsSv    = auRes.expTrigsSv;
+res.pertIdx       = auRes.pertIdx;     % The indices of the svIdx;
+res.pertTrig      = auRes.pertTrig;
+res.contIdx       = auRes.contIdx;     % The indices of the svIdx;
+res.contTrig      = auRes.contTrig;
+res.numSaveTrials = auRes.numSaveTrials;
+res.numContTrials = auRes.numContTrials;
+res.numPertTrials = auRes.numPertTrials;
+
+res.numPertTrialsNi = niRes.numPertTrials;
+res.numContTrialsNi = niRes.numContTrials;
+res.timeS           = niRes.timeS;
+res.sensorP         = niRes.sensorP;        % Individual Processed perturbed trials. 
+res.lagTimeP        = niRes.lagTimeP;
+res.lagTimePm       = niRes.lagTimePm;
+res.riseTimeP       = niRes.riseTimeP;
+res.riseTimePm      = niRes.riseTimePm;
+res.OnOfValP        = niRes.OnOfValP;
+res.OnOfValPm       = niRes.OnOfValPm;
+res.limitsP         = niRes.limitsP;
+
+res.timeSAl       = niRes.timeSAl;
+res.sensorPAl     = niRes.sensorPAl;
+res.limitsPAl     = niRes.limitsPAl;
+
+res.timef0        = auRes.timef0;
+res.f0b           = auRes.f0b;
+
+res.numContTrialsPP = auRes.numContTrialsPP;
+res.numPertTrialsPP = auRes.numPertTrialsPP;
+res.pertTrigPP      = auRes.pertTrigPP;
+
+%Full Individual Trials: Mic/Head f0 Trace 
+res.audioMf0TrialPert = auRes.audioMf0TrialPert;
+res.audioMf0TrialCont = auRes.audioMf0TrialCont;
+res.audioHf0TrialPert = auRes.audioHf0TrialPert;
+res.audioHf0TrialCont = auRes.audioHf0TrialCont;
+res.limitsA           = auRes.limitsA;
+res.limitsAudRes      = auRes.limitsAudRes;
+
+%Sections Trials: Mic/Head f0
+res.secTime          = auRes.secTime;
+res.audioMf0SecPert  = auRes.audioMf0SecPert;
+res.audioMf0SecCont  = auRes.audioMf0SecCont;
+res.audioHf0SecPert  = auRes.audioHf0SecPert;
+res.audioHf0SecCont  = auRes.audioHf0SecCont;
+
+%Mean Sectioned Trials: Mic/Head f0 Trace 
+res.audioMf0MeanPert = auRes.audioMf0MeanPert; % [MeanSigOn 90%CI MeanSigOff 90%CI]
+res.audioMf0MeanCont = auRes.audioMf0MeanCont;
+res.audioHf0MeanPert = auRes.audioHf0MeanPert;
+res.audioHf0MeanCont = auRes.audioHf0MeanCont;
+res.limitsAmean      = auRes.limitsAmean;
+res.limitsAMH        = auRes.limitsAMH;      % Limits Audio Corrected for MicXHead
+
+%Inflation Response
+res.respVar      = auRes.respVar;
+res.respVarM     = auRes.respVarM;
+res.respVarSD    = auRes.respVarSD;
+res.InflaStimVar = auRes.InflaStimVar;
+
+%NIAu Delay
+res.allAuNiDelays = auRes.allAuNiDelays;
+
+%Check the Ni trials against the Au trials
+presInd = [];
+if res.numPertTrialsPP < res.numPertTrialsNi
+    setPertTrials = res.svIdx(res.pertIdx);
+    for ii = 1:length(niRes.pertIdx)
+        ind = [];
+        ind = find(setPertTrials == niRes.pertIdx(ii));
+        if ~isempty(ind)
+            presInd = cat(1, presInd, ii);
+        end
+    end
+    
+    res.sensorPsv  = res.sensorP(:, presInd);
+    res.lagTimePsv = res.lagTimeP(presInd, :);
+    res.riseTimePsv= res.riseTimeP(presInd);
+    res.OnOfValPsv = res.OnOfValP(presInd, :);
+else
+    res.sensorPsv    = res.sensorP;
+    res.lagTimePsv   = res.lagTimeP;
+    res.riseTimePsv  = res.riseTimeP;
+    res.OnOfValPsv   = res.OnOfValP;   
+end
 end
