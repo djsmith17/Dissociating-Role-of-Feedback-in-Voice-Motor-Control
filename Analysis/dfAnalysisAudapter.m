@@ -1,4 +1,4 @@
-function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, bTf0b, AudFlag)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, bTf0b, AudFlag, niAn)
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -31,9 +31,9 @@ auAn.trialType = expParam.trialType;
 auAn.expTrigs  = expParam.trigs(:,:,1); %Time
 auAn.anaTrigs  = expParam.trigs(:,:,3);
 
-auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
-auAn.audioM   = [];
-auAn.audioH   = [];
+auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
+auAn.audioM     = [];
+auAn.audioH     = [];
 auAn.audioMSv   = [];
 auAn.audioHSv   = [];
 auAn.svIdx      = [];
@@ -131,20 +131,20 @@ cutOff   = 300; %Hz
 micFilt  = filtfilt(B, A, micR); %Low-pass filtered under 500Hz
 headFilt = filtfilt(B, A, headR); %Low-pass filtered under 500Hz
 
-micRds     = resample(micFilt, fsNI, fs);
+micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
 AuNidelayP = AuNidelay*fs;
 
 if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
 else
-    AuMHdelay = xCorrTimeLag(micFilt, headFilt, fs); %Expected that Mic will lead Head
+    AuMHdelay = xCorrTimeLag(micR, headR, fs); %Expected that Mic will lead Head
 end
 AuMHdelayP = AuMHdelay*fs;
 
-%Adjust for delay between Audapter Mic and Audapter Headphones
-micAuAl  = micFilt(1:(end-AuMHdelayP));
-headAuAl = headFilt((AuMHdelayP+1):end); 
+%Adjust for delay between raw Audapter Mic and Audapter Headphones
+micAuAl  = micR(1:(end-AuMHdelayP));
+headAuAl = headR((AuMHdelayP+1):end); 
 
 %Adjust for delay between Audapter and NIDAQ
 micAuNi    = micAuAl(AuNidelayP:end);

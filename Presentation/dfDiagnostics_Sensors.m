@@ -93,7 +93,7 @@ end
 f0b = 100;
 pF  = 1;
 iRF = 0;
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, pF, iRF);
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, iRF, pF);
 
 niRes.numPertTrialsNi = niRes.numPertTrials;
 

@@ -9,7 +9,7 @@ function dfRunSubjAnalysis()
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot28'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF2'};
+AVar.runs          = {'SF1'};
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -41,21 +41,21 @@ for i = 1:AVar.numPart
         end
 
         fprintf('Loading Files for %s %s\n', participant, run)
-        load(dirs.baselineData) % Expect DRF
+        load(dirs.baselineData) % Returns DRF
         bV = DRF;
-        load(dirs.SavFileDir)   % Expect DRF
+        load(dirs.SavFileDir)   % Returns DRF
         
         AVar.expType = DRF.expParam.expType;
         [pF, iRF] = checkDRFExpType(AVar.expType);
-        AudFlag = 1;
+        aFn = 0; aFa = 1; %Audio Analysis Flag        
         
         %Initialize these so I can stop worrying about it
         niAn = []; niRes = [];
         auAn = []; auRes = [];
                 
         f0b = bV.qRes.meanf0;
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, 0, pF, iRF);
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, niAn, f0b, AudFlag);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRF, niAn);
 
         res = combineRes(niRes, auRes);
         
@@ -179,9 +179,12 @@ function [pF, iRF] = checkDRFExpType(expType)
 % This sets different variables so that the analyzes are done differently. 
 
 if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
+    % The perturbatron was used and I want to measure the pressure response
+    % and the behavioral inflation response!
     pF  = 1;      %Pressure Analysis Flag
     iRF = 1;      %Inflation Response Flag
 else
+    % No perturbatron
     pF  = 0;      %Pressure Analysis Flag
     iRF = 0;      %Inflation Response Flag
 end

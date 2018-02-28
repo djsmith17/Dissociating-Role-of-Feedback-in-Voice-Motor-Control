@@ -1,4 +1,4 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag, PresFlag, iRF)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
 %A quick reference
 %
 %Pert: Perturbation signal
@@ -9,7 +9,6 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag, 
 %Trig: Trigger values where onset and offset occur
 %DN:   Down Sampled (and smoothed)
 
-sv2File = 0;
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
 
@@ -22,7 +21,7 @@ niAn.curSess  = expParam.curSess;
 niAn.f0AnaFile = [niAn.subject niAn.run 'f0AnalysisN.mat'];
 niAn.gender   = expParam.gender;
 niAn.AudFB    = expParam.AudFB;
-niAn.bTf0b    = bTf0b;
+niAn.bTf0b    = f0b;
 niAn.trialType = expParam.trialType;
 
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
@@ -124,7 +123,7 @@ function sensorPP     = sensorPreProcessing(sensor, sRate)
 
 sensorRed = 4*(sensor-2);
 
-[B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 10
+[B,A]    = butter(4, 10/(sRate/2)); %Low-pass filter under 10
 sensorPP = filter(B,A,abs(sensorRed));
 end
 
