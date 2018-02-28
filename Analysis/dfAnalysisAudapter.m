@@ -1,4 +1,4 @@
-function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, bTf0b, AudFlag, niAn)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -17,7 +17,7 @@ auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis' auAn.f0Type '.mat'];
 auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
-auAn.bTf0b     = bTf0b;
+auAn.bTf0b     = f0b;
 
 fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
@@ -89,7 +89,7 @@ auAn.numPertTrials = length(auAn.pertIdx);
 % auAn.audioPP = audioPP;
 
 %The Audio Analysis
-iRF = 1; f0Flag = 1;
+f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
