@@ -1,4 +1,4 @@
-function RMSFeedback_testbed
+function VisFeedback_testbed
 %This function helps to test my visual feedback for RMS present in a
 %recording. Currently uses the following functions:
 
