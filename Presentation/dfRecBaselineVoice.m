@@ -1,7 +1,7 @@
 function dfRecBaselineVoice()
 % dfRecBaselineVoice() is a simple script for recording short samples of a 
 % speakers voice using Audapter and a MOTU Audio Card. The output of these 
-% recordings sill give you an average RMS, and pitch of the samples. 
+% recordings will give you an average RMS, and pitch of the samples. 
 % This should be used at the beginning of an audapter recording session to 
 % determine a baseline voice amplitude and pitch. 
 % 
@@ -14,9 +14,23 @@ function dfRecBaselineVoice()
 % 2: The microphone is placed at a fixed distance (e.g. 7cm) from the participant
 % 3: The microphone gain levels are constant for each participant and through the trials
 % 4: The participant phonates a steady-state vowel sound through these recordings
+%
+% This script calls the following 5 functions:
+% dfDirs.m
+% dfSetAudFB.m
+% dfSetVisFB.m
+% dfSaveRawData.m
+% dfAnalysisAudioQuick.m
+%
+% This uses the toolbox from MATLAB-Toolboxes
+% speechres
+%
+% This script is also dependent on the following Mathworks Toolboxes
+% Signal-Processing Toolbox
 
 close all;
 
+% Main Experimental prompt: Subject/Run Information
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Gender ("male" or "female")',...
@@ -24,9 +38,9 @@ prompt = {'Subject ID:',...
 name = 'Subject Information';
 numlines = 1;
 defaultanswer = {'null', 'BV1', 'female', '3'};
-answer = inputdlg(prompt, name, numlines, defaultanswer);
+ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
-if isempty(answer)
+if isempty(ExpPrompt)
     return
 end
 
@@ -41,14 +55,15 @@ end
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.subject    = answer{1}; %Subject#, Pilot#, null
-expParam.run        = answer{2};
+expParam.subject    = ExpPrompt{1}; %Subject#, Pilot#, null
+expParam.run        = ExpPrompt{2};
 expParam.curSess    = [expParam.subject expParam.run];
-expParam.gender     = answer{3};
-expParam.numTrial   = str2double(answer{4});
+expParam.gender     = ExpPrompt{3};
+expParam.trialLen   = 4;                        % Seconds
+expParam.numTrial   = str2double(ExpPrompt{4});
 expParam.AudFBSw    = 0;
-expParam.trialLen   = 4; %Seconds
 
+% Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
@@ -61,8 +76,9 @@ if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
 
+%Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
-expParam.frameLen           = 96;      % Before downsampling
+expParam.frameLen           = 96;     % Before downsampling
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact;
 expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
@@ -72,17 +88,18 @@ expParam.audioInterfaceName = 'MOTU MicroBook'; % 'ASIO4ALL' 'Komplete'
 Audapter('deviceName', expParam.audioInterfaceName);
 Audapter('setParam', 'downFact', expParam.downFact, 0);
 Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
-Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
+Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up OST and PCF Files.
 expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-[expParam, p]      = dfSetAudFB(expParam, dirs, p); %Sets some p params
+% Set up Auditory Feedback (Voice Not Shifted)
+[expParam, p]      = dfSetAudFB(expParam, dirs, p);
 
 expParam.boundsRMS = 3;
-expParam.targRMS   = 60;
+expParam.targRMS   = 70;
 
 if VoiceRecsw == 1
     expParam.cuePause = 1.0;
@@ -92,14 +109,14 @@ else
     expParam.resPause = 0;
 end
 
-%%%%%Visual Presentation
+% Dim the lights (Set the visual Feedback)
 [~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
-pause(5); %Let them breathe a sec
-set(H3,'Visible','off');
+pause(5);                % Let them breathe a sec
+set(H3,'Visible','off'); % Turn off 'Ready?'
 
-rawData = []; rmsData = [];
+rawData = [];
 for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
@@ -114,7 +131,7 @@ for ii = 1:expParam.numTrial
     
     %Phonation Start
     set(H1,'Visible','off');
-    set([H2 trigCirc],'Visible','on');
+    set([H2 trigCirc],'Visible','on'); % Turn on the 'eee' and trigMark
     
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
@@ -124,9 +141,9 @@ for ii = 1:expParam.numTrial
     pause(expParam.trialLen);
     
     Audapter('stop');
-    set([H2 trigCirc],'Visible','off');
+    set([H2 trigCirc],'Visible','off'); % Turn off the 'eee' and trigMark
     
-    % Save the data
+    % Load the Audapter saved data and save some as wav Files
     data    = dfSaveRawData(expParam, dirs);
     rawData = cat(1, rawData, data);
     
@@ -134,15 +151,17 @@ for ii = 1:expParam.numTrial
 end
 close all
 
+% Store all the variables and data from the session in a large structure
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
 DRF.p           = p;
 DRF.rawData     = rawData; 
 
-%Do some quick analysis
+% Do some quick analysis
 qRes     = dfAnalysisAudioQuick(DRF, 1);
 DRF.qRes = qRes;
 
+% Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 save(dirs.RecFileDir, 'DRF')
 

@@ -52,13 +52,13 @@ if collectNewData == 1
     %New!
     expParam.trialLenLong = expParam.numTrial*(expParam.trialLen + expParam.resPause);
     
-    [s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLenLong);
+    [s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLenLong);
     expParam.sRateQ = s.Rate;
     expParam.niCh   = niCh;
 
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
     %New!
     expParam.resPauseVec = zeros(expParam.sRateQ*expParam.resPause,1);

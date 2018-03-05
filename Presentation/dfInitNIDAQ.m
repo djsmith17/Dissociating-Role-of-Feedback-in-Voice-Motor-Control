@@ -1,4 +1,4 @@
-function [s, niCh, nVS] = initNIDAQ(dev, trialLen)
+function [s, niCh, nVS] = dfInitNIDAQ(dev, trialLen)
 %This function sets up the daq object for the controlling parts of the
 %experiment, most specifically the Perturbatron. 
 %The sampling rate is currently hard set at 8000hz, but may eventually

@@ -1,25 +1,32 @@
 function dfRunSFPerturb()
-%Laryngeal Perturbation experiment. This script records acoustic output 
-%from a participant as they have their larynx physically displaced.
-%NIDAQ signal provides Pertrubatron stimulus and Audapter collects and
-%manages the recorded acoustic data.
-
-%This script calls the following (7) functions:
-%dfDirs.m
-%initNIDAQ.m
-%dfSetAudFB.m
-%dfSetTrialOrder.m
-%dfMakePertSignal.m
-%dfSetVisFB.m
-%dfUpdateVisFB.m
-
-%This uses the toolbox from MATLAB-Toolboxes
-%speechres
+% dfRunSFPerturb()
+% Laryngeal Perturbation experiment. This script records acoustic output 
+% from a participant as they have their larynx physically displaced.
+% NIDAQ signal provides Perturbatron stimulus and Audapter collects and
+% manages the recorded acoustic data.
+%
+% This script calls the following 8 functions:
+% dfDirs.m
+% initNIDAQ.m
+% dfSetAudFB.m
+% dfSetTrialOrder.m
+% dfMakePertSignal.m
+% dfSetVisFB.m
+% dfSaveRawData.m
+% dfCalcMeanRMS.m
+% dfUpdateVisFB.m
+%
+% This uses the toolbox from MATLAB-Toolboxes
+% speechres
+%
+% This script is also dependent on the following Mathworks Toolboxes
+% Signal-Processing Toolbox
 
 close all;
 ET = tic;
 rng('shuffle');
 
+% Main Experimental prompt: Subject/Run Information
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Baseline Loudness (dB SPL):',...
@@ -29,12 +36,13 @@ prompt = {'Subject ID:',...
 name = 'Subject Information';
 numlines = 1;
 defaultanswer = {'null', 'SF1', '60', 'female', '2.0K_1', '12'};
-answer = inputdlg(prompt, name, numlines, defaultanswer);
+ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
-if isempty(answer)
+if isempty(ExpPrompt)
     return
 end
 
+% Dialogue box asking for what type of Auditory Feedback
 AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
 switch AudFB
     case 'Voice Not Shifted'
@@ -45,6 +53,7 @@ switch AudFB
         AudFBSw = 2;
 end
 
+% Dialogue box asking if Practice set or Full set of trials
 num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full');
 switch num_trials
     case 'Practice'
@@ -58,24 +67,25 @@ end
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType      = 'Somatosensory Perturbation_Perceptual';
-expParam.subject      = answer{1};
-expParam.run          = answer{2};
-expParam.targRMS      = str2double(answer{3});
-expParam.gender       = answer{4};
-expParam.balloon      = answer{5};
-expParam.tightness    = answer{6};
+expParam.subject      = ExpPrompt{1};
+expParam.run          = ExpPrompt{2};
 expParam.curSess      = [expParam.subject expParam.run];
+expParam.targRMS      = str2double(ExpPrompt{3});
+expParam.gender       = ExpPrompt{4};
+expParam.balloon      = ExpPrompt{5};
+expParam.tightness    = ExpPrompt{6};
+expParam.niDev        = 'Dev2';              % NIDAQ Device Name. For more information, see dfInitNIDAQ
+expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
 expParam.AudFB        = AudFB;
 expParam.AudFBSw      = AudFBSw;
-expParam.trialLen     = 4; %Seconds
-expParam.niDev        = 'Dev2';
+expParam.AudPert      = '-100 cents ramped'; % Var not used here. Just saving for balance
+expParam.AudPertSw    = 1;                   % Var not used here. Just saving for balance
 expParam.bVis         = 0;
-expParam.AudPert      = '-100 cents ramped'; %Saving Var Name. Var not used
-expParam.AudPertSw    = 1;                   %Saving Var Name. Var not used
 
+%Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
@@ -90,20 +100,21 @@ end
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
+expParam.frameLen           = 96;     % Before downsampling
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
-expParam.frameLen           = 96;  % Before downsampling
+expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
 expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
 Audapter('deviceName', expParam.audioInterfaceName);
 Audapter('setParam', 'downFact', expParam.downFact, 0);
 Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
-Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
+Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
-[s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLen);
+[s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLen);
 expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 
@@ -111,25 +122,29 @@ expParam.niCh   = niCh;   % Structure of Channel Names
 expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-[expParam, p]      = dfSetAudFB(expParam, dirs, p); %Trials with masking or no...  
+%Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
+[expParam, p]      = dfSetAudFB(expParam, dirs, p);
 
-expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
+% Set up the order of trials (Order of perturbed, control, etc)
+expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
-[expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType);
+% Select the trigger points for perturbation onset and offset and creating
+% the digital signal to be sent to the NIDAQ
+[expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
-expParam.cuePause  = 1.0;
-expParam.resPause  = 2.0;
+expParam.cuePause  = 1.0; % How long the cue period lasts
+expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;  %+/- dB
 
-%This is where the fun begins
+% This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 
-%Dim the lights
+% Dim the lights (Set the visual Feedback)
 [anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
-pause(5); %Let them breathe a sec
-set(H3,'Visible','off');
+pause(5);                % Let them breathe a sec
+set(H3,'Visible','off'); % Turn off 'Ready?'
 
 DAQin = []; rawData = [];
 for ii = 1:expParam.numTrial
@@ -168,7 +183,7 @@ for ii = 1:expParam.numTrial
     Audapter('stop');
     set([H2 trigCirc],'Visible','off');
     
-    %Save the data
+    % Load the Audapter saved data and save some as wav Files
     data    = dfSaveRawData(expParam, dirs);
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
@@ -186,9 +201,10 @@ for ii = 1:expParam.numTrial
     set([rec fbLines], 'Visible', 'off');
 end
 close all;
-elapsed_time = toc(ET)/60;
+elapsed_time = toc(ET)/60;   % Elapsed Time of the experiment
 fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 
+% Store all the variables and data from the session in a large structure
 expParam.elapsedTime = elapsed_time;
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
@@ -197,6 +213,7 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
+% Save the large data structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 switch num_trials
     case 'Practice'
@@ -207,6 +224,7 @@ end
 
 % dfQuickAnalysisPlot(DRF);
 
+%Draw the OST progression, if you want to
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
