@@ -1,18 +1,18 @@
-function drawDAQAlignedPressure(niRes, saveResultsDir, sv2F)
+function drawDAQAlignedPressure(res, saveResultsDir, sv2F)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
-curSess  = niRes.curSess;       % The current experiment details (Subject/Run)
-numTrial = niRes.numPertTrials; % Number of Catch Trials (Only relevant ones)
-AudFB    = niRes.AudFB;
+curSess  = res.curSess;       % The current experiment details (Subject/Run)
+numTrial = res.numPertTrialsNi; % Number of Catch Trials (Only relevant ones)
+AudFB    = res.AudFB;
 
-time   = niRes.timeSAl;
-sensor = niRes.sensorPAl;
-limits = niRes.limitsPAl;
+time     = res.timeSAl;
+sensor   = res.sensorPAl;
+limits   = res.limitsPAl;
 
-meanLagTime  = niRes.lagTimePm;
-meanRiseTime = niRes.riseTimePm;
-meanVal      = niRes.OnOfValPm;
+meanLagTime  = res.lagTimePm;
+meanRiseTime = res.riseTimePm;
+meanVal      = res.OnOfValPm;
 
 curSess(strfind(curSess, '_')) = ' ';
 
