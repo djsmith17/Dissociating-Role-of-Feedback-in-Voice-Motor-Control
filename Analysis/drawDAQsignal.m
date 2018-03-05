@@ -20,7 +20,7 @@ lagTimeFC  = niAn.lagsFC;
 lagTimeFN  = niAn.lagsFN;
 fLimits    = niAn.fLimits;
 
-time_audio = niAn.time_audio;
+timef0    = niAn.timef0;
 micf0     = niAn.audioMf0_norm;
 headf0    = niAn.audioHf0_norm;
 aLimits   = niAn.aLimits;
@@ -87,9 +87,9 @@ for ii = 1:numTrial
                         'FontName','Arial');
         plotTitle =  '_DAQSignalOutput ';
     else
-        aM = plot(time_audio, micf0(:,ii), 'r');
+        aM = plot(timef0, micf0(:,ii), 'r');
         hold on
-        aH = plot(time_audio, headf0(:,ii), 'b');
+        aH = plot(timef0, headf0(:,ii), 'b');
         
         xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
         ylabel('f0 (Cents)', 'FontSize', 18, 'FontWeight', 'bold')

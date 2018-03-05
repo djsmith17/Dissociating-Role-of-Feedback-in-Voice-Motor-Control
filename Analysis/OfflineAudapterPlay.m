@@ -110,7 +110,7 @@ if collectNewData == 1
     p = getAudapterDefaultParams(expParam.gender);
 
     %Set up Parameters to control NIDAQ and Perturbatron
-    [s, niCh, nVS]  = initNIDAQ(expParam.niDev, expParam.trialLen);
+    [s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLen);
     expParam.sRateQ = s.Rate; % NIDAQ sampling rate
     expParam.niCh   = niCh;   % Structure of Channel Names
 

@@ -19,12 +19,13 @@ function trialType = dfSetTrialOrder(numTrial, per)
 %           order of control and catch trials.
 
 setSize = 1/per;
-options = setSize - 3 ; %Excluding first and last pos in the set and pos 2. 
+options = setSize - 3; %Excluding first and last pos in the set and pos 2. 
 
 trialType = [];
 numSets = numTrial*per;
 if round(numSets) ~= numSets
-    disp('ERROR: Give me a whole number of sets')
+    disp('ERROR in dfSetTrialOrder: Give me a whole number of sets')
+    return
 elseif per == 0
     disp('No trials will be perturbed!')
     trialType = zeros(1, numTrial);
@@ -37,7 +38,8 @@ elseif per == 0.5
     trialType(1:numTrial/2) = 1;
     trialType = trialType(randperm(numTrial));
 elseif per < 1.0 && per > 0.5
-    disp('ERROR: This only supports percents of 100%, 50%, or lower than 50%')
+    disp('ERROR in dfSetTrialOrder: This only supports percents of 100%, 50%, or lower than 50%')
+    return
 else
     for ii = 1:numSets
         set = zeros(1, setSize);

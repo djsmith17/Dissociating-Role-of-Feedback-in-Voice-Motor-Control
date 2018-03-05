@@ -1,9 +1,17 @@
 function [expParam, p] = dfSetAudFB(expParam, dirs, p)
-%This function sets the type of Auditory Feedback to be played during an 
-%experiment involving Audapter. If the Auditory feedback is speech-shaped
-%masking noise, then you will need the masking noise wave file, SSN.wav.
+% [expParam, p] = dfSetAudFB(expParam, dirs, p) sets the type of Auditory 
+% feedback to be used in experiments investigating voice motor control 
+% using Audapter. 
+% 
+% This updated the expParam and p structures and then passes them back out
+% to be used in the main experiment. 
+%
+% This handles three different cases of Audiotory feedback
+% NORMAL AUDITORY FEEDBACK OF THEIR VOICE
+% PITCH-SHIFTED AUDITORY FEEDBACK OF THEIR VOICE
+% SPEECH-SHAPED MASKING NOISE
 
-%PITCH-SHIFTED AUDITORY FEEDBACK OF THEIR VOICE
+%NORMAL AUDITORY FEEDBACK OF THEIR VOICE
 if  expParam.AudFBSw == 0
     p.fb          = 1;  % Microphone FB
     p.bPitchShift = 0;  % No pitch-shifting
@@ -44,5 +52,8 @@ elseif expParam.AudFBSw == 2
     
     expParam.SSNw   = w;
     expParam.SSNfs  = fs;
+else
+    disp('ERROR in dfSetAudFB: Inappropriate feedback method selected')
+    return
 end 
 end

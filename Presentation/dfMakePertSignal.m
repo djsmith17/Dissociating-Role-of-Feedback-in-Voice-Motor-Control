@@ -1,4 +1,4 @@
-function [sigs, trigs] = dfMakePertSignal(trialLen, numTrial, sRateQ, sRateA, trialType, expType, varargin)
+function [sigs, trigs] = dfMakePertSignal(trialLen, numTrial, sRateQ, sRateA, trialType, varargin)
 %This function creates the digital signal for the NIDAQ needed to activate 
 %the pertrubatron at each trial. It also keeps track of the time points 
 %when the perturbation should activate and deactivate. This function 
@@ -15,7 +15,6 @@ function [sigs, trigs] = dfMakePertSignal(trialLen, numTrial, sRateQ, sRateA, tr
 %sRateQ:    Sampling Rate of device creating the stimulis (likely NIDAQ)
 %sRateA:    Sampling Rate of program creating auditory cues (Audpater)
 %trialType: Vector (length = numTrial) of order of trials (control/catch)
-%expType:   The string of the experiment that is being performed.
 %varargin:  Any extra variables. Likely to just be a diagnostic flag
 
 %sigs:  Per-trial digital signal outputted by NIDAQ
@@ -27,39 +26,38 @@ else
     diag = varargin{1};
 end
 
-expChk{1} = 'Somatosensory Perturbation_Perceptual';
-expChk{2} = 'Auditory Perturbation_Perceptual';
-
 minSt = 1.0; maxSt = 1.5;   %Hardset (1.0-1.5 seconds)
 minLen = 1.0; maxLen = 1.5; %Hardset (1.0-1.5 seconds) 
 
-trialLenP = trialLen*sRateQ; %Convert from seconds->points for stimulus
+trialLenP = trialLen*sRateQ; %Convert from seconds -> points for stimulus
 
 sigs    = zeros(trialLenP, numTrial);
 trigs   = zeros(numTrial,2,3);
+% Make a pert period for every trial, although only applied as a
+% perturbatron signal, if actually a perturbed trial. See line 54
 for i = 1:numTrial
     if diag == 1
-        St_t   = minSt + (i-1)*0.1; %Seconds
-        pLen_t = minLen;            %Seconds
+        St_t   = minSt + (i-1)*0.1;               % Start Time Seconds
+        pLen_t = minLen;                          % Pert Len Seconds
     else
-        St_t   = (minSt + (maxSt-minSt)*rand);    %Seconds
-        pLen_t = (minLen + (maxLen-minLen)*rand); %Seconds
+        St_t   = (minSt + (maxSt-minSt)*rand);    % Start Time Seconds
+        pLen_t = (minLen + (maxLen-minLen)*rand); % Pert Len Seconds
     end
-    Sp_t   = St_t + pLen_t;                   %Seconds
+    Sp_t   = St_t + pLen_t;                       % Stop Time Seconds
     
-    St_p   = round(sRateQ*St_t);   %Points
-    pLen_p = round(sRateQ*pLen_t); %Points  
-    Sp_p   = St_p + pLen_p;        %Points
-    span = St_p:Sp_p; 
+    St_p   = round(sRateQ*St_t);                  % Start Time Points
+    pLen_p = round(sRateQ*pLen_t);                % Pert Len Points  
+    Sp_p   = St_p + pLen_p;                       % Stop TIme Points
+    span   = St_p:Sp_p;                           % Start to Stop Span
 
     sig  = zeros(trialLenP,1);
-    if trialType(i) == 1 %Only do this for perturbed trials
+    if trialType(i) == 1 % Only do this for perturbed trials
         sig(span) = 3;
     end
     
     sigs(:,i)    = sig;
-    trigs(i,:,1) = [St_t Sp_t]; %Trigger in Seconds
-    trigs(i,:,2) = [St_p Sp_p]; %Trigger in Points (NIDAQ)
-    trigs(i,:,3) = [St_p Sp_p]*(sRateA/sRateQ); %Trigger in Points (Audapter)
+    trigs(i,:,1) = [St_t Sp_t];                  % Trigger in Seconds
+    trigs(i,:,2) = [St_p Sp_p];                  % Trigger in Points (NIDAQ)
+    trigs(i,:,3) = [St_p Sp_p]*(sRateA/sRateQ);  % Trigger in Points (Audapter)
 end
 end

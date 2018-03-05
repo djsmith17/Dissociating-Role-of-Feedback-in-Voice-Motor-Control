@@ -9,7 +9,7 @@ txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
 psDir         = dirs.Code;                        %Praat scripting
 pbDir         = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
 
-tStep = 0.005; %seconds
+tStep = 0.005; % seconds; hard set
 fsA   = 1/tStep;
 
 p_fn = fullfile(pbDir, 'praat.exe');
