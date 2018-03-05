@@ -1,4 +1,4 @@
-function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, bTf0b, AudFlag)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
 %Analyses the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
@@ -7,147 +7,231 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, bTf0b, AudF
 %Requires the Signal Processing Toolbox
 
 %Identify some starting variables
+auAn.AnaType  = 'Audapter';
+auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
 auAn.curSess   = expParam.curSess;
+auAn.f0Type    = 'Praat';
+auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis' auAn.f0Type '.mat'];
 auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
-auAn.bTf0b     = bTf0b;
-auAn.trialType = expParam.trialType;
+auAn.bTf0b     = f0b;
 
 fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
 
 auAn.sRate    = expParam.sRateAnal;
-auAn.trialLen = expParam.trialLen;
-auAn.numSamp  = auAn.sRate*auAn.trialLen;
-auAn.numTrial = expParam.numTrial;
-auAn.expTrigs = expParam.trigs(:,:,1); %Time
-auAn.anaTrigs = expParam.trigs(:,:,3);
+auAn.sRateNi  = niAn.sRate;
+auAn.frameLenDown = expParam.frameLen/expParam.downFact;
+auAn.trialLen  = expParam.trialLen;
+auAn.numSamp   = auAn.sRate*auAn.trialLen;
+auAn.numTrial  = expParam.numTrial;
+auAn.trialType = expParam.trialType;
+auAn.expTrigs  = expParam.trigs(:,:,1); %Time
+auAn.anaTrigs  = expParam.trigs(:,:,3);
 
-auAn.time     = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
-auAn.audioM   = [];
-auAn.audioH   = [];
+auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
+auAn.audioM     = [];
+auAn.audioH     = [];
+auAn.audioMSv   = [];
+auAn.audioHSv   = [];
+auAn.svIdx      = [];
+auAn.expTrigsSv = [];
+auAn.contIdx    = [];
+auAn.contTrig   = [];
+auAn.pertIdx    = [];
+auAn.pertTrig   = [];
+auAn.allAuNiDelays = [];
 
-dnSamp = 20;
-auAn.sRateDN = auAn.sRate/dnSamp;
-auAn.timeDN = dnSampleSignal(auAn.time, dnSamp);
-auAn.anaTrigsDN = auAn.expTrigs*auAn.sRateDN;
-
+% audioPP = [];
+svC = 0;
 for ii = 1:auAn.numTrial
     data = rawData(ii);
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
+    expTrigs = auAn.expTrigs(ii,:);
+    anaTrigs = auAn.anaTrigs(ii,:);
+    
+    MrawNi = niAn.audioM(:,ii);   
    
-    auAn.audProcDel = data.params.frameLen*12;
-    [mic, head, saveT, saveTmsg] = preProc(Mraw, Hraw, auAn.sRate, auAn.audProcDel, auAn.expTrigs(ii,1));
+    [time, mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
+    
+%     audioPP(ii).time = time;
+%     audioPP(ii).mic  = mic;
+%     audioPP(ii).head = head;
+    auAn.audioM = cat(2, auAn.audioM, mic);
+    auAn.audioH = cat(2, auAn.audioH, head);
 
 %     OST  = data.ost_stat;
-    if saveT == 0 %Don't save the trial :(
-        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, saveTmsg)
-    elseif saveT == 1 %Save the Trial
-
+    if preProSt.saveT == 0 %Don't save the trial :(
+        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
+    elseif preProSt.saveT == 1 %Save the Trial
+        svC = svC + 1;
+        
+        auAn.svIdx      = cat(1, auAn.svIdx, ii);
+        auAn.expTrigsSv = cat(1, auAn.expTrigsSv, expTrigs);
+        if auAn.trialType(ii) == 0
+            auAn.contIdx  = cat(1, auAn.contIdx, svC);
+            auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
+        else
+            auAn.pertIdx  = cat(1, auAn.pertIdx, svC);
+            auAn.pertTrig = cat(1, auAn.pertTrig, expTrigs);
+        end   
+        auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
-
-    auAn.audioM = cat(2, auAn.audioM, mic(1:64000));
-    auAn.audioH = cat(2, auAn.audioH, head(1:64000));
 end
+auAn.numSaveTrials = length(auAn.svIdx);
+auAn.numContTrials = length(auAn.contIdx);
+auAn.numPertTrials = length(auAn.pertIdx);
 
-[auAn.ContTrials, auAn.contIdx] = find(auAn.trialType == 0);
-[auAn.PertTrials, auAn.pertIdx] = find(auAn.trialType == 1);
-auAn.numContTrials = sum(auAn.ContTrials);
-auAn.numPertTrials = sum(auAn.PertTrials);
-
-auAn.contTrig = auAn.expTrigs(auAn.contIdx,:);
-auAn.pertTrig = auAn.expTrigs(auAn.pertIdx,:);
+% auAn.audioPP = audioPP;
 
 %The Audio Analysis
 f0Flag = 1;
-auAn = dfAnalysisAudio(dirs, auAn, AudFlag, f0Flag);
+auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, saveT, saveTmsg] = preProc(micR, headR, fs, audProcDel, spanSt)
+function [timeSec, micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, expTrigs, auTrigs)
 %This function performs pre-processing on the recorded audio data before
 %frequency analysis is applied. This function takes the following inputs:
 
-%micR:       Raw Microphone signal
-%headR:      Raw Headphone signal
-%fs:         Recording sampling rate
-%audProcDel: The delay that results from Audapter processing audio
+%An:     Set of useful analysis variables
+%micR:   Raw Microphone (audapter) signal
+%headR:  Raw Headphone (audapter) signal
+%micRNI: Raw Microphone (NIDAQ) signal
+%trigs:  Triggers for the given trial
 
 %This function outputs the following
-%micP:     Processed Microphone signal
-%headP:    Processed Headphone signal
-%saveT:    Boolean toggle to determine if the trial should be saved
-%saveTmsg: Reason, if any, that the trial was thrown out
+%micP:   Processed Microphone signal
+%headP:  Processed Headphone signal
+%AuNidelay: Calculated delay between NIDAQ and Audapter
+%pp:     preprocessing structure Reason, if any, that the trial was thrown out
 
-Mfull = micR(1:(end-audProcDel));
-Hfull = headR((audProcDel+1):end); 
+micR      = double(micR);
+headR     = double(headR);
+AudFB     = An.AudFB;
+fs        = An.sRate;
+fsNI      = An.sRateNi;
+frameLen  = An.frameLenDown;
+numSamp   = An.numSamp;
 
-x = double(Mfull); 
-y = double(Hfull);
+%We are going to section the audio recording from 0.5s ahead of 
+%perturbation onset to 1.0s after perturbation offset.
+preOn   = 0.5*fs;
+postOff = 1.0*fs;
 
-pp.lenSig = length(x);
-pp.t = 0:1/fs:(pp.lenSig-1)/fs;
+%Low Pass filter under 300Hz
+cutOff   = 300; %Hz
+[B,A]    = butter(4,(cutOff)/(fs/2));
+micFilt  = filtfilt(B, A, micR); %Low-pass filtered under 500Hz
+headFilt = filtfilt(B, A, headR); %Low-pass filtered under 500Hz
 
-pp.thresh = 0.3;
-[B,A] = butter(4,40/(fs/2)); %Low-pass filter under 40
+micRds     = resample(micR, fsNI, fs);
+AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
+AuNidelayP = AuNidelay*fs;
 
-%Envelope the signal removing all high frequncies. 
-%This shows the general change in amplitude over time. 
-pp.xenv  = filter(B,A,abs(x));  
+if strcmp(AudFB, 'Masking Noise')
+    AuMHdelay = (frameLen*12)/fs;
+else
+    AuMHdelay = xCorrTimeLag(micR, headR, fs); %Expected that Mic will lead Head
+end
+AuMHdelayP = AuMHdelay*fs;
 
-%The largest peak in the envelope theoretically occurs during voicing
-pp.maxPeak = max(pp.xenv); 
+%Adjust for delay between raw Audapter Mic and Audapter Headphones
+micAuAl  = micR(1:(end-AuMHdelayP));
+headAuAl = headR((AuMHdelayP+1):end); 
 
-%I don't want to start my signal at the max value, so start lower down on
-%the envelope as a threshold
-pp.threshIdx     = find(pp.xenv > pp.thresh*pp.maxPeak); 
+%Adjust for delay between Audapter and NIDAQ
+micAuNi    = micAuAl(AuNidelayP:end);
+headAuNi   = headAuAl(AuNidelayP:end);
 
-%The first index of the theoretical useable signal (Voice onset)
-pp.voiceOnsetInd = pp.threshIdx(1);  
+%The period on either side of the pertrubation period.
+audioSecSt = auTrigs(1) - preOn;
+audioSecSp = auTrigs(2) + postOff;
 
-%The rest of the signal base the first index...are there any dead zones??
-pp.fallOffLog = pp.xenv(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
-pp.chk4Break = sum(pp.fallOffLog) > 0.3*fs; %Last longer than 300ms
+%Section the both audio samples around section period. 
+sectionInd = audioSecSt:audioSecSp;
 
-[B,A]    = butter(4,(300)/(fs/2));
-filtx    = filtfilt(B,A,x); %Low-pass filtered under 500Hz
-filty    = filtfilt(B,A,y); %Low-pass filtered under 500Hz
- 
-micP     = filtx; %Take the whole signal for now
-headP    = filty; %Same indices as for mic 
+time    = sectionInd/fs;
+micSec  = micAuNi(sectionInd);
+headSec = headAuNi(sectionInd);
 
-micP     = Mfull;
-headP    = Hfull;
+%Find the onset of Voicing
+pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
 
-if pp.t(pp.voiceOnsetInd) > spanSt
-    saveT = 0;  
+if pp.voiceOnsetLate
+    saveT    = 0;  
     saveTmsg = 'Participant started too late!!';
 elseif pp.chk4Break
-    saveT = 0;
+    saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
+elseif length(micAuNi) < numSamp
+    saveT    = 0;
+    saveTmsg = 'Recording too short';
 else
-    saveT = 1;
+    saveT    = 1;
     saveTmsg = 'Everything is good'; 
 end
 
+timeSec = time; 
+micP    = micAuNi(1:numSamp);
+headP   = headAuNi(1:numSamp);
+
 pp.saveT    = saveT;
-pp.SaveTmsg = saveTmsg;
+pp.saveTmsg = saveTmsg;
 end
 
-function sensorDN = dnSampleSignal(sensor, dnSamp)
-[numSamp, numTrial] = size(sensor);
-numSampDN = numSamp/dnSamp;
+function timeLag = xCorrTimeLag(sig1, sig2, fs)
+%if timeLag is positive, then sig1 leads sig2. 
+%if timeLag is negative, then sig1 lags sig2.
 
-sensorDN = zeros(numSampDN, numTrial);
-for i = 1:numSampDN
-    sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
+[r, lags]    = xcorr(sig1, sig2);
+[~, peakInd] = max(r);
+maxLag       = lags(peakInd);
+timeLag      = maxLag/fs;
+timeLag      = -timeLag;
 end
+
+function pp = findVoiceOnsetThresh(audio, fs, audioSt)
+
+%audioSt is the index in the full audio signal from where we will start to
+%do frequency analysis
+
+pp.thresh   = 0.3;
+pp.breakTol = 0.1;
+pp.fs       = fs;
+pp.audio    = audio;
+pp.audioSt  = audioSt;
+pp.lenSig   = length(audio);
+pp.t        = 0:1/fs:(pp.lenSig-1)/fs;
+
+[B,A] = butter(4,40/(fs/2)); %Low-pass filter under 40
+
+%Envelope the signal removing all high frequncies. 
+%This shows the general change in amplitude over time (~RMS). 
+pp.env  = filter(B,A,abs(audio));  
+
+%The largest peak in the envelope theoretically occurs during voicing
+pp.maxPeak = max(pp.env); 
+
+%I don't want to start my signal at the max value, so start lower down on
+%the envelope as a threshold
+pp.threshIdx     = find(pp.env > pp.thresh*pp.maxPeak); 
+
+%The first index of the theoretical useable signal (Voice onset)
+pp.voiceOnsetInd = pp.threshIdx(1);
+
+%Check the voice onset time against when we want to start analyzing data
+pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
+
+%The rest of the signal base the first index...are there any dead zones??
+pp.fallOffLog = pp.env(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
+pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; %Last longer than 300ms
 end
 
 function lims = identifyLimits(An)
@@ -270,20 +354,31 @@ end
 
 function res = packResults(auAn, lims)
 
+res.expType = auAn.expType;
 res.subject = auAn.subject;
 res.run     = auAn.run;
 res.curSess = auAn.curSess;
 res.AudFB   = auAn.AudFB;
 
+res.f0Type = auAn.f0Type;
+res.etMH   = auAn.etMH;
+
 res.numTrials     = auAn.numTrial;
+res.audioM        = auAn.audioM;
+res.audioH        = auAn.audioH;
+res.svIdx         = auAn.svIdx;
+res.expTrigsSv    = auAn.expTrigsSv;
+res.pertIdx       = auAn.pertIdx;     % The indices of the svIdx;
+res.pertTrig      = auAn.pertTrig;
+res.contIdx       = auAn.contIdx;     % The indices of the svIdx;
+res.contTrig      = auAn.contTrig;
+res.numSaveTrials = auAn.numSaveTrials;
 res.numContTrials = auAn.numContTrials;
 res.numPertTrials = auAn.numPertTrials;
-res.contIdx       = auAn.contIdx;
-res.pertIdx       = auAn.pertIdx;
-res.pertTrig      = auAn.pertTrig;
+res.allAuNiDelays = auAn.allAuNiDelays;
 
-res.timeA     = auAn.time_audio;
-res.f0b       = auAn.f0b;
+res.timef0        = auAn.timef0;
+res.f0b           = auAn.f0b;
 
 res.numContTrialsPP = auAn.numContTrialsPP;
 res.numPertTrialsPP = auAn.numPertTrialsPP;
@@ -313,8 +408,11 @@ res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
 %Inflation Response
-res.respVar   = auAn.respVar;
-res.respVarM  = auAn.respVarMean;
-res.respVarSD = auAn.respVarSD;
+res.respVar      = auAn.respVar;
+res.respVarM     = auAn.respVarM;
+res.respVarSD    = auAn.respVarSD;
 res.InflaStimVar = auAn.InflaStimVar;
+
+%NIAu Delay
+res.allAuNiDelays = auAn.allAuNiDelays;
 end

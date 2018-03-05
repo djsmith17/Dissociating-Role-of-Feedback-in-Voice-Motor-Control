@@ -9,7 +9,7 @@ function dfRunSubjPlotting()
 %drawAudRespIndivTrial
 %drawAudRespMeanTrial
 
-clear all; close all; clc
+close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'Pilot28'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
@@ -22,8 +22,8 @@ sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
-sPlt.drawDAQMeanTrialMicf0   = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
-sPlt.drawDAQMeanTrialAudResp = 0; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawMeanTrial_PertCont = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
+sPlt.drawMeanTrial_MicHead  = 0; % Mean Perturbed Trials. Microphone vs Headphones
 
 sPlt.NIDAQ_AllPertTrial      = 0; % 
 
@@ -32,7 +32,7 @@ for ii = 1:sPlt.numPart
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
         dirs.SavResultsDir  = fullfile(dirs.Results, participant, run); %The Analyzed Results Folder...Where Plots will go
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']); %The Analyzed Results FIle
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsPraatDRF.mat']); %The Analyzed Results FIle
 
         if exist(dirs.SavResultsFile, 'file') == 0
             fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
@@ -42,30 +42,29 @@ for ii = 1:sPlt.numPart
         end        
         
         if sPlt.drawDAQAll == 1
-            drawDAQAll(niAn, dirs.SavResultsDir, sv2File)
+            drawDAQAll(res, dirs.SavResultsDir, sv2File)
         end
         
         if sPlt.drawDAQPresMic == 1
-            drawDAQPresMic(niRes, dirs.SavResultsDir, sv2File)
+            drawDAQPresMic(res, dirs.SavResultsDir)
         end
         
         if sPlt.drawDAQAlignedPressure == 1
-            drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2File)
+            drawDAQAlignedPressure(res, dirs.SavResultsDir, sv2File)
         end
         
-        if sPlt.drawDAQMeanTrialMicf0 == 1
-            drawDAQMeanTrialMicf0(niRes, dirs.SavResultsDir)
-            drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
+        if sPlt.drawMeanTrial_PertCont == 1
+            drawMeanTrialMicf0(res, dirs.SavResultsDir)
+            drawAllTrialMicf0(res, dirs.SavResultsDir)
         end
         
-        if sPlt.drawDAQMeanTrialAudResp == 1
-            drawAudRespIndivTrial(niRes, dirs.SavResultsDir)
-            drawAudRespMeanTrial(niRes, dirs.SavResultsDir)
+        if sPlt.drawMeanTrial_MicHead == 1
+            drawAudRespIndivTrial(res, dirs.SavResultsDir)
+            drawAudRespMeanTrial(res, dirs.SavResultsDir)
         end
-        
-              
+                      
         if sPlt.NIDAQ_AllPertTrial == 1
-            drawDAQAllPertTrialMicf0(niRes, dirs.SavResultsDir)
+            drawDAQAllPertTrialMicf0(res, dirs.SavResultsDir)
         end 
     end
 end

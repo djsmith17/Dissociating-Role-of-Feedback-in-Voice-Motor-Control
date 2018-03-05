@@ -1,4 +1,4 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag, PresFlag, iRF)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
 %A quick reference
 %
 %Pert: Perturbation signal
@@ -9,17 +9,19 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, bTf0b, AudFlag, 
 %Trig: Trigger values where onset and offset occur
 %DN:   Down Sampled (and smoothed)
 
-sv2File = 0;
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
 
 %Identify some starting variables
+niAn.AnaType  = 'NIDAQ';
+niAn.expType  = expParam.expType;
 niAn.subject  = expParam.subject;
 niAn.run      = expParam.run;
 niAn.curSess  = expParam.curSess;
+niAn.f0AnaFile = [niAn.subject niAn.run 'f0AnalysisN.mat'];
 niAn.gender   = expParam.gender;
 niAn.AudFB    = expParam.AudFB;
-niAn.bTf0b    = bTf0b;
+niAn.bTf0b    = f0b;
 niAn.trialType = expParam.trialType;
 
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
@@ -121,7 +123,7 @@ function sensorPP     = sensorPreProcessing(sensor, sRate)
 
 sensorRed = 4*(sensor-2);
 
-[B,A] = butter(4, 10/(sRate/2)); %Low-pass filter under 10
+[B,A]    = butter(4, 10/(sRate/2)); %Low-pass filter under 10
 sensorPP = filter(B,A,abs(sensorRed));
 end
 
@@ -289,10 +291,15 @@ end
 function lims = identifyLimits(An)
 
 %Full Inidividual Trials: Pressure Sensor
-lims.pressure   = [0 4 0 5];
+maxPres = max(max(An.sensorP_p));
+minPres = min(min(An.sensorP_p));
+uLP = maxPres + 0.2;
+lLP = minPres - 0.2;
+
+lims.pressure   = [0 4 lLP uLP];
 
 %Aligned Pressure Data
-lims.pressureAl = [0 3.5 -0.5 5];
+lims.pressureAl = [0 3.5 lLP uLP];
 
 %Full Individual Trials: Force Sensors
 lims.force      = [0 4 1 5];
@@ -414,6 +421,7 @@ end
 
 function res = packResults(niAn, lims)
 
+res.expType = niAn.expType;
 res.subject = niAn.subject;
 res.run     = niAn.run;
 res.curSess = niAn.curSess;
@@ -440,8 +448,8 @@ res.timeSAl   = niAn.time_Al;
 res.sensorPAl = niAn.sensorP_Al;
 res.limitsPAl = lims.pressureAl;
 
-res.timeA     = niAn.time_audio;
-res.f0b       = niAn.f0b;
+res.timef0          = niAn.timef0;
+res.f0b             = niAn.f0b;
 
 res.numContTrialsPP = niAn.numContTrialsPP;
 res.numPertTrialsPP = niAn.numPertTrialsPP;
@@ -471,8 +479,8 @@ res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
 %Inflation Response
-res.respVar   = niAn.respVar;
-res.respVarM  = niAn.respVarMean;
-res.respVarSD = niAn.respVarSD;
+res.respVar      = niAn.respVar;
+res.respVarM     = niAn.respVarM;
+res.respVarSD    = niAn.respVarSD;
 res.InflaStimVar = niAn.InflaStimVar;
 end
