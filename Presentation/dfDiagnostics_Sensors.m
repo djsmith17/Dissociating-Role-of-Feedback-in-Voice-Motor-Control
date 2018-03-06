@@ -1,14 +1,15 @@
 function dfDiagnostics_Sensors()
-%dfDiagnostics_Sensors() collects data from the NIDAQ in the way that the main experimental A quick test of the force sensors before running the actual experiment.
-%This makes sure that the sensors are working they should be and we can
-%continue with the experiment. Eventually this will also include the
-%pressure sensor. 
+% dfDiagnostics_Sensors() collects data from the NIDAQ in the way that the main experimental A quick test of the force sensors before running the actual experiment.
+% This makes sure that the sensors are working they should be and we can
+% continue with the experiment. Eventually this will also include the
+% pressure sensor. 
 %
-%This script calls the following (4) functions:
-%dfDirs.m
-%initNIDAQ.m
-%dfMakePertSignal.m
-%drawDAQsignal.m
+% This script calls the following (4) functions:
+% dfDirs.m
+% dfInitNIDAQ.m
+% dfMakePertSignal.m
+% dfAnalysisNIDAQ.m
+% drawDAQsignal.m
 close all;
 
 % Main Experimental prompt: Subject/Run Information
@@ -16,10 +17,11 @@ prompt = {'Subject ID:',...
           'Session ID:',...
           'Number of Trials:',...
           'Percent Perturbed (Dec)',...
+          'Balloon:', ...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'DS1', '5', '1', 'yes'};
+defaultanswer = {'null', 'DS1', '2', '1', '2.0K_4','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(ExpPrompt)
@@ -38,13 +40,14 @@ expParam.trialLen      = 4;                       % Seconds
 expParam.numTrial      = str2double(ExpPrompt{3});
 expParam.curTrial      = [];
 expParam.perCatch      = str2double(ExpPrompt{4});
+expParam.balloon       = ExpPrompt{5};
 expParam.AudFB         = 'Masking Noise';
 expParam.resPause      = 3;
 expParam.trialLenLong  = expParam.numTrial*(expParam.trialLen + expParam.resPause);
 expParam.sigLong       = [];
 
 sv2F                   = 1; %Boolean
-collectNewData         = ExpPrompt{5};
+collectNewData         = ExpPrompt{6};
 
 %Set our dirs based on the project
 dirs = dfDirs(expParam.project);

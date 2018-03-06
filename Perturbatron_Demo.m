@@ -3,7 +3,7 @@
 dev = 'Dev2';
 
 s = daq.createSession('ni');
-addAnalogOutputChannel(s, dev', 0, 'Voltage');
+addAnalogOutputChannel(s, dev, 0, 'Voltage');
 
 s.Rate = 8000;
 
