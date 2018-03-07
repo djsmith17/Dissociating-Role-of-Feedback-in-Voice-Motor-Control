@@ -89,7 +89,7 @@ auAn.numPertTrials = length(auAn.pertIdx);
 % auAn.audioPP = audioPP;
 
 %The Audio Analysis
-f0Flag = 1;
+f0Flag = 0;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);

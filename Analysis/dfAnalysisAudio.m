@@ -76,6 +76,10 @@ if AudFlag == 1
     An.audioMf0S   = smoothf0(An.audioMf0);
     An.audioHf0S   = smoothf0(An.audioHf0);
 
+    [~, An.audioMf0Full] = sectionAudioData(An.timef0, An.audioMf0S, An.expTrigsSv);
+    
+    
+    
     %Normalize f0 and convert to cents
     prePert       = (0.5 < An.timef0 & 1.0 > An.timef0);
     
