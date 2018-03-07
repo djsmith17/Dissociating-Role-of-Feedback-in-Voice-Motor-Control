@@ -24,6 +24,12 @@ niAn.AudFB    = expParam.AudFB;
 niAn.bTf0b    = f0b;
 niAn.trialType = expParam.trialType;
 
+if isfield(expParam, 'balloon')
+    niAn.balloon = expParam.balloon;
+else
+    niAn.balloon = 'N/A';
+end
+
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 niAn.dnSamp   = 10;
