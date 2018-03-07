@@ -2,7 +2,7 @@ function drawDAQAlignedPressure(res, saveResultsDir, sv2F)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
-curSess  = res.curSess;       % The current experiment details (Subject/Run)
+curSess  = res.curSess;         % The current experiment details (Subject/Run)
 numTrial = res.numPertTrialsNi; % Number of Catch Trials (Only relevant ones)
 AudFB    = res.AudFB;
 
@@ -14,7 +14,14 @@ meanLagTime  = res.lagTimePm;
 meanRiseTime = res.riseTimePm;
 meanVal      = res.OnOfValPm;
 
+if isfield(res, 'balloon')
+    balloon = res.balloon;
+else
+    balloon = 'N/A';
+end
+
 curSess(strfind(curSess, '_')) = ' ';
+balloon(strfind(balloon, '_')) = '';
 
 plotpos = [500 300];
 plotdim = [800 600];
@@ -52,7 +59,8 @@ set(pltlgd, 'box', 'off',...
 t = annotation('textbox',[0.70 0.7 0.45 0.1],...
                'string', {['Onset Lag: ' num2str(1000*meanLagTime(1)) 'ms'];...
                           ['Rise Time: ' num2str(1000*meanRiseTime) 'ms'];...
-                          ['Onset/Offset Val: ' num2str(meanVal(1), '%1.2f') 'psi, ' num2str(meanVal(2), '%1.2f') 'psi']},...
+                          ['Onset/Offset Val: ' num2str(meanVal(1), '%1.2f') 'psi, ' num2str(meanVal(2), '%1.2f') 'psi'];...
+                          ['Balloon: ' balloon ]},...
                 'LineStyle','none',...
                 'FontWeight','bold',...
                 'FontSize',10,...

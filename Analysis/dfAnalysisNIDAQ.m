@@ -432,6 +432,7 @@ res.subject = niAn.subject;
 res.run     = niAn.run;
 res.curSess = niAn.curSess;
 res.AudFB   = niAn.AudFB;
+res.balloon = niAn.balloon;
 
 res.numTrials     = niAn.numTrial;
 res.numContTrials = niAn.numContTrials;
