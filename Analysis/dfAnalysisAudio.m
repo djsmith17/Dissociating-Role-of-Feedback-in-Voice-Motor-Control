@@ -76,7 +76,7 @@ if AudFlag == 1
     An.audioMf0S   = smoothf0(An.audioMf0);
     An.audioHf0S   = smoothf0(An.audioHf0);
 
-    [~, An.audioMf0Full] = sectionAudioData(An.timef0, An.audioMf0S, An.expTrigsSv);
+%     [~, An.audioMf0Full] = sectionAudioData(An.timef0, An.audioMf0S, An.expTrigsSv);
     
     
     
