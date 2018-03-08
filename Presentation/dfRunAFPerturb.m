@@ -106,16 +106,17 @@ end
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
+expParam.frameLen           = 96;     % Before downsampling
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
-expParam.frameLen           = 96;  % Before downsampling
+expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
 expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
 Audapter('deviceName', expParam.audioInterfaceName);
 Audapter('setParam', 'downFact', expParam.downFact, 0);
 Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
-Audapter('setParam', 'frameLen', expParam.frameLen / expParam.downFact, 0);
+Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
 p = getAudapterDefaultParams(expParam.gender);
 
 %Set up Parameters to control NIDAQ and Perturbatron
@@ -127,7 +128,7 @@ expParam.niCh   = niCh;   % Structure of Channel Names
 expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
 expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
-%Set up Auditory Feedback (Masking Noise, Pitch-Shift?
+%Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
 [expParam, p]      = dfSetAudFB(expParam, dirs, p);
 
 %Set up the order of trials (Order of perturbed, control, etc)
@@ -139,7 +140,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
-expParam.boundsRMS = 3;  %+/- dB
+expParam.boundsRMS = 3;   % +/- dB
 
 % Load the InflaVar Variables. Analyzed from previous recording
 load(dirs.InflaVarFile);
