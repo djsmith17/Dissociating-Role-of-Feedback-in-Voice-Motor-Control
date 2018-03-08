@@ -1,4 +1,4 @@
-function OfflineAudapterPlay(varargin)
+function dfRunAFPerturbOffline()
 %This scripts loads a previously recorded audio signal and provides a
 %Pitch-shift to it in a similiar fashion that happens during online
 %testing.

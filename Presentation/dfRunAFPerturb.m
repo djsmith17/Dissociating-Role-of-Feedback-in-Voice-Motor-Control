@@ -1,4 +1,4 @@
-function dfRunAFPerturb(varargin)
+function dfRunAFPerturb()
 % dfRunAFPerturb()
 % Pitch-shift Perturbation experiment. This script measures acoustic output 
 % from a participant as they have their auditory feedback perturbed.
