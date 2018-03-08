@@ -6,6 +6,7 @@ function dfRunSubjAnalysis()
 
 %Require the Signal Processing Toolbox
 
+close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot0'}; %List of multiple participants.
 AVar.numPart       = length(AVar.participants);
