@@ -16,9 +16,9 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot22', 'Pilot24', 'Pilot25', 'Pilot26'};       %    List of multiple participants.
+AVar.participants  = {'Pilot0'};       %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF1', 'SF2', 'SF3', 'SF4'};          %    List of multiple runs.
+AVar.runs          = {'DP3_1'};          %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -30,10 +30,10 @@ for i = 1:AVar.numPart
         participant = AVar.participants{i};
         run         = AVar.runs{j};
         
-        dirs.baselineData  = fullfile(dirs.SavData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
-        dirs.SavFileDir    = fullfile(dirs.SavData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
+        dirs.baselineData  = fullfile(dirs.RecData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
+        dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                                          % Where to save results
-        dirs.InflaVarDir   = fullfile(dirs.SavData, participant, 'IV1');                                                        % Where to save results
+        dirs.InflaVarDir   = fullfile(dirs.RecData, participant, 'IV1');                                                        % Where to save results
 
         if exist(dirs.baselineData, 'file') == 0
             disp('ERROR')
@@ -104,6 +104,7 @@ res.numSaveTrials = auRes.numSaveTrials;
 res.numContTrials = auRes.numContTrials;
 res.numPertTrials = auRes.numPertTrials;
 
+res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
 res.numContTrialsNi = niRes.numContTrials;
 res.timeS           = niRes.timeS;

@@ -35,7 +35,7 @@ prompt = {'Subject ID:',...
           'Tightness (inches):'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'SF1', '60', 'female', '2.0K_1', '12'};
+defaultanswer = {'null', 'SF1', '60', 'female', '2.0K_4', 'N/A'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(ExpPrompt)
@@ -58,10 +58,10 @@ num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full');
 switch num_trials
     case 'Practice'
         numTrials = 4;
-        perCatch  = 0.25;
+        perCatch  = 1.00;
     case 'Full'
-        numTrials = 10;
-        perCatch  = 0.50;
+        numTrials = 40;
+        perCatch  = 0.25;
 end
 
 %Experiment Configurations
@@ -297,7 +297,7 @@ tag = ['Trial ' num2str(curTrial)];
 trPrs = plot(time, sigSnip, 'LineWidth', 2, 'Color', trialColors(curTrial, :));
 
 if curTrial == 1
-    pltStr.tag = tag;
+    pltStr.tag = {tag};
     pltStr.curve = trPrs;
 else
     pltStr.tag   = cat(1, pltStr.tag, tag);
