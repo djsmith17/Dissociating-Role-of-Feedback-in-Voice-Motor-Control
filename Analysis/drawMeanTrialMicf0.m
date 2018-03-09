@@ -40,16 +40,15 @@ dottedStartx = [0 0];
 dottedy      = [-300 300];
 
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
-
 %Onset of Perturbation
 axes(ha(1))
 if ~isempty(meanf0ContOnset)
-    uH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'b', 1); %Unperturbed
+    uH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', '-b', 'transparent', 1); %Unperturbed
     lgdCurv = [lgdCurv uH.mainLine];
     lgdLabl = [lgdLabl, [num2str(numCT) ' Control Trials']];
     hold on
 end
-pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'r', 1); %Perturbed
+pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'lineprops', '-r', 'transparent', 1); %Perturbed
 lgdCurv = [lgdCurv pH.mainLine];
 lgdLabl = [lgdLabl, [num2str(numPT) ' Perturbed Trials']];
 hold on
@@ -59,24 +58,26 @@ xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', '
 title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
+set(gca,'YTickLabelMode', 'auto',...
+        'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold')
 
 %Offset of Perturbation
 axes(ha(2))
 if ~isempty(meanf0ContOffset)
-    shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'b', 1)  %Unperturbed
+    shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', 'b', 'transparent', 1)  %Unperturbed
     hold on
 end
-shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'r', 1) %Perturbed
+shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'lineprops', 'r', 'transparent', 1) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
 title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
-set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
+set(gca,'YTickLabelMode', 'auto',...
+        'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
@@ -113,7 +114,7 @@ timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
 
 plots = {'InterTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curSess '_' plots{i} f0Type '.jpg'];
+    plTitle = [curSess '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

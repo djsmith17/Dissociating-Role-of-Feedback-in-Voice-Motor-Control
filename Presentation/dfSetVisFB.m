@@ -20,10 +20,14 @@ function [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFB(targRMS, bo
 % visTrig: The trigger annotation that is used to trigger the triggerbox
 
 monitorSize = get(0, 'Monitor');
-if size(monitorSize,1) == 1
-    figPosition = [1 200 monitorSize(3) monitorSize(4)-200];
-elseif size(monitorSize,1) == 2
-    figPosition = [monitorSize(2,1) monitorSize(2,2) monitorSize(1,3) monitorSize(2,4)];
+numMon = size(monitorSize, 1);
+
+if numMon == 1
+    figPosition = [monitorSize(1) monitorSize(2) monitorSize(3) monitorSize(4)-200];
+elseif numMon == 2
+    [~, mon] = max(monitorSize(:,1));
+    
+    figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(1,3) monitorSize(1,4)];
 end
 anMsr.winPos = figPosition;
 

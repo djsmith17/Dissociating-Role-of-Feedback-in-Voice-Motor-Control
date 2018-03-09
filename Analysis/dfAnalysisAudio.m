@@ -76,20 +76,13 @@ if AudFlag == 1
     An.audioMf0S   = smoothf0(An.audioMf0);
     An.audioHf0S   = smoothf0(An.audioHf0);
 
+    % Section Audio with all trials...before parsing, and post-processing
+    [An.secTime, An.audioMf0SecAll] = sectionAudioData(An.timef0, An.audioMf0S, An.expTrigR);
+    [An.secTime, An.audioHf0SecAll] = sectionAudioData(An.timef0, An.audioHf0S, An.expTrigR);
+   
     %Normalize f0 and convert to cents
-    prePert       = (0.5 < An.timef0 & 1.0 > An.timef0);
-    
-%     An.trialf0b = [];
-%     for yy = 1:numSvTrial
-%         prePert = round((An.expTrigR(yy,1)- 0.5)*fV.sRate);
-%         atPert  = round((An.expTrigR(yy,1))*fV.sRate);
-%         trialf0 = mean(An.audioMf0S(prePert:atPert,yy),1);       
-%         
-%         An.trialf0b = cat(2,  An.trialf0b, trialf0);
-%     end
-        
-    
-    An.trialf0b   = mean(An.audioMf0S(prePert,:),1);
+    prePert       = (An.secTime <= 0);
+    An.trialf0b   = mean(An.audioMf0SecAll(prePert,:,1),1);   
     An.f0b        = mean(An.trialf0b);
 
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0b);
