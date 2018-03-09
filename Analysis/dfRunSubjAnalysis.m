@@ -1,15 +1,24 @@
 function dfRunSubjAnalysis()
-%Analyses the microphone data from the somatosensory perturbation
-%experiment. Measures the change in f0 over each trial, and each run for a
-%given participant. At the end it approximates a general response to
-%inflation to be used in the auditory perturbation experiment
+% dfRunSubjAnalysis() is my main script for analyzing recorded audio files 
+% and sensor information from experiments studying Voice Motor Control. 
+% This function is set up to analyze multiple subject and runs in an 
+% identical fashion, so that once you have a new data set, you can run it 
+% all very quickly. 
+% Most importantly, these analyses calculate change in f0 of a speaker's 
+% voice as they complete somatosensory and auditory feedback perturbation 
+% tasks. 
+%
+% This makes use of the following functions:
+% dfAnalysisNIDAQ.m
+% dfAnalysisAudapter.m
+%
+% Requires the Signal Processing Toolbox
 
-%Require the Signal Processing Toolbox
-
+close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot28'}; %List of multiple participants.
+AVar.participants  = {'Pilot0'};       %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF2'};
+AVar.runs          = {'DP3_1'};          %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -21,11 +30,10 @@ for i = 1:AVar.numPart
         participant = AVar.participants{i};
         run         = AVar.runs{j};
         
-        dirs.baselineData  = fullfile(dirs.RecData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); %Where to find data
-        dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']); %Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, participant, run); %Where to save full analyzed results
-        
-        dirs.InflaVarDir  = fullfile(dirs.RecData, participant, 'IV1');
+        dirs.baselineData  = fullfile(dirs.RecData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
+        dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
+        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                                          % Where to save results
+        dirs.InflaVarDir   = fullfile(dirs.RecData, participant, 'IV1');                                                        % Where to save results
 
         if exist(dirs.baselineData, 'file') == 0
             disp('ERROR')
@@ -96,6 +104,7 @@ res.numSaveTrials = auRes.numSaveTrials;
 res.numContTrials = auRes.numContTrials;
 res.numPertTrials = auRes.numPertTrials;
 
+res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
 res.numContTrialsNi = niRes.numContTrials;
 res.timeS           = niRes.timeS;

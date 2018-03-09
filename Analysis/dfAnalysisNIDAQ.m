@@ -1,13 +1,25 @@
 function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
-%A quick reference
+% [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
+% This function analyzes the raw audio data that was recorded by Audapter 
+% in the experiments measuring changes in f0. It first does a
+% pre-processing step where it identifies any experimental errors in
+% production, and also identifies and corrects for any lags in recording.
+% Once all the data are set up correctly and processed, they are handed off
+% to a function to do the actual analysis of the audio signals. 
+% 
+% dirs:     The set of directories we are currently working in 
+% expParam: The experimental parameters of the recorded experiment
+% DAQin:    Raw NIDAQ data structure
+% f0b:      Baseline fundamental frequency, recorded from baseline trials
+% AudFlag:  Flag to check if analyses of audio data should be performed
+% iRF:      Inflation Response Flag; should the inflation response be calculated
+% PresFlag: Flag to check if analyses of pressure data should be performed
 %
-%Pert: Perturbation signal
-%P:    Pressure sensor signal
-%FC:   Force Sensor Collar
-%FN:   Force Sensor Neck
+% niAn:  Analysis variables used to analyze NIDAQ data
+% niRes: Structure of result vars that are needed for stats and plotting
 %
-%Trig: Trigger values where onset and offset occur
-%DN:   Down Sampled (and smoothed)
+% This function calls the following functions
+% dfAnalysisAudio.m
 
 [r, c, n] = size(DAQin);
 sRate = expParam.sRateQ;
@@ -23,6 +35,12 @@ niAn.gender   = expParam.gender;
 niAn.AudFB    = expParam.AudFB;
 niAn.bTf0b    = f0b;
 niAn.trialType = expParam.trialType;
+
+if isfield(expParam, 'balloon')
+    niAn.balloon = expParam.balloon;
+else
+    niAn.balloon = 'N/A';
+end
 
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
@@ -41,13 +59,13 @@ niAn.numPertTrials = sum(niAn.PertTrials);
 
 %Unpack the NIDAQ raw data set
 niAn.time     = (0:1/niAn.sRate:(niAn.numSamp-1)/niAn.sRate)';
-niAn.pertSig  = squeeze(DAQin(:,1,:));
-niAn.sensorFC = squeeze(DAQin(:,2,:));
-niAn.sensorFN = squeeze(DAQin(:,3,:));
-niAn.sensorP  = squeeze(DAQin(:,4,:));
-niAn.audioM   = squeeze(DAQin(:,5,:));
-niAn.audioH   = squeeze(DAQin(:,6,:));
-niAn.sensorO  = squeeze(DAQin(:,7,:));
+niAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbation Signal (Pert)
+niAn.sensorFC = squeeze(DAQin(:,2,:)); % Force Sensor Collar (FC)
+niAn.sensorFN = squeeze(DAQin(:,3,:)); % Force Sensor Neck (FN)
+niAn.sensorP  = squeeze(DAQin(:,4,:)); % Pressure (P)
+niAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal (M)
+niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
+niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
 %ZeroMean the Offset
 niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
@@ -65,14 +83,14 @@ niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFNz, niAn.dnSamp);
 
 %Parse out the perturbed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Perturbed Trials
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
 %Make a dummy set of contTrig
 niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 
-%Find Rising and Falling Edges of sensor signals
+%Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
 [niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
 [niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
@@ -426,6 +444,7 @@ res.subject = niAn.subject;
 res.run     = niAn.run;
 res.curSess = niAn.curSess;
 res.AudFB   = niAn.AudFB;
+res.balloon = niAn.balloon;
 
 res.numTrials     = niAn.numTrial;
 res.numContTrials = niAn.numContTrials;

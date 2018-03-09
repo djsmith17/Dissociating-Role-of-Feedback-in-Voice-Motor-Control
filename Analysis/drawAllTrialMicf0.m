@@ -53,7 +53,7 @@ timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
 
 plots = {'IntraTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curSess '_' plots{i} f0Type '.jpg'];
+    plTitle = [curSess '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
