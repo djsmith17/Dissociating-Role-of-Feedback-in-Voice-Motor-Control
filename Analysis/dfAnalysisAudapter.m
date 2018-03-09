@@ -1,10 +1,27 @@
 function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
-%Analyses the microphone data from the somatosensory perturbation
-%experiment. Measures the change in f0 over each trial, and each run for a
-%given participant. At the end it approximates a general response to
-%inflation to be used in the auditory perturbation experiment
-
-%Requires the Signal Processing Toolbox
+% [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
+% This function analyzes the raw audio data that was recorded by Audapter 
+% in the experiments measuring changes in f0. It first does a
+% pre-processing step where it identifies any experimental errors in
+% production, and also identifies and corrects for any lags in recording.
+% Once all the data are set up correctly and processed, they are handed off
+% to a function to do the actual analysis of the audio signals. 
+% 
+% dirs:     The set of directories we are currently working in 
+% expParam: The experimental parameters of the recorded experiment
+% rawData:  Raw Audapter data structures
+% f0b:      Baseline fundamental frequency, recorded from baseline trials
+% AudFlag:  Flag to check if analyses of audio data should be performed
+% iRF:      Inflation Response Flag; should the inflation response be calculated
+% niAn:     Analysis variables used to analyze NIDAQ data
+%
+% auAn:  Analysis variables used to analyze Audapter data
+% auRes: Structure of result vars that are needed for stats and plotting
+%
+% This function calls the following functions
+% dfAnalysisAudio.m
+%
+% Requires the Signal Processing Toolbox
 
 %Identify some starting variables
 auAn.AnaType  = 'Audapter';
