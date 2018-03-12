@@ -27,6 +27,7 @@ limits           = res.limitsAmean;
 statSM = round(10*res.respVarM(2))/10;
 statRM = round(10*res.respVarM(3))/10;
 statRP = round(res.respVarM(4));
+curSess(strfind(curSess, '_')) = ' ';
 
 lgdCurv = [];
 lgdLabl = {};
