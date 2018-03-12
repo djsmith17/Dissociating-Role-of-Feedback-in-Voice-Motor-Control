@@ -7,7 +7,7 @@ function dfRunSFPerturb()
 %
 % This script calls the following 8 functions:
 % dfDirs.m
-% initNIDAQ.m
+% dfInitNIDAQ.m
 % dfSetAudFB.m
 % dfSetTrialOrder.m
 % dfMakePertSignal.m
