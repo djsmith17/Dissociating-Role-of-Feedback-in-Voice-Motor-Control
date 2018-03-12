@@ -1,5 +1,5 @@
 function drawMeanTrialMicf0(res, plotFolder)
-%drawDAQMeanTrialMicf0(niRes, plotFolder) is plotting function for
+%drawDAQMeanTrialMicf0(res, plotFolder) is plotting function for
 %displaying differences in microphone channel recordings between perturbed
 %and control trials. If your data set does not have any control trials,
 %this will give an error
@@ -24,9 +24,10 @@ meanf0ContOffset = res.audioMf0MeanCont(:,3);
 CIf0ContOffset   = res.audioMf0MeanCont(:,4);
 limits           = res.limitsAmean;
 
-statSM = round(10*res.respVarM(2))/10;
-statRM = round(10*res.respVarM(3))/10;
+statSM = round(res.respVarM(2), 1);
+statRM = round(res.respVarM(3), 1);
 statRP = round(res.respVarM(4));
+curSess(strfind(curSess, '_')) = ' ';
 
 lgdCurv = [];
 lgdLabl = {};
@@ -111,7 +112,8 @@ timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
                         'FontWeight','bold',...
                         'FontSize',8,...
                         'FontName','Arial');
-
+         
+                    
 plots = {'InterTrialf0'};
 for i = 1:length(plots)
     plTitle = [curSess '_' plots{i} '.jpg'];
