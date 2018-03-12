@@ -18,7 +18,7 @@ close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot0'};       %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'DP3_1'};          %    List of multiple runs.
+AVar.runs          = {'DP3'};          %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -57,10 +57,6 @@ for i = 1:AVar.numPart
         [pF, iRF] = checkDRFExpType(AVar.expType);
         aFn = 0; aFa = 1; %Audio Analysis Flag        
         
-        %Initialize these so I can stop worrying about it
-        niAn = []; niRes = [];
-        auAn = []; auRes = [];
-                
         f0b = bV.qRes.meanf0;
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRF, niAn);
