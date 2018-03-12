@@ -92,8 +92,6 @@ res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
 
 res.numTrials     = auRes.numTrials;
-res.audioM        = auRes.audioM;
-res.audioH        = auRes.audioH;
 res.svIdx         = auRes.svIdx;
 res.expTrigsSv    = auRes.expTrigsSv;
 res.pertIdx       = auRes.pertIdx;     % The indices of the svIdx;
