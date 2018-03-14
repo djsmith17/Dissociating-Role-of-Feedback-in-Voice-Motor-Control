@@ -36,7 +36,7 @@ auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = f0b;
 
-fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
+fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, niAn.bTf0b)
 
 auAn.sRate    = expParam.sRateAnal;
 auAn.sRateNi  = niAn.sRate;
@@ -179,7 +179,7 @@ micSec  = micAuNi(sectionInd);
 headSec = headAuNi(sectionInd);
 
 %Find the onset of Voicing
-pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
+pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt, audioSecSp);
 
 if pp.voiceOnsetLate
     saveT    = 0;  
@@ -214,7 +214,7 @@ timeLag      = maxLag/fs;
 timeLag      = -timeLag;
 end
 
-function pp = findVoiceOnsetThresh(audio, fs, audioSt)
+function pp = findVoiceOnsetThresh(audio, fs, audioSt, audioSecSp)
 
 %audioSt is the index in the full audio signal from where we will start to
 %do frequency analysis
@@ -247,8 +247,8 @@ pp.voiceOnsetInd = pp.threshIdx(1);
 pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
 
 %The rest of the signal base the first index...are there any dead zones??
-pp.fallOffLog = pp.env(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
-pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; %Last longer than 300ms
+pp.fallOffLog = pp.env(pp.voiceOnsetInd:audioSecSp) < pp.thresh*pp.maxPeak;
+pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than 300ms
 end
 
 function lims = identifyLimits(An)

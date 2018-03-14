@@ -34,6 +34,7 @@ end
 An = initAudVar(An);
 
 if AudFlag == 1
+    fprintf('\nStarting Pitch Analysis\n')
     An.numSamp = length(An.audioM);
     %Set some frequency analysis variables
     fV = setFreqAnalVar(An.sRate, An.numSamp);
@@ -48,6 +49,7 @@ if AudFlag == 1
     An.audioMSv = An.audioM(:, An.svIdx);
     An.audioHSv = An.audioH(:, An.svIdx);
     [~, numSvTrial] = size(An.audioMSv);
+    An.svTrialType = An.trialType(An.svIdx);
 
     %Which analysis type?
     if strcmp(An.f0Type, 'Praat') == 1
@@ -232,7 +234,7 @@ end
 expTrigR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
-fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+% fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 end
 
 function f0Win = simpleAutoCorr(voice, fV)

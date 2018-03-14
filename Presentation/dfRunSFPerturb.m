@@ -35,7 +35,7 @@ prompt = {'Subject ID:',...
           'Tightness (inches):'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'SF1', '60', 'female', '2.0K_4', 'N/A'};
+defaultanswer = {'null', 'SF1', '60', 'female', '2.0E_1', 'N/A'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(ExpPrompt)
@@ -60,8 +60,8 @@ switch num_trials
         numTrials = 4;
         perCatch  = 1.00;
     case 'Full'
-        numTrials = 40;
-        perCatch  = 0.25;
+        numTrials = 10;
+        perCatch  = 0.50;
 end
 
 %Experiment Configurations
