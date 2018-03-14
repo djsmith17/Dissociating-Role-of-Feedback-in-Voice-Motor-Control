@@ -83,7 +83,6 @@ expParam.AudFB        = AudFB;
 expParam.AudFBSw      = AudFBSw;
 expParam.AudPert      = '-100 cents ramped'; % Var not used here. Just saving for balance
 expParam.AudPertSw    = 1;                   % Var not used here. Just saving for balance
-expParam.AFRampLen    = 0.5;
 expParam.bVis         = 0;
 
 %Set our dirs based on the project

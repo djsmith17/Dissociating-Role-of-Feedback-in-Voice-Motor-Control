@@ -62,7 +62,6 @@ expParam.gender     = ExpPrompt{3};
 expParam.trialLen   = 4;                        % Seconds
 expParam.numTrial   = str2double(ExpPrompt{4});
 expParam.AudFBSw    = 0;
-expParam.AFRampLen  = 0.0;
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);

@@ -16,7 +16,6 @@ expParam.gender     = 'male';
 expParam.trialLen   = 100;  % Seconds
 expParam.numTrial   = 1;
 expParam.AudFBSw    = 2;    % Masking Noise
-expParam.AFRampLen  = 0.5;
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
