@@ -41,16 +41,23 @@ elseif expParam.AudFBSw == 2
 
     check_file(noiseWavFN);
     [w, fs] = read_audio(noiseWavFN);
+    
+    rampLen  = expParam.AFRampLen;
+    rampLenP = rampLen*fs;
+    ramp = linspace(0, 1, rampLenP);
+    win = ones(size(w));
+    win(1:rampLenP) = ramp;
+    wWin = w.*win;
 
     if fs ~= p.sr * p.downFact
-        w = resample(w, p.sr * p.downFact, fs);              
+        wWin = resample(wWin, p.sr * p.downFact, fs);              
     end
-    if length(w) > maxPBSize
-        w = w(1:maxPBSize);
+    if length(wWin) > maxPBSize
+        wWin = wWin(1:maxPBSize);
     end
-    Audapter('setParam', 'datapb', w, 1);
+    Audapter('setParam', 'datapb', wWin, 1);
     
-    expParam.SSNw   = w;
+    expParam.SSNw   = wWin;
     expParam.SSNfs  = fs;
 else
     disp('ERROR in dfSetAudFB: Inappropriate feedback method selected')

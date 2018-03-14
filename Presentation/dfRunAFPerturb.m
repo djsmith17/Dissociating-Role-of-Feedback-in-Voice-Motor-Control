@@ -81,6 +81,7 @@ expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
+expParam.AFRampLen    = 0.5;
 expParam.InflaFile    = [expParam.subject expParam.InflaVar 'DRF.mat']; % Results from the laryngeal perturbation experiment
 expParam.bVis         = 0;
 
