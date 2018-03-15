@@ -30,7 +30,7 @@ elseif expParam.AudFBSw == 1
 
 %SPEECH-SHAPED MASKING NOISE
 elseif expParam.AudFBSw == 2
-    p.fb          = 2;   % Audio File (Masking)
+    p.fb          = 0;   % Audio File (Masking)
     p.bPitchShift = 0;
 %     p.dScale      = 1; %Headphone Scalar
     
@@ -41,7 +41,7 @@ elseif expParam.AudFBSw == 2
 
     check_file(noiseWavFN);
     [w, fs] = read_audio(noiseWavFN);
-
+    
     if fs ~= p.sr * p.downFact
         w = resample(w, p.sr * p.downFact, fs);              
     end
