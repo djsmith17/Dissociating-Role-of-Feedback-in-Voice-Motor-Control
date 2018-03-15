@@ -54,8 +54,8 @@ switch AudFB
 end
 
 % Dialogue box asking if Practice set or Full set of trials
-num_trials = questdlg('Practice, Diagnostic, or Full?','Length','Practice', 'Diagnostic', 'Full','Full');
-switch num_trials
+recType = questdlg('Practice, Diagnostic, or Full?','Length','Practice', 'Diagnostic', 'Full','Full');
+switch recType
     case 'Practice'
         numTrials = 4;
         perCatch  = 1.00;
@@ -66,6 +66,8 @@ switch num_trials
         numTrials = 40;
         perCatch  = 0.25;
 end
+
+fprintf('\nBeginning %s set of recordings for\n%s %s with %s and Balloon %s\n\n', recType, ExpPrompt{1}, ExpPrompt{2}, AudFB, ExpPrompt{5})
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -228,14 +230,14 @@ DRF.rawData     = rawData;
 
 % Save the large data structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-switch num_trials
+switch recType
     case 'Practice'
         return
     case 'Diagnostic'
-        fprintf('\nSaving Recorded Data\n')
+        fprintf('\nSaving Recorded Data at:\n%s\n', dirs.RecFileDir)
         save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
     case 'Full'
-        fprintf('\nSaving Recorded Data\n')
+        fprintf('\nSaving Recorded Data at:\n%s\n', dirs.RecFileDir')
         save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 end
 
