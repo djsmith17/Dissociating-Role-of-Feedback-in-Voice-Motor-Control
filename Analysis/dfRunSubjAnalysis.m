@@ -16,9 +16,9 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot29'};       %    List of multiple participants.
+AVar.participants  = {'Pilot31'};       %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %    List of multiple runs.
+AVar.runs          = {'DS3', 'DS4', 'DS5', 'DS6'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -27,7 +27,7 @@ dirs               = dfDirs(AVar.project);
 
 for i = 1:AVar.numPart
     participant = AVar.participants{i};
-    dirs.baselineData  = fullfile(dirs.SavData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
+    dirs.baselineData  = fullfile(dirs.RecData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
         
     if exist(dirs.baselineData, 'file') == 0
         fprintf('ERROR: Could not find baseline data set at %s\n', dirs.baselineData)
@@ -41,9 +41,9 @@ for i = 1:AVar.numPart
     for j = 1:AVar.numRuns
         run         = AVar.runs{j};
         
-        dirs.SavFileDir    = fullfile(dirs.SavData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
+        dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                                          % Where to save results
-        dirs.InflaVarDir   = fullfile(dirs.SavData, participant, 'IV1');                                                        % Where to save results
+        dirs.InflaVarDir   = fullfile(dirs.RecData, participant, 'IV1');                                                        % Where to save results
 
         if exist(dirs.SavResultsDir, 'dir') == 0
             mkdir(dirs.SavResultsDir)
