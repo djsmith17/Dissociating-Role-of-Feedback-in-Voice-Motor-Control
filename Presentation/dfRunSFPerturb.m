@@ -27,20 +27,12 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-prompt = {'Subject ID:',...
-          'Session ID:',...
-          'Baseline Loudness (dB SPL):',...
-          'Gender ("male" or "female"):',...
-          'Balloon:', ...
-          'Tightness (inches):'};
-name = 'Subject Information';
-numlines = 1;
-defaultanswer = {'null', 'SF1', '60', 'female', '2.0E_1', 'N/A'};
-ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
-
-if isempty(ExpPrompt)
-    return
-end
+subject    = 'Pilot33';% Pilot0/Subject2/null
+run        = 'DS1';    % SF1/DS1/ Your choice
+blLoudness = 60;       % (dB SPL) Baseline loudness
+gender     = 'female'; % "male" or "female"
+balloon    = '2.0E_2'; % Which pertrubation balloon?
+tightness  = 10;       % (inches of slack in bungie cord)
 
 % Dialogue box asking for what type of Auditory Feedback
 AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
@@ -67,18 +59,18 @@ switch recType
         perCatch  = 0.25;
 end
 
-fprintf('\nBeginning %s set of recordings for\n%s %s with %s and Balloon %s\n\n', recType, ExpPrompt{1}, ExpPrompt{2}, AudFB, ExpPrompt{5})
+fprintf('\nBeginning %s set of recordings for\n%s %s with %s and Balloon %s\n\n', recType, subject, run, AudFB, balloon)
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType      = 'Somatosensory Perturbation_Perceptual';
-expParam.subject      = ExpPrompt{1};
-expParam.run          = ExpPrompt{2};
+expParam.subject      = subject;
+expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = str2double(ExpPrompt{3});
-expParam.gender       = ExpPrompt{4};
-expParam.balloon      = ExpPrompt{5};
-expParam.tightness    = ExpPrompt{6};
+expParam.targRMS      = blLoudness;
+expParam.gender       = gender;
+expParam.balloon      = balloon;
+expParam.tightness    = tightness;
 expParam.niDev        = 'Dev2';              % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
