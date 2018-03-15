@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot33'; % Subject#, Pilot#, null
+subject    = 'null'; % Subject#, Pilot#, null
 run        = 'DS1';     % SF1, DS1, etc
 blLoudness = 60;        % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
@@ -138,7 +138,7 @@ expParam.boundsRMS = 3;  %+/- dB
 fprintf('\nStarting Trials\n\n')
 
 % Dim the lights (Set the visual Feedback)
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
 pause(5);                % Let them breathe a sec

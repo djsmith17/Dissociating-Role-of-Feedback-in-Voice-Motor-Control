@@ -104,7 +104,7 @@ else
 end
 
 % Dim the lights (Set the visual Feedback)
-[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
+[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
 pause(5);                % Let them breathe a sec
