@@ -148,6 +148,7 @@ set(H3,'Visible','off'); % Turn off 'Ready?'
 
 DAQin = []; rawData = [];
 pltStr = [];
+loudResults = [];
 presH = initLiveResult(expParam, 1);
 for ii = 1:expParam.numTrial
     expParam.curTrialNum  = ii;
@@ -194,7 +195,8 @@ for ii = 1:expParam.numTrial
     %Grab smooth RMS trace from 'data' structure
     rmsMean = dfCalcMeanRMS(data);
     %Compare against baseline and updated Visual Feedback
-    [color, newPos] = dfUpdateVisFB(anMsr, rmsMean);
+    [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
+    loudResults = cat(1, loudResults, loudResult);
 
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
@@ -210,6 +212,7 @@ fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 
 % Store all the variables and data from the session in a large structure
 expParam.elapsedTime = elapsed_time;
+expParam.loudResults = loudResults;
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
 DRF.p           = p;
