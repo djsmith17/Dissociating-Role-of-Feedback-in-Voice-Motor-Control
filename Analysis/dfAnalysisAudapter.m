@@ -51,13 +51,14 @@ auAn.anaTrigs  = expParam.trigs(:,:,3);
 auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM     = [];
 auAn.audioH     = [];
+auAn.svIdx      = []; % Full index of trials saved against the actual trials recorded
+auAn.pertIdx    = []; % The trial index pertaining to all the list of all trials saved, post-processing
+auAn.contIdx    = []; % The trial index pertaining to all the list of all trials saved, post-processing
 auAn.audioMSv   = [];
 auAn.audioHSv   = [];
-auAn.svIdx      = [];
+auAn.trialTypeSv = [];
 auAn.expTrigsSv = [];
-auAn.contIdx    = [];
 auAn.contTrig   = [];
-auAn.pertIdx    = [];
 auAn.pertTrig   = [];
 auAn.allAuNiDelays = [];
 
@@ -99,6 +100,11 @@ for ii = 1:auAn.numTrial
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
+
+%Find only the trials we care about
+auAn.audioMSv      = auAn.audioM(:, auAn.svIdx);
+auAn.audioHSv      = auAn.audioH(:, auAn.svIdx);
+auAn.trialTypeSv   = auAn.trialType(auAn.svIdx);
 auAn.numSaveTrials = length(auAn.svIdx);
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
@@ -255,9 +261,9 @@ function lims = identifyLimits(An)
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
 %Full Individual Trials: f0 Audio
-if ~isempty(An.audioMf0_pPP)
-    pertTrialsM = An.audioMf0_pPP;
-    pertTrialsH = An.audioHf0_pPP;
+if ~isempty(An.audioMf0p)
+    pertTrialsM = An.audioMf0p;
+    pertTrialsH = An.audioHf0p;
     sec = 100:700;
 
     uLMa = max(pertTrialsM(sec,:));
@@ -399,13 +405,13 @@ res.f0b           = auAn.f0b;
 
 res.numContTrialsPP = auAn.numContTrialsPP;
 res.numPertTrialsPP = auAn.numPertTrialsPP;
-res.pertTrigPP      = auAn.pertTrigPP;
+res.pertTrigPP      = auAn.expTrigsf0Sv;
 
 %Full Individual Trials: Mic/Head f0 Trace 
-res.audioMf0TrialPert = auAn.audioMf0_pPP;
-res.audioMf0TrialCont = auAn.audioMf0_cPP;
-res.audioHf0TrialPert = auAn.audioHf0_pPP;
-res.audioHf0TrialCont = auAn.audioHf0_cPP;
+res.audioMf0TrialPert = auAn.audioMf0p;
+res.audioMf0TrialCont = auAn.audioMf0c;
+res.audioHf0TrialPert = auAn.audioHf0p;
+res.audioHf0TrialCont = auAn.audioHf0c;
 res.limitsA           = lims.audioM;
 res.limitsAudRes      = lims.audioAudRespMH;
 
