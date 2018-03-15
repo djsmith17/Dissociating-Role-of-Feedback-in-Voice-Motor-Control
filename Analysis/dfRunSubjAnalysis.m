@@ -18,7 +18,7 @@ close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot30'};       %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'DS3'};          %    List of multiple runs.
+AVar.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -29,6 +29,7 @@ for i = 1:AVar.numPart
     participant = AVar.participants{i};
     dirs.baselineData  = fullfile(dirs.SavData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
         
+    fprintf('%%%%%%%%%%%%%%%%%%%%%%%%')
     if exist(dirs.baselineData, 'file') == 0
         fprintf('ERROR: Could not find baseline data set at %s\n', dirs.baselineData)
         return
