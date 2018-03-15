@@ -13,7 +13,7 @@ close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'Pilot30'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'DS3'}; %All runs to consider 
+sPlt.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
