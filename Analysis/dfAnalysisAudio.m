@@ -95,8 +95,8 @@ if AudFlag == 1
 
     %Find the Perturbed Trials
     An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
-    An.audioMf0p = parseTrialTypes(An.audioMf0_norm, An.pertf0Idx);
-    An.audioHf0p = parseTrialTypes(An.audioHf0_norm, An.pertf0Idx);
+    An.audioMf0p = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
+    An.audioHf0p = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);
     An.contTrigsR  = An.expTrigsf0Sv(An.contf0Idx,:);
     An.audioMf0c = parseTrialTypes(An.audioMf0sv, An.contf0Idx);
     An.audioHf0c = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
