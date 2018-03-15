@@ -197,6 +197,7 @@ for ii = 1:expParam.numTrial
     %Compare against baseline and updated Visual Feedback
     [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
+    dispLoudnessResult(loudResult)
 
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
@@ -343,4 +344,18 @@ plTitle = 'Online AFA Time Warp Spectrum';
 saveFileName = [savedResdir plTitle '.png'];
 
 % export_fig(saveFileName)
+end
+
+function dispLoudnessResult(loudResult)
+
+switch loudResult
+    case -1
+        result = 'too soft';
+    case 0
+        result = 'just right';
+    case 1
+        result = 'too loud';
+end
+
+fprintf('Subject was %s\n', result)
 end
