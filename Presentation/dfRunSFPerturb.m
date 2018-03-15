@@ -54,14 +54,17 @@ switch AudFB
 end
 
 % Dialogue box asking if Practice set or Full set of trials
-num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full');
+num_trials = questdlg('Practice, Diagnostic, or Full?','Length','Practice', 'Diagnostic', 'Full','Full');
 switch num_trials
     case 'Practice'
         numTrials = 4;
         perCatch  = 1.00;
-    case 'Full'
+    case 'Diagnostic'
         numTrials = 10;
         perCatch  = 0.50;
+    case 'Full'
+        numTrials = 40;
+        perCatch  = 0.25;
 end
 
 %Experiment Configurations
@@ -226,7 +229,11 @@ dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.
 switch num_trials
     case 'Practice'
         return
+    case 'Diagnostic'
+        fprintf('\nSaving Recorded Data\n')
+        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
     case 'Full'
+        fprintf('\nSaving Recorded Data\n')
         save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 end
 
