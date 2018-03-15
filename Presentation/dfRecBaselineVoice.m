@@ -31,18 +31,10 @@ function dfRecBaselineVoice()
 close all;
 
 % Main Experimental prompt: Subject/Run Information
-prompt = {'Subject ID:',...
-          'Session ID:',...
-          'Gender ("male" or "female")',...
-          'Number of Trials:'};
-name = 'Subject Information';
-numlines = 1;
-defaultanswer = {'null', 'BV1', 'female', '3'};
-ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
-
-if isempty(ExpPrompt)
-    return
-end
+subject    = 'Pilot33'; % Subject#, Pilot#, null
+run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
+gender     = 'male';    % "male" or "female"
+numTrials  = 3;         % number of trials;
 
 VoiceRec = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
 switch VoiceRec
@@ -55,12 +47,12 @@ end
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.subject    = ExpPrompt{1}; %Subject#, Pilot#, null
-expParam.run        = ExpPrompt{2};
+expParam.subject    = subject; 
+expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
-expParam.gender     = ExpPrompt{3};
+expParam.gender     = gender;
 expParam.trialLen   = 4;                        % Seconds
-expParam.numTrial   = str2double(ExpPrompt{4});
+expParam.numTrial   = numTrials;
 expParam.AudFBSw    = 0;
 
 % Set our dirs based on the project
