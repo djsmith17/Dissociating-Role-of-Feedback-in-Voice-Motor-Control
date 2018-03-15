@@ -44,6 +44,8 @@ switch VoiceRec
         VoiceRecsw = 1;
 end
 
+fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
+
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
@@ -155,6 +157,7 @@ DRF.qRes = qRes;
 
 % Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
+fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF')
 
 fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
