@@ -31,18 +31,10 @@ function dfRecBaselineVoice()
 close all;
 
 % Main Experimental prompt: Subject/Run Information
-prompt = {'Subject ID:',...
-          'Session ID:',...
-          'Gender ("male" or "female")',...
-          'Number of Trials:'};
-name = 'Subject Information';
-numlines = 1;
-defaultanswer = {'null', 'BV1', 'female', '3'};
-ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
-
-if isempty(ExpPrompt)
-    return
-end
+subject    = 'Pilot33'; % Subject#, Pilot#, null
+run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
+gender     = 'male';    % "male" or "female"
+numTrials  = 3;         % number of trials;
 
 VoiceRec = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
 switch VoiceRec
@@ -52,15 +44,17 @@ switch VoiceRec
         VoiceRecsw = 1;
 end
 
+fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
+
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.subject    = ExpPrompt{1}; %Subject#, Pilot#, null
-expParam.run        = ExpPrompt{2};
+expParam.subject    = subject; 
+expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
-expParam.gender     = ExpPrompt{3};
+expParam.gender     = gender;
 expParam.trialLen   = 4;                        % Seconds
-expParam.numTrial   = str2double(ExpPrompt{4});
+expParam.numTrial   = numTrials;
 expParam.AudFBSw    = 0;
 
 % Set our dirs based on the project
@@ -110,7 +104,7 @@ else
 end
 
 % Dim the lights (Set the visual Feedback)
-[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
+[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
 pause(5);                % Let them breathe a sec
@@ -163,6 +157,7 @@ DRF.qRes = qRes;
 
 % Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
+fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF')
 
 fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)

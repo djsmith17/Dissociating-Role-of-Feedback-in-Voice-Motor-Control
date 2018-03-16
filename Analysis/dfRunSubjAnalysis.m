@@ -16,9 +16,9 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot0'};       %    List of multiple participants.
+AVar.participants  = {'Pilot33'};       %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'DP3_1'};          %    List of multiple runs.
+AVar.runs          = {'DS5','DS6'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';
 AVar.debug         = 0;
@@ -26,41 +26,46 @@ AVar.debug         = 0;
 dirs               = dfDirs(AVar.project);
 
 for i = 1:AVar.numPart
+    participant = AVar.participants{i};
+    dirs.baselineData  = fullfile(dirs.RecData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
+        
+    if exist(dirs.baselineData, 'file') == 0
+        fprintf('ERROR: Could not find baseline data set at %s\n', dirs.baselineData)
+        return
+    else
+        fprintf('Loading baseline data set for %s %s\n', participant, AVar.baselineFile)
+        load(dirs.baselineData) % Returns DRF
+        bV = DRF;
+    end
+    
     for j = 1:AVar.numRuns
-        participant = AVar.participants{i};
         run         = AVar.runs{j};
         
-        dirs.baselineData  = fullfile(dirs.RecData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
         dirs.SavFileDir    = fullfile(dirs.RecData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                                          % Where to save results
         dirs.InflaVarDir   = fullfile(dirs.RecData, participant, 'IV1');                                                        % Where to save results
 
-        if exist(dirs.baselineData, 'file') == 0
-            disp('ERROR')
-            return
+        if exist(dirs.SavResultsDir, 'dir') == 0
+            mkdir(dirs.SavResultsDir)
         end
         
         if exist(dirs.InflaVarDir, 'dir') == 0
             mkdir(dirs.InflaVarDir)
         end
         
-        if exist(dirs.SavResultsDir, 'dir') == 0
-            mkdir(dirs.SavResultsDir)
+        fprintf('%%%%%%%%%%%%%%%%%%%%%%%%\n')
+        if exist(dirs.SavFileDir, 'file') == 0
+            fprintf('ERROR: Could not find saved data set at %s\n', dirs.SavFileDir)
+            return
+        else
+            fprintf('Loading saved data set for %s %s\n', participant, run)
+            load(dirs.SavFileDir) % Returns DRF
         end
-
-        fprintf('Loading Files for %s %s\n', participant, run)
-        load(dirs.baselineData) % Returns DRF
-        bV = DRF;
-        load(dirs.SavFileDir)   % Returns DRF
         
         AVar.expType = DRF.expParam.expType;
         [pF, iRF] = checkDRFExpType(AVar.expType);
         aFn = 0; aFa = 1; %Audio Analysis Flag        
         
-        %Initialize these so I can stop worrying about it
-        niAn = []; niRes = [];
-        auAn = []; auRes = [];
-                
         f0b = bV.qRes.meanf0;
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRF, niAn);
@@ -69,7 +74,7 @@ for i = 1:AVar.numPart
         
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'Results' res.f0Type 'DRF.mat']);
         if AVar.debug == 0
-            fprintf('Saving Results for %s %s\n', participant, run)
+            fprintf('\nSaving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')
         end
         
@@ -92,8 +97,6 @@ res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
 
 res.numTrials     = auRes.numTrials;
-res.audioM        = auRes.audioM;
-res.audioH        = auRes.audioH;
 res.svIdx         = auRes.svIdx;
 res.expTrigsSv    = auRes.expTrigsSv;
 res.pertIdx       = auRes.pertIdx;     % The indices of the svIdx;
@@ -205,7 +208,7 @@ InflaVar = res.InflaStimVar;
 
 dirs.InflaVarFile = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
 if debug == 0
-    fprintf('Saving Inflation Stimulus Variables for %s %s\n', participant, run)
+    fprintf('Saving Inflation Stimulus Variables for %s %s\n\n', participant, run)
     save(dirs.InflaVarFile, 'InflaVar');
 end
 end

@@ -5,6 +5,7 @@ function VisFeedback_testbed
 %setPerturbVisualFB.m
 %updateVisualFeed.m
 
+curSess     = 'VisFeedbackTestBed';
 recordedRMS = (5+rand(1991,1))/1000;
 meanRMS     = mean(recordedRMS);
 numTrial = 2;
@@ -13,7 +14,7 @@ targRMS   = 50; %dB just to test
 boundsRMS = 3; %+/- dB
 
 close all
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(targRMS, boundsRMS);
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(curSess, targRMS, boundsRMS);
 
 pertParadigm(anMsr, H1, H2, H3, fbLines, rec, trigCirc, meanRMS)
 % triggerTest(anMsr, H1, H2, H3, fbLines, rec, trigCirc, numTrial)

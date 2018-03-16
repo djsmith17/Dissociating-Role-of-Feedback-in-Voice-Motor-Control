@@ -324,9 +324,9 @@ lims.force      = [0 4 1 5];
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
 %Full Individual Trials: f0 Audio
-if ~isempty(An.audioMf0_pPP)
-    pertTrialsM = An.audioMf0_pPP;
-    pertTrialsH = An.audioHf0_pPP;
+if ~isempty(An.audioMf0p)
+    pertTrialsM = An.audioMf0p;
+    pertTrialsH = An.audioHf0p;
     sec = 100:700;
 
     uLMa = max(pertTrialsM(sec,:));
@@ -472,13 +472,13 @@ res.f0b             = niAn.f0b;
 
 res.numContTrialsPP = niAn.numContTrialsPP;
 res.numPertTrialsPP = niAn.numPertTrialsPP;
-res.pertTrigPP      = niAn.pertTrigPP;
+res.pertTrigPP      = niAn.pertTrigsR;
 
 %Full Individual Trials: Mic/Head f0 Trace 
-res.audioMf0TrialPert = niAn.audioMf0_pPP;
-res.audioMf0TrialCont = niAn.audioMf0_cPP;
-res.audioHf0TrialPert = niAn.audioHf0_pPP;
-res.audioHf0TrialCont = niAn.audioHf0_cPP;
+res.audioMf0TrialPert = niAn.audioMf0p;
+res.audioMf0TrialCont = niAn.audioMf0c;
+res.audioHf0TrialPert = niAn.audioHf0p;
+res.audioHf0TrialCont = niAn.audioHf0c;
 res.limitsA           = lims.audioM;
 res.limitsAudRes      = lims.audioAudRespMH;
 
