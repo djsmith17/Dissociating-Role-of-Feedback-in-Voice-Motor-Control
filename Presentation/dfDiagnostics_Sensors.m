@@ -189,7 +189,7 @@ tag = ['Trial ' num2str(curTrial)];
 trPrs = plot(time, sigSnip, 'LineWidth', 2, 'Color', trialColors(curTrial, :));
 
 if curTrial == 1
-    pltStr.tag = tag;
+    pltStr.tag = {tag};
     pltStr.curve = trPrs;
 else
     pltStr.tag   = cat(1, pltStr.tag, tag);

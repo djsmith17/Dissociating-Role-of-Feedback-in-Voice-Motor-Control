@@ -36,7 +36,7 @@ auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = f0b;
 
-fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
+fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, niAn.bTf0b)
 
 auAn.sRate    = expParam.sRateAnal;
 auAn.sRateNi  = niAn.sRate;
@@ -51,13 +51,14 @@ auAn.anaTrigs  = expParam.trigs(:,:,3);
 auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM     = [];
 auAn.audioH     = [];
+auAn.svIdx      = []; % Full index of trials saved against the actual trials recorded
+auAn.pertIdx    = []; % The trial index pertaining to all the list of all trials saved, post-processing
+auAn.contIdx    = []; % The trial index pertaining to all the list of all trials saved, post-processing
 auAn.audioMSv   = [];
 auAn.audioHSv   = [];
-auAn.svIdx      = [];
+auAn.trialTypeSv = [];
 auAn.expTrigsSv = [];
-auAn.contIdx    = [];
 auAn.contTrig   = [];
-auAn.pertIdx    = [];
 auAn.pertTrig   = [];
 auAn.allAuNiDelays = [];
 
@@ -99,6 +100,11 @@ for ii = 1:auAn.numTrial
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
+
+%Find only the trials we care about
+auAn.audioMSv      = auAn.audioM(:, auAn.svIdx);
+auAn.audioHSv      = auAn.audioH(:, auAn.svIdx);
+auAn.trialTypeSv   = auAn.trialType(auAn.svIdx);
 auAn.numSaveTrials = length(auAn.svIdx);
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
@@ -179,7 +185,7 @@ micSec  = micAuNi(sectionInd);
 headSec = headAuNi(sectionInd);
 
 %Find the onset of Voicing
-pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
+pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt, audioSecSp);
 
 if pp.voiceOnsetLate
     saveT    = 0;  
@@ -214,7 +220,7 @@ timeLag      = maxLag/fs;
 timeLag      = -timeLag;
 end
 
-function pp = findVoiceOnsetThresh(audio, fs, audioSt)
+function pp = findVoiceOnsetThresh(audio, fs, audioSt, audioSecSp)
 
 %audioSt is the index in the full audio signal from where we will start to
 %do frequency analysis
@@ -247,17 +253,17 @@ pp.voiceOnsetInd = pp.threshIdx(1);
 pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
 
 %The rest of the signal base the first index...are there any dead zones??
-pp.fallOffLog = pp.env(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
-pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; %Last longer than 300ms
+pp.fallOffLog = pp.env(pp.voiceOnsetInd:audioSecSp) < pp.thresh*pp.maxPeak;
+pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than 300ms
 end
 
 function lims = identifyLimits(An)
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
 %Full Individual Trials: f0 Audio
-if ~isempty(An.audioMf0_pPP)
-    pertTrialsM = An.audioMf0_pPP;
-    pertTrialsH = An.audioHf0_pPP;
+if ~isempty(An.audioMf0p)
+    pertTrialsM = An.audioMf0p;
+    pertTrialsH = An.audioHf0p;
     sec = 100:700;
 
     uLMa = max(pertTrialsM(sec,:));
@@ -399,13 +405,13 @@ res.f0b           = auAn.f0b;
 
 res.numContTrialsPP = auAn.numContTrialsPP;
 res.numPertTrialsPP = auAn.numPertTrialsPP;
-res.pertTrigPP      = auAn.pertTrigPP;
+res.pertTrigPP      = auAn.expTrigsf0Sv;
 
 %Full Individual Trials: Mic/Head f0 Trace 
-res.audioMf0TrialPert = auAn.audioMf0_pPP;
-res.audioMf0TrialCont = auAn.audioMf0_cPP;
-res.audioHf0TrialPert = auAn.audioHf0_pPP;
-res.audioHf0TrialCont = auAn.audioHf0_cPP;
+res.audioMf0TrialPert = auAn.audioMf0p;
+res.audioMf0TrialCont = auAn.audioMf0c;
+res.audioHf0TrialPert = auAn.audioHf0p;
+res.audioHf0TrialCont = auAn.audioHf0c;
 res.limitsA           = lims.audioM;
 res.limitsAudRes      = lims.audioAudRespMH;
 

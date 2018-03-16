@@ -12,6 +12,8 @@ time             = res.timef0;
 sigs             = res.audioMf0TrialPert;
 limits           = res.limitsA;
 
+curSess(strfind(curSess, '_')) = ' ';
+
 plotpos = [10 100];
 plotdim = [1600 800];
 InterTrialf0 = figure('Color', [1 1 1]);

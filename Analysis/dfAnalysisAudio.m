@@ -34,6 +34,7 @@ end
 An = initAudVar(An);
 
 if AudFlag == 1
+    fprintf('\nStarting Pitch Analysis\n')
     An.numSamp = length(An.audioM);
     %Set some frequency analysis variables
     fV = setFreqAnalVar(An.sRate, An.numSamp);
@@ -43,11 +44,6 @@ if AudFlag == 1
 
     %Sometimes frequency analysis takes a while, this allows you to save
     %results from last time if you want to. 
-    
-    %Find only the trials we care about
-    An.audioMSv = An.audioM(:, An.svIdx);
-    An.audioHSv = An.audioH(:, An.svIdx);
-    [~, numSvTrial] = size(An.audioMSv);
 
     %Which analysis type?
     if strcmp(An.f0Type, 'Praat') == 1
@@ -58,15 +54,15 @@ if AudFlag == 1
         
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigR, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSv, An.expTrigsSv, An.bTf0b, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigR, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSv, An.expTrigsSv, An.bTf0b, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsR, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSv, An.expTrigsSv, An.bTf0b, anaFlag);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsR, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSv, An.expTrigsSv, An.bTf0b, anaFlag);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
     end
 
     An.timef0     = f0A.timef0;
-    An.expTrigR   = f0A.expTrigR;
+    An.expTrigsR  = f0A.expTrigsR;
     An.audioMf0   = f0A.audioMf0;
     An.audioHf0   = f0A.audioHf0;
     An.etMH       = f0A.etM + f0A.etH; % Minutesa
@@ -77,8 +73,8 @@ if AudFlag == 1
     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    [An.secTime, An.audioMf0SecAll] = sectionAudioData(An.timef0, An.audioMf0S, An.expTrigR);
-    [An.secTime, An.audioHf0SecAll] = sectionAudioData(An.timef0, An.audioHf0S, An.expTrigR);
+    [An.secTime, An.audioMf0SecAll] = sectionAudioData(An.timef0, An.audioMf0S, An.expTrigsR);
+    [An.secTime, An.audioHf0SecAll] = sectionAudioData(An.timef0, An.audioHf0S, An.expTrigsR);
    
     %Normalize f0 and convert to cents
     prePert       = (An.secTime <= 0);
@@ -87,24 +83,33 @@ if AudFlag == 1
 
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0b);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0b);
-
-    %Find the Perturbed Trials
-    An.pertTrigR  = An.expTrigR(An.pertIdx,:);
-    An.audioMf0_p = parseTrialTypes(An.audioMf0_norm, An.pertIdx);
-    An.audioHf0_p = parseTrialTypes(An.audioHf0_norm, An.pertIdx);
-    An.contTrigR  = An.expTrigR(An.contIdx,:);
-    An.audioMf0_c = parseTrialTypes(An.audioMf0_norm, An.contIdx);
-    An.audioHf0_c = parseTrialTypes(An.audioHf0_norm, An.contIdx);
     
     %Find troublesome trials and remove
-    [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An.timef0, An.audioMf0_p, An.audioHf0_p, An.pertTrigR, An.curSess, 'Pert');
-    [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An.timef0, An.audioMf0_c, An.audioHf0_c, An.contTrigR, An.curSess, 'Cont');
+    [An.svf0Idx, An.expTrigsf0Sv, An.pertf0Idx, An.contf0Idx] = audioPostProcessing(An);
+    
+    An.audioMf0sv      = An.audioMf0_norm(:, An.svf0Idx);
+    An.audioHf0sv      = An.audioHf0_norm(:, An.svf0Idx); 
+    An.numTrialsPP     = length(An.svf0Idx);
+    An.numPertTrialsPP = length(An.pertf0Idx);
+    An.numContTrialsPP = length(An.contf0Idx);
+
+    %Find the Perturbed Trials
+    An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
+    An.audioMf0p = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
+    An.audioHf0p = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);
+    An.contTrigsR  = An.expTrigsf0Sv(An.contf0Idx,:);
+    An.audioMf0c = parseTrialTypes(An.audioMf0sv, An.contf0Idx);
+    An.audioHf0c = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
+    
+%     %Find troublesome trials and remove
+%     [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An, An.audioMf0_p, An.audioHf0_p, An.pertTrigR, auAn.pertSvNm, 'Pert');
+%     [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An, An.audioMf0_c, An.audioHf0_c, An.contTrigR, auAn.contSvNm, 'Cont');
 
     %Section the data around onset and offset
-    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.timef0, An.audioMf0_pPP, An.pertTrigPP);
-    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.timef0, An.audioHf0_pPP, An.pertTrigPP);
-    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.timef0, An.audioMf0_cPP, An.contTrigPP);
-    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.timef0, An.audioHf0_cPP, An.contTrigPP);
+    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.timef0, An.audioMf0p, An.pertTrigsR);
+    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.timef0, An.audioHf0p, An.pertTrigsR);
+    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.timef0, An.audioMf0c, An.contTrigsR);
+    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.timef0, An.audioHf0c, An.contTrigsR);
 
     %Mean around the onset and offset
     An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
@@ -128,7 +133,7 @@ An.timef0         = []; %time vector of audio samples recorded
 An.fsA            = []; %sampling rate of audio samples
 An.audioMf0       = []; %Raw Microphone Audio Data
 An.audioHf0       = []; %Raw Headphone Audio Data
-An.expTrigR       = [];
+An.expTrigsR      = [];
 An.etMH           = [];
 An.audioMf0S      = [];
 An.audioHf0S      = [];
@@ -136,18 +141,23 @@ An.trialf0b       = []; %Per Trial calculated f0
 An.f0b            = []; %Average trial f0
 An.audioMf0_norm  = []; %Normalized mic data
 An.audioHf0_norm  = []; %Normalized head data
-An.audioMf0_p     = []; %Perturbed mic data (norm)
-An.audioHf0_p     = []; %Pertrubed head data (norm)
-An.audioMf0_c     = []; %Control mic data (norm)
-An.audioHf0_c     = []; %Control head data (norm)
-An.audioMf0_pPP   = []; %
-An.audioHf0_pPP   = [];
-An.numPertTrialsPP = []; 
-An.pertTrigPP      = [];
-An.audioMf0_cPP    = []; 
-An.audioHf0_cPP    = [];
+
+An.svf0Idx        = [];
+An.expTrigsf0Sv   = [];
+An.pertf0Idx      = [];
+An.contf0Idx      = [];
+An.audioMf0sv     = [];
+An.audioHf0sv      = []; 
+An.numTrialsPP     = [];
+An.numPertTrialsPP = [];
 An.numContTrialsPP = [];
-An.contTrigPP      = [];
+
+An.pertTrigsR    = [];
+An.contTrigsR    = [];
+An.audioMf0p     = []; % Perturbed mic data (norm)
+An.audioHf0p     = []; % Pertrubed head data (norm)
+An.audioMf0c     = []; % Control mic data (norm)
+An.audioHf0c     = []; % Control head data (norm)
 
 An.secTime        = [];
 An.audioMf0_Secp  = []; 
@@ -187,7 +197,7 @@ fV.roundFact = fV.sRate/fV.tStepP;
 fV.winHalf   = fV.win/2;
 end
 
-function [timef0, audiof0, expTrigR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, bTf0b, flag)
+function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, bTf0b, flag)
 ET = tic;
 [~, numTrial] = size(audio);
 
@@ -229,10 +239,10 @@ else
     end
 end
 
-expTrigR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
+expTrigsR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
-fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+% fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 end
 
 function f0Win = simpleAutoCorr(voice, fV)
@@ -283,29 +293,56 @@ function signalParse = parseTrialTypes(signal, idx)
 signalParse = signal(:, idx); %This is a little lazy I know. Get over it. 
 end
 
-function [audioNormMPP, audioNormHPP, trigsPP, numTrialTypePP] = audioPostProcessing(time, audioNormM, audioNormH, trigs, curSess, type)
+function [svf0Idx, expTrigsf0Sv, pertf0Idx, contf0Idx] = audioPostProcessing(An)
 %This function checks to see if there are any realllllly weird f0 values as
 %a result of the spectral analysis. This throws away trials and tells you
 %when it happens. It combines new data audio files of the saved trials, and
 %ammends the trig matrix of those files removed. Also gives a new value of
 %total number of trials kept.
+
+time        = An.timef0;
+curSess     = An.curSess;
+svIdx       = An.svIdx;
+audioNormM  = An.audioMf0_norm;
+expTrigs    = An.expTrigsR;
+trialTypeSv = An.trialTypeSv;
+
 [~, numTrialType] = size(audioNormM);
 
-timeInd = find(time > 0.5 & time < 3.5);
+timeInd = (time > 0.5 & time < 3.5);
 
-audioNormMPP   = [];
-audioNormHPP   = [];
-trigsPP        = [];
-numTrialTypePP = 0; 
+svf0Idx      = [];
+expTrigsf0Sv = [];
+contf0Idx    = [];
+pertf0Idx    = [];
+svF = 0;
 for ii = 1:numTrialType
-    ind = find(audioNormM(timeInd,ii) >= 500 | audioNormM(timeInd,ii) <=  -500);
+    
+    mic     = audioNormM(timeInd, ii);
+    expTrig = expTrigs(ii, :);
+    svIdc = svIdx(ii);
+    
+    ind = find(mic >= 500 | mic <=  -500);
+    
     if ~isempty(ind)
-        fprintf('Threw away %s %s trial %s\n', curSess, type, num2str(ii))
+        if trialTypeSv(ii) == 0
+            type = 'Cont';
+        else
+            type = 'Pert';      
+        end       
+        fprintf('Threw away %s Trial %d (%s)\n', curSess, svIdc, type)
+        
     else
-        trigsPP        = cat(1, trigsPP, trigs(ii,:));
-        audioNormMPP   = cat(2, audioNormMPP, audioNormM(:,ii));
-        audioNormHPP   = cat(2, audioNormHPP, audioNormH(:,ii));
-        numTrialTypePP = numTrialTypePP + 1;
+        svF = svF + 1;
+        
+        svf0Idx      = cat(1, svf0Idx, ii);
+        expTrigsf0Sv = cat(1, expTrigsf0Sv, expTrig);
+        if trialTypeSv(ii) == 0
+            contf0Idx  = cat(1, contf0Idx, svF);
+        else
+            pertf0Idx  = cat(1, pertf0Idx, svF);       
+        end
+        
     end
 end
 end
