@@ -28,8 +28,8 @@ rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot33'; % Subject#, Pilot#, null
-run        = 'DS1';     % SF1, DS1, etc
-blLoudness = 60;        % (dB SPL) Baseline loudness
+run        = 'DS5';     % SF1, DS1, etc
+blLoudness = 79.34;        % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 balloon    = '2.0E_2';  % Which pertrubation balloon?
 tightness  = 10;        % (inches of slack in bungie cord)
