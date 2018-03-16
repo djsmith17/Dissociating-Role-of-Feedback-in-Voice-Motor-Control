@@ -27,12 +27,12 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot33'; % Subject#, Pilot#, null
-run        = 'DS5';     % SF1, DS1, etc
-blLoudness = 79.34;        % (dB SPL) Baseline loudness
+subject    = 'null'; % Subject#, Pilot#, null
+run        = 'test';     % SF1, DS1, etc
+blLoudness = 60;        % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
-balloon    = '2.0E_2';  % Which pertrubation balloon?
-tightness  = 10;        % (inches of slack in bungie cord)
+balloon    = '2.0E_2';  % Which perturbation balloon?
+tightness  = 'n/a';        % (inches of slack in bungie cord)
 
 % Dialogue box asking for what type of Auditory Feedback
 AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
