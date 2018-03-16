@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null'; % Subject#, Pilot#, null
+subject    = 'Pilot33'; % Subject#, Pilot#, null
 run        = 'DS1';     % SF1, DS1, etc
 blLoudness = 60;        % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
