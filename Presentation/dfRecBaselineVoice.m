@@ -44,8 +44,6 @@ switch VoiceRec
         VoiceRecsw = 1;
 end
 
-fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
-
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
@@ -53,9 +51,22 @@ expParam.subject    = subject;
 expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
 expParam.gender     = gender;
-expParam.trialLen   = 4;                        % Seconds
-expParam.numTrial   = numTrials;
-expParam.AudFBSw    = 0;
+
+if VoiceRecsw == 1
+    expParam.trialLen = 4;                        % Seconds
+    expParam.numTrial = numTrials;
+    expParam.AudFBSw  = 0;
+    expParam.cuePause = 1.0;
+    expParam.resPause = 2.0;
+else
+    expParam.trialLen = 100;                      % Seconds
+    expParam.numTrial = 1;
+    expParam.AudFBSw  = 1;
+    expParam.cuePause = 0;
+    expParam.resPause = 0;
+end
+
+fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
@@ -94,14 +105,6 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 
 expParam.boundsRMS = 3;
 expParam.targRMS   = 70;
-
-if VoiceRecsw == 1
-    expParam.cuePause = 1.0;
-    expParam.resPause = 2.0;
-else
-    expParam.cuePause = 0;
-    expParam.resPause = 0;
-end
 
 % Dim the lights (Set the visual Feedback)
 [~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
@@ -157,8 +160,13 @@ DRF.qRes = qRes;
 
 % Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
-save(dirs.RecFileDir, 'DRF')
+switch VoiceRec
+    case 'Calibrate Microphone'
+        return
+    case 'Baseline Voice'
+        fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
+        save(dirs.RecFileDir, 'DRF')
+end
 
 fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
 fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
