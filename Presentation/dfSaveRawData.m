@@ -16,7 +16,7 @@ try
     audiowrite(fullfile(dirs.RecWaveDir,[sessTrial dirs.saveFileSuffix '_headOut.wav']), data.signalOut, fs)
     audiowrite(fullfile(dirs.RecWaveDir,[sessTrial dirs.saveFileSuffix '_micIn.wav']), data.signalIn, fs)
 catch
-    fprintf('\nAudapter decided not to show up today')
+    fprintf('\nAudapter failed to load data\n')
     data = [];
     return
 end
