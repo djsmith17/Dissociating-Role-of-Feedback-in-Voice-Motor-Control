@@ -52,16 +52,16 @@ expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
 expParam.gender     = gender;
 
-if VoiceRecsw == 1
+if VoiceRecsw == 1 % Baseline Voice
     expParam.trialLen = 4;                        % Seconds
     expParam.numTrial = numTrials;
     expParam.AudFBSw  = 0;
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
-else
+else               % Audio setup test
     expParam.trialLen = 100;                      % Seconds
     expParam.numTrial = 1;
-    expParam.AudFBSw  = 1;
+    expParam.AudFBSw  = 0;
     expParam.cuePause = 0;
     expParam.resPause = 0;
 end
