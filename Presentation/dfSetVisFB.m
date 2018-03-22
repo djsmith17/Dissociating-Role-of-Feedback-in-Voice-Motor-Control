@@ -23,7 +23,14 @@ monitorSize = get(0, 'Monitor');
 numMon = size(monitorSize, 1);
 
 if numMon == 1
-    figPosition = [monitorSize(1) monitorSize(2) monitorSize(3) monitorSize(4)-200];
+    W = monitorSize(3);
+    H = monitorSize(4);
+    W2 = W/2;
+    H2 = H/2;
+    XPos = W2;
+    YPos = 50;
+    
+    figPosition = [XPos YPos W2 H2];
 elseif numMon == 2
     [~, mon] = max(monitorSize(:,1));
     
@@ -67,14 +74,24 @@ anMsr.maxLx = [anMsr.lMar anMsr.drawMinW];     %First X and Last X
 anMsr.maxLy = [anMsr.drawMaxH anMsr.drawMaxH]; %First Y and Last Y
 
 % Trigger dim measurements
-anMsr.r        = 60;   % Trigger side length (pixels)
-anMsr.visTrigX = 0;    % Trigger X Pos
-anMsr.visTrigY = 0.02; % Trigger Y Pos
-anMsr.visTrigW = round(100*anMsr.r/anMsr.winPos(3))/100; % Trigger X Len
-anMsr.visTrigH = round(100*anMsr.r/anMsr.winPos(4))/100; % Trigger Y Len
+anMsr.r        = 60;                                % Trigger side L (pixels)
+anMsr.visTrigX = 0;                                 % Trigger X Pos
+anMsr.visTrigY = 0.02;                              % Trigger Y Pos
+anMsr.visTrigW = round(anMsr.r/anMsr.winPos(3), 2); % Trigger X Len
+anMsr.visTrigH = round(anMsr.r/anMsr.winPos(4), 2); % Trigger Y Len
 
 % Trigger Square: Position and Size
 anMsr.visTrigPos = [anMsr.visTrigX anMsr.visTrigY anMsr.visTrigW anMsr.visTrigH];
+
+% Current Subject Note Dim
+anMsr.subjND = [170 30];
+anMsr.subjNX = anMsr.visTrigX;
+anMsr.subjNY = anMsr.visTrigY + anMsr.visTrigH + 0.02;
+anMsr.subjNW = round(anMsr.subjND(1)/anMsr.winPos(3), 2); 
+anMsr.subjNH = round(anMsr.subjND(2)/anMsr.winPos(4), 2); 
+
+% Current Subject Pos and Size
+anMsr.subjNPos = [anMsr.subjNX anMsr.subjNY anMsr.subjNW anMsr.subjNH];
 
 %%%%%%
 VBFig = figure('NumberTitle', 'off', 'Color', [0 0 0], 'Position', anMsr.winPos, 'MenuBar', 'none');
@@ -150,7 +167,7 @@ LoudmaxLine = annotation(VBFig, 'line', anMsr.maxLx, anMsr.maxLy,...
                                   'LineWidth', 1, ...
                                   'visible','off');
 % Subject Note
-curSessNote = annotation(VBFig,'textbox', [0 0.08 0.1 0.03],...
+curSessNote = annotation(VBFig,'textbox', anMsr.subjNPos,...
                                 'Color',[1 1 1],...
                                 'String', curSess,...
                                 'LineStyle','none',...
