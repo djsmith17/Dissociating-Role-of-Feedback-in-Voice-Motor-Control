@@ -44,8 +44,23 @@ anMsr.rdAnoW = round(anMsr.rdAnoD(1)/anMsr.winPos(3), 2);
 anMsr.rdAnoH = round(anMsr.rdAnoD(2)/anMsr.winPos(4), 2);
 anMsr.rdAnoX = 0.5 - anMsr.rdAnoW/2;
 anMsr.rdAnoY = 0.5 - anMsr.rdAnoH/2;
- 
 anMsr.rdAnoPos = [anMsr.rdAnoX anMsr.rdAnoY anMsr.rdAnoW anMsr.rdAnoH];
+
+% Cue Annotation Dim
+anMsr.cuAnoD = [250 150];
+anMsr.cuAnoW = round(anMsr.cuAnoD(1)/anMsr.winPos(3), 2); 
+anMsr.cuAnoH = round(anMsr.cuAnoD(2)/anMsr.winPos(4), 2);
+anMsr.cuAnoX = 0.5 - anMsr.cuAnoW/2;
+anMsr.cuAnoY = 0.5 - anMsr.cuAnoH/2;
+anMsr.cuAnoPos = [anMsr.cuAnoX anMsr.cuAnoY anMsr.cuAnoW anMsr.cuAnoH];
+
+% EEE Annotation Dim
+anMsr.eeAnoD = [370 170];
+anMsr.eeAnoW = round(anMsr.eeAnoD(1)/anMsr.winPos(3), 2); 
+anMsr.eeAnoH = round(anMsr.eeAnoD(2)/anMsr.winPos(4), 2);
+anMsr.eeAnoX = 0.5 - anMsr.eeAnoW/2;
+anMsr.eeAnoY = 0.5 - anMsr.eeAnoH/2;
+anMsr.eeAnoPos = [anMsr.eeAnoX anMsr.eeAnoY anMsr.eeAnoW anMsr.eeAnoH];
 
 %Assuming that perfect RMS lies at 50% of the screen, and the acceptable
 %upper and lower bound are set at 45% and 55% of the screen, the edge of
@@ -102,7 +117,7 @@ anMsr.subjNPos = [anMsr.subjNX anMsr.subjNY anMsr.subjNW anMsr.subjNH];
 VBFig = figure('NumberTitle', 'off', 'Color', [0 0 0], 'Position', anMsr.winPos, 'MenuBar', 'none');
 
 %Plus Sign
-H1 = annotation(VBFig,'textbox',[0.425 0.425 0.15 0.15],...
+H1 = annotation(VBFig,'textbox', anMsr.cuAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'+'},...
                         'LineStyle','none',...
@@ -117,7 +132,7 @@ H1 = annotation(VBFig,'textbox',[0.425 0.425 0.15 0.15],...
                         'Visible','off');
 
 %EEE Directions
-H2 = annotation(VBFig,'textbox',[0.39 0.42 0.22 0.16],...
+H2 = annotation(VBFig,'textbox', anMsr.eeAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'eee'},...
                         'LineStyle','none',...
