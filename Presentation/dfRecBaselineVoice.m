@@ -31,7 +31,7 @@ function dfRecBaselineVoice()
 close all;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot33'; % Subject#, Pilot#, null
+subject    = 'null'; % Subject#, Pilot#, null
 run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
 gender     = 'male';    % "male" or "female"
 numTrials  = 3;         % number of trials;
@@ -59,7 +59,7 @@ if VoiceRecsw == 1 % Baseline Voice
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
 else               % Audio setup test
-    expParam.trialLen = 100;                      % Seconds
+    expParam.trialLen = 10;                      % Seconds
     expParam.numTrial = 1;
     expParam.AudFBSw  = 0;
     expParam.cuePause = 0;
