@@ -38,6 +38,15 @@ elseif numMon == 2
 end
 anMsr.winPos = figPosition;
 
+% Ready Annotation Dim
+anMsr.rdAnoD = [700 300];
+anMsr.rdAnoW = round(anMsr.rdAnoD(1)/anMsr.winPos(3), 2); 
+anMsr.rdAnoH = round(anMsr.rdAnoD(2)/anMsr.winPos(4), 2);
+anMsr.rdAnoX = 0.5 - anMsr.rdAnoW/2;
+anMsr.rdAnoY = 0.5 - anMsr.rdAnoH/2;
+ 
+anMsr.rdAnoPos = [anMsr.rdAnoX anMsr.rdAnoY anMsr.rdAnoW anMsr.rdAnoH];
+
 %Assuming that perfect RMS lies at 50% of the screen, and the acceptable
 %upper and lower bound are set at 45% and 55% of the screen, the edge of
 %the screen will correspond to these variables accordingly. This will shift
@@ -79,8 +88,6 @@ anMsr.visTrigX = 0;                                 % Trigger X Pos
 anMsr.visTrigY = 0.02;                              % Trigger Y Pos
 anMsr.visTrigW = round(anMsr.r/anMsr.winPos(3), 2); % Trigger X Len
 anMsr.visTrigH = round(anMsr.r/anMsr.winPos(4), 2); % Trigger Y Len
-
-% Trigger Square: Position and Size
 anMsr.visTrigPos = [anMsr.visTrigX anMsr.visTrigY anMsr.visTrigW anMsr.visTrigH];
 
 % Current Subject Note Dim
@@ -89,8 +96,6 @@ anMsr.subjNX = anMsr.visTrigX;
 anMsr.subjNY = anMsr.visTrigY + anMsr.visTrigH + 0.02;
 anMsr.subjNW = round(anMsr.subjND(1)/anMsr.winPos(3), 2); 
 anMsr.subjNH = round(anMsr.subjND(2)/anMsr.winPos(4), 2); 
-
-% Current Subject Pos and Size
 anMsr.subjNPos = [anMsr.subjNX anMsr.subjNY anMsr.subjNW anMsr.subjNH];
 
 %%%%%%
@@ -127,7 +132,7 @@ H2 = annotation(VBFig,'textbox',[0.39 0.42 0.22 0.16],...
                         'visible','off');
 
 %Ready Note                    
-H3 = annotation(VBFig,'textbox', [0.3 0.35 0.4 0.3],...
+H3 = annotation(VBFig,'textbox', anMsr.rdAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'READY'},...
                         'LineStyle','none',...
