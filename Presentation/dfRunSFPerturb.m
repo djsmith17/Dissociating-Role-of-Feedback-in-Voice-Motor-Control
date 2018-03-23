@@ -6,7 +6,6 @@ function dfRunSFPerturb()
 % manages the recorded acoustic data.
 %
 % This script calls the following 8 functions:
-% dfDirs.m
 % dfInitNIDAQ.m
 % dfSetAudFB.m
 % dfSetTrialOrder.m
