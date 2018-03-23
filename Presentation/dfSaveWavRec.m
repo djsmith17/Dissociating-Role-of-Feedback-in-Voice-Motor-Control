@@ -1,4 +1,4 @@
-function data = dfSaveRawData(expParam, dirs)
+function dfSaveWavRec(data, expParam, dirs)
 % data = dfSaveRawData(expParam, dirs) loads all the Audapter data that is 
 % currently sitting in the buffer and makes it available to be processed
 % This function also immediately saves .wav files of the microphone and 
@@ -10,14 +10,9 @@ function data = dfSaveRawData(expParam, dirs)
 fs        = expParam.sRateAnal;
 sessTrial = expParam.curSessTrial;
 
-try
-    data = AudapterIO('getData');
-    
-    audiowrite(fullfile(dirs.RecWaveDir,[sessTrial dirs.saveFileSuffix '_headOut.wav']), data.signalOut, fs)
-    audiowrite(fullfile(dirs.RecWaveDir,[sessTrial dirs.saveFileSuffix '_micIn.wav']), data.signalIn, fs)
-catch
-    fprintf('\nAudapter failed to load data\n')
-    data = [];
-    return
-end
+micFile  = fullfile(dirs.RecWaveDir,[sessTrial dirs.saveFileSuffix '_micIn.wav']);
+headFile = fullfile(dirs.RecWaveDir,[sessTrial dirs.saveFileSuffix '_headOut.wav']);
+
+audiowrite(micFile, data.signalIn, fs)
+audiowrite(headFile, data.signalOut, fs)
 end
