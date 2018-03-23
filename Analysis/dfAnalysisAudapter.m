@@ -267,17 +267,17 @@ if ~isempty(An.audioMf0p)
     sec = 100:700;
 
     uLMa = max(pertTrialsM(sec,:));
-    uLMa(find(uLMa > 150)) = 0;
+    uLMa(find(uLMa > 200)) = 0;
     lLMa = min(pertTrialsM(sec,:));
-    lLMa(find(lLMa < -150)) = 0;
+    lLMa(find(lLMa < -300)) = 0;
 
     uLM = round(max(uLMa)) + 20;
     lLM = round(min(lLMa)) - 20;
        
     uLHa = max(pertTrialsH(sec,:));
-    uLHa(find(uLHa > 150)) = 0;
+    uLHa(find(uLHa > 200)) = 0;
     lLHa = min(pertTrialsH(sec,:));
-    lLHa(find(lLHa < -150)) = 0;
+    lLHa(find(lLHa < -300)) = 0;
     
     uLH = round(max(uLHa)) + 20;
     lLH = round(min(lLHa)) - 20;
@@ -302,7 +302,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMean%%%%%%%%%%%
-%Section Mean Pertrubed Trials: f0 Audio 
+%Section Mean Perturbed Trials: f0 Audio 
 if ~isempty(An.audioMf0_meanp)
     [~, Imax] = max(An.audioMf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioMf0_meanp(Imax,1) + An.audioMf0_meanp(Imax,2) + 10);
@@ -332,7 +332,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMH%%%%%%%%%%%%
-%Section Mean Pertrubed Trials: f0 Audio 
+%Section Mean Perturbed Trials: f0 Audio 
 if ~isempty(An.audioHf0_meanp)
     [~, Imax] = max(An.audioHf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioHf0_meanp(Imax,1) + An.audioHf0_meanp(Imax,2) + 10);
@@ -405,9 +405,9 @@ res.f0b           = auAn.f0b;
 
 res.numContTrialsPP = auAn.numContTrialsPP;
 res.numPertTrialsPP = auAn.numPertTrialsPP;
-res.pertTrigPP      = auAn.expTrigsf0Sv;
+res.pertTrigPP      = auAn.pertTrigsR;
 
-%Full Individual Trials: Mic/Head f0 Trace 
+%Individual Full Trials: Mic/Head f0 Trace 
 res.audioMf0TrialPert = auAn.audioMf0p;
 res.audioMf0TrialCont = auAn.audioMf0c;
 res.audioHf0TrialPert = auAn.audioHf0p;
@@ -415,7 +415,7 @@ res.audioHf0TrialCont = auAn.audioHf0c;
 res.limitsA           = lims.audioM;
 res.limitsAudRes      = lims.audioAudRespMH;
 
-%Sections Trials: Mic/Head f0
+%Individual Sectioned Trials: Mic/Head f0 Trace
 res.secTime          = auAn.secTime;
 res.audioMf0SecPert  = auAn.audioMf0_Secp;
 res.audioMf0SecCont  = auAn.audioMf0_Secc;
