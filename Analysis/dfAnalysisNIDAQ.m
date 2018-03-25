@@ -21,20 +21,18 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iR
 % This function calls the following functions
 % dfAnalysisAudio.m
 
-[r, c, n] = size(DAQin);
-sRate = expParam.sRateQ;
-
 %Identify some starting variables
-niAn.AnaType  = 'NIDAQ';
-niAn.expType  = expParam.expType;
-niAn.subject  = expParam.subject;
-niAn.run      = expParam.run;
-niAn.curSess  = expParam.curSess;
-niAn.f0AnaFile = [niAn.subject niAn.run 'f0AnalysisN.mat'];
-niAn.gender   = expParam.gender;
-niAn.AudFB    = expParam.AudFB;
-niAn.bTf0b    = f0b;
-niAn.trialType = expParam.trialType;
+niAn.AnaType   = 'NIDAQ';
+niAn.expType   = expParam.expType;
+niAn.subject   = expParam.subject;
+niAn.run       = expParam.run;
+niAn.curSess   = expParam.curSess;
+niAn.f0Type    = 'N';
+niAn.f0AnaFile = [niAn.subject niAn.run 'f0Analysis' niAn.f0Type '.mat'];
+niAn.gender    = expParam.gender;
+niAn.AudFB     = expParam.AudFB;
+niAn.AudFBSw   = expParam.AudFBSw;
+niAn.bTf0b     = f0b;
 
 if isfield(expParam, 'balloon')
     niAn.balloon = expParam.balloon;
@@ -44,12 +42,14 @@ end
 
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
-niAn.dnSamp   = 10;
-niAn.sRate    = sRate;
-niAn.numSamp  = r;
-niAn.numTrial = n;
-niAn.numCh    = c;
-niAn.expTrigs = expParam.trigs(:,:,1); %Time
+[r, c, n]      = size(DAQin);
+niAn.sRate     = expParam.sRateQ;
+niAn.numCh     = c;
+niAn.numSamp   = r;
+niAn.numTrial  = n;
+niAn.trialType = expParam.trialType;
+niAn.expTrigs  = expParam.trigs(:,:,1); %Time
+niAn.dnSamp    = 10;
 
 %Find all the perturbed trials
 [niAn.ContTrials, niAn.contIdx] = find(niAn.trialType == 0);
@@ -67,7 +67,7 @@ niAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal (M)
 niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
-%ZeroMean the Offset
+%ZeroMean the Pressure Offset
 niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
 
 %Preprocessing some of the Force sensors
@@ -240,7 +240,7 @@ sensDiff  = smooth([0; diff(sensorFilt)]*50, 10);
 diffPeakMax = 0.05;
 peakLeadLag = fs*0.5; % How many seconds past he peak to look for the level off. 
 
-if man == 0
+if man == 0 % Automatic selection of endRise and startFall
     
     %yes its a bit lazy. I am sorry. 
     [pksU, locU] = findpeaks(sensDiff);
@@ -277,11 +277,11 @@ if man == 0
 %     hold on
 %     plot([startFallInd startFallInd], [-100 100], 'r')
 %     axis([0 3200 -0.05 4])
-else
+
+else % Manual selection of endRise and startFall
     PresFig = figure;
     plot(sensor, 'k'); hold on
     plot(sensDiff, 'r'); hold on
-    plot(sensDiff2, 'g')
     axis([0 3200 3.8 4.5])
 
     [x1, ~] = getpts(PresFig);
@@ -295,18 +295,34 @@ end
 end
 
 function sensorAl = alignSensorData(sensor, fs, idx)
+% alignSensorData(sensor, fs, idx) takes multi-trial sensor data recorded
+% by the NIDAQ and identifies the points where the triggers take place. It
+% then concatenates each trial with the trigger points aligned at the same
+% time point.
+%
+% sensorAl is the same set of multi-trial sensor data aligned by each 
+% trigger. The trials are sectioned to show the 1 sec ahead of the trigger, 
+% and the 2.5s following the trigger. This makes for easy plotting. 
+
 [~, numTrial] = size(sensor);
 
 sensorAl = [];
 for ii = 1:numTrial
-    St = idx(ii,1) - fs*1;
-    Sp = idx(ii,1) + fs*2.5;
+    St = idx(ii,1) - fs*1;    % Point 1s before the trigger
+    Sp = idx(ii,1) + fs*2.5;  % Point 2.5s after the trigger
     
+    % Grab 3.5s around the trigger point for this trial
     sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
 end
 end
 
 function lims = identifyLimits(An)
+% identifyLimits(An) calculates limits of analyzed data so that the limits
+% are dynamic and fit the data being shown. 
+%
+% lims is a structure of the resultant limits to be used in plotting. 
+% This function is redundant between a few different functions, and might
+% eventually become its own function
 
 %Full Inidividual Trials: Pressure Sensor
 maxPres = max(max(An.sensorP_p));
@@ -323,24 +339,24 @@ lims.pressureAl = [0 3.5 lLP uLP];
 lims.force      = [0 4 1 5];
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
-%Full Individual Trials: f0 Audio
+%Individual Full Trials (Perturbed): f0 Audio
 if ~isempty(An.audioMf0p)
     pertTrialsM = An.audioMf0p;
     pertTrialsH = An.audioHf0p;
     sec = 100:700;
 
     uLMa = max(pertTrialsM(sec,:));
-    uLMa(find(uLMa > 150)) = 0;
+    uLMa(find(uLMa > 200)) = 0;
     lLMa = min(pertTrialsM(sec,:));
-    lLMa(find(lLMa < -150)) = 0;
+    lLMa(find(lLMa < -300)) = 0;
 
     uLM = round(max(uLMa)) + 20;
     lLM = round(min(lLMa)) - 20;
        
     uLHa = max(pertTrialsH(sec,:));
-    uLHa(find(uLHa > 150)) = 0;
+    uLHa(find(uLHa > 200)) = 0;
     lLHa = min(pertTrialsH(sec,:));
-    lLHa(find(lLHa < -150)) = 0;
+    lLHa(find(lLHa < -300)) = 0;
     
     uLH = round(max(uLHa)) + 20;
     lLH = round(min(lLHa)) - 20;
@@ -364,7 +380,8 @@ else
     lims.audioAudRespMH = [0 4 -100 100];
 end
 
-%Section Mean Pertrubed Trials: f0 Audio 
+%%%%%%%%%%%lims.audioMean%%%%%%%%%%%
+%Mean Sectioned Trials (Perturbed): f0 Audio
 if ~isempty(An.audioMf0_meanp)
     [~, Imax] = max(An.audioMf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioMf0_meanp(Imax,1) + An.audioMf0_meanp(Imax,2) + 10);
@@ -394,7 +411,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMH%%%%%%%%%%%%
-%Section Mean Pertrubed Trials: f0 Audio 
+%Mean Sectioned Trials (Perturbed): f0 Audio
 if ~isempty(An.audioHf0_meanp)
     [~, Imax] = max(An.audioHf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioHf0_meanp(Imax,1) + An.audioHf0_meanp(Imax,2) + 10);
@@ -434,11 +451,15 @@ if ~isempty(An.audioHf0_meanp)
 else
     lims.audioMH = [-0.5 1.0 -100 50];
 end
-
 end
 
 function res = packResults(niAn, lims)
+% packResults(niAn, lims) takes the results of the analysis and packages
+% the important variables into a new structure that have common names
+% between other analysis methods. This makes it easy to switch back and
+% forth between different result structures for plotting. 
 
+% Information about the experiment/subject
 res.expType = niAn.expType;
 res.subject = niAn.subject;
 res.run     = niAn.run;

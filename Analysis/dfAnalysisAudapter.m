@@ -24,7 +24,7 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFla
 % Requires the Signal Processing Toolbox
 
 %Identify some starting variables
-auAn.AnaType  = 'Audapter';
+auAn.AnaType   = 'Audapter';
 auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
@@ -151,8 +151,8 @@ postOff = 1.0*fs;
 %Low Pass filter under 300Hz
 cutOff   = 300; %Hz
 [B,A]    = butter(4,(cutOff)/(fs/2));
-micFilt  = filtfilt(B, A, micR); %Low-pass filtered under 500Hz
-headFilt = filtfilt(B, A, headR); %Low-pass filtered under 500Hz
+micFilt  = filtfilt(B, A, micR);  % Low-pass filtered under 500Hz
+headFilt = filtfilt(B, A, headR); % Low-pass filtered under 500Hz
 
 micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
@@ -210,9 +210,13 @@ pp.saveTmsg = saveTmsg;
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
-%if timeLag is positive, then sig1 leads sig2. 
-%if timeLag is negative, then sig1 lags sig2.
+% xCorrTimeLag(sig1, sig2, fs) is a simple function I am using to find the
+% lag between two (seemingly) identical time based signals. 
+% if timeLag is positive, then sig1 leads sig2. 
+% if timeLag is negative, then sig1 lags sig2.
 
+% Uses a crosscorrelation between the two signals, then finds the largest
+% peak
 [r, lags]    = xcorr(sig1, sig2);
 [~, peakInd] = max(r);
 maxLag       = lags(peakInd);
@@ -221,9 +225,14 @@ timeLag      = -timeLag;
 end
 
 function pp = findVoiceOnsetThresh(audio, fs, audioSt, audioSecSp)
-
-%audioSt is the index in the full audio signal from where we will start to
-%do frequency analysis
+% findVoiceOnsetThresh is a simple script for finding the onset of voicing
+% for a microphone recording. This script also makes a determination about
+% whether the speaker starting speaking after a deterministic trigger
+% point, or if the participant had a voice break during the production. 
+%
+% This returns a structure with interesting values pertaining to the
+% threshold analysis, especially some notes about if the participant
+% started late, or if they had a voice break.
 
 pp.thresh   = 0.3;
 pp.breakTol = 0.1;
@@ -258,9 +267,15 @@ pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than 300ms
 end
 
 function lims = identifyLimits(An)
+% identifyLimits(An) calculates limits of analyzed data so that the limits
+% are dynamic and fit the data being shown. 
+%
+% lims is a structure of the resultant limits to be used in plotting. 
+% This function is redundant between a few different functions, and might
+% eventually become its own function
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
-%Full Individual Trials: f0 Audio
+%Individual Full Trials (Perturbed): f0 Audio
 if ~isempty(An.audioMf0p)
     pertTrialsM = An.audioMf0p;
     pertTrialsH = An.audioHf0p;
@@ -302,7 +317,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMean%%%%%%%%%%%
-%Section Mean Perturbed Trials: f0 Audio 
+%Mean Sectioned Trials (Perturbed): f0 Audio 
 if ~isempty(An.audioMf0_meanp)
     [~, Imax] = max(An.audioMf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioMf0_meanp(Imax,1) + An.audioMf0_meanp(Imax,2) + 10);
@@ -332,7 +347,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMH%%%%%%%%%%%%
-%Section Mean Perturbed Trials: f0 Audio 
+%Mean Sectioned Trials (Perturbed): f0 Audio 
 if ~isempty(An.audioHf0_meanp)
     [~, Imax] = max(An.audioHf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioHf0_meanp(Imax,1) + An.audioHf0_meanp(Imax,2) + 10);
@@ -372,11 +387,15 @@ if ~isempty(An.audioHf0_meanp)
 else
     lims.audioMH = [-0.5 1.0 -100 50];
 end
-
 end
 
 function res = packResults(auAn, lims)
+% packResults(auAn, lims) takes the results of the analysis and packages
+% the important variables into a new structure that have common names
+% between other analysis methods. This makes it easy to switch back and
+% forth between different result structures for plotting. 
 
+% Information about the experiment/subject
 res.expType = auAn.expType;
 res.subject = auAn.subject;
 res.run     = auAn.run;
