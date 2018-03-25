@@ -148,12 +148,6 @@ numSamp   = An.numSamp;
 preOn   = 0.5*fs;
 postOff = 1.0*fs;
 
-%Low Pass filter under 300Hz
-cutOff   = 300; %Hz
-[B,A]    = butter(4,(cutOff)/(fs/2));
-micFilt  = filtfilt(B, A, micR);  % Low-pass filtered under 500Hz
-headFilt = filtfilt(B, A, headR); % Low-pass filtered under 500Hz
-
 micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
 AuNidelayP = AuNidelay*fs;
