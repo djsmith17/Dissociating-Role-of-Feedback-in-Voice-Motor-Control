@@ -300,12 +300,13 @@ function [svf0Idx, expTrigsf0Sv, pertf0Idx, contf0Idx] = audioPostProcessing(An)
 %ammends the trig matrix of those files removed. Also gives a new value of
 %total number of trials kept.
 
+curSess      = An.curSess;
+svIdx        = An.allIdxSvt;
+trialTypeSvt = An.trialTypeSvt;
+
 time        = An.timef0;
-curSess     = An.curSess;
-svIdx       = An.svIdx;
 audioNormM  = An.audioMf0_norm;
 expTrigs    = An.expTrigsR;
-trialTypeSv = An.trialTypeSv;
 
 [~, numTrialType] = size(audioNormM);
 
@@ -320,12 +321,12 @@ for ii = 1:numTrialType
     
     mic     = audioNormM(timeInd, ii);
     expTrig = expTrigs(ii, :);
-    svIdc = svIdx(ii);
+    svIdc   = svIdx(ii);
     
     ind = find(mic >= 500 | mic <=  -500);
     
     if ~isempty(ind)
-        if trialTypeSv(ii) == 0
+        if trialTypeSvt(ii) == 0
             type = 'Cont';
         else
             type = 'Pert';      
@@ -337,12 +338,11 @@ for ii = 1:numTrialType
         
         svf0Idx      = cat(1, svf0Idx, ii);
         expTrigsf0Sv = cat(1, expTrigsf0Sv, expTrig);
-        if trialTypeSv(ii) == 0
+        if trialTypeSvt(ii) == 0
             contf0Idx  = cat(1, contf0Idx, svF);
         else
             pertf0Idx  = cat(1, pertf0Idx, svF);       
-        end
-        
+        end        
     end
 end
 end

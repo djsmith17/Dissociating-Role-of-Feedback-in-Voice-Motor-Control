@@ -2,10 +2,17 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFla
 % [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
 % This function analyzes the raw audio data that was recorded by Audapter 
 % in the experiments measuring changes in f0. It first does a
-% pre-processing step where it identifies any experimental errors in
+% preprocessing step where it identifies any temporal errors in
 % production, and also identifies and corrects for any lags in recording.
-% Once all the data are set up correctly and processed, they are handed off
-% to a function to do the actual analysis of the audio signals. 
+% Once all the data are processed, they are handed off
+% to a function to do the frequency analysis of the audio signals. 
+%
+% An important distinction in the processing step is the difference between
+% the recorded trials that are to be saved and further analyzed, and those
+% that will be thrown out. Any variables that refer to the full trial set
+% will not have any additional prefix/suffix. Variables refering to the 
+% set of trials that passed the 'temportal' preprocessing and will be 
+% saved for further analyses will have a prefix/suffix of 'Svt'.
 % 
 % dirs:     The set of directories we are currently working in 
 % expParam: The experimental parameters of the recorded experiment
@@ -42,26 +49,31 @@ fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.su
 auAn.sRate        = expParam.sRateAnal;        % Sampling Rate of Audapter (down-sampled)
 auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
-auAn.trialLen     = expParam.trialLen;
-auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Number of Samples recorded
-auAn.numTrial     = expParam.numTrial;         % Number of Trials recorded
-auAn.trialType    = expParam.trialType;        % Control (0), Perturbed (1)
-auAn.expTrigs     = expParam.trigs(:,:,1); % Time
-auAn.anaTrigs     = expParam.trigs(:,:,3); % Points (Audadapter)
+auAn.trialLen     = expParam.trialLen;         % Length of recording (s)
+auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Length of recording (points)
 
-auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
-auAn.audioM     = [];
-auAn.audioH     = [];
-auAn.svIdx      = []; % Full index of trials saved against the actual trials recorded
-auAn.pertIdx    = []; % The trial index pertaining to all the list of all trials saved, post-processing
-auAn.contIdx    = []; % The trial index pertaining to all the list of all trials saved, post-processing
-auAn.audioMSv   = [];
-auAn.audioHSv   = [];
-auAn.trialTypeSv = [];
-auAn.expTrigsSv = [];
-auAn.contTrig   = [];
-auAn.pertTrig   = [];
-auAn.allAuNiDelays = [];
+auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; % Time Vector based on numSamp
+auAn.audioM     = []; % Mic data that has received temporal preprocessing (all recorded trials)
+auAn.audioH     = []; % Head data that has received temporal preprocessing (all recorded trials)
+auAn.numTrial   = expParam.numTrial;         % Number of trials recorded
+auAn.trialType  = expParam.trialType;        % Key for identifying Control (0) & Perturbed (1) trials
+auAn.expTrigs   = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
+auAn.anaTrigs   = expParam.trigs(:,:,3); % Trigger Onset and Offset (Points; Audadapter) 
+
+auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
+auAn.audioHSvt     = []; % Headphone recordings for the trials saved for further analyses
+auAn.numTrialSvt   = []; % Number of trials saved for further analyses
+auAn.allIdxSvt     = []; % Vector of indicies of all recorded trials saved for further analyses.
+auAn.trialTypeSvt  = []; % Key for identifying Control (0) & Perturbed (1) trials
+auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for further analyses
+auAn.allAuNiDelays = []; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+
+auAn.numPertTrialSvt = []; % Number of perturbed trials saved for further analyses
+auAn.pertIdxSvt      = []; % Vector of indicies of perturbed SAVED trials (Referencing allIdxSvt)
+auAn.pertTrigSvt     = []; % Trigger Onset and Offset (Time) for perturbed SAVED trials
+auAn.numContTrialSvt = []; % Number of control trials saved for further analyses
+auAn.contIdxSvt      = []; % Vector of indicies of control SAVED trials (Referencing allIdxSvt)
+auAn.contTrigSvt     = []; % Trigger Onset and Offset (Time) for control SAVED trials
 
 svC = 0; % Saved Trial Count
 for ii = 1:auAn.numTrial
@@ -85,26 +97,27 @@ for ii = 1:auAn.numTrial
     elseif preProSt.saveT == 1 % Save the Trial
         svC = svC + 1; % Iterate Saved Trial Count
         
-        auAn.svIdx      = cat(1, auAn.svIdx, ii); % Save the experimental index (Which experimental trial?)
-        auAn.expTrigsSv = cat(1, auAn.expTrigsSv, expTrigs); % Save the triggers from this index
+        auAn.allIdxSvt   = cat(1, auAn.allIdxSvt, ii); % Save the experimental index
+        auAn.expTrigsSvt = cat(1, auAn.expTrigsSvt, expTrigs); % Save the triggers from this index
         if auAn.trialType(ii) == 0
-            auAn.contIdx  = cat(1, auAn.contIdx, svC); %
-            auAn.contTrig = cat(1, auAn.contTrig, expTrigs); %
+            auAn.contIdxSvt  = cat(1, auAn.contIdxSvt, svC); %
+            auAn.contTrigSvt = cat(1, auAn.contTrigSvt, expTrigs); %
         else
-            auAn.pertIdx  = cat(1, auAn.pertIdx, svC); %
-            auAn.pertTrig = cat(1, auAn.pertTrig, expTrigs); %
+            auAn.pertIdxSvt  = cat(1, auAn.pertIdxSvt, svC); %
+            auAn.pertTrigSvt = cat(1, auAn.pertTrigSvt, expTrigs); %
         end   
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
 
 % Find only the trials we care about
-auAn.audioMSv      = auAn.audioM(:, auAn.svIdx); 
-auAn.audioHSv      = auAn.audioH(:, auAn.svIdx);
-auAn.trialTypeSv   = auAn.trialType(auAn.svIdx); % The order of trial type based on the saved trials post-tP
-auAn.numSaveTrials = length(auAn.svIdx);       % # of total trials saved after temporal processing
-auAn.numContTrials = length(auAn.contIdx);     % # of control trials saved after temporal processing
-auAn.numPertTrials = length(auAn.pertIdx);     % # of perturbed trial saved after temporal processing
+auAn.audioMSvt     = auAn.audioM(:, auAn.allIdxSvt); 
+auAn.audioHSvt     = auAn.audioH(:, auAn.allIdxSvt);
+auAn.trialTypeSvt  = auAn.trialType(auAn.allIdxSvt); % The order of trial type based on the saved trials post-tP
+
+auAn.numTrialSvt     = length(auAn.allIdxSvt);
+auAn.numPertTrialSvt = length(auAn.pertIdx);
+auAn.numContTrialSvt = length(auAn.contIdx);
 
 % The Audio Analysis
 f0Flag = 1;
@@ -266,11 +279,11 @@ pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than break to
 end
 
 function lims = identifyLimits(An)
-% identifyLimits(An) calculates limits of analyzed data so that the limits
-% are dynamic and fit the data being shown. 
+% lims = identifyLimits(An) calculates limits of analyzed data 
+% so that the limits used in plotting are dynamic and fit the data. 
 %
-% lims is a structure of the resultant limits to be used in plotting. 
-% This function is redundant between a few different functions, and might
+% lims is a structure of the resultant limits [X1 X2 Y1 Y2] for given data
+% This sub function is redundant within other functions and might
 % eventually become its own function
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
@@ -389,10 +402,13 @@ end
 end
 
 function res = packResults(auAn, lims)
-% packResults(auAn, lims) takes the results of the analysis and packages
-% the important variables into a new structure that have common names
-% between other analysis methods. This makes it easy to switch back and
-% forth between different result structures for plotting. 
+% res = packResults(auAn, lims) takes the values stored in the analysis 
+% variables structure and repackages the important variables into a new 
+% structure that have common names between other analysis methods. 
+% This makes it easy to switch back and forth between different result 
+% structures for plotting, and it makes the plotting functions reliant on
+% a a uniform naming style, that does not change, even when the analysis
+% methods/names may.
 
 % Information about the experiment/subject
 res.expType = auAn.expType;
@@ -404,20 +420,26 @@ res.AudFB   = auAn.AudFB;
 res.f0Type = auAn.f0Type;
 res.etMH   = auAn.etMH;
 
-res.numTrials     = auAn.numTrial;
-res.audioM        = auAn.audioM;
-res.audioH        = auAn.audioH;
-res.svIdx         = auAn.svIdx;
-res.expTrigsSv    = auAn.expTrigsSv;
-res.pertIdx       = auAn.pertIdx;     % The indices of the svIdx;
-res.pertTrig      = auAn.pertTrig;
-res.contIdx       = auAn.contIdx;     % The indices of the svIdx;
-res.contTrig      = auAn.contTrig;
-res.numSaveTrials = auAn.numSaveTrials;
-res.numContTrials = auAn.numContTrials;
-res.numPertTrials = auAn.numPertTrials;
-res.allAuNiDelays = auAn.allAuNiDelays;
+% Raw Recorded data
+res.numTrial      = auAn.numTrial;    % Total trials recorded
+res.audioM        = auAn.audioM;      % Raw microphone recording (no lag correction)
+res.audioH        = auAn.audioH;      % Raw headphone recording  (no lag correction)
 
+% Post temporal processing data
+res.numTrialSvt   = auAn.numTrialSvt;   % Number of trials saved (post temporal processing)
+res.allIdxSvt     = auAn.allIdxSvt;     % Vector of indicies of recorded trials saved (post temporal processing)
+res.trialTypeSvt  = auAn.trialTypeSvt;  % Key for identifying Control (0) & Perturbed (1) trials (post temporal processing)
+res.expTrigsSvt   = auAn.expTrigsSvt;   % Trigger Onset and Offset (Time) for trials saved (post temporal processing)
+res.allAuNiDelays = auAn.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+
+res.numPertTrialSvt = auAn.numPertTrialSvt; % Number of perturbed trials saved (post temporal processing)
+res.pertIdxSvt      = auAn.pertIdxSvt;      % Vector of indicies of perturbed trials (Referencing allIdxSvt) (post temporal processing)
+res.pertTrigSvt     = auAn.pertTrigSvt;     % Trigger Onset and Offset (Time) for perturbed trials (post temporal processing)
+res.numContTrialSvt = auAn.numContTrialSvt; % Number of control trials saved (post temporal processing)
+res.contIdxSvt      = auAn.contIdxSvt;      % Vector of indicies of control trials (Referencing allIdxSvt) (post temporal processing)
+res.contTrigSvt     = auAn.contTrigSvt;     % Trigger Onset and Offset (Time) for control trials (post temporal processing)
+
+% Fequency Analysis of Data
 res.timef0        = auAn.timef0;
 res.f0b           = auAn.f0b;
 

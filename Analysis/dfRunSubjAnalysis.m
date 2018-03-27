@@ -114,16 +114,20 @@ res.AudFB   = auRes.AudFB;
 res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
 
-res.numTrials     = auRes.numTrials;
-res.svIdx         = auRes.svIdx;
-res.expTrigsSv    = auRes.expTrigsSv;
-res.pertIdx       = auRes.pertIdx;     % The indices of the svIdx;
-res.pertTrig      = auRes.pertTrig;
-res.contIdx       = auRes.contIdx;     % The indices of the svIdx;
-res.contTrig      = auRes.contTrig;
-res.numSaveTrials = auRes.numSaveTrials;
-res.numContTrials = auRes.numContTrials;
-res.numPertTrials = auRes.numPertTrials;
+res.numTrial      = auRes.numTrial;   % Total trials recorded
+
+res.numTrialSvt   = auRes.numTrialSvt;   % Number of trials saved (post temporal processing)
+res.allIdxSvt     = auRes.allIdxSvt;     % Vector of indicies of recorded trials saved (post temporal processing)
+res.trialTypeSvt  = auRes.trialTypeSvt;  % Key for identifying Control (0) & Perturbed (1) trials (post temporal processing)
+res.expTrigsSvt   = auRes.expTrigsSvt;   % Trigger Onset and Offset (Time) for trials saved (post temporal processing)
+res.allAuNiDelays = auRes.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+
+res.numPertTrialSvt = auRes.numPertTrialSvt; % Number of perturbed trials saved (post temporal processing)
+res.pertIdxSvt      = auRes.pertIdxSvt;      % Vector of indicies of perturbed trials (Referencing allIdxSvt) (post temporal processing)
+res.pertTrigSvt     = auRes.pertTrigSvt;     % Trigger Onset and Offset (Time) for perturbed trials (post temporal processing)
+res.numContTrialSvt = auRes.numContTrialSvt; % Number of control trials saved (post temporal processing)
+res.contIdxSvt      = auRes.contIdxSvt;      % Vector of indicies of control trials (Referencing allIdxSvt) (post temporal processing)
+res.contTrigSvt     = auRes.contTrigSvt;     % Trigger Onset and Offset (Time) for control trials (post temporal processing)
 
 res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
