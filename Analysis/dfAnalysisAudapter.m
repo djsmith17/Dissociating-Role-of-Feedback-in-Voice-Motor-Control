@@ -123,10 +123,10 @@ function [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, au
 % recordings. The Audapter audio signals are shifted after the delays are
 % indentified.
 %
-% This script also calculates if voice onset was after the pre-perturbation
-% period, or if the participant had a voice break during production. If
-% either of these are the case, the trial is thrown our for further
-% analyses.
+% This script also calculates the time of voice onset and identifies if 
+% the participant started too late (during the pre-perturbation period), 
+% or had a voice break If either of these are the case, the trial is thrown
+% out for further analyses.
 % 
 % Inputs:
 % An:      Analysis variables structure
@@ -157,13 +157,13 @@ preOn   = 0.5*fs;
 postOff = 1.0*fs;
 
 micRds     = resample(micR, fsNI, fs);
-AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expected that NIDAQ will lead Audapter
+AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
 if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
 else
-    AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expected that Mic will lead Head
+    AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
 end
 AuMHdelayP = AuMHdelay*fs;
 
@@ -190,7 +190,7 @@ elseif pp.chk4Break
     saveTmsg = 'Participant had a voice break!!';
 elseif length(micAuNi) < numSamp
     saveT    = 0;
-    saveTmsg = 'Recording too short';
+    saveTmsg = 'Recording too short!!';
 else
     saveT    = 1;
     saveTmsg = 'Everything is good'; 
@@ -200,18 +200,19 @@ end
 micP    = micAuNi(1:numSamp);
 headP   = headAuNi(1:numSamp);
 
-pp.saveT    = saveT;
-pp.saveTmsg = saveTmsg;
+pp.saveT    = saveT;    % Save trial or no?
+pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
-% xCorrTimeLag(sig1, sig2, fs) is a simple function I am using to find the
-% lag between two (seemingly) identical time based signals. 
+% xCorrTimeLag(sig1, sig2, fs) calculates the lag between two (seemingly) 
+% identical time based signals. 
+%
 % if timeLag is positive, then sig1 leads sig2. 
 % if timeLag is negative, then sig1 lags sig2.
 
-% Uses a crosscorrelation between the two signals, then finds the largest
-% peak
+% Simple crosscorrelation between two signals
+% Finds the largest peak of the result
 [r, lags]    = xcorr(sig1, sig2);
 [~, peakInd] = max(r);
 maxLag       = lags(peakInd);
