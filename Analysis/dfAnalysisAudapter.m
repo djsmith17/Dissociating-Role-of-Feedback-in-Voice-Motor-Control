@@ -133,15 +133,15 @@ function [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, au
 % micR:    Raw Microphone signal (Audapter)
 % headR:   Raw Headphone signal  (Audapter)
 % micRNI:  Raw Microphone signal (NIDAQ)
-% auTrigs: Trigger points of perturbation onset and offset (per trial; 
+% auTrigs: Trigger points (Au) of perturbation onset and offset (per trial) 
 %
 % Outputs:
 % micP:      Processed Microphone signal
 % headP:     Processed Headphone signal
 % AuNidelay: Calculated delay between NIDAQ and Audapter
 % pp:        Preprocessing results structure. This has information
-%            regarding the RMS of hte production, and if the participant 
-%            started late, or has a voice break. This provides a 
+%            regarding the envelope of the recorded audio file, and 
+%            if the participant started late, or has a voice break. 
 
 micR      = double(micR);    % Convert to data type double
 headR     = double(headR);   % Convert to data type double
@@ -175,19 +175,12 @@ headAuAl = headR((AuMHdelayP+1):end);
 micAuNi    = micAuAl(AuNidelayP:end);
 headAuNi   = headAuAl(AuNidelayP:end);
 
-% The period on either side of the pertrubation period.
+% Audio points on either side of the perturbation period.
 audioSecSt = auTrigs(1) - preOn;
 audioSecSp = auTrigs(2) + postOff;
 
-% Section the both audio samples around section period. 
-sectionInd = audioSecSt:audioSecSp;
-
-time    = sectionInd/fs;
-micSec  = micAuNi(sectionInd);
-headSec = headAuNi(sectionInd);
-
-%Find the onset of Voicing
-pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt, audioSecSp);
+% Find the onset of voicing
+pp = findVoiceOnset(micAuNi, fs, audioSecSt, audioSecSp);
 
 if pp.voiceOnsetLate
     saveT    = 0;  
@@ -203,7 +196,7 @@ else
     saveTmsg = 'Everything is good'; 
 end
 
-timeSec = time; 
+% Grab the full numSamp so they can be concatenated cleanly
 micP    = micAuNi(1:numSamp);
 headP   = headAuNi(1:numSamp);
 
@@ -226,8 +219,8 @@ timeLag      = maxLag/fs;
 timeLag      = -timeLag;
 end
 
-function pp = findVoiceOnsetThresh(audio, fs, audioSt, audioSp)
-% pp = findVoiceOnsetThresh(audio, fs, audioSt, audioSecSp) identifies
+function pp = findVoiceOnset(audio, fs, audioSt, audioSp)
+% pp = findVoiceOnset(audio, fs, audioSt, audioSecSp) identifies
 % onset of voice by the envelope of a microphone recording (audio).
 % Based on a specific point (audioSt), this script identifies if the 
 % participant started production late. Then the script identifies any
@@ -246,7 +239,7 @@ pp.audio    = audio;
 pp.audioSt  = audioSt;
 pp.audioSp  = audioSp;
 pp.lenSig   = length(audio);
-pp.t        = 0:1/fs:(pp.lenSig-1)/fs;
+pp.t        = 0:1/fs:(pp.lenSig-1)/fs; % Not used, but useful if debugging
 
 % 4th order low-pass butter filter settings
 [B,A] = butter(4, pp.envCutOf/(fs/2));
