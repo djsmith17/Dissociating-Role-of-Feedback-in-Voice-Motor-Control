@@ -54,8 +54,8 @@ if AudFlag == 1
         
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigsR, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSv, An.expTrigsSv, An.bTf0b, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigsR, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSv, An.expTrigsSv, An.bTf0b, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsR, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.bTf0b, anaFlag);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsR, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, An.bTf0b, anaFlag);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)

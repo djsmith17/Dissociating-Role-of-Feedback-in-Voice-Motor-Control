@@ -111,13 +111,13 @@ for ii = 1:auAn.numTrial
 end
 
 % Find only the trials we care about
-auAn.audioMSvt     = auAn.audioM(:, auAn.allIdxSvt); 
-auAn.audioHSvt     = auAn.audioH(:, auAn.allIdxSvt);
+auAn.audioMSvt     = auAn.audioM(:, auAn.allIdxSvt); % Grabbing the recorded audio based on the saved indices
+auAn.audioHSvt     = auAn.audioH(:, auAn.allIdxSvt); % Grabbing the recorded audio based on the saved indices
 auAn.trialTypeSvt  = auAn.trialType(auAn.allIdxSvt); % The order of trial type based on the saved trials post-tP
 
 auAn.numTrialSvt     = length(auAn.allIdxSvt);
-auAn.numPertTrialSvt = length(auAn.pertIdx);
-auAn.numContTrialSvt = length(auAn.contIdx);
+auAn.numPertTrialSvt = length(auAn.pertIdxSvt);
+auAn.numContTrialSvt = length(auAn.contIdxSvt);
 
 % The Audio Analysis
 f0Flag = 1;
