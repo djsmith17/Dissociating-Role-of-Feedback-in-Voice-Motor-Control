@@ -23,7 +23,7 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFla
 %
 % Requires the Signal Processing Toolbox
 
-%Identify some starting variables
+% Identify some Experimental variables
 auAn.AnaType   = 'Audapter';
 auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
@@ -38,15 +38,16 @@ auAn.bTf0b     = f0b;
 
 fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, niAn.bTf0b)
 
-auAn.sRate    = expParam.sRateAnal;
-auAn.sRateNi  = niAn.sRate;
+% Idenitfy some Recording Variables
+auAn.sRate        = expParam.sRateAnal;        % Sampling Rate of Audapter (down-sampled)
+auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
-auAn.trialLen  = expParam.trialLen;
-auAn.numSamp   = auAn.sRate*auAn.trialLen;
-auAn.numTrial  = expParam.numTrial;
-auAn.trialType = expParam.trialType;
-auAn.expTrigs  = expParam.trigs(:,:,1); %Time
-auAn.anaTrigs  = expParam.trigs(:,:,3);
+auAn.trialLen     = expParam.trialLen;
+auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Number of Samples recorded
+auAn.numTrial     = expParam.numTrial;         % Number of Trials recorded
+auAn.trialType    = expParam.trialType;        % Control (0), Perturbed (1)
+auAn.expTrigs     = expParam.trigs(:,:,1); % Time
+auAn.anaTrigs     = expParam.trigs(:,:,3); % Points (Audadapter)
 
 auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.audioM     = [];
@@ -62,7 +63,6 @@ auAn.contTrig   = [];
 auAn.pertTrig   = [];
 auAn.allAuNiDelays = [];
 
-% audioPP = [];
 svC = 0;
 for ii = 1:auAn.numTrial
     data = rawData(ii);
@@ -74,15 +74,12 @@ for ii = 1:auAn.numTrial
     
     MrawNi = niAn.audioM(:,ii);   
    
-    [time, mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
+    % Preprocessing step identifies time-series errors in production/recording
+    [mic, head, sigDelay, preProSt] = preProcAudio(auAn, Mraw, Hraw, MrawNi, anaTrigs);
     
-%     audioPP(ii).time = time;
-%     audioPP(ii).mic  = mic;
-%     audioPP(ii).head = head;
     auAn.audioM = cat(2, auAn.audioM, mic);
     auAn.audioH = cat(2, auAn.audioH, head);
 
-%     OST  = data.ost_stat;
     if preProSt.saveT == 0 %Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
     elseif preProSt.saveT == 1 %Save the Trial
@@ -109,8 +106,6 @@ auAn.numSaveTrials = length(auAn.svIdx);
 auAn.numContTrials = length(auAn.contIdx);
 auAn.numPertTrials = length(auAn.pertIdx);
 
-% auAn.audioPP = audioPP;
-
 %The Audio Analysis
 f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
@@ -119,43 +114,45 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [timeSec, micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, expTrigs, auTrigs)
-%This function performs pre-processing on the recorded audio data before
-%frequency analysis is applied. This function takes the following inputs:
+function [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
+% [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
+% This function performs pre-processing on the time-series recorded audio 
+% data before frequency analysis methods are applied. 
+% 
+% Inputs:
+% An:      Analysis variables structure
+% micR:    Raw Microphone signal (Audapter)
+% headR:   Raw Headphone signal  (Audapter)
+% micRNI:  Raw Microphone signal (NIDAQ)
+% auTrigs: Trigger points of perturbation onset and offset (per trial; 
+%
+% Outputs:
+% micP:      Processed Microphone signal
+% headP:     Processed Headphone signal
+% AuNidelay: Calculated delay between NIDAQ and Audapter
+% pp:        Preprocessing result structure Reason, if any, that the trial was thrown out
 
-%An:     Set of useful analysis variables
-%micR:   Raw Microphone (audapter) signal
-%headR:  Raw Headphone (audapter) signal
-%micRNI: Raw Microphone (NIDAQ) signal
-%trigs:  Triggers for the given trial
+micR      = double(micR);    % Convert to data type double
+headR     = double(headR);   % Convert to data type double
+AudFB     = An.AudFB;        % Auditory feedback type used
+fs        = An.sRate;        % Sampling rate (Audapter)
+fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
+frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
+numSamp   = An.numSamp;      % Number of samples for length of recording
 
-%This function outputs the following
-%micP:   Processed Microphone signal
-%headP:  Processed Headphone signal
-%AuNidelay: Calculated delay between NIDAQ and Audapter
-%pp:     preprocessing structure Reason, if any, that the trial was thrown out
-
-micR      = double(micR);
-headR     = double(headR);
-AudFB     = An.AudFB;
-fs        = An.sRate;
-fsNI      = An.sRateNi;
-frameLen  = An.frameLenDown;
-numSamp   = An.numSamp;
-
-%We are going to section the audio recording from 0.5s ahead of 
-%perturbation onset to 1.0s after perturbation offset.
+% We are going to section the audio recording from 0.5s ahead of 
+% perturbation onset to 1.0s after perturbation offset.
 preOn   = 0.5*fs;
 postOff = 1.0*fs;
 
 micRds     = resample(micR, fsNI, fs);
-AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
+AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expected that NIDAQ will lead Audapter
 AuNidelayP = AuNidelay*fs;
 
 if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
 else
-    AuMHdelay = xCorrTimeLag(micR, headR, fs); %Expected that Mic will lead Head
+    AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expected that Mic will lead Head
 end
 AuMHdelayP = AuMHdelay*fs;
 
