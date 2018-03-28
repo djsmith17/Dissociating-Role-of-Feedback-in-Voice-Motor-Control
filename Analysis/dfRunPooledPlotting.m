@@ -4,7 +4,7 @@ function dfRunPooledPlotting()
 % results and not individual participant results. 
 %
 % There are a few different plotting functions available:
-% -drawDAQMeanTrialMicf0
+% -drawMeanTrialMicf0
 % -drawMaskvVoiceMeanf0
 % -drawMeanSubjf0Resp
 
@@ -14,9 +14,9 @@ PolPlt.poolA    = 'Pooled Analyses';
 PolPlt.analyses = 'SfN2017';
 
 % Plot Toggles. Which plots do you want?
-PolPlt.NIDAQ_MeanTrialMicf0 = 0;
-PolPlt.MaskVVoice           = 1;
-PolPlt.AllSubjMaskvVoice    = 1;
+PolPlt.NIDAQ_MeanTrialMicf0 = 1;
+PolPlt.MaskVVoice           = 0;
+PolPlt.AllSubjMaskvVoice    = 0;
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, PolPlt.poolA, PolPlt.analyses); % Analyzed Results Folder
