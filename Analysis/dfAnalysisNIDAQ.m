@@ -20,6 +20,8 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iR
 %
 % This function calls the following functions
 % dfAnalysisAudio.m
+%
+% Requires the Signal Processing Toolbox
 
 %Identify some starting variables
 niAn.AnaType   = 'NIDAQ';
@@ -43,15 +45,15 @@ end
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 [r, c, n]      = size(DAQin);
-niAn.sRate     = expParam.sRateQ;
-niAn.numCh     = c;
-niAn.numSamp   = r;
-niAn.numTrial  = n;
-niAn.trialType = expParam.trialType;
-niAn.expTrigs  = expParam.trigs(:,:,1); %Time
+niAn.sRate     = expParam.sRateQ;    % Sampling Rate of the NIDAQ
+niAn.numCh     = c;                  % Number of Channels recorded
+niAn.numSamp   = r;                  % Number of Samples recorded
+niAn.numTrial  = n;                  % Number of Trials recorded
+niAn.trialType = expParam.trialType; % Control (0), Perturbed (1)
+niAn.expTrigs  = expParam.trigs(:,:,1); % Time
 niAn.dnSamp    = 10;
 
-%Find all the perturbed trials
+% Find all the perturbed trials
 [niAn.ContTrials, niAn.contIdx] = find(niAn.trialType == 0);
 [niAn.PertTrials, niAn.pertIdx] = find(niAn.trialType == 1);
 niAn.numContTrials = sum(niAn.ContTrials);
