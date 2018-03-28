@@ -40,14 +40,14 @@ else
 end
 
 if PolPlt.NIDAQ_MeanTrialMicf0 == 1
-    drawDAQMeanTrialMicf0(combDataStr(1,1), dirs.SavResultsDir)
-    drawDAQMeanTrialMicf0(combDataStr(1,2), dirs.SavResultsDir)
-    drawDAQMeanTrialMicf0(combDataStr(2,1), dirs.SavResultsDir)
-    drawDAQMeanTrialMicf0(combDataStr(2,2), dirs.SavResultsDir)
-    drawDAQMeanTrialMicf0(combDataStr(3,1), dirs.SavResultsDir)
-    drawDAQMeanTrialMicf0(combDataStr(3,2), dirs.SavResultsDir)
-    drawDAQMeanTrialMicf0(combDataStr(4,1), dirs.SavResultsDir)
-    drawDAQMeanTrialMicf0(combDataStr(4,2), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(1,1), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(1,2), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(2,1), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(2,2), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(3,1), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(3,2), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(4,1), dirs.SavResultsDir)
+    drawMeanTrialMicf0(combDataStr(4,2), dirs.SavResultsDir)
 end
 
 if PolPlt.MaskVVoice == 1
