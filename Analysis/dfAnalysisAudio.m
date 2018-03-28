@@ -1,23 +1,36 @@
 function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
-%I found that I was mostly writing the same things twice in my scripts for
-%audapter analysis and NIDAQ analysis. Ultimately what I care about is the
-%audio in one form or another. Let's just put it here.
-
-%Starting Variables that I need
-%An.subject
-%An.run
-%An.f0AnaFile
-%An.curSess
-%An.bTf0b
-
-%An.sRate   % 8000Hz (NIDAQ), 16000Hz (Audapter)
-%An.audioM  % Expects a matrix (samples x trials)
-%An.audioH  % Expects a matrix (samples x trials)
-
-%An.pertIdx   % Vector of indices pertaining to perturbed trials
-%An.contIdx   % Vector of indices pertaining to control trials
-%An.pertTrig  % Matrix of start/stop indices pertaining to pert period
-%An.contTrig  % Matrix of start/stop indices pertaining to 'pert' period
+% An = dfAnalysisAudio(dirs, An, AudFlag, varargin) performs frequency 
+% analyses on recorded audio data to measure the pitch contour on a number
+% of recorded trials. The actual f0 analysises are done within the
+% signalfrequencyanalyses function below, and rest of the script is spent
+% converting the f0 traces to cents, and sectioning them around the trigger
+% points. Mutli-trial statistics can be perfomed on the set of analyzed
+% trials, and inflation response results can be indetified
+%
+% This function adds to an existing analysis variables structure, which
+% means it can use any data set (NIDAQ/Audapter) as long as it has some
+% starting variables. 
+%
+% dirs:    The set of directories we are working in
+% An:      Analysis variables used to analyze data set
+% AudFlag: Do we want to do analysis on the audio data? Useful for when
+%          analyzing just perturbatron data
+% iRF:     Inflation response flag. Do we want to analyze the response to
+%          inflation?
+% f0F:     f0 Flag. Do we want to reanalyze data and receive new pitch
+%          traces?
+%
+% This function expects that the structure An contains the following fields
+% -An.curSess
+% -An.f0Type
+% -An.f0AnaFile
+% -An.bTf0b
+% -An.sRate
+% -An.audioMSvt
+% -An.audioHSvt
+% -An.expTrigsSvt
+% -An.allIdxSvt
+% -An.trialTypeSvt
 
 if isempty(varargin)
     iRF    = 0; 
@@ -30,28 +43,28 @@ else
     f0Flag = varargin{2};
 end
 
-%Instatiate the variables we intend to use. 
+% Instatiate the variables we intend to create 
 An = initAudVar(An);
 
 if AudFlag == 1
     fprintf('\nStarting Pitch Analysis\n')
-    An.numSamp = length(An.audioM);
-    %Set some frequency analysis variables
+   
+    % Set some frequency analysis variables
+    An.numSamp = length(An.audioMSvt);
     fV = setFreqAnalVar(An.sRate, An.numSamp);
     
-    %Main script that does the Signal Frequency Analysis
+    % File where to save/find pitch contour analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
-
-    %Sometimes frequency analysis takes a while, this allows you to save
-    %results from last time if you want to. 
-
-    %Which analysis type?
+    
+    % How do you want to calculate the pitch contour?
     if strcmp(An.f0Type, 'Praat') == 1
         anaFlag = 1;
     else
         anaFlag = 2;
     end
         
+    % Pitch contour analysis can be time consuiming. 
+    % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
         [f0A.timef0, f0A.audioMf0, f0A.expTrigsR, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.bTf0b, anaFlag);
@@ -65,22 +78,23 @@ if AudFlag == 1
     An.expTrigsR  = f0A.expTrigsR;
     An.audioMf0   = f0A.audioMf0;
     An.audioHf0   = f0A.audioHf0;
-    An.etMH       = f0A.etM + f0A.etH; % Minutesa
+    An.etMH       = f0A.etM + f0A.etH; % Minutes
     An.fV         = f0A.fV;
 
-    %Smooth the f0 data
+    % Smooth the f0 data
     An.audioMf0S   = smoothf0(An.audioMf0);
     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    [An.secTime, An.audioMf0SecAll] = sectionAudioData(An.timef0, An.audioMf0S, An.expTrigsR);
-    [An.secTime, An.audioHf0SecAll] = sectionAudioData(An.timef0, An.audioHf0S, An.expTrigsR);
+    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0S, An.expTrigsR);
+    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0S, An.expTrigsR);
    
-    %Normalize f0 and convert to cents
-    prePert       = (An.secTime <= 0);
-    An.trialf0b   = mean(An.audioMf0SecAll(prePert,:,1),1);   
-    An.f0b        = mean(An.trialf0b);
-
+    % Find the value of f0 during the perPert period for each trial
+    prePert       = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
+    An.trialf0b   = mean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
+    An.f0b        = mean(An.trialf0b);                      % Mean trial baseline f0
+    
+    % Normalize f0 traces by individual f0b and convert to cents
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0b);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0b);
     
@@ -101,15 +115,11 @@ if AudFlag == 1
     An.audioMf0c = parseTrialTypes(An.audioMf0sv, An.contf0Idx);
     An.audioHf0c = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
     
-%     %Find troublesome trials and remove
-%     [An.audioMf0_pPP, An.audioHf0_pPP, An.pertTrigPP, An.numPertTrialsPP] = audioPostProcessing(An, An.audioMf0_p, An.audioHf0_p, An.pertTrigR, auAn.pertSvNm, 'Pert');
-%     [An.audioMf0_cPP, An.audioHf0_cPP, An.contTrigPP, An.numContTrialsPP] = audioPostProcessing(An, An.audioMf0_c, An.audioHf0_c, An.contTrigR, auAn.contSvNm, 'Cont');
-
     %Section the data around onset and offset
-    [An.secTime, An.audioMf0_Secp] = sectionAudioData(An.timef0, An.audioMf0p, An.pertTrigsR);
-    [An.secTime, An.audioHf0_Secp] = sectionAudioData(An.timef0, An.audioHf0p, An.pertTrigsR);
-    [An.secTime, An.audioMf0_Secc] = sectionAudioData(An.timef0, An.audioMf0c, An.contTrigsR);
-    [An.secTime, An.audioHf0_Secc] = sectionAudioData(An.timef0, An.audioHf0c, An.contTrigsR);
+    [An.secTime, An.audioMf0_Secp] = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR);
+    [An.secTime, An.audioHf0_Secp] = sectionData(An.timef0, An.audioHf0p, An.pertTrigsR);
+    [An.secTime, An.audioMf0_Secc] = sectionData(An.timef0, An.audioMf0c, An.contTrigsR);
+    [An.secTime, An.audioHf0_Secc] = sectionData(An.timef0, An.audioHf0c, An.contTrigsR);
 
     %Mean around the onset and offset
     An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
@@ -267,16 +277,15 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 10);
+    audioSmooth = smooth(audio(:,ii), 10);   % 10 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end
 
 function audio_norm = normf0(audio, f0b)
-%audio_norm = normf0(audio, f0b) is a function that takes a set of audio signals and 
-%normalizes each piece of audio by its corresponding fundamental fequency.
-%It is expected that audio and f0b will be a matrices of size numSamp x
-%numTrial 
+% audio_norm = normf0(audio, f0b) takes a matrix of audio signals (audio) 
+% of size numSamp x numTrial and normalizes each trial by the f0 caluclated 
+% for that trial which are stored in the vector f0b (numTrial x 1)
 
 [~, numTrial] = size(audio);
 
@@ -288,17 +297,26 @@ end
 end
 
 function signalParse = parseTrialTypes(signal, idx)
-%Expects trials to be in columns 
+% signalParse = parseTrialTypes(signal, idx) parses individual trials out 
+% of a large matrix of audio recordings of size numSamp x numTrial. 
+% (idx) is a vector of the indices to parse out.
+% Why did you make this a function? Get over it.
 
-signalParse = signal(:, idx); %This is a little lazy I know. Get over it. 
+signalParse = signal(:, idx);
 end
 
 function [svf0Idx, expTrigsf0Sv, pertf0Idx, contf0Idx] = audioPostProcessing(An)
-%This function checks to see if there are any realllllly weird f0 values as
-%a result of the spectral analysis. This throws away trials and tells you
-%when it happens. It combines new data audio files of the saved trials, and
-%ammends the trig matrix of those files removed. Also gives a new value of
-%total number of trials kept.
+% [svf0Idx, expTrigsf0Sv, pertf0Idx, contf0Idx] = audioPostProcessing(An)
+% checks for odd (innaproriately large or small) normalized f0 values in
+% whole f0 traces as a result of the frequency analyses. 
+% This throws away trials any such odd trials and prints a statement about
+% which trials were thrown out.
+%
+% This function returns
+% svf0Idx: The indices of the saved trials compared against the full set
+% expTrigsf0Sv: The trigs of the saved trials
+% pertf0Idx: The indices of svf0Idx that are perturbed trials
+% contf0Idx: The indices of svf0Idx that are control trials
 
 curSess      = An.curSess;
 svIdx        = An.allIdxSvt;
@@ -347,37 +365,49 @@ for ii = 1:numTrialType
 end
 end
 
-function [secTime, secAudio] = sectionAudioData(time, audio, trigs)
-[~, numTrial] = size(audio);
+function [secTime, secSigs] = sectionData(time, sigs, trigs)
+% [secTime, secSigs] = sectionData(time, sigs, trigs) sections
+% time series data around important points in time.
+% 
+% time:  Vector of time points (numSamp)
+% sigs:  Matrix of signals to be sectioned (numSamp x numTrial)
+% trigs: Onset and Offset time tiggers (numTrial x 2)
+%
+% secTime: Vector of time points corresponding to the sectioned window (numSampSec)
+% secSigs: 3D mat of sectioned sigs (numSampSec x numTrial x event)
+%          The 1st 3D layer are Onset Sections
+%          The 2nd 3D later are Offset Sections
+
+[~, numTrial] = size(sigs);
 preEve  = 0.5; posEve = 1.0;
 
-secAudio   = [];
+secSigs    = [];
 OnsetSecs  = [];
 OffsetSecs = [];
 for ii = 1:numTrial
-    OnsetT   = trigs(ii, 1);
-    OffsetT  = trigs(ii, 2);
+    OnsetT   = trigs(ii, 1); % Onset time
+    OffsetT  = trigs(ii, 2); % Offset time
     
-    OnsetTSt = round(OnsetT - preEve, 3);   % Accurate to nearest ms
-    OnsetTSp = round(OnsetT + posEve, 3);   % Accurate to nearest ms
-    OnsetSpan = time >= OnsetTSt & time <= OnsetTSp;
+    OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
+    OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
+    OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
     
-    OffsetTSt = round(OffsetT - preEve, 3); % Accurate to nearest ms
-    OffsetTSp = round(OffsetT + posEve, 3); % Accurate to nearest ms
-    OffsetSpan = time >= OffsetTSt & time <= OffsetTSp;
+    OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
+    OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
+    OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
         
-    OnsetSec  = audio(OnsetSpan, ii);
-    OffsetSec = audio(OffsetSpan, ii);
+    OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
+    OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
     
-    OnsetSecs  = cat(2, OnsetSecs, OnsetSec);
-    OffsetSecs = cat(2, OffsetSecs, OffsetSec);
+    OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
+    OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
 end
 
-numSamp = length(OnsetSec);
+numSampSec = length(OnsetSec); % number of samples in sectioned signals
 
-secTime = linspace(-preEve, posEve, numSamp);
-secAudio(:,:,1) = OnsetSecs; 
-secAudio(:,:,2) = OffsetSecs;
+secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
+secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
+secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
 end
 
 function y = round2matchfs(x, rFact, winHalf)
