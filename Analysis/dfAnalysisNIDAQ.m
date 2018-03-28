@@ -102,21 +102,20 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
-niAn.OnOfValP  = [];
-niAn.OnOfValPm = [];
-niAn.riseTimeP = [];
+niAn.OnOfValP   = [];
+niAn.OnOfValPm  = [];
+niAn.riseTimeP  = [];
 niAn.riseTimePm = [];
-niAn.sensorP_Al = [];
-niAn.time_Al    = [];
+niAn.timeAl     = [];
+niAn.sensorPAl  = [];
 if PresFlag == 1
     % Sensor Dynamics of the Pressure Sensor
     [niAn.OnOfValP,  niAn.OnOfValPm, ...
      niAn.riseTimeP, niAn.riseTimePm] = ...
     analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
 
-    % Aligning pressure signal for perturbed trials
-    niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-    niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
+    % Section and aligning pressure signal for perturbed trials
+    [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
 end
 
 %The Audio Analysis
@@ -329,16 +328,20 @@ else % Manual selection
 end
 end
 
-function sensorAl = alignSensorData(sensor, fs, idx)
-% sensorAl = alignSensorData(sensor, fs, idx) sections multi-trial sensor 
-% data about individual trial trigger points. Each sectioned trial is of 
-% equal length, and includes equal lengths of data on either side of the 
-% trigger point. The sectioned trials are then concatenated into a matrix,
-% which are aligned the trigger point of each trial. 
+function [timeAl, sensorAl] = alignSensorData(sensor, fs, idx)
+% [timeAl, sensorAl]  = alignSensorData(sensor, fs, idx) sections 
+% multi-trial sensor data about individual trial trigger points. 
+% Each sectioned trial is of equal length, and includes equal lengths of 
+% data on either side of the trigger point. 
+% The sectioned trials are then concatenated into a matrix, which are
+% aligned the trigger point of each trial. 
 %
 % sensor: recorded sensor data (numSamp x numTrial)
 % fs:     sampling rate of sensor data
-% idx:    Onset and Offset trigger TIMES (numTrial, 2)
+% idx:    Onset and Offset trigger POINTS (numTrial, 2)
+%
+% timeAl:   vector of time points corresponding to the sectioned data
+% sensorAl: sectioned and aligned sensor data 
 
 [~, numTrial] = size(sensor);
 eveSt = 1.0; % time preEvent Seconds 
@@ -350,12 +353,19 @@ OnsetTrigs = idx(:, 1);
 
 sensorAl = [];
 for ii = 1:numTrial
-    St = OnsetTrigs(ii) - fs*eveSt;  % Point preEvent (trigger)
-    Sp = OnsetTrigs(ii) + fs*eveSp;  % Point posEvent (trigger)
+    St = OnsetTrigs(ii) - fs*eveSt;  % Points preEvent (trigger)
+    Sp = OnsetTrigs(ii) + fs*eveSp;  % Points posEvent (trigger)
     
-    % Grab St:Sp around the trigger point for this trial
-    sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
+    sensorSec = sensor(St:Sp, ii); % Grab St:Sp around the trigger point for this trial
+    
+    sensorAl = cat(2, sensorAl, sensorSec);
 end
+
+numSampSec = length(sensorSec);
+per     = 1/fs;
+
+% Time Vector of the sectioned data
+timeAl = (0:per:(numSampSec-1)*per)';
 end
 
 function lims = identifyLimits(An)
@@ -526,10 +536,12 @@ res.OnOfValP   = niAn.OnOfValP;
 res.OnOfValPm  = niAn.OnOfValPm;
 res.limitsP    = lims.pressure;
 
-res.timeSAl   = niAn.time_Al;
-res.sensorPAl = niAn.sensorP_Al;
+% Sectioned and Aligned Pressure recordings 
+res.timeSAl   = niAn.timeAl;
+res.sensorPAl = niAn.sensorPAl;
 res.limitsPAl = lims.pressureAl;
 
+% Audio f0 analysis
 res.timef0          = niAn.timef0;
 res.f0b             = niAn.f0b;
 
