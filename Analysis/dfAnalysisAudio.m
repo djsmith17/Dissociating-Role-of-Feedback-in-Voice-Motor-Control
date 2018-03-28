@@ -411,23 +411,34 @@ secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
 end
 
 function y = round2matchfs(x, rFact, winHalf)
-%This expects a decimal number as input
-%Input can be given as a set
+% y = round2matchfs(x, rFact, winHalf) rounds the value of x to a value y,
+% which is the closet number to x that matches the time step for a given
+% analysis windowing methods. winHalf is the length of the window that
+% represents the amount of window, the time point corresponds to. rFact is
+% the sampling rate divided by the step size.
+%
+% x can be a single number, a vector of numbers or a matrix of numbers.
 
 y = round((x-winHalf).*rFact)./rFact + winHalf;
 end
 
 function meanAudio = meanAudioData(secAudio)
+% Some simple statistics on the sectioned audio data. 
+% meanAudio is a vector containing the following information
+% meanAudio(1) = mean Onset pitch contour
+% meanAudio(2) = 95% CI of the mean Onset Pitch Contour
+% meanAudio(3) = mean Offset pitch contour
+% meanAudio(4) = 95% CI of the mean Offset Pitch Contour
 
 OnsetSecs  = secAudio(:,:,1);
 OffsetSecs = secAudio(:,:,2);
 [~, numTrial] = size(OnsetSecs);
 
-meanOnset  = mean(OnsetSecs, 2);
-meanOffset = mean(OffsetSecs, 2);
+meanOnset  = mean(OnsetSecs, 2);  % across columns
+meanOffset = mean(OffsetSecs, 2); % across columns
 
-stdOnset   = std(OnsetSecs, 0, 2);
-stdOffset  = std(OffsetSecs, 0, 2);
+stdOnset   = std(OnsetSecs, 0, 2);  % across columns
+stdOffset  = std(OffsetSecs, 0, 2); % across columns
 
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
@@ -438,62 +449,83 @@ NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
-function [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
-[L, numTrial, ~] = size(secAudio); %Only look at Onsets
+function [respVar, respVarM, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+% [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+% Identifies the relevant pitch contour characteristics that are important
+% for deciding how a participant responded to the inflation of the balloon
+% during production. iR is a structure representing the result variables
+% from studying the inflation response (iR). 
+%
+% secTime:  Vector of time points corresponding to the sectioned data (numSamp)
+% secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
+%           The 1st 3D layer are Onset Sections
+%           The 2nd 3D later are Offset Sections
+%
+% respVar: Matrix of per trial iR results (numTrial x 4)
+%          respVar(:,1) = Time of the minimum f0 value in the sec
+%          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
+%          respVar(:,3) = Value of f0 at end of sec (response magnitude)
+%          respVar(:,4) = ABS percent change of stim and response
+%          magnitude (response percentage)
+% respVarM:    Vector of mean trial values from respVarm (1x4)
+% respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
+% InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
 
+[numSamp, numTrial, ~] = size(secAudio); % Size of the data we are dealing with
+
+ir.numSamp  = numSamp;
 ir.numTrial = numTrial;
 ir.time     = secTime;
-ir.iAtOnset = find(secTime == 0); %Ind
-ir.tAtOnset = 0;
-ir.vAtOnset = [];
-ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); %Ind
-ir.iAtMin = [];
-ir.tAtMin = [];
-ir.vAtMin = [];
-ir.stimMag = [];
-ir.iAtResp = L; %the last ind
-ir.tAtResp = ir.time(L);
-ir.vAtResp = [];
-ir.respMag = [];
-ir.respPer = [];
 
-shpInds = [];
+ir.iAtOnset = find(secTime == 0); % Index where t = 0
+ir.tAtOnset = 0;                  % Time at t = 0 ...duh
+ir.vAtOnset = [];                 % f0 value at t = 0
+
+ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); % Range of indices between t = 0ms and t = 200ms;
+ir.iAtMin  = [];                  % Index at min f0 value in PostOnsetR
+ir.tAtMin  = [];                  % Time at min f0 value in PostOnsetR
+ir.vAtMin  = [];                  % Min f0 value in PostOnsetR
+ir.stimMag = [];                  % ir.vAtMin - ir.vAtOnset ..in a perfect world vAtOnset = 0
+
+ir.iAtResp = ir.numSamp;          % Index of f0 value when participant 'fully' responded...right now = last value in section
+ir.tAtResp = ir.time(ir.numSamp); % Time at f0 value when participant 'fully' responded
+ir.vAtResp = [];                  % f0 value when participant 'fully' responded 
+ir.respMag = [];                  % vAtResp - vAtMin   ...distance traveled
+ir.respPer = [];                  % Percent change from stimMag to respMag
+
+% Variables to be concatenated and saved as outputs 
 tAtMin  = []; stimMag = [];
 respMag = []; respPer = [];
 for i = 1:numTrial
-    onset = secAudio(:,i,1); %First depth dim in Onset
-    ir.vAtOnset = onset(ir.iAtOnset);
+    onset = secAudio(:,i,1); % Go trial by trial; First 3D layer is Onset
+    ir.vAtOnset = onset(ir.iAtOnset); % f0 value at t = 0
 
-    [minOn, minIdx] = min(onset(ir.iPostOnsetR));
-    ir.iAtMin = ir.iPostOnsetR(minIdx);
-    ir.tAtMin = ir.time(ir.iAtMin);
-    ir.vAtMin = minOn;
-    ir.stimMag = ir.vAtMin - ir.vAtOnset;
+    [minOn, minIdx] = min(onset(ir.iPostOnsetR)); % Minimum f0 in PostOnsetR
+    ir.iAtMin = ir.iPostOnsetR(minIdx);           % Indice of the min f0 value
+    ir.tAtMin = ir.time(ir.iAtMin);               % Time at min f0 value in PostOnsetR
+    ir.vAtMin = minOn;                            % Min f0 value in PostOnsetR
+    ir.stimMag = ir.vAtMin - ir.vAtOnset;         % Distance traveled from onset to min value
     
-    ir.vAtResp = onset(ir.iAtResp);
-    ir.respMag = ir.vAtResp - ir.vAtMin;
+    ir.vAtResp = onset(ir.iAtResp);               % f0 value when participant 'fully' responded 
+    ir.respMag = ir.vAtResp - ir.vAtMin;          % Distance traveled from min f0 value to response f0 value
     
-    ir.respPer = 100*(ir.respMag/abs(ir.stimMag));
+    ir.respPer = 100*(ir.respMag/abs(ir.stimMag));% Percent change from stimMag to respMag 
     
     if ir.stimMag == 0
         ir.respPer = 0.0;
     end
     
-%     subplot(2,5,i)
-%     plot(secTime, onset)
-    
-%     shpInd   = [ir.iAtOnset ir.iAtMin ir.iAtResp];  
-%     shpInds  = cat(1, shpInds, shpInd); 
-    
+    % Concatenate the results from this trial 
     tAtMin   = cat(1, tAtMin, ir.tAtMin);
     stimMag  = cat(1, stimMag, ir.stimMag); 
     respMag  = cat(1, respMag, ir.respMag); 
     respPer  = cat(1, respPer, ir.respPer);
 end
 
-respVar  = [tAtMin stimMag respMag respPer];
-respVarm = mean(respVar, 1);
+% Organize the results 
+respVar   = [tAtMin stimMag respMag respPer];
+respVarM  = mean(respVar, 1);
 respVarSD = std(respVar, 0, 1);
 
-InflaStimVar = [respVar(1) respVarm(2)];
+InflaStimVar = [respVarM(1) respVarM(2)];
 end
