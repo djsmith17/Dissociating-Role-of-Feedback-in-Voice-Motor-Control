@@ -29,7 +29,7 @@ niAn.expType   = expParam.expType;
 niAn.subject   = expParam.subject;
 niAn.run       = expParam.run;
 niAn.curSess   = expParam.curSess;
-niAn.f0Type    = 'N';
+niAn.f0Type    = 'Praat';
 niAn.f0AnaFile = [niAn.subject niAn.run 'f0Analysis' niAn.f0Type '.mat'];
 niAn.gender    = expParam.gender;
 niAn.AudFB     = expParam.AudFB;
@@ -50,7 +50,7 @@ niAn.numCh     = c;                  % Number of Channels recorded
 niAn.numSamp   = r;                  % Number of Samples recorded
 niAn.numTrial  = n;                  % Number of Trials recorded
 niAn.trialType = expParam.trialType; % Control (0), Perturbed (1)
-niAn.expTrigs  = expParam.trigs(:,:,1); % Time
+niAn.expTrigs  = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
 niAn.dnSamp    = 10;
 
 % Find all the perturbed trials
@@ -59,9 +59,9 @@ niAn.dnSamp    = 10;
 niAn.numContTrials = sum(niAn.ContTrials);
 niAn.numPertTrials = sum(niAn.PertTrials);
 
-%Unpack the NIDAQ raw data set
+%Unpack the NIDAQ raw data set, a 3D matrix (numSamp, numCh, numTrial)
 niAn.time     = (0:1/niAn.sRate:(niAn.numSamp-1)/niAn.sRate)';
-niAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbation Signal (Pert)
+niAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbatron Signal (Pert)
 niAn.sensorFC = squeeze(DAQin(:,2,:)); % Force Sensor Collar (FC)
 niAn.sensorFN = squeeze(DAQin(:,3,:)); % Force Sensor Neck (FN)
 niAn.sensorP  = squeeze(DAQin(:,4,:)); % Pressure (P)
@@ -109,12 +109,12 @@ niAn.riseTimePm = [];
 niAn.sensorP_Al = [];
 niAn.time_Al    = [];
 if PresFlag == 1
-    %Sensor Dynamics of the Pressure Sensor
+    % Sensor Dynamics of the Pressure Sensor
     [niAn.OnOfValP,  niAn.OnOfValPm, ...
      niAn.riseTimeP, niAn.riseTimePm] = ...
     analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
 
-    %Aligning pressure signal for perturbed trials
+    % Aligning pressure signal for perturbed trials
     niAn.sensorP_Al = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     niAn.time_Al    = (0:1/niAn.sRateDN :(length(niAn.sensorP_Al)-1)/niAn.sRateDN)';
 end
@@ -127,17 +127,18 @@ niRes = packResults(niAn, lims);
 end
 
 function sensorZeroed = correctBaseline(sensor, fs)
-%The first second of the first trial will have the baseline pressure reading
-%from the sensor. We will use this to fix the offset in all the trials. 
+% sensorZeroed = correctBaseline(sensor, fs) zeromeans a set of trials 
+% against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
+% recordings (esp. the Pressure sensor)
 
 firstS  = 1:(1*fs);          % Grab the first second
-firstT  = sensor(firstS, 1); % Grab the very first trial
-meanRec = mean(firstT);      % I really mean it
+firstT  = sensor(firstS, 1); % Grab the 1st sec of 1st trial
+meanRec = mean(firstT);      % Mean value of 1st sec of 1st trial
 
-sensorZeroed = sensor - meanRec;
+sensorZeroed = sensor - meanRec; % Subtract that mean value from all points in all trials. 
 end
 
-function sensorPP     = sensorPreProcessing(sensor, sRate)
+function sensorPP = sensorPreProcessing(sensor, sRate)
 %This was mostly to mess around with the force sensor, but for right now we
 %will hide that all in here. Likely will never need this again. 
 
@@ -158,9 +159,12 @@ end
 end
 
 function signalParse = parseTrialTypes(signal, idx)
-%Expects trials to be in columns 
+% signalParse = parseTrialTypes(signal, idx) parses individual trials out 
+% of a large matrix of recordings of size numSamp x numTrial. 
+% (idx) is a vector of the indices to parse out.
+% Why did you make this a function? Get over it. 
 
-signalParse = signal(:, idx); %This is a little lazy I know. Get over it. 
+signalParse = signal(:, idx);
 end
 
 function [trigs, idx] = findPertTrigs(time, sensor, fs)
@@ -194,6 +198,8 @@ end
 end
 
 function [lags, lagMeans] = calcMeanLags(pertTrig, sensorTrig)
+% [lags, lagMeans] = calcMeanLags(pertTrig, sensorTrig) compares the
+% trigger time from a sensor recording against that of when the 
 
 lags = sensorTrig - pertTrig;
 lagsMean = mean(lags, 1);
@@ -297,21 +303,28 @@ end
 end
 
 function sensorAl = alignSensorData(sensor, fs, idx)
-% alignSensorData(sensor, fs, idx) takes multi-trial sensor data recorded
-% by the NIDAQ and identifies the points where the triggers take place. It
-% then concatenates each trial with the trigger points aligned at the same
-% time point.
+% sensorAl = alignSensorData(sensor, fs, idx) sections multi-trial sensor 
+% data about individual trial trigger points. Each sectioned trial is of 
+% equal length, and includes equal lengths of data on either side of the 
+% trigger point. The sectioned trials are then concatenated into a matrix,
+% which are aligned the trigger point of each trial. 
 %
-% sensorAl is the same set of multi-trial sensor data aligned by each 
-% trigger. The trials are sectioned to show the 1 sec ahead of the trigger, 
-% and the 2.5s following the trigger. This makes for easy plotting. 
+% sensor: recorded sensor data (numSamp x numTrial)
+% fs:     sampling rate of sensor data
+% idx:    Onset and Offset trigger TIMES (numTrial, 2)
 
 [~, numTrial] = size(sensor);
+eveSt = 1.0; % time preEvent Seconds 
+eveSp = 2.5; % time posEvent Seconds
+
+% At the moment only aligning by Onset. 
+% This could eventually become an input to toggle between Onset/Offset
+OnsetTrigs = idx(:, 1); 
 
 sensorAl = [];
 for ii = 1:numTrial
-    St = idx(ii,1) - fs*1;    % Point 1s before the trigger
-    Sp = idx(ii,1) + fs*2.5;  % Point 2.5s after the trigger
+    St = OnsetTrigs(ii) - fs*eveSt;  % Point preEvent (trigger)
+    Sp = OnsetTrigs(ii) + fs*eveSp;  % Point posEvent (trigger)
     
     % Grab 3.5s around the trigger point for this trial
     sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
