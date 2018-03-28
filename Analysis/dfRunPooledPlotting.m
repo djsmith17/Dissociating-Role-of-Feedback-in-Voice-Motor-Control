@@ -1,28 +1,26 @@
 function dfRunPooledPlotting()
-%This function loads results to be plotted by a handful of plotting
-%functions. Specifically this is to plot pooled results, as oppose to
-%individual subject results.
+% dfRunPooledPlotting() loads a pooled results structure and plots these
+% pooled results. This function should be used specifically for pooled 
+% results and not individual participant results. 
+%
+% There are a few different plotting functions available:
+% -drawDAQMeanTrialMicf0
+% -drawMaskvVoiceMeanf0
+% -drawMeanSubjf0Resp
 
-%This uses the following plot functions
-%drawDAQMeanTrialMicf0
-%drawMaskvVoiceMeanf0
-%drawMeanSubjf0Resp
-
-clear all; close all; clc
+close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.poolA    = 'Pooled Analyses'; %List of multiple participants.
+PolPlt.poolA    = 'Pooled Analyses';
 PolPlt.analyses = 'SfN2017';
 
-%Plot Toggles. This could eventually become an input variable
-sv2File                     = 1;
+% Plot Toggles. Which plots do you want?
 PolPlt.NIDAQ_MeanTrialMicf0 = 0;
 PolPlt.MaskVVoice           = 1;
 PolPlt.AllSubjMaskvVoice    = 1;
-PolPlt.dataTable            = 0;
 
 dirs                = dfDirs(PolPlt.project);
-dirs.SavResultsDir  = fullfile(dirs.Results, PolPlt.poolA, PolPlt.analyses); %Where to save results
-dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.mat']); %Where to save results
+dirs.SavResultsDir  = fullfile(dirs.Results, PolPlt.poolA, PolPlt.analyses); % Analyzed Results Folder
+dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.mat']); % The results to load
 
 ppi        = 300;
 scRes      = [1680 1050];
@@ -36,9 +34,9 @@ pltLetter = {'a'; 'b'; 'c'; 'd'};
 if exist(dirs.SavResultsFile, 'file') == 0
     fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
     return
+else
+    load(dirs.SavResultsFile)
 end
-
-load(dirs.SavResultsFile)
 
 if PolPlt.NIDAQ_MeanTrialMicf0 == 1
     drawDAQMeanTrialMicf0(combDataStr(1,1), dirs.SavResultsDir)
