@@ -36,6 +36,7 @@ if exist(dirs.SavResultsFile, 'file') == 0
     return
 else
     load(dirs.SavResultsFile)
+    % Returns combDataStr; statLib
 end
 
 if PolPlt.NIDAQ_MeanTrialMicf0 == 1
