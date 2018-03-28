@@ -31,7 +31,7 @@ for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
-        dirs.SavResultsDir  = fullfile(dirs.Results, participant, run); %The Analyzed Results Folder...Where Plots will go
+        dirs.SavResultsDir  = fullfile(dirs.Results, participant, run); % Analyzed Results Folder...Where Plots will go
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsPraatDRF.mat']); %The Analyzed Results FIle
 
         if exist(dirs.SavResultsFile, 'file') == 0
@@ -62,7 +62,7 @@ for ii = 1:sPlt.numPart
             drawAudRespIndivTrial(res, dirs.SavResultsDir)
             drawAudRespMeanTrial(res, dirs.SavResultsDir)
         end
-                      
+                       
         if sPlt.NIDAQ_AllPertTrial == 1
             drawDAQAllPertTrialMicf0(res, dirs.SavResultsDir)
         end 
