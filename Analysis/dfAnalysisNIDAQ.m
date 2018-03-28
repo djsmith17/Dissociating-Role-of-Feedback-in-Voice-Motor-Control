@@ -21,7 +21,7 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iR
 % This function calls the following functions
 % dfAnalysisAudio.m
 %
-% Requires the Signal Processing Toolbox
+% Requires the Signal Processing Toolbox, Image Processing Toolbox
 
 %Identify some starting variables
 niAn.AnaType   = 'NIDAQ';
@@ -238,46 +238,73 @@ riseTime     = OnOfTime(:,1) - sensTrig(:,1);
 riseTimeMean = mean(riseTime);
 end
 
-function [endRiseInd, startFallInd] = findCrossings(sensor, fs, man)
+function [endRiseInd, startFallInd] = findCrossings(sensor, fs, toggle)
+% [endRiseInd, startFallInd] = findCrossings(sensor, fs, man) finds the
+% points when a sensor recording (expected to be a step function) reaches
+% its highest point, and when it starts to fall from its highest point.
+% This function can operate automatically (auto), or manually (man). In the
+% auto method, the first derivative (sensDiff) of the function determines 
+% when the function goes from low to high (sensDiff > 0) or from 
+% high to low (sensDiff < 0). From the peaks of sensDiff, the last indice 
+% of the largest + peak is considered the end of the signal rise (endRiseInd), 
+% and the first indice of the largest - peak is considered the start of 
+% the signal fall (startFallInd). 
+%
+% In the man method, a plot of the signal and D1 is displayed. 
+% Using the mouse, the point where the rise ends and the fall starts can be
+% selected. 
+% 
+% sensor: Single trial recording from the NIDAQ. Expected that it is 
+%         roughly a step function. 
+% fs:     sampling rate of sensor
+% toggle: Toggle for man or auto analysis
+%
+% endRiseInd:   Indice of where the step function rise ends
+% startFallInd: Indice of where the step function fall starts
 
-[B, A] = butter(8, (50/(fs/2)), 'low'); 
-sensorFilt = filtfilt(B,A, sensor);
+[B, A] = butter(8, (50/(fs/2)), 'low'); % 8th order butter filter settings
+sensorFilt = filtfilt(B,A, sensor);     % Low-pass filter the signal
 
-sensDiff  = smooth([0; diff(sensorFilt)]*50, 10);
+numSamp   = length(sensor); 
+sensDiff  = diff(sensorFilt)*50;        % 1st derivative, then magnified for ease of viewing
+sensDiff  = [0; sensDiff];              % Add a zero to correct for the length
+sensDiff  = smooth(sensDiff, 10);       % Smooth the 1st derivative
 
-diffPeakMax = 0.05;
-peakLeadLag = fs*0.5; % How many seconds past he peak to look for the level off. 
+diffPeakMax = 0.05;      % Threshold value of derivative 
+peakLeadLag = fs*0.5;    % How many seconds past peak to look for the level off. 
 
-if man == 0 % Automatic selection of endRise and startFall
+if toggle == 0 % Automatic selection
     
     %yes its a bit lazy. I am sorry. 
-    [pksU, locU] = findpeaks(sensDiff);
-    [pksD, locD] = findpeaks(-1*sensDiff);    
+    [pksU, locU] = findpeaks(sensDiff);    % Positive peaks
+    [pksD, locD] = findpeaks(-1*sensDiff); % Negative peaks
 
     if isempty(pksU)
         disp('No rise found')
-        endRiseInd = [];
+        endRiseInd = 1;
     else
-        [~, maxInd] = max(pksU);
-        maxIndFull = locU(maxInd);
-        searchR = maxIndFull:maxIndFull+peakLeadLag;
+        [~, maxInd] = max(pksU);           % Largest Mag positive peak
+        maxIndFull = locU(maxInd);         % Ind of the maxPeak in the signal
+        searchR = maxIndFull:maxIndFull+peakLeadLag; % Range of Max peak to Max Peak+lag
         diffDownRamp = find(sensDiff(searchR) > diffPeakMax);
         
-        endRiseInd = searchR(diffDownRamp(end));
+        endRiseInd = searchR(diffDownRamp(end)); % Take the last point that is satisfies the threshold in the range
     end
     
     if isempty(pksD)
         disp('No fall found')
-        startFallInd = [];
+        startFallInd = numSamp;
     else
-        [~, minInd] = max(pksD);
-        minIndFull = locD(minInd);
-        searchR = minIndFull-peakLeadLag:minIndFull;
-        diffUpRamp = find(sensDiff(searchR) > diffPeakMax);
+        [~, minInd] = max(pksD);         % Largest Mag negative peak
+        minIndFull = locD(minInd);       % Ind of the maxPeak in the signal
+        searchR = minIndFull-peakLeadLag:minIndFull; % Range of Max Peak-lag to Max Peak
+        diffUpRamp = find(sensDiff(searchR) > diffPeakMax); % All points that are above threshold in the range 
         
-        startFallInd = searchR(diffUpRamp(1));
+        startFallInd = searchR(diffUpRamp(1)); % Take the first point that is satisfies the threshold in the range
     end
-    
+  
+% During debugging, uncomment the below so you can see how well the
+% automated selection is finding the endRiseInd and startFallInd
 %     figure
 %     plot(sensor,'k')
 %     hold on
@@ -286,14 +313,14 @@ if man == 0 % Automatic selection of endRise and startFall
 %     plot([startFallInd startFallInd], [-100 100], 'r')
 %     axis([0 3200 -0.05 4])
 
-else % Manual selection of endRise and startFall
+else % Manual selection
     PresFig = figure;
     plot(sensor, 'k'); hold on
     plot(sensDiff, 'r'); hold on
     axis([0 3200 3.8 4.5])
 
-    [x1, ~] = getpts(PresFig);
-    [x2, ~] = getpts(PresFig);
+    [x1, ~] = getpts(PresFig); % Mouse selection (Image Processing Toolbox)
+    [x2, ~] = getpts(PresFig); % Mouse selection (Image Processing Toolbox)
 
     endRiseInd   = round(x1);
     startFallInd = round(x2);
@@ -326,7 +353,7 @@ for ii = 1:numTrial
     St = OnsetTrigs(ii) - fs*eveSt;  % Point preEvent (trigger)
     Sp = OnsetTrigs(ii) + fs*eveSp;  % Point posEvent (trigger)
     
-    % Grab 3.5s around the trigger point for this trial
+    % Grab St:Sp around the trigger point for this trial
     sensorAl = cat(2, sensorAl, sensor(St:Sp, ii));
 end
 end
