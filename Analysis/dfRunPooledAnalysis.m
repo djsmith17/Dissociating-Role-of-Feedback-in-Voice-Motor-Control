@@ -75,6 +75,8 @@ for ii = 1:pA.numPart
     allDataStr = cat(1, allDataStr, subjRes);
 end
 
+[~, numRunCond, ~] = size(allDataStr);
+
 allSubjRes.numControlTrials = 0;
 allSubjRes.numMaskedTrials  = 0;
 allSubjRes.numVoicedTrials  = 0;
@@ -94,12 +96,14 @@ for ii = 1:pA.numPart
         runSt1 = allDataStr(ii, 1, jj);
         runSt2 = allDataStr(ii, 2, jj);
         
-        thisStruc.parti           = runSt1.subject;
-        thisStruc.subject         = ['Participant ' num2str(ii)]; % doubleblind sorta, I guess. Shoot me
+        thisStruc.studyID         = runSt1.subject;               % Study ID
+        thisStruc.subject         = ['Participant ' num2str(ii)]; % Pooled Analysis Name
         thisStruc.runs            = {runSt1.run; runSt2.run};
-        thisStruc.curSess         = [thisStruc.subject pA.cond{jj}];
+        thisStruc.curSess         = [thisStruc.subject ' ' pA.cond{jj}];
+        thisStruc.AudFB           = runSt1.AudFB;
         thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrialsPP]);
         thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrialsPP]);
+        
         thisStruc.secTime         = runSt1.secTime;
         thisStruc.runf0b          = [runSt1.f0b runSt2.f0b];
         thisStruc.audioMf0SecPert = [runSt1.audioMf0SecPert runSt2.audioMf0SecPert];
