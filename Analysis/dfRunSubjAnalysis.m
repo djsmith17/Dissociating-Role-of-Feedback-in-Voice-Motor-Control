@@ -84,7 +84,7 @@ for i = 1:AVar.numPart
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
         
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'Results' res.f0Type 'DRF.mat']);
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         dirs.InflaVarFile   = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
         if AVar.debug == 0
             % Save the results of this recording session
@@ -142,10 +142,12 @@ res.OnOfValP        = niRes.OnOfValP;
 res.OnOfValPm       = niRes.OnOfValPm;
 res.limitsP         = niRes.limitsP;
 
+% Sectioned and Aligned Pressure recordings 
 res.timeSAl       = niRes.timeSAl;
 res.sensorPAl     = niRes.sensorPAl;
 res.limitsPAl     = niRes.limitsPAl;
 
+% Audio f0 analysis
 res.timef0        = auRes.timef0;
 res.f0b           = auRes.f0b;
 

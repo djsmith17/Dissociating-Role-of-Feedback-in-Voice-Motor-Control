@@ -11,7 +11,7 @@ function dfRunSubjPlotting()
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'Pilot21'}; %List of multiple participants.
+sPlt.participants  = {'Pilot22'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
 sPlt.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
@@ -21,8 +21,8 @@ dirs               = dfDirs(sPlt.project);
 sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
-sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
-sPlt.drawMeanTrial_PertCont  = 0; % Mean Trials Microphone input. Control vs Perturbed Trials
+sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
+sPlt.drawMeanTrial_PertCont  = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
 sPlt.drawAllTrial_Pert       = 1; % All Perturbed Trials Microphone input
 sPlt.drawMeanTrial_MicHead  = 0; % Mean Perturbed Trials. Microphone vs Headphones
  
@@ -31,7 +31,7 @@ for ii = 1:sPlt.numPart
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
         dirs.SavResultsDir  = fullfile(dirs.Results, participant, run); % Analyzed Results Folder...Where Plots will go
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsPraatDRF.mat']); %The Analyzed Results FIle
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']); %The Analyzed Results FIle
 
         if exist(dirs.SavResultsFile, 'file') == 0
             fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)

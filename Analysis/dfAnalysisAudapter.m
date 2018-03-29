@@ -37,7 +37,7 @@ auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
 auAn.curSess   = expParam.curSess;
 auAn.f0Type    = 'Praat';
-auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis' auAn.f0Type '.mat'];
+auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis.mat'];
 auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
@@ -439,7 +439,7 @@ res.numContTrialSvt = auAn.numContTrialSvt; % Number of control trials saved (po
 res.contIdxSvt      = auAn.contIdxSvt;      % Vector of indicies of control trials (Referencing allIdxSvt) (post temporal processing)
 res.contTrigSvt     = auAn.contTrigSvt;     % Trigger Onset and Offset (Time) for control trials (post temporal processing)
 
-% Fequency Analysis of Data
+% Audio f0 analysis
 res.timef0        = auAn.timef0;
 res.f0b           = auAn.f0b;
 
