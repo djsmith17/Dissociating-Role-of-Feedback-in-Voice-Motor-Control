@@ -2,11 +2,8 @@ function drawMeanTrialMicf0(res, plotFolder)
 % drawDAQMeanTrialMicf0(res, plotFolder) plots differences in microphone 
 % recordings between perturbed and control trials. 
 
-%If your data set does not have any control trials,
-%this will give an error
-
 curSess          = res.curSess;
-f0b              = round(10*res.f0b)/10;
+f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 % f0Type           = res.f0Type;
 % etMH             = res.etMH;
 AudFB            = res.AudFB;

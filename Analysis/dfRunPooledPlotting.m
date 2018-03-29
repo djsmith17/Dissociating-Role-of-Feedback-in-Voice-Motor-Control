@@ -17,9 +17,9 @@ dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses)
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.mat']); % The results to load
 
 % Plot Toggles. Which plots do you want?
-PolPlt.NIDAQ_MeanTrialMicf0 = 0;
-PolPlt.MaskVVoice           = 1;
-PolPlt.AllSubjMaskvVoice    = 1;
+PolPlt.MeanTrialMicf0    = 0;
+PolPlt.MaskVVoice        = 1;
+PolPlt.AllSubjMaskvVoice = 1;
 
 ppi        = 300;
 scRes      = [2560 1440];
@@ -38,7 +38,7 @@ else
     % Returns combDataStr; statLib
 end
 
-if PolPlt.NIDAQ_MeanTrialMicf0 == 1
+if PolPlt.MeanTrialMicf0 == 1
     drawMeanTrialMicf0(combDataStr(1,1), dirs.SavResultsDir)
     drawMeanTrialMicf0(combDataStr(1,2), dirs.SavResultsDir)
     drawMeanTrialMicf0(combDataStr(2,1), dirs.SavResultsDir)

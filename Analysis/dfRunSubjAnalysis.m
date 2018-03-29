@@ -46,9 +46,9 @@ for i = 1:AVar.numPart
         run         = AVar.runs{j};
         
         % Define where to load raw data and save analyzed results
-        dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                                          % Where to save results
-        dirs.InflaVarDir   = fullfile(dirs.LoadData, participant, 'IV1');                                                        % Where to save results
+        dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);  % Where to find data
+        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                % Where to save results
+        dirs.InflaVarDir   = fullfile(dirs.LoadData, participant, 'IV1');                             % Where to save results
 
         % Make sure there is a place to save results
         if exist(dirs.SavResultsDir, 'dir') == 0
@@ -174,7 +174,7 @@ res.audioMf0MeanCont = auRes.audioMf0MeanCont;
 res.audioHf0MeanPert = auRes.audioHf0MeanPert;
 res.audioHf0MeanCont = auRes.audioHf0MeanCont;
 res.limitsAmean      = auRes.limitsAmean;
-res.limitsAMH        = auRes.limitsAMH;      % Limits Audio Corrected for MicXHead
+res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicXHead
 
 %Inflation Response
 res.respVar      = auRes.respVar;
