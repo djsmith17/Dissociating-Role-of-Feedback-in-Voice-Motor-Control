@@ -31,6 +31,9 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4';...
 % Conditions to test against
 testingConditions = {'Masking Noise'; 'Normal Voicing'};
 
+% The Recording Variable to check for the condition
+condVar = 'niRes.AudFB';          
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 numPart = length(pooledParticipants);
@@ -46,6 +49,7 @@ end
 cF.participants = pooledParticipants;
 cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
+cF.condVar      = condVar;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)
