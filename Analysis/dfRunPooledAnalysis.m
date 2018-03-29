@@ -92,23 +92,33 @@ for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Combining task conditions for %s\n', participant)
     for jj = 1:2 % Masking Noise, then Voice Conditions
-        runSt1 = allDataStr(ii, 1, jj);
-        runSt2 = allDataStr(ii, 2, jj);
         
-        thisStruc.studyID         = runSt1.subject;               % Study ID
-        thisStruc.subject         = ['Participant ' num2str(ii)]; % Pooled Analysis Name
-        thisStruc.runs            = {runSt1.run; runSt2.run};
-        thisStruc.curSess         = [thisStruc.subject ' ' pA.cond{jj}];
-        thisStruc.runf0b          = [runSt1.f0b runSt2.f0b];
+        thisStruc = initOrgStruct();
+        thisStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+        thisStruc.curSess = [thisStruc.subject ' ' pA.cond{jj}];
+        
+        for kk = 1:numRunCond
+            curRun = allDataStr(ii, kk, jj);
+            
+            thisStruc.studyID = curRun.subject; % Study ID
+            thisStruc.AudFB   = curRun.AudFB;
+            
+            thisStruc.runs   = cat(1, thisStruc.runs, curRun.run);
+            thisStruc.runf0b = cat(1, thisStruc.runf0b, curRun.f0b);
+            
+            thisStruc.allContTrials = cat(1, thisStruc.allContTrials, curRun.numContTrialsFin);
+            thisStruc.allPertTrials = cat(1, thisStruc.allPertTrials, curRun.numPertTrialsFin);
+            
+            thisStruc.secTime = curRun.secTime;
+            thisStruc.audioMf0SecPert = cat(2, thisStruc.audioMf0SecPert, curRun.audioMf0SecPert);
+            thisStruc.audioMf0SecCont = cat(2, thisStruc.audioMf0SecCont, curRun.audioMf0SecCont);
+            thisStruc.respVar         = cat(1, thisStruc.respVar, curRun.respVar);
+        end
+        
         thisStruc.f0b             = mean(thisStruc.runf0b);
-        thisStruc.AudFB           = runSt1.AudFB;
-        thisStruc.numContTrialsFin= sum([runSt1.numContTrialsFin runSt2.numContTrialsFin]);
-        thisStruc.numPertTrialsFin= sum([runSt1.numPertTrialsFin runSt2.numPertTrialsFin]);
         
-        thisStruc.secTime         = runSt1.secTime;
-        thisStruc.audioMf0SecPert = [runSt1.audioMf0SecPert runSt2.audioMf0SecPert];
-        thisStruc.audioMf0SecCont = [runSt1.audioMf0SecCont runSt2.audioMf0SecCont];        
-        thisStruc.respVar         = [runSt1.respVar; runSt2.respVar];
+        thisStruc.numContTrialsFin = sum(thisStruc.allContTrials);
+        thisStruc.numPertTrialsFin = sum(thisStruc.allPertTrials);
         
         thisStruc.audioMf0MeanPert = meanRunAudioData(thisStruc.audioMf0SecPert);
         thisStruc.audioMf0MeanCont = meanRunAudioData(thisStruc.audioMf0SecCont);
@@ -165,6 +175,33 @@ save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 
 
 dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 xlswrite(dirs.excelFile, statLib, 1)
+end
+
+function thisStruc = initOrgStruct()
+
+thisStruc.subject = [];
+thisStruc.curSess = [];
+thisStruc.studyID = [];
+thisStruc.AudFB   = [];
+thisStruc.runs    = {};
+
+thisStruc.runf0b  = [];
+thisStruc.f0b     = [];
+
+thisStruc.allContTrials    = [];
+thisStruc.numContTrialsFin = [];
+thisStruc.allPertTrials    = [];
+thisStruc.numPertTrialsFin = [];
+
+thisStruc.secTime  = [];
+thisStruc.audioMf0SecPert = [];
+thisStruc.audioMf0SecCont = [];
+thisStruc.respVar         = [];
+
+thisStruc.audioMf0MeanPert = [];
+thisStruc.audioMf0MeanCont = [];
+thisStruc.respVarM         = [];
+
 end
 
 function meanAudio = meanRunAudioData(secAudio)
