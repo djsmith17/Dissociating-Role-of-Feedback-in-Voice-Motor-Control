@@ -15,15 +15,15 @@ PolPlt.analyses = 'SfN2017';
 
 % Plot Toggles. Which plots do you want?
 PolPlt.NIDAQ_MeanTrialMicf0 = 0;
-PolPlt.MaskVVoice           = 0;
-PolPlt.AllSubjMaskvVoice    = 1;
+PolPlt.MaskVVoice           = 1;
+PolPlt.AllSubjMaskvVoice    = 0;
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, PolPlt.poolA, PolPlt.analyses); % Analyzed Results Folder
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.mat']); % The results to load
 
 ppi        = 300;
-scRes      = [1680 1050];
+scRes      = [2560 1440];
 scDim      = [18.625 11.75];
 targFigDim = [15 4];
 

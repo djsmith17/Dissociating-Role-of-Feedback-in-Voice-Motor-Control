@@ -36,7 +36,7 @@ lgdLabl = {};
 plotpos = [10 100];
 plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
-set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+set(InterTrialf0, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
 
 dottedStartx = [0 0];
 dottedy      = [-300 300];

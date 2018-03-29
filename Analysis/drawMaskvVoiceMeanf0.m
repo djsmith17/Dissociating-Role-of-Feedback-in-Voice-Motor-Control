@@ -37,7 +37,7 @@ limits = checkLims(limitsM, limitsV);
 pValueThresh = 0.05;
 figureL      = pltName(end);
 
-%Plotting Variables
+% Figure Variables
 plotpos        = [10 100];
 plotdim        = targPixDim;
 IndiSubjf0Resp = figure('Color', [1 1 1]);
