@@ -137,16 +137,20 @@ end
 function An = initAudVar(An)
 %Initialize some variables to keep track of them
 
-An.fV             = []; %frequency analysis variables
-
 An.timef0         = []; %time vector of audio samples recorded
-An.fsA            = []; %sampling rate of audio samples
 An.audioMf0       = []; %Raw Microphone Audio Data
 An.audioHf0       = []; %Raw Headphone Audio Data
 An.expTrigsR      = [];
 An.etMH           = [];
+An.fV             = []; %frequency analysis variables
+
 An.audioMf0S      = [];
 An.audioHf0S      = [];
+
+An.secTime        = [];
+An.audioMf0SecAll = [];
+An.audioHf0SecAll = [];
+
 An.trialf0b       = []; %Per Trial calculated f0
 An.f0b            = []; %Average trial f0
 An.audioMf0_norm  = []; %Normalized mic data
@@ -156,7 +160,8 @@ An.svf0Idx        = [];
 An.expTrigsf0Sv   = [];
 An.pertf0Idx      = [];
 An.contf0Idx      = [];
-An.audioMf0sv     = [];
+
+An.audioMf0sv      = [];
 An.audioHf0sv      = []; 
 An.numTrialsPP     = [];
 An.numPertTrialsPP = [];
@@ -169,7 +174,6 @@ An.audioHf0p     = []; % Pertrubed head data (norm)
 An.audioMf0c     = []; % Control mic data (norm)
 An.audioHf0c     = []; % Control head data (norm)
 
-An.secTime        = [];
 An.audioMf0_Secp  = []; 
 An.audioHf0_Secp  = [];
 An.audioMf0_Secc  = []; 
@@ -349,8 +353,10 @@ for ii = 1:numTrialType
         else
             type = 'Pert';      
         end       
-        fprintf('Threw away %s Trial %d (%s)\n', curSess, svIdc, type)
+        fprintf('Threw away %s Trial %d (%s), due to Miscalculated Pitch Trace\n', curSess, svIdc, type)
         
+        removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
+        An.removedTrialTracker = cat(1, An.removedTrialTracker, removedTrial);
     else
         svF = svF + 1;
         

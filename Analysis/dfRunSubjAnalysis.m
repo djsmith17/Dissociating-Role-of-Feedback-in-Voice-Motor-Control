@@ -114,7 +114,8 @@ res.AudFB   = auRes.AudFB;
 res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
 
-res.numTrial      = auRes.numTrial;   % Total trials recorded
+res.numTrial            = auRes.numTrial;   % Total trials recorded
+res.removedTrialTracker = auRes.removedTrialTracker;
 
 res.numTrialSvt   = auRes.numTrialSvt;   % Number of trials saved (post temporal processing)
 res.allIdxSvt     = auRes.allIdxSvt;     % Vector of indicies of recorded trials saved (post temporal processing)

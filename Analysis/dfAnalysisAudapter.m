@@ -59,6 +59,7 @@ auAn.numTrial   = expParam.numTrial;         % Number of trials recorded
 auAn.trialType  = expParam.trialType;        % Key for identifying Control (0) & Perturbed (1) trials
 auAn.expTrigs   = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
 auAn.anaTrigs   = expParam.trigs(:,:,3); % Trigger Onset and Offset (Points; Audadapter) 
+auAn.removedTrialTracker = {}; % List of Trials that were thrown out during Analysis
 
 auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
 auAn.audioHSvt     = []; % Headphone recordings for the trials saved for further analyses
@@ -94,6 +95,8 @@ for ii = 1:auAn.numTrial
 
     if preProSt.saveT == 0     % Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
+        removedTrial = {['Trial ' num2str(ii)], preProSt.saveTmsg};
+        auAn.removedTrialTracker = cat(1, auAn.removedTrialTracker, removedTrial);
     elseif preProSt.saveT == 1 % Save the Trial
         svC = svC + 1; % Iterate Saved Trial Count
         
@@ -120,7 +123,7 @@ auAn.numPertTrialSvt = length(auAn.pertIdxSvt);
 auAn.numContTrialSvt = length(auAn.contIdxSvt);
 
 % The Audio Analysis
-f0Flag = 1;
+f0Flag = 0;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
@@ -424,6 +427,7 @@ res.etMH   = auAn.etMH;
 res.numTrial      = auAn.numTrial;    % Total trials recorded
 res.audioM        = auAn.audioM;      % Raw microphone recording (no lag correction)
 res.audioH        = auAn.audioH;      % Raw headphone recording  (no lag correction)
+res.removedTrialTracker = auAn.removedTrialTracker;
 
 % Post temporal processing data
 res.numTrialSvt   = auAn.numTrialSvt;   % Number of trials saved (post temporal processing)
