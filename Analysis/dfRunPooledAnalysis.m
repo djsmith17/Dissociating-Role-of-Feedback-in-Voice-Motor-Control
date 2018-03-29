@@ -1,12 +1,13 @@
 function dfRunPooledAnalysis()
-%Analyses the microphone data from the somatosensory perturbation
+% dfRunPooledAnalysis() opens result files from multiple subjects and 
+% multiple runs and pools the results for further  into the microphone data from the somatosensory perturbation
 %experiment. Measures the change in f0 over each trial, and each run for a
 %given participant. At the end it approximates a general response to
 %inflation to be used in the auditory perturbation experiment
 
 %Require the Signal Processing Toolbox
 
-clear all; close all; clc
+close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
 pA.pAnalysis     = 'SfN2017';
 pA.participants  = {'Pilot24'; 'Pilot25'; 'Pilot26'; 'Pilot22'}; %List of multiple participants.

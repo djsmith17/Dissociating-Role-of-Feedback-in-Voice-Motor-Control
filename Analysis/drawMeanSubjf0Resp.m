@@ -23,10 +23,10 @@ meanf0PertOffsetV = allSubjRes.audioMf0MeanPertV(:,3);
 CIf0PertOffsetV   = allSubjRes.audioMf0MeanPertV(:,4);
 limitsV           = allSubjRes.limitsAmeanV;
 
-statSMM = round(10*statLib(1))/10;
-statSMV = round(10*statLib(2))/10;
-statRMM = round(10*statLib(3))/10;
-statRMV = round(10*statLib(4))/10;
+statSMM = round(statLib(1), 1);
+statSMV = round(statLib(2), 1);
+statRMM = round(statLib(3), 1);
+statRMV = round(statLib(4), 1);
 statRPM = round(statLib(5));
 statRPV = round(statLib(6));
 statSP  = statLib(7);

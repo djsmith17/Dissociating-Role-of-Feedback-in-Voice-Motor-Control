@@ -21,7 +21,7 @@ AVar.numPart       = length(AVar.participants);
 AVar.runs          = {'DS6'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
-AVar.debug         = 0;
+AVar.debug         = 1;
 
 dirs               = dfDirs(AVar.project);
 dirs.LoadData      = dirs.SavData;

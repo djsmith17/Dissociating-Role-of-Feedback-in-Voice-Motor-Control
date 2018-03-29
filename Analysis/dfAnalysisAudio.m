@@ -298,7 +298,7 @@ end
 
 function signalParse = parseTrialTypes(signal, idx)
 % signalParse = parseTrialTypes(signal, idx) parses individual trials out 
-% of a large matrix of audio recordings of size numSamp x numTrial. 
+% of a large matrix of recordings of size numSamp x numTrial. 
 % (idx) is a vector of the indices to parse out.
 % Why did you make this a function? Get over it.
 
