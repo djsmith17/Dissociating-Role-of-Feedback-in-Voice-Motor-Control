@@ -67,15 +67,15 @@ if AudFlag == 1
     % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigsR, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.bTf0b, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigsR, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, An.bTf0b, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.bTf0b, anaFlag);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, An.bTf0b, anaFlag);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
     end
 
     An.timef0     = f0A.timef0;
-    An.expTrigsR  = f0A.expTrigsR;
+    An.expTrigsf0 = f0A.expTrigsf0;
     An.audioMf0   = f0A.audioMf0;
     An.audioHf0   = f0A.audioHf0;
     An.etMH       = f0A.etM + f0A.etH; % Minutes
@@ -86,8 +86,8 @@ if AudFlag == 1
     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0S, An.expTrigsR);
-    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0S, An.expTrigsR);
+    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0S, An.expTrigsf0);
+    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0S, An.expTrigsf0);
    
     % Find the value of f0 during the perPert period for each trial
     prePert       = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
@@ -103,7 +103,7 @@ if AudFlag == 1
     for ii = 1:An.numTrialSvt
 
         mic     = An.audioMf0_norm(timeInd, ii);
-        expTrig = An.expTrigsR(ii, :);
+        expTrig = An.expTrigsf0(ii, :);
         svIdc   = An.allIdxSvt(ii);
 
         % Are there any points where the value of pitch goes above 500
@@ -125,7 +125,7 @@ if AudFlag == 1
 
             An.svf0Idx      = cat(1, An.svf0Idx, ii);
             An.expTrigsf0Sv = cat(1, An.expTrigsf0Sv, expTrig);
-            if AtrialTypeSvt(ii) == 0
+            if An.trialTypeSvt(ii) == 0
                 An.contf0Idx  = cat(1, An.contf0Idx, svF);
             else
                 An.pertf0Idx  = cat(1, An.pertf0Idx, svF);       
@@ -172,7 +172,7 @@ function An = initAudVar(An)
 An.timef0         = []; %time vector of audio samples recorded
 An.audioMf0       = []; %Raw Microphone Audio Data
 An.audioHf0       = []; %Raw Headphone Audio Data
-An.expTrigsR      = [];
+An.expTrigsf0     = []; %ExpTrigs that have been slightly time shifted to match sampling rate of f0 analysis
 An.etMH           = [];
 An.fV             = []; %frequency analysis variables
 
