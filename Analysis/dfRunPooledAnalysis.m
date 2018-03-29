@@ -1,25 +1,31 @@
 function dfRunPooledAnalysis()
-% dfRunPooledAnalysis() opens result files from multiple subjects and 
-% multiple runs and pools the results for further  into the microphone data from the somatosensory perturbation
-%experiment. Measures the change in f0 over each trial, and each run for a
-%given participant. At the end it approximates a general response to
-%inflation to be used in the auditory perturbation experiment
-
-%Require the Signal Processing Toolbox
+% dfRunPooledAnalysis() opens run result files from multiple subjects and 
+% multiple runs and pools the results for further statistics and plotting.
+% To run this function, it is required that you have created a GenConfig 
+% function within the results folder and generated a PooledConfig MATLAB 
+% data file. PooledConfig is a specific configuration of the order of 
+% subjects and runs to load. This keeps things neat so that 
+% dfRunPooledAnalysis() can be used for more than one set of recordings.
+%
+% Different PooledConfig files can be selected by inputing the name of the
+% pooled data set at line 17.
+% 
+% Requires the Signal Processing Toolbox
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'SfN2017';
+pA.pAnalysis     = 'SfN2017'; % Change this name to load different pooled data sets
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
 dirs.PooledConfigF = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'PooledConfig.mat']);
 
+% Can we find the Pooled Config File?
 if exist(dirs.PooledConfigF, 'file') == 0
-    fprintf('\nERROR: Pooled Config File %s does not exist! Please create it with the GenConfig\n', dirs.PooledConfigF)
+    fprintf('\nERROR: Pooled Config File %s does not exist! Please create it with a GenConfig Function\n', dirs.PooledConfigF)
     return
 else
-    % Should return a data structure cF
+    % Load the configuration file. Should return a data structure cF
     load(dirs.PooledConfigF)
 end 
 
@@ -27,7 +33,8 @@ pA.participants  = cF.participants; % List of multiple participants.
 pA.numPart       = length(pA.participants);
 pA.runs          = cF.runs;         % All runs to consider 
 [~, pA.numRuns]  = size(pA.runs);
-pA.cond          = cF.cond;
+pA.cond          = cF.cond;         % Conditions to test against
+pA.numCond       = length(pA.cond); 
 
 % allDataStr is 3D struc with dim (Parti nRun Cond);
 for ii = 1:pA.numPart
@@ -35,18 +42,19 @@ for ii = 1:pA.numPart
     colM = 1; colV = 1;
     fprintf('Sorting Runs for %s\n', participant)
     for jj = 1:pA.numRuns
-
         run              = pA.runs{ii, jj};
-        dirs.SavFileDir  = fullfile(dirs.Results, participant, run); %Where to save results        
-        dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']);
+        dirs.SavFileDir  = fullfile(dirs.Results, participant, run);                      % Where results are saved
+        dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
         if exist(dirs.SavFile, 'file') == 0
-            disp('ERROR: NO DANG FILE')
+            disp('ERROR: The Results file for Run %s does not exist yet\n', run)
             return
-        end        
-        load(dirs.SavFile)
+        else   
+            load(dirs.SavFile)
+            % Returns a results struture of niRes
+        end
+        
         pA.AudFB = niRes.AudFB;
-
         if strcmp(pA.AudFB, 'Masking Noise')
            allDataStr(ii, colM, 1) = niRes;
            colM = colM + 1;
@@ -54,7 +62,6 @@ for ii = 1:pA.numPart
            allDataStr(ii, colV, 2) = niRes;
            colV = colV + 1;
         end    
-
     end
 end
 
@@ -73,12 +80,12 @@ statLib = [];
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Combining task conditions for %s\n',participant)
-    for jj = 1:2 %Masking Noise, then Voice Conditions
+    for jj = 1:2 % Masking Noise, then Voice Conditions
         runSt1 = allDataStr(ii, 1, jj);
         runSt2 = allDataStr(ii, 2, jj);
         
         thisStruc.parti           = runSt1.subject;
-        thisStruc.subject         = ['Participant ' num2str(ii)]; %doubleblind sorta, I guess. Shoot me
+        thisStruc.subject         = ['Participant ' num2str(ii)]; % doubleblind sorta, I guess. Shoot me
         thisStruc.runs            = {runSt1.run; runSt2.run};
         thisStruc.curSess         = [thisStruc.subject pA.cond{jj}];
         thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrialsPP]);
