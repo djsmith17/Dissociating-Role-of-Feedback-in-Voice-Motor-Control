@@ -23,10 +23,9 @@ sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawMeanTrial_PertCont  = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
+sPlt.drawAllTrial_Pert       = 1; % All Perturbed Trials Microphone input
 sPlt.drawMeanTrial_MicHead  = 0; % Mean Perturbed Trials. Microphone vs Headphones
-
-sPlt.NIDAQ_AllPertTrial      = 0; % 
-
+ 
 for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
     for jj = 1:sPlt.numRuns 
@@ -55,17 +54,16 @@ for ii = 1:sPlt.numPart
         
         if sPlt.drawMeanTrial_PertCont == 1
             drawMeanTrialMicf0(res, dirs.SavResultsDir)
-            drawAllTrialMicf0(res, dirs.SavResultsDir)
         end
+        
+        if sPlt.drawAllTrial_Pert == 1
+            drawDAQAllPertTrialMicf0(res, dirs.SavResultsDir)
+        end            
         
         if sPlt.drawMeanTrial_MicHead == 1
             drawAudRespIndivTrial(res, dirs.SavResultsDir)
             drawAudRespMeanTrial(res, dirs.SavResultsDir)
         end
-                       
-        if sPlt.NIDAQ_AllPertTrial == 1
-            drawDAQAllPertTrialMicf0(res, dirs.SavResultsDir)
-        end 
     end
 end
 end
