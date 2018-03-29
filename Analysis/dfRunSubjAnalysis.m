@@ -132,6 +132,7 @@ res.contTrigSvt     = auRes.contTrigSvt;     % Trigger Onset and Offset (Time) f
 res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
 res.numContTrialsNi = niRes.numContTrials;
+res.pertIdxNi       = niRes.pertIdx;
 res.timeS           = niRes.timeS;
 res.sensorP         = niRes.sensorP;        % Individual Processed perturbed trials. 
 res.lagTimeP        = niRes.lagTimeP;
@@ -190,10 +191,10 @@ res.allAuNiDelays = auRes.allAuNiDelays;
 %Check the Ni trials against the Au trials
 presInd = [];
 if res.numPertTrialsPP < res.numPertTrialsNi
-    setPertTrials = res.svIdx(res.pertIdx);
-    for ii = 1:length(niRes.pertIdx)
+    setPertTrials = res.allIdxSvt(res.pertIdxSvt);
+    for ii = 1:length(res.pertIdxNi)
         ind = [];
-        ind = find(setPertTrials == niRes.pertIdx(ii));
+        ind = find(setPertTrials == res.pertIdxNi(ii));
         if ~isempty(ind)
             presInd = cat(1, presInd, ii);
         end
