@@ -13,6 +13,7 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
+% Edit the parts between the lines to modify the pooled analysis variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Participants involved in analysis
 pooledParticipants = {'Pilot24';...
@@ -28,7 +29,7 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4';...
                'SF1', 'SF2', 'SF3', 'SF4'};
            
 % Conditions to test against
-testingConditions = {' Masking Noise'; ' Normal Voicing'};
+testingConditions = {'Masking Noise'; 'Normal Voicing'};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -47,4 +48,5 @@ cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 
 save(dirs.SavConfigFile, 'cF');
+fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)
 end
