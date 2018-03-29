@@ -10,18 +10,24 @@ function dfRunPooledAnalysis()
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
 pA.pAnalysis     = 'SfN2017';
-pA.participants  = {'Pilot24'; 'Pilot25'; 'Pilot26'; 'Pilot22'}; %List of multiple participants.
-pA.numPart       = length(pA.participants);
-pA.runs          = {'SF1'; 'SF2'; 'SF3'; 'SF4'}; %All runs to consider 
-pA.numRuns       = length(pA.runs);
-pA.cond          = {' Masking Noise'; ' Normal Voicing'};
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
+dirs.PooledConfigF = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'PooledConfig.mat']);
 
-if exist(dirs.SavResultsDir, 'dir') == 0
-    mkdir(dirs.SavResultsDir)
-end
+if exist(dirs.PooledConfigF, 'file') == 0
+    fprintf('\nERROR: Pooled Config File %s does not exist! Please create it with the GenConfig\n', dirs.PooledConfigF)
+    return
+else
+    % Should return a data structure cF
+    load(dirs.PooledConfigF)
+end 
+
+pA.participants  = cF.participants; % List of multiple participants.
+pA.numPart       = length(pA.participants);
+pA.runs          = cF.runs;         % All runs to consider 
+[~, pA.numRuns]  = size(pA.runs);
+pA.cond          = cF.cond;
 
 % allDataStr is 3D struc with dim (Parti nRun Cond);
 for ii = 1:pA.numPart
@@ -32,7 +38,7 @@ for ii = 1:pA.numPart
         if ii == 1 & jj == 3
             disp('lol')
         else
-            run         = pA.runs{jj};
+            run              = pA.runs{ii, jj};
             dirs.SavFileDir  = fullfile(dirs.Results, participant, run); %Where to save results        
             dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']);
 
