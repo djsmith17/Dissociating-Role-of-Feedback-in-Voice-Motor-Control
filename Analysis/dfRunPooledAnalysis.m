@@ -81,10 +81,9 @@ allSubjRes.numControlTrials = 0;
 allSubjRes.numMaskedTrials  = 0;
 allSubjRes.numVoicedTrials  = 0;
 allSubjRes.secTime          = [];
+allSubjRes.audioMf0SecCont  = [];
 allSubjRes.audioMf0SecPertM = [];
 allSubjRes.audioMf0SecPertV = [];
-allSubjRes.audioMf0SecContM = [];
-allSubjRes.audioMf0SecContV = [];
 unSubM.respVar           = [];
 unSubV.respVar           = [];
 
@@ -100,20 +99,20 @@ for ii = 1:pA.numPart
         thisStruc.subject         = ['Participant ' num2str(ii)]; % Pooled Analysis Name
         thisStruc.runs            = {runSt1.run; runSt2.run};
         thisStruc.curSess         = [thisStruc.subject ' ' pA.cond{jj}];
+        thisStruc.runf0b          = [runSt1.f0b runSt2.f0b];
+        thisStruc.f0b             = mean(thisStruc.runf0b);
         thisStruc.AudFB           = runSt1.AudFB;
-        thisStruc.numContTrials   = sum([runSt1.numContTrials runSt2.numContTrialsPP]);
-        thisStruc.numPertTrials   = sum([runSt1.numPertTrials runSt2.numPertTrialsPP]);
+        thisStruc.numContTrialsPP = sum([runSt1.numContTrialsPP runSt2.numContTrialsPP]);
+        thisStruc.numPertTrialsPP = sum([runSt1.numPertTrialsPP runSt2.numPertTrialsPP]);
         
         thisStruc.secTime         = runSt1.secTime;
-        thisStruc.runf0b          = [runSt1.f0b runSt2.f0b];
         thisStruc.audioMf0SecPert = [runSt1.audioMf0SecPert runSt2.audioMf0SecPert];
         thisStruc.audioMf0SecCont = [runSt1.audioMf0SecCont runSt2.audioMf0SecCont];        
         thisStruc.respVar         = [runSt1.respVar; runSt2.respVar];
         
-        thisStruc.f0b              = mean(thisStruc.runf0b);
         thisStruc.audioMf0MeanPert = meanRunAudioData(thisStruc.audioMf0SecPert);
         thisStruc.audioMf0MeanCont = meanRunAudioData(thisStruc.audioMf0SecCont);
-        thisStruc.respVarm         = mean(thisStruc.respVar, 1);
+        thisStruc.respVarM         = mean(thisStruc.respVar, 1);
         
         lims = identifyLimits(thisStruc, 0);
         thisStruc.limitsAmean = lims.audioMean;
@@ -125,32 +124,33 @@ for ii = 1:pA.numPart
     
     statLib(ii,:) = packStatLib(mask, voic);
     
-    allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrials + voic.numContTrials;
-    allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrials;
-    allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrials;
+    allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrialsPP + voic.numContTrialsPP;
+    allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrialsPP;
+    allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrialsPP;
     
     allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
     allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);
     
-    allSubjRes.audioMf0SecContM = cat(2, allSubjRes.audioMf0SecContM, mask.audioMf0SecCont);
-    allSubjRes.audioMf0SecContV = cat(2, allSubjRes.audioMf0SecContV, voic.audioMf0SecCont);
+    % This will take all the control trials from all conditions and
+    % concatenate them in one big matrix
+    allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, mask.audioMf0SecCont);
+    allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, voic.audioMf0SecCont);
     
     unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
     unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
 end
 allSubjRes.secTime           = mask.secTime;
+allSubjRes.audioMf0MeanCont  = meanRunAudioData(allSubjRes.audioMf0SecCont);
 allSubjRes.audioMf0MeanPertM = meanRunAudioData(allSubjRes.audioMf0SecPertM);
 allSubjRes.audioMf0MeanPertV = meanRunAudioData(allSubjRes.audioMf0SecPertV);
-allSubjRes.audioMf0MeanContM = meanRunAudioData(allSubjRes.audioMf0SecContM);
-allSubjRes.audioMf0MeanContV = meanRunAudioData(allSubjRes.audioMf0SecContV);
 
-unSubM.respVarm              = mean(unSubM.respVar, 1);
-unSubV.respVarm              = mean(unSubV.respVar, 1);
+unSubM.respVarM              = mean(unSubM.respVar, 1);
+unSubV.respVarM              = mean(unSubV.respVar, 1);
 
 allSubjRes.respVarM          = unSubM.respVar;
 allSubjRes.respVarV          = unSubV.respVar;
-allSubjRes.respVarmM         = unSubM.respVarm;
-allSubjRes.respVarmV         = unSubV.respVarm;
+allSubjRes.respVarmM         = unSubM.respVarM;
+allSubjRes.respVarmV         = unSubV.respVarM;
 
 limsM = identifyLimits(allSubjRes, 1);
 allSubjRes.limitsAmeanM = limsM.audioMean;
@@ -194,18 +194,18 @@ function statLib = packStatLib(mask, voic)
 [~, pResp] = ttest2(mask.respVar(:,3), voic.respVar(:,3));
 [~, pPerc] = ttest2(mask.respVar(:,4), voic.respVar(:,4));
 
-statLib(1) = mask.respVarm(2); %Masking StimMag
-statLib(2) = voic.respVarm(2); %Voicing StimMag
-statLib(3) = mask.respVarm(3); %Masking RespMag
-statLib(4) = voic.respVarm(3); %Voicing RespMag
-statLib(5) = mask.respVarm(4); %Masking %
-statLib(6) = voic.respVarm(4); %Voicing %
+statLib(1) = mask.respVarM(2); %Masking StimMag
+statLib(2) = voic.respVarM(2); %Voicing StimMag
+statLib(3) = mask.respVarM(3); %Masking RespMag
+statLib(4) = voic.respVarM(3); %Voicing RespMag
+statLib(5) = mask.respVarM(4); %Masking %
+statLib(6) = voic.respVarM(4); %Voicing %
 statLib(7) = pStim; %p-value stimulus
 statLib(8) = pResp; %p-value response
 statLib(9) = pPerc; %p-value percent increase 
 end
 
-function lims = identifyLimits(niAn, fl)
+function lims = identifyLimits(An, fl)
 
 %Full Inidividual Trials: Pressure Sensor
 lims.pressure   = [0 4 0 5];
@@ -222,11 +222,11 @@ lims.audio      = [0 4 -100 100];
 
 %Section Mean Pertrubed Trials: f0 Audio 
 if fl == 1
-    audioMean = niAn.audioMf0MeanPertM;
+    audioMean = An.audioMf0MeanPertM;
 elseif fl == 2
-    audioMean = niAn.audioMf0MeanPertV;
+    audioMean = An.audioMf0MeanPertV;
 else
-    audioMean = niAn.audioMf0MeanPert;
+    audioMean = An.audioMf0MeanPert;
 end
 
 [~, Imax] = max(audioMean(:,1)); %Max Pert Onset

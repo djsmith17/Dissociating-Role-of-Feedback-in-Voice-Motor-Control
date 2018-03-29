@@ -5,16 +5,16 @@ numControl       = allSubjRes.numControlTrials;
 numMasked        = allSubjRes.numMaskedTrials;
 numVoiced        = allSubjRes.numVoicedTrials;
 
-time              = allSubjRes.secTime;
+time             = allSubjRes.secTime;
+meanf0ContOnset  = allSubjRes.audioMf0MeanCont(:,1);
+CIf0ContOnset    = allSubjRes.audioMf0MeanCont(:,2);
+meanf0ContOffset = allSubjRes.audioMf0MeanCont(:,3);
+CIf0ContOffset   = allSubjRes.audioMf0MeanCont(:,4);
+
 meanf0PertOnsetM  = allSubjRes.audioMf0MeanPertM(:,1);
 CIf0PertOnsetM    = allSubjRes.audioMf0MeanPertM(:,2);
 meanf0PertOffsetM = allSubjRes.audioMf0MeanPertM(:,3);
 CIf0PertOffsetM   = allSubjRes.audioMf0MeanPertM(:,4);
-
-meanf0ContOnsetM  = allSubjRes.audioMf0MeanContM(:,1);
-CIf0ContOnsetM    = allSubjRes.audioMf0MeanContM(:,2);
-meanf0ContOffsetM = allSubjRes.audioMf0MeanContM(:,3);
-CIf0ContOffsetM   = allSubjRes.audioMf0MeanContM(:,4);
 limitsM           = allSubjRes.limitsAmeanM;
 
 meanf0PertOnsetV  = allSubjRes.audioMf0MeanPertV(:,1);
@@ -58,7 +58,7 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 axes(ha(1))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-nC = shadedErrorBar(time, meanf0ContOnsetM, CIf0ContOnsetM, 'lineprops', 'k', 'transparent', 1); %Voice
+nC = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', 'k', 'transparent', 1); %Voice
 hold on
 nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
 hold on
@@ -81,7 +81,7 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 axes(ha(2))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-fC = shadedErrorBar(time, meanf0ContOffsetM, CIf0ContOffsetM, 'lineprops', 'k', 'transparent', 1); %Voice
+fC = shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', 'k', 'transparent', 1); %Voice
 hold on
 fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
 hold on
