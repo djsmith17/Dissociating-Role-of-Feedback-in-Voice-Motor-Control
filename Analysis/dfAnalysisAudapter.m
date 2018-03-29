@@ -123,7 +123,7 @@ auAn.numPertTrialSvt = length(auAn.pertIdxSvt);
 auAn.numContTrialSvt = length(auAn.contIdxSvt);
 
 % The Audio Analysis
-f0Flag = 0;
+f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
@@ -447,9 +447,24 @@ res.contTrigSvt     = auAn.contTrigSvt;     % Trigger Onset and Offset (Time) fo
 res.timef0        = auAn.timef0;
 res.f0b           = auAn.f0b;
 
+res.svf0Idx      = auAn.svf0Idx;
+res.expTrigsf0Sv = auAn.expTrigsf0Sv;
+res.pertf0Idx    = auAn.pertf0Idx;
+res.contf0Idx    = auAn.contf0Idx;
+
+res.numTrialsPP     = auAn.numTrialsPP;
 res.numContTrialsPP = auAn.numContTrialsPP;
 res.numPertTrialsPP = auAn.numPertTrialsPP;
 res.pertTrigPP      = auAn.pertTrigsR;
+
+% Which trials did I end up saving and plotting at the end of the day?
+res.allIdxFin        = res.svf0Idx;
+res.pertIdxFin       = res.pertf0Idx;
+res.contIdxFin       = res.contf0Idx;
+res.numTrialsFin     = res.numTrialsPP;
+res.numContTrialsFin = res.numContTrialsPP;
+res.numPertTrialsFin = res.numPertTrialsPP;
+res.pertTrigsFin     = res.pertTrigPP;
 
 %Individual Full Trials: Mic/Head f0 Trace 
 res.audioMf0TrialPert = auAn.audioMf0p;

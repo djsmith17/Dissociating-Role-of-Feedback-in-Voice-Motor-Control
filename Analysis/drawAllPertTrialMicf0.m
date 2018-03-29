@@ -3,8 +3,8 @@ function drawAllPertTrialMicf0(res, plotFolder)
 curSess          = res.curSess;
 f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
-numPT            = res.numPertTrialsPP;
-pertTrig         = res.pertTrigPP;
+numPT            = res.numPertTrialsFin;
+pertTrig         = res.pertTrigsFin;
 
 time             = res.timef0;
 sigs             = res.audioMf0TrialPert;

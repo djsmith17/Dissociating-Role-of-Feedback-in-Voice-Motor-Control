@@ -116,19 +116,7 @@ res.etMH    = auRes.etMH;
 
 res.numTrial            = auRes.numTrial;   % Total trials recorded
 res.removedTrialTracker = auRes.removedTrialTracker;
-
-res.numTrialSvt   = auRes.numTrialSvt;   % Number of trials saved (post temporal processing)
-res.allIdxSvt     = auRes.allIdxSvt;     % Vector of indicies of recorded trials saved (post temporal processing)
-res.trialTypeSvt  = auRes.trialTypeSvt;  % Key for identifying Control (0) & Perturbed (1) trials (post temporal processing)
-res.expTrigsSvt   = auRes.expTrigsSvt;   % Trigger Onset and Offset (Time) for trials saved (post temporal processing)
-res.allAuNiDelays = auRes.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
-
-res.numPertTrialSvt = auRes.numPertTrialSvt; % Number of perturbed trials saved (post temporal processing)
-res.pertIdxSvt      = auRes.pertIdxSvt;      % Vector of indicies of perturbed trials (Referencing allIdxSvt) (post temporal processing)
-res.pertTrigSvt     = auRes.pertTrigSvt;     % Trigger Onset and Offset (Time) for perturbed trials (post temporal processing)
-res.numContTrialSvt = auRes.numContTrialSvt; % Number of control trials saved (post temporal processing)
-res.contIdxSvt      = auRes.contIdxSvt;      % Vector of indicies of control trials (Referencing allIdxSvt) (post temporal processing)
-res.contTrigSvt     = auRes.contTrigSvt;     % Trigger Onset and Offset (Time) for control trials (post temporal processing)
+res.allAuNiDelays       = auRes.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 
 res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
@@ -146,16 +134,21 @@ res.limitsP         = niRes.limitsP;
 
 % Sectioned and Aligned Pressure recordings 
 res.timeSAl       = niRes.timeSAl;
-res.sensorPAl     = niRes.sensorPAl;
+res.sensorPAl     = niRes.sensorPAl;  
 res.limitsPAl     = niRes.limitsPAl;
 
 % Audio f0 analysis
 res.timef0        = auRes.timef0;
 res.f0b           = auRes.f0b;
 
-res.numContTrialsPP = auRes.numContTrialsPP;
-res.numPertTrialsPP = auRes.numPertTrialsPP;
-res.pertTrigPP      = auRes.pertTrigPP;
+% Which trials did I end up saving and plotting at the end of the day?
+res.allIdxFin        = auRes.allIdxFin;
+res.pertIdxFin       = auRes.pertIdxFin;
+res.contIdxFin       = auRes.contIdxFin;
+res.numTrialsFin     = auRes.numTrialsFin;
+res.numContTrialsFin = auRes.numContTrialsFin;
+res.numPertTrialsFin = auRes.numPertTrialsFin;
+res.pertTrigsFin     = auRes.pertTrigsFin;
 
 %Full Individual Trials: Mic/Head f0 Trace 
 res.audioMf0TrialPert = auRes.audioMf0TrialPert;
@@ -192,7 +185,7 @@ res.allAuNiDelays = auRes.allAuNiDelays;
 %Check the Ni trials against the Au trials
 presInd = [];
 if res.numPertTrialsPP < res.numPertTrialsNi
-    setPertTrials = res.allIdxSvt(res.pertIdxSvt);
+    setPertTrials = res.allIdxFin(res.pertIdxFin);
     for ii = 1:length(res.pertIdxNi)
         ind = [];
         ind = find(setPertTrials == res.pertIdxNi(ii));
