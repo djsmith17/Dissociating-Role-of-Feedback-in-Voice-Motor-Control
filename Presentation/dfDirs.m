@@ -54,14 +54,14 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
     case 'CNS-WS5'
-        dirs.RecData        = fullfile('C:\Users\djsmith\My Documents\DATA', project); % Dir w/ raw datafiles
+        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles
         dirs.SavData        = fullfile('W:\Experiments\', project);
        
-        dirs.Project        = fullfile('C:\Users\djsmith\My Documents\MATLAB', project);
-        dirs.Prelim         = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\My Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\My Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
+        dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
+        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
+        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
