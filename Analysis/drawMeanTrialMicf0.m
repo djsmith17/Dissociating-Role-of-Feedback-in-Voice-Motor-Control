@@ -1,13 +1,14 @@
 function drawMeanTrialMicf0(res, plotFolder)
-%drawDAQMeanTrialMicf0(res, plotFolder) is plotting function for
-%displaying differences in microphone channel recordings between perturbed
-%and control trials. If your data set does not have any control trials,
+% drawDAQMeanTrialMicf0(res, plotFolder) plots differences in microphone 
+% recordings between perturbed and control trials. 
+
+%If your data set does not have any control trials,
 %this will give an error
 
 curSess          = res.curSess;
 f0b              = round(10*res.f0b)/10;
-f0Type           = res.f0Type;
-etMH             = res.etMH;
+% f0Type           = res.f0Type;
+% etMH             = res.etMH;
 AudFB            = res.AudFB;
 numCT            = res.numContTrialsPP;
 numPT            = res.numPertTrialsPP;
@@ -105,13 +106,13 @@ legend(lgdCurv, lgdLabl,...
             'FontWeight', 'bold',...
             'Position', [0.35 0.2 0.1 0.1]);
         
-timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
-                     'string', {f0Type;
-                            ['Analysis Time: ' num2str(etMH) ' min']},...
-                        'LineStyle','none',...
-                        'FontWeight','bold',...
-                        'FontSize',8,...
-                        'FontName','Arial');
+% timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
+%                      'string', {f0Type;
+%                             ['Analysis Time: ' num2str(etMH) ' min']},...
+%                         'LineStyle','none',...
+%                         'FontWeight','bold',...
+%                         'FontSize',8,...
+%                         'FontName','Arial');
          
                     
 plots = {'InterTrialf0'};
