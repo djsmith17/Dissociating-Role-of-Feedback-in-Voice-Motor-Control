@@ -98,8 +98,40 @@ if AudFlag == 1
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0b);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0b);
     
-    %Find troublesome trials and remove
-    [An.svf0Idx, An.expTrigsf0Sv, An.pertf0Idx, An.contf0Idx] = audioPostProcessing(An);
+    timeInd = (An.timef0 > 0.5 & An.timef0 < 3.5);
+    svF = 0;
+    for ii = 1:An.numTrialSvt
+
+        mic     = An.audioMf0_norm(timeInd, ii);
+        expTrig = An.expTrigsR(ii, :);
+        svIdc   = An.allIdxSvt(ii);
+
+        % Are there any points where the value of pitch goes above 500
+        % cents or below -500 cents?
+        MisCalcf0 = find(mic >= 500 | mic <=  -500);
+
+        if ~isempty(MisCalcf0)
+            if An.trialTypeSvt(ii) == 0
+                type = 'Cont';
+            else
+                type = 'Pert';      
+            end       
+            fprintf('Threw away %s Trial %d (%s), due to Miscalculated Pitch Trace\n', An.curSess, svIdc, type)
+
+            removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
+            An.removedTrialTracker = cat(1, An.removedTrialTracker, removedTrial);
+        else
+            svF = svF + 1;
+
+            An.svf0Idx      = cat(1, An.svf0Idx, ii);
+            An.expTrigsf0Sv = cat(1, An.expTrigsf0Sv, expTrig);
+            if AtrialTypeSvt(ii) == 0
+                An.contf0Idx  = cat(1, An.contf0Idx, svF);
+            else
+                An.pertf0Idx  = cat(1, An.pertf0Idx, svF);       
+            end        
+        end
+    end
     
     An.audioMf0sv      = An.audioMf0_norm(:, An.svf0Idx);
     An.audioHf0sv      = An.audioHf0_norm(:, An.svf0Idx); 
@@ -307,68 +339,6 @@ function signalParse = parseTrialTypes(signal, idx)
 % Why did you make this a function? Get over it.
 
 signalParse = signal(:, idx);
-end
-
-function [svf0Idx, expTrigsf0Sv, pertf0Idx, contf0Idx] = audioPostProcessing(An)
-% [svf0Idx, expTrigsf0Sv, pertf0Idx, contf0Idx] = audioPostProcessing(An)
-% checks for odd (innaproriately large or small) normalized f0 values in
-% whole f0 traces as a result of the frequency analyses. 
-% This throws away trials any such odd trials and prints a statement about
-% which trials were thrown out.
-%
-% This function returns
-% svf0Idx: The indices of the saved trials compared against the full set
-% expTrigsf0Sv: The trigs of the saved trials
-% pertf0Idx: The indices of svf0Idx that are perturbed trials
-% contf0Idx: The indices of svf0Idx that are control trials
-
-curSess      = An.curSess;
-svIdx        = An.allIdxSvt;
-trialTypeSvt = An.trialTypeSvt;
-
-time        = An.timef0;
-audioNormM  = An.audioMf0_norm;
-expTrigs    = An.expTrigsR;
-
-[~, numTrialType] = size(audioNormM);
-
-timeInd = (time > 0.5 & time < 3.5);
-
-svf0Idx      = [];
-expTrigsf0Sv = [];
-contf0Idx    = [];
-pertf0Idx    = [];
-svF = 0;
-for ii = 1:numTrialType
-    
-    mic     = audioNormM(timeInd, ii);
-    expTrig = expTrigs(ii, :);
-    svIdc   = svIdx(ii);
-    
-    ind = find(mic >= 500 | mic <=  -500);
-    
-    if ~isempty(ind)
-        if trialTypeSvt(ii) == 0
-            type = 'Cont';
-        else
-            type = 'Pert';      
-        end       
-        fprintf('Threw away %s Trial %d (%s), due to Miscalculated Pitch Trace\n', curSess, svIdc, type)
-        
-        removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
-        An.removedTrialTracker = cat(1, An.removedTrialTracker, removedTrial);
-    else
-        svF = svF + 1;
-        
-        svf0Idx      = cat(1, svf0Idx, ii);
-        expTrigsf0Sv = cat(1, expTrigsf0Sv, expTrig);
-        if trialTypeSvt(ii) == 0
-            contf0Idx  = cat(1, contf0Idx, svF);
-        else
-            pertf0Idx  = cat(1, pertf0Idx, svF);       
-        end        
-    end
-end
 end
 
 function [secTime, secSigs] = sectionData(time, sigs, trigs)
