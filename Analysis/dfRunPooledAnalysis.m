@@ -55,7 +55,7 @@ for ii = 1:pA.numPart
             return
         else   
             load(dirs.SavFile)
-            % Returns a results struture of niRes
+            % Returns a results struture of res
         end
         
         % Which variable are we sorting against?
@@ -64,9 +64,9 @@ for ii = 1:pA.numPart
 %         [~, condPos] = ismember(condTest, pA.cond);
         
         if strcmp(condTest, pA.cond{1})
-            condARes = cat(2, condARes, niRes);
+            condARes = cat(2, condARes, res);
         else
-            condBRes = cat(2, condBRes, niRes);
+            condBRes = cat(2, condBRes, res);
         end    
     end
     subjRes = cat(3, subjRes, condARes); % Cat the conditions along the z axis
@@ -102,8 +102,8 @@ for ii = 1:pA.numPart
         thisStruc.runf0b          = [runSt1.f0b runSt2.f0b];
         thisStruc.f0b             = mean(thisStruc.runf0b);
         thisStruc.AudFB           = runSt1.AudFB;
-        thisStruc.numContTrialsPP = sum([runSt1.numContTrialsPP runSt2.numContTrialsPP]);
-        thisStruc.numPertTrialsPP = sum([runSt1.numPertTrialsPP runSt2.numPertTrialsPP]);
+        thisStruc.numContTrialsFin= sum([runSt1.numContTrialsFin runSt2.numContTrialsFin]);
+        thisStruc.numPertTrialsFin= sum([runSt1.numPertTrialsFin runSt2.numPertTrialsFin]);
         
         thisStruc.secTime         = runSt1.secTime;
         thisStruc.audioMf0SecPert = [runSt1.audioMf0SecPert runSt2.audioMf0SecPert];
@@ -124,9 +124,9 @@ for ii = 1:pA.numPart
     
     statLib(ii,:) = packStatLib(mask, voic);
     
-    allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrialsPP + voic.numContTrialsPP;
-    allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrialsPP;
-    allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrialsPP;
+    allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrialsFin + voic.numContTrialsFin;
+    allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrialsFin;
+    allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrialsFin;
     
     allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
     allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);

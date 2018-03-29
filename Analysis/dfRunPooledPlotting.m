@@ -22,7 +22,7 @@ PolPlt.MaskVVoice        = 1;
 PolPlt.AllSubjMaskvVoice = 1;
 
 ppi        = 300;
-scRes      = [2560 1440];
+scRes      = [1920 1080];
 scDim      = [18.625 11.75];
 targFigDim = [15 4];
 

@@ -1,9 +1,9 @@
 function drawMaskvVoiceMeanf0(resM, resV, statLib, targPixDim, pltName, plotFolder)
 
 curSess          = resM.subject;
-numCont          = resM.numContTrialsPP;
-numMasked        = resM.numPertTrialsPP;
-numVoiced        = resV.numPertTrialsPP;
+numCont          = resM.numContTrialsFin;
+numMasked        = resM.numPertTrialsFin;
+numVoiced        = resV.numPertTrialsFin;
 
 time              = resM.secTime;
 meanf0PertOnsetM  = resM.audioMf0MeanPert(:,1);
