@@ -35,11 +35,15 @@ pA.runs          = cF.runs;         % All runs to consider
 [~, pA.numRuns]  = size(pA.runs);
 pA.cond          = cF.cond;         % Conditions to test against
 pA.numCond       = length(pA.cond); 
+pA.condVar       = cF.condVar;      % Variable to test the condition
 
 % allDataStr is 3D struc with dim (Parti nRun Cond);
+allDataStr = [];
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
-    colM = 1; colV = 1;
+
+    subjRes  = [];
+    condARes = []; condBRes = [];
     fprintf('Sorting Runs for %s\n', participant)
     for jj = 1:pA.numRuns
         run              = pA.runs{ii, jj};
@@ -54,15 +58,21 @@ for ii = 1:pA.numPart
             % Returns a results struture of niRes
         end
         
-        pA.AudFB = niRes.AudFB;
-        if strcmp(pA.AudFB, 'Masking Noise')
-           allDataStr(ii, colM, 1) = niRes;
-           colM = colM + 1;
+        % Which variable are we sorting against?
+        condTest = eval(pA.condVar);
+        % Which condition in our list, is the one in this run?
+%         [~, condPos] = ismember(condTest, pA.cond);
+        
+        if strcmp(condTest, pA.cond{1})
+            condARes = cat(2, condARes, niRes);
         else
-           allDataStr(ii, colV, 2) = niRes;
-           colV = colV + 1;
+            condBRes = cat(2, condBRes, niRes);
         end    
     end
+    subjRes = cat(3, subjRes, condARes); % Cat the conditions along the z axis
+    subjRes = cat(3, subjRes, condBRes); % Cat the conditions along the z axis
+    
+    allDataStr = cat(1, allDataStr, subjRes);
 end
 
 allSubjRes.numControlTrials = 0;
@@ -79,7 +89,7 @@ unSubV.respVar           = [];
 statLib = [];
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
-    fprintf('Combining task conditions for %s\n',participant)
+    fprintf('Combining task conditions for %s\n', participant)
     for jj = 1:2 % Masking Noise, then Voice Conditions
         runSt1 = allDataStr(ii, 1, jj);
         runSt2 = allDataStr(ii, 2, jj);
