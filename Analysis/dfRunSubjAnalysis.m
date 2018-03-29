@@ -184,10 +184,10 @@ res.allAuNiDelays = auRes.allAuNiDelays;
 
 %Check the Ni trials against the Au trials
 presInd = [];
-if res.numPertTrialsPP < res.numPertTrialsNi
+if res.numPertTrialsFin < res.numPertTrialsNi
     setPertTrials = res.allIdxFin(res.pertIdxFin);
     for ii = 1:length(res.pertIdxNi)
-        ind = [];
+
         ind = find(setPertTrials == res.pertIdxNi(ii));
         if ~isempty(ind)
             presInd = cat(1, presInd, ii);

@@ -123,7 +123,8 @@ if AudFlag == 1
         else
             svF = svF + 1;
 
-            An.svf0Idx      = cat(1, An.svf0Idx, ii);
+            An.subSvIdx      = cat(1, An.subSvIdx, ii);
+            An.svf0Idx       = cat(1, An.svf0Idx, svIdc);
             An.expTrigsf0Sv = cat(1, An.expTrigsf0Sv, expTrig);
             if An.trialTypeSvt(ii) == 0
                 An.contf0Idx  = cat(1, An.contf0Idx, svF);
@@ -133,9 +134,9 @@ if AudFlag == 1
         end
     end
     
-    An.audioMf0sv      = An.audioMf0_norm(:, An.svf0Idx);
-    An.audioHf0sv      = An.audioHf0_norm(:, An.svf0Idx); 
-    An.numTrialsPP     = length(An.svf0Idx);
+    An.audioMf0sv      = An.audioMf0_norm(:, An.subSvIdx);
+    An.audioHf0sv      = An.audioHf0_norm(:, An.subSvIdx); 
+    An.numTrialsPP     = length(An.subSvIdx);
     An.numPertTrialsPP = length(An.pertf0Idx);
     An.numContTrialsPP = length(An.contf0Idx);
 
@@ -188,6 +189,7 @@ An.f0b            = []; %Average trial f0
 An.audioMf0_norm  = []; %Normalized mic data
 An.audioHf0_norm  = []; %Normalized head data
 
+An.subSvIdx       = [];
 An.svf0Idx        = [];
 An.expTrigsf0Sv   = [];
 An.pertf0Idx      = [];
