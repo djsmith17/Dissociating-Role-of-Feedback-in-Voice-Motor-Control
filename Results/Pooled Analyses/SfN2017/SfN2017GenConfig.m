@@ -29,7 +29,7 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4';...
                'SF1', 'SF2', 'SF3', 'SF4'};
            
 % Conditions to test against
-testingConditions = {'Masking Noise'; 'Normal Voicing'};
+testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
 
 % The Recording Variable to check for the condition
 condVar = 'niRes.AudFB';          
