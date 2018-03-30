@@ -23,13 +23,44 @@ monitorSize = get(0, 'Monitor');
 numMon = size(monitorSize, 1);
 
 if numMon == 1
-    figPosition = [monitorSize(1) monitorSize(2) monitorSize(3) monitorSize(4)-200];
+    W = monitorSize(3);
+    H = monitorSize(4);
+    W2 = W/2;
+    H2 = H/2;
+    XPos = W2;
+    YPos = 50;
+    
+    figPosition = [XPos YPos W2 H2];
 elseif numMon == 2
     [~, mon] = max(monitorSize(:,1));
     
     figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(1,3) monitorSize(1,4)];
 end
 anMsr.winPos = figPosition;
+
+% Ready Annotation Dim
+anMsr.rdAnoD = [700 300];
+anMsr.rdAnoW = round(anMsr.rdAnoD(1)/anMsr.winPos(3), 2); 
+anMsr.rdAnoH = round(anMsr.rdAnoD(2)/anMsr.winPos(4), 2);
+anMsr.rdAnoX = 0.5 - anMsr.rdAnoW/2;
+anMsr.rdAnoY = 0.5 - anMsr.rdAnoH/2;
+anMsr.rdAnoPos = [anMsr.rdAnoX anMsr.rdAnoY anMsr.rdAnoW anMsr.rdAnoH];
+
+% Cue Annotation Dim
+anMsr.cuAnoD = [250 150];
+anMsr.cuAnoW = round(anMsr.cuAnoD(1)/anMsr.winPos(3), 2); 
+anMsr.cuAnoH = round(anMsr.cuAnoD(2)/anMsr.winPos(4), 2);
+anMsr.cuAnoX = 0.5 - anMsr.cuAnoW/2;
+anMsr.cuAnoY = 0.5 - anMsr.cuAnoH/2;
+anMsr.cuAnoPos = [anMsr.cuAnoX anMsr.cuAnoY anMsr.cuAnoW anMsr.cuAnoH];
+
+% EEE Annotation Dim
+anMsr.eeAnoD = [370 170];
+anMsr.eeAnoW = round(anMsr.eeAnoD(1)/anMsr.winPos(3), 2); 
+anMsr.eeAnoH = round(anMsr.eeAnoD(2)/anMsr.winPos(4), 2);
+anMsr.eeAnoX = 0.5 - anMsr.eeAnoW/2;
+anMsr.eeAnoY = 0.5 - anMsr.eeAnoH/2;
+anMsr.eeAnoPos = [anMsr.eeAnoX anMsr.eeAnoY anMsr.eeAnoW anMsr.eeAnoH];
 
 %Assuming that perfect RMS lies at 50% of the screen, and the acceptable
 %upper and lower bound are set at 45% and 55% of the screen, the edge of
@@ -67,20 +98,26 @@ anMsr.maxLx = [anMsr.lMar anMsr.drawMinW];     %First X and Last X
 anMsr.maxLy = [anMsr.drawMaxH anMsr.drawMaxH]; %First Y and Last Y
 
 % Trigger dim measurements
-anMsr.r        = 60;   % Trigger side length (pixels)
-anMsr.visTrigX = 0;    % Trigger X Pos
-anMsr.visTrigY = 0.02; % Trigger Y Pos
-anMsr.visTrigW = round(100*anMsr.r/anMsr.winPos(3))/100; % Trigger X Len
-anMsr.visTrigH = round(100*anMsr.r/anMsr.winPos(4))/100; % Trigger Y Len
-
-% Trigger Square: Position and Size
+anMsr.r        = 60;                                % Trigger side L (pixels)
+anMsr.visTrigX = 0;                                 % Trigger X Pos
+anMsr.visTrigY = 0.02;                              % Trigger Y Pos
+anMsr.visTrigW = round(anMsr.r/anMsr.winPos(3), 2); % Trigger X Len
+anMsr.visTrigH = round(anMsr.r/anMsr.winPos(4), 2); % Trigger Y Len
 anMsr.visTrigPos = [anMsr.visTrigX anMsr.visTrigY anMsr.visTrigW anMsr.visTrigH];
+
+% Current Subject Note Dim
+anMsr.subjND = [170 30];
+anMsr.subjNX = anMsr.visTrigX;
+anMsr.subjNY = anMsr.visTrigY + anMsr.visTrigH + 0.02;
+anMsr.subjNW = round(anMsr.subjND(1)/anMsr.winPos(3), 2); 
+anMsr.subjNH = round(anMsr.subjND(2)/anMsr.winPos(4), 2); 
+anMsr.subjNPos = [anMsr.subjNX anMsr.subjNY anMsr.subjNW anMsr.subjNH];
 
 %%%%%%
 VBFig = figure('NumberTitle', 'off', 'Color', [0 0 0], 'Position', anMsr.winPos, 'MenuBar', 'none');
 
 %Plus Sign
-H1 = annotation(VBFig,'textbox',[0.425 0.425 0.15 0.15],...
+H1 = annotation(VBFig,'textbox', anMsr.cuAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'+'},...
                         'LineStyle','none',...
@@ -95,7 +132,7 @@ H1 = annotation(VBFig,'textbox',[0.425 0.425 0.15 0.15],...
                         'Visible','off');
 
 %EEE Directions
-H2 = annotation(VBFig,'textbox',[0.39 0.42 0.22 0.16],...
+H2 = annotation(VBFig,'textbox', anMsr.eeAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'eee'},...
                         'LineStyle','none',...
@@ -110,7 +147,7 @@ H2 = annotation(VBFig,'textbox',[0.39 0.42 0.22 0.16],...
                         'visible','off');
 
 %Ready Note                    
-H3 = annotation(VBFig,'textbox', [0.3 0.35 0.4 0.3],...
+H3 = annotation(VBFig,'textbox', anMsr.rdAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'READY'},...
                         'LineStyle','none',...
@@ -150,7 +187,7 @@ LoudmaxLine = annotation(VBFig, 'line', anMsr.maxLx, anMsr.maxLy,...
                                   'LineWidth', 1, ...
                                   'visible','off');
 % Subject Note
-curSessNote = annotation(VBFig,'textbox', [0 0.08 0.1 0.03],...
+curSessNote = annotation(VBFig,'textbox', anMsr.subjNPos,...
                                 'Color',[1 1 1],...
                                 'String', curSess,...
                                 'LineStyle','none',...

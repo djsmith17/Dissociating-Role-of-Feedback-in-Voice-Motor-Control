@@ -16,11 +16,11 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot32'};       %    List of multiple participants.
+AVar.participants  = {'Pilot0', 'Pilot21', 'Pilot28', 'Pilot29', 'Pilot30', 'Pilot31', 'Pilot33'}; %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'DS6'}; %    List of multiple runs.
+AVar.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
-AVar.baselineFile  = 'BV1';
+AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
 
 dirs               = dfDirs(AVar.project);
@@ -29,7 +29,8 @@ dirs.LoadData      = dirs.SavData;
 for i = 1:AVar.numPart
     participant = AVar.participants{i};
     dirs.baselineData  = fullfile(dirs.LoadData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
-        
+      
+    % Look for the baseline voice info for this participant, then load it
     if exist(dirs.baselineData, 'file') == 0
         fprintf('ERROR: Could not find baseline data set at %s\n', dirs.baselineData)
         return
@@ -39,21 +40,27 @@ for i = 1:AVar.numPart
         bV = DRF;
     end
     
+    % Baseline f0
+    f0b = bV.qRes.meanf0;
     for j = 1:AVar.numRuns
         run         = AVar.runs{j};
         
-        dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);                             % Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                                          % Where to save results
-        dirs.InflaVarDir   = fullfile(dirs.LoadData, participant, 'IV1');                                                        % Where to save results
+        % Define where to load raw data and save analyzed results
+        dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);  % Where to find data
+        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                % Where to save results
+        dirs.InflaVarDir   = fullfile(dirs.LoadData, participant, 'IV1');                             % Where to save results
 
+        % Make sure there is a place to save results
         if exist(dirs.SavResultsDir, 'dir') == 0
             mkdir(dirs.SavResultsDir)
         end
         
+        % Make sure there is a place to save results
         if exist(dirs.InflaVarDir, 'dir') == 0
             mkdir(dirs.InflaVarDir)
         end
         
+        % Look for the recording sessoin raw data for this participant, then load it
         fprintf('%%%%%%%%%%%%%%%%%%%%%%%%\n')
         if exist(dirs.SavFileDir, 'file') == 0
             fprintf('ERROR: Could not find saved data set at %s\n', dirs.SavFileDir)
@@ -63,24 +70,34 @@ for i = 1:AVar.numPart
             load(dirs.SavFileDir) % Returns DRF
         end
         
+        % Identify the type of experiment and decide what types of analyzes
+        % we need. pF: Pressure Flag; iRF: Inflation Response Flag
         AVar.expType = DRF.expParam.expType;
         [pF, iRF] = checkDRFExpType(AVar.expType);
         aFn = 0; aFa = 1; %Audio Analysis Flag        
         
-        f0b = bV.qRes.meanf0;
+        % Analysis on the NIDAQ raw data
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
+        % Analysis on the Audapter raw data
         [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRF, niAn);
 
+        % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
         
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'Results' res.f0Type 'DRF.mat']);
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
+        dirs.InflaVarFile   = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
         if AVar.debug == 0
+            % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')
-        end
-        
-        if iRF == 1
-            saveInflationResponse(dirs, res, participant, run, AVar.debug)
+            
+            if iRF == 1
+               InflaVar = res.InflaStimVar;
+               
+               % Save Inflation Response results for this recording session
+               fprintf('Saving Inflation Response Results for %s %s\n', participant, run)
+               save(dirs.InflaVarFile, 'InflaVar');                
+            end
         end
     end
 end
@@ -97,20 +114,14 @@ res.AudFB   = auRes.AudFB;
 res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
 
-res.numTrials     = auRes.numTrials;
-res.svIdx         = auRes.svIdx;
-res.expTrigsSv    = auRes.expTrigsSv;
-res.pertIdx       = auRes.pertIdx;     % The indices of the svIdx;
-res.pertTrig      = auRes.pertTrig;
-res.contIdx       = auRes.contIdx;     % The indices of the svIdx;
-res.contTrig      = auRes.contTrig;
-res.numSaveTrials = auRes.numSaveTrials;
-res.numContTrials = auRes.numContTrials;
-res.numPertTrials = auRes.numPertTrials;
+res.numTrial            = auRes.numTrial;   % Total trials recorded
+res.removedTrialTracker = auRes.removedTrialTracker;
+res.allAuNiDelays       = auRes.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 
 res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
 res.numContTrialsNi = niRes.numContTrials;
+res.pertIdxNi       = niRes.pertIdx;
 res.timeS           = niRes.timeS;
 res.sensorP         = niRes.sensorP;        % Individual Processed perturbed trials. 
 res.lagTimeP        = niRes.lagTimeP;
@@ -121,16 +132,23 @@ res.OnOfValP        = niRes.OnOfValP;
 res.OnOfValPm       = niRes.OnOfValPm;
 res.limitsP         = niRes.limitsP;
 
+% Sectioned and Aligned Pressure recordings 
 res.timeSAl       = niRes.timeSAl;
-res.sensorPAl     = niRes.sensorPAl;
+res.sensorPAl     = niRes.sensorPAl;  
 res.limitsPAl     = niRes.limitsPAl;
 
+% Audio f0 analysis
 res.timef0        = auRes.timef0;
 res.f0b           = auRes.f0b;
 
-res.numContTrialsPP = auRes.numContTrialsPP;
-res.numPertTrialsPP = auRes.numPertTrialsPP;
-res.pertTrigPP      = auRes.pertTrigPP;
+% Which trials did I end up saving and plotting at the end of the day?
+res.allIdxFin        = auRes.allIdxFin;
+res.pertIdxFin       = auRes.pertIdxFin;
+res.contIdxFin       = auRes.contIdxFin;
+res.numTrialsFin     = auRes.numTrialsFin;
+res.numContTrialsFin = auRes.numContTrialsFin;
+res.numPertTrialsFin = auRes.numPertTrialsFin;
+res.pertTrigsFin     = auRes.pertTrigsFin;
 
 %Full Individual Trials: Mic/Head f0 Trace 
 res.audioMf0TrialPert = auRes.audioMf0TrialPert;
@@ -153,7 +171,7 @@ res.audioMf0MeanCont = auRes.audioMf0MeanCont;
 res.audioHf0MeanPert = auRes.audioHf0MeanPert;
 res.audioHf0MeanCont = auRes.audioHf0MeanCont;
 res.limitsAmean      = auRes.limitsAmean;
-res.limitsAMH        = auRes.limitsAMH;      % Limits Audio Corrected for MicXHead
+res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicXHead
 
 %Inflation Response
 res.respVar      = auRes.respVar;
@@ -166,11 +184,11 @@ res.allAuNiDelays = auRes.allAuNiDelays;
 
 %Check the Ni trials against the Au trials
 presInd = [];
-if res.numPertTrialsPP < res.numPertTrialsNi
-    setPertTrials = res.svIdx(res.pertIdx);
-    for ii = 1:length(niRes.pertIdx)
-        ind = [];
-        ind = find(setPertTrials == niRes.pertIdx(ii));
+if res.numPertTrialsFin < res.numPertTrialsNi
+    setPertTrials = res.allIdxFin(res.pertIdxFin);
+    for ii = 1:length(res.pertIdxNi)
+
+        ind = find(setPertTrials == res.pertIdxNi(ii));
         if ~isempty(ind)
             presInd = cat(1, presInd, ii);
         end
@@ -189,27 +207,22 @@ end
 end
 
 function [pF, iRF] = checkDRFExpType(expType)
-% This sets different variables so that the analyzes are done differently. 
+% checkDRFExpType(expType) returns flags for different analyses to be 
+% performed. expType will be the name of the experiment, and will likely be
+% either 'Somatosensory Perturbation_Perceptual' or 'Auditory
+% Perturbation_Perceptual. 
+%
+% This returns answers for pF (Pressure Flag) and iRF (Inflation Response
+% Flag)
 
 if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
-    % The perturbatron was used and I want to measure the pressure response
-    % and the behavioral inflation response!
+    % Laryngeal perturbations. AKA, we want to analyze the pressure, and 
+    % the behavioral response to the inflation!
     pF  = 1;      %Pressure Analysis Flag
     iRF = 1;      %Inflation Response Flag
 else
-    % No perturbatron
+    % No laryngeal perturbations
     pF  = 0;      %Pressure Analysis Flag
     iRF = 0;      %Inflation Response Flag
-end
-end
-
-function saveInflationResponse(dirs, res, participant, run, debug)
-
-InflaVar = res.InflaStimVar;
-
-dirs.InflaVarFile = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
-if debug == 0
-    fprintf('Saving Inflation Stimulus Variables for %s %s\n\n', participant, run)
-    save(dirs.InflaVarFile, 'InflaVar');
 end
 end

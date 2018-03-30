@@ -1,32 +1,32 @@
-function drawMaskvVoiceMeanf0(niResM, niResV, statLib, targPixDim, pltName, plotFolder)
+function drawMaskvVoiceMeanf0(resM, resV, statLib, targPixDim, pltName, plotFolder)
 
-curSess          = niResM.subject;
-numCont          = niResM.numContTrials;
-numMasked        = niResM.numPertTrials;
-numVoiced        = niResV.numPertTrials;
+curSess          = resM.subject;
+numCont          = resM.numContTrialsFin;
+numMasked        = resM.numPertTrialsFin;
+numVoiced        = resV.numPertTrialsFin;
 
-time              = niResM.secTime;
-meanf0PertOnsetM  = niResM.audioMf0MeanPert(:,1);
-CIf0PertOnsetM    = niResM.audioMf0MeanPert(:,2);
-meanf0PertOffsetM = niResM.audioMf0MeanPert(:,3);
-CIf0PertOffsetM   = niResM.audioMf0MeanPert(:,4);
+time              = resM.secTime;
+meanf0PertOnsetM  = resM.audioMf0MeanPert(:,1);
+CIf0PertOnsetM    = resM.audioMf0MeanPert(:,2);
+meanf0PertOffsetM = resM.audioMf0MeanPert(:,3);
+CIf0PertOffsetM   = resM.audioMf0MeanPert(:,4);
 
-meanf0ContOnsetM  = niResM.audioMf0MeanCont(:,1);
-CIf0ContOnsetM    = niResM.audioMf0MeanCont(:,2);
-meanf0ContOffsetM = niResM.audioMf0MeanCont(:,3);
-CIf0ContOffsetM   = niResM.audioMf0MeanCont(:,4);
-limitsM           = niResM.limitsAmean;
+meanf0ContOnsetM  = resM.audioMf0MeanCont(:,1);
+CIf0ContOnsetM    = resM.audioMf0MeanCont(:,2);
+meanf0ContOffsetM = resM.audioMf0MeanCont(:,3);
+CIf0ContOffsetM   = resM.audioMf0MeanCont(:,4);
+limitsM           = resM.limitsAmean;
 
-meanf0PertOnsetV  = niResV.audioMf0MeanPert(:,1);
-CIf0PertOnsetV    = niResV.audioMf0MeanPert(:,2);
-meanf0PertOffsetV = niResV.audioMf0MeanPert(:,3);
-CIf0PertOffsetV   = niResV.audioMf0MeanPert(:,4);
-limitsV           = niResV.limitsAmean;
+meanf0PertOnsetV  = resV.audioMf0MeanPert(:,1);
+CIf0PertOnsetV    = resV.audioMf0MeanPert(:,2);
+meanf0PertOffsetV = resV.audioMf0MeanPert(:,3);
+CIf0PertOffsetV   = resV.audioMf0MeanPert(:,4);
+limitsV           = resV.limitsAmean;
 
-statSMM = round(10*statLib(1))/10;
-statSMV = round(10*statLib(2))/10;
-statRMM = round(10*statLib(3))/10;
-statRMV = round(10*statLib(4))/10;
+statSMM = round(statLib(1), 1);
+statSMV = round(statLib(2), 1);
+statRMM = round(statLib(3), 1);
+statRMV = round(statLib(4), 1);
 statRPM = round(statLib(5));
 statRPV = round(statLib(6));
 statSP  = statLib(7);
@@ -37,7 +37,7 @@ limits = checkLims(limitsM, limitsV);
 pValueThresh = 0.05;
 figureL      = pltName(end);
 
-%Plotting Variables
+% Figure Variables
 plotpos        = [10 100];
 plotdim        = targPixDim;
 IndiSubjf0Resp = figure('Color', [1 1 1]);
@@ -59,11 +59,11 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 axes(ha(1))
 plot(dottedStartx, dottedy, 'color', [0.3 0.3 0.3], 'LineWidth', lineThick)
 hold on
-nC = shadedErrorBar(time, meanf0ContOnsetM, CIf0ContOnsetM, 'k', 1); %Voice
+nC = shadedErrorBar(time, meanf0ContOnsetM, CIf0ContOnsetM, 'lineprops', '-k', 'transparent', 1); % Control condition
 hold on
-nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Masked
+nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
 hold on
-nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
+nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
 set(nM.mainLine, 'LineWidth', lineThick)
 set(nV.mainLine, 'LineWidth', lineThick)
@@ -82,11 +82,11 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 axes(ha(2))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-fC = shadedErrorBar(time, meanf0ContOffsetM, CIf0ContOffsetM, 'k', 1); %Voice
+fC = shadedErrorBar(time, meanf0ContOffsetM, CIf0ContOffsetM, 'lineprops', '-k', 'transparent', 1); %Voice
 hold on
-fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Masked
+fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
 hold on
-fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
+fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
 set(fM.mainLine, 'LineWidth', lineThick)
 set(fV.mainLine, 'LineWidth', lineThick)
@@ -125,12 +125,12 @@ statBox = annotation('textbox',[.30 .75 0.45 0.1],...
                      'FontSize', legAnnoFSize,...
                      'FontWeight','bold');
             
-figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
-                        'string', figureL,...
-                        'LineStyle', 'none',...
-                        'FontName', fontN,...
-                        'FontSize', titleFSize,...
-                        'FontWeight','bold');
+% figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
+%                         'string', figureL,...
+%                         'LineStyle', 'none',...
+%                         'FontName', fontN,...
+%                         'FontSize', titleFSize,...
+%                         'FontWeight','bold');
 
 legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numCont) ' Control Trials'], [num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
             'Position', [0.83 0.75 0.1 0.1],...

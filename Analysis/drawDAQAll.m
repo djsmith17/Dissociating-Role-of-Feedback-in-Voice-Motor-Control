@@ -1,20 +1,21 @@
-function drawDAQAll(niAn, saveResultsDir, sv2F)
-%This will draw every channel that was collected by the DAQ and then
+function drawDAQAll(res, saveResultsDir, sv2F)
+% drawDAQAll draws the recordings from all selected channels for a given
+% all trials of a recording that was collected by the DAQ and then
 %analyzed by dfAnalysisNIDAQ. This just gives a top down view of what
 %happened in this recording. If multiple trials are given, this will either
 %plot each trial, or aligned trials, based on flag
 
-curExp   = niAn.curSess;  % The current experiment detials (Subject/Run)
-numTrial = niAn.numPertTrials; % Number of Trials
-trigs    = niAn.pertTrig; % Where the perturbation occurs
+curExp   = res.curSess;       % Ccurrent experiment details (Subject/Run)
+numTrial = res.numPertTrials; % Number of Trials
+trigs    = res.pertTrig;      % Where the perturbation occurs
 
-time     = niAn.time;
-pertSig  = niAn.pertSig;
-sensorFC = niAn.sensorFC;
-sensorFN = niAn.sensorFN;
-sensorP  = niAn.sensorP;
-audioM   = niAn.audioM;
-audioH   = niAn.audioH;
+time     = res.time;
+pertSig  = res.pertSig;
+sensorFC = res.sensorFC;
+sensorFN = res.sensorFN;
+sensorP  = res.sensorP;
+audioM   = res.audioM;
+audioH   = res.audioH;
 
 curExp(strfind(curExp, '_')) = ' ';
 
@@ -28,7 +29,7 @@ for ii = 1:numTrial
     
     pertAx  = [trigs(ii,1), trigs(ii,2)];
     pertAy  = [200 200];
-    w = niAn.ctIdx(ii);
+    w = res.ctIdx(ii);
     
     ha = tight_subplot(2,3,[0.15 0.08],[0.12 0.15],[0.05 0.01]);
 

@@ -1,14 +1,16 @@
 function drawAllPertTrialMicf0(res, plotFolder)
 
 curSess          = res.curSess;
+f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
-f0b              = round(10*res.f0b)/10;
-numPT            = res.numPertTrialsPP;
-pertTrig         = res.pertTrigPP;
+numPT            = res.numPertTrialsFin;
+pertTrig         = res.pertTrigsFin;
 
 time             = res.timef0;
 sigs             = res.audioMf0TrialPert;
 limits           = res.limitsA;
+
+curSess(strfind(curSess, '_')) = ' ';
 
 plotpos = [10 100];
 plotdim = [1600 800];
@@ -41,7 +43,7 @@ end
 sup = suptitle({curSess; [ 'AudFB: ' AudFB]; ['f0: ' num2str(f0b) ' Hz']});
 set(sup, 'FontSize', 18, 'FontWeight', 'bold')
 
-plots = {'IntraTrialf0DAQ'};
+plots = {'IntraTrialf0'};
 for i = 1:length(plots)
     plTitle = [curSess '_' plots{i} '.jpg'];
 
