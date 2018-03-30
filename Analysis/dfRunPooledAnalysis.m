@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'SfN2017'; % Change this name to load different pooled data sets
+pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -36,6 +36,9 @@ pA.runs          = cF.runs;         % All runs to consider
 pA.cond          = cF.cond;         % Conditions to test against
 pA.numCond       = length(pA.cond); 
 pA.condVar       = cF.condVar;      % Variable to test the condition
+
+pltNm.pltNameMVi  = cF.pltNameMVi;
+pltNm.pltNameMVm  = cF.pltNameMVm;
 
 % allDataStr is 3D struc with dim (Parti nRun Cond);
 allDataStr = [];
@@ -171,7 +174,7 @@ statLibAll = packStatLib(unSubM, unSubV);
 
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
-save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll')
+save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll', 'pltNm')
 
 dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 xlswrite(dirs.excelFile, statLib, 1)

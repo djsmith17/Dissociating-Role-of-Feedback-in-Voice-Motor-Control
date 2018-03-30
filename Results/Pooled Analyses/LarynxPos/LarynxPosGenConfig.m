@@ -40,7 +40,21 @@ pooledRuns  = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
 testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
 
 % The Recording Variable to check for the condition
-condVar = 'res.AudFB';          
+condVar = 'res.AudFB'; 
+
+% How do you want to title the Result Plots?
+pltNameTop = 'LarynxPos ';
+% MaskvVoice Individual
+pltNameMVi = {[pltNameTop 'Pilot29' 'Resp_MaskvVoice'],...
+              [pltNameTop 'Pilot30' 'Resp_MaskvVoice'],...
+              [pltNameTop 'Pilot31' 'Resp_MaskvVoice'],...
+              [pltNameTop 'Pilot32' 'Resp_MaskvVoice'],...
+              [pltNameTop 'Pilot33' 'Resp_MaskvVoice'],...
+              [pltNameTop 'Pilot21' 'Resp_MaskvVoice'],...
+              [pltNameTop 'Pilot28' 'Resp_MaskvVoice'],...
+              [pltNameTop 'Pilot0' 'Resp_MaskvVoice']};
+
+pltNameMVm =  [pltNameTop 'MeanSubjResp_MaskvVoice'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -58,6 +72,8 @@ cF.participants = pooledParticipants;
 cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 cF.condVar      = condVar;
+cF.pltNameMVi   = pltNameMVi;
+cF.pltNameMVm   = pltNameMVm;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)

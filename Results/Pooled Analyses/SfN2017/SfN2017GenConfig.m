@@ -32,7 +32,17 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4';...
 testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
 
 % The Recording Variable to check for the condition
-condVar = 'res.AudFB';          
+condVar = 'res.AudFB';
+
+% How do you want to title the Result Plots?
+pltNameTop = 'SfN2017Results Figure ';
+% MaskvVoice Individual
+pltNameMVi = {[pltNameTop '4a'],...
+              [pltNameTop '4b'],...
+              [pltNameTop '4c'],...
+              [pltNameTop '4d']};
+
+pltNameMVm =  [pltNameTop '5'];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -50,6 +60,8 @@ cF.participants = pooledParticipants;
 cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 cF.condVar      = condVar;
+cF.pltNameMVi   = pltNameMVi;
+cF.pltNameMVm   = pltNameMVm;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)

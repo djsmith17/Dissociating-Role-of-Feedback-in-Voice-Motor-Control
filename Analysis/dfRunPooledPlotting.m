@@ -10,7 +10,7 @@ function dfRunPooledPlotting()
 
 close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.analyses = 'SfN2017';
+PolPlt.analyses = 'LarynxPos';
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses);       % Analyzed Results Folder
@@ -18,8 +18,8 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
-PolPlt.MaskVVoice        = 1;
-PolPlt.AllSubjMaskvVoice = 1;
+PolPlt.MaskVVoice        = 0;
+PolPlt.AllSubjMaskvVoice = 0;
 
 ppi        = 300;
 scRes      = [1920 1080];
@@ -28,14 +28,14 @@ targFigDim = [15 4];
 
 targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim);
 
-pltLetter = {'a'; 'b'; 'c'; 'd'};
-
 if exist(dirs.SavResultsFile, 'file') == 0
     fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
     return
 else
     load(dirs.SavResultsFile)
     % Returns combDataStr; statLib
+    %         allSubjRes; statLibAll
+    %         pltNm
 end
 
 if PolPlt.MeanTrialMicf0 == 1
@@ -50,16 +50,26 @@ if PolPlt.MeanTrialMicf0 == 1
 end
 
 if PolPlt.MaskVVoice == 1
-    for ii = 1:4
-        pltName = ['SfN2017Results Figure 4' pltLetter{ii}];
+    numIndivi = length(pltNm.pltNameMVi);
+    
+    for ii = 1:numIndivi
+        pltName = pltNm.pltNameMVi{ii}; % From Pooled Analysis Results File
         drawMaskvVoiceMeanf0(combDataStr(ii,1), combDataStr(ii,2), statLib(ii,:), targPixDim, pltName, dirs.SavResultsDir)
     end
 end
 
 if PolPlt.AllSubjMaskvVoice == 1
-    pltName = 'SfN2017Results Figure 5';
+    pltName = pltNm.pltNameMVm; % From Pooled Analysis Results File
     drawMeanSubjf0Resp(allSubjRes, statLibAll, targPixDim, pltName, dirs.SavResultsDir)
 end
+
+
+
+
+
+
+
+
 close all
 end
 
