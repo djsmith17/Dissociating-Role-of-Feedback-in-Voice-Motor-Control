@@ -172,9 +172,15 @@ allSubjRes.limitsAmeanV = limsV.audioMean;
 
 statLibAll = packStatLib(unSubM, unSubV);
 
+if strcmp(pA.pAnalysis, 'LarynxPos') == 1
+    [CRi, CRm] = collarResultConcat(allDataStr);
+else
+    CRi = []; CRm = [];
+end
+
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
-save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll', 'pltNm')
+save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll', 'pltNm', 'CRi', 'CRm')
 
 dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 xlswrite(dirs.excelFile, statLib, 1)
@@ -204,7 +210,6 @@ thisStruc.respVar         = [];
 thisStruc.audioMf0MeanPert = [];
 thisStruc.audioMf0MeanCont = [];
 thisStruc.respVarM         = [];
-
 end
 
 function meanAudio = meanRunAudioData(secAudio)
@@ -226,6 +231,132 @@ NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
 NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
 meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+end
+
+function [CRi, CRm] = collarResultConcat(allDataStr)
+
+[numSubj, numCollarPos, numCond] = size(allDataStr);
+nameCollarPos = {'LP', 'uLP', 'CC'};
+
+CRm.curSess          = 'MeanSubjResp_CollarLoc';
+CRm.numContTrials    = 0;
+CRm.numPertTrialsLP  = 0;
+CRm.numPertTrialsuLP = 0;
+CRm.numPertTrialsCC  = 0;
+
+CRm.secTime          = [];
+
+CRm.audioMf0SecCont    = [];
+CRm.audioMf0SecPertLP  = [];
+CRm.audioMf0SecPertuLP = [];
+CRm.audioMf0SecPertCC  = [];
+unSubLP.respVar        = [];
+unSubuLP.respVar       = [];
+unSubCC.respVar        = [];
+
+for ii = 1:numSubj
+    for kk = 1:numCollarPos
+        subjColl = initOrgStruct();
+        
+        subjColl.subject = allDataStr(ii, 1, 1).subject;
+        subjColl.curSess = [subjColl.subject 'Resp_CollarLoc'];
+        subjColl.CollarPos = nameCollarPos{kk};
+    
+        for jj = 1:numCond %Masked then Voiced
+            curRun = allDataStr(ii, kk, jj);
+
+            subjColl.runs            = cat(1, subjColl.runs, curRun.run);
+            subjColl.runf0b          = cat(1, subjColl.runf0b, curRun.f0b);
+            
+            subjColl.allContTrials = cat(1, subjColl.allContTrials, curRun.numContTrialsFin);
+            subjColl.allPertTrials = cat(1, subjColl.allPertTrials, curRun.numPertTrialsFin);
+            
+            subjColl.secTime = curRun.secTime;
+            subjColl.audioMf0SecPert = cat(2, subjColl.audioMf0SecPert, curRun.audioMf0SecPert);
+            subjColl.audioMf0SecCont = cat(2, subjColl.audioMf0SecCont, curRun.audioMf0SecCont);
+            subjColl.respVar         = cat(1, subjColl.respVar, curRun.respVar);
+        end
+        
+        subjColl.f0b             = mean(subjColl.runf0b);
+        
+        subjColl.numContTrialsFin = sum(subjColl.allContTrials);
+        subjColl.numPertTrialsFin = sum(subjColl.allPertTrials);
+        
+        subjColl.audioMf0MeanPert = meanRunAudioData(subjColl.audioMf0SecPert);
+        subjColl.audioMf0MeanCont = meanRunAudioData(subjColl.audioMf0SecCont);
+        subjColl.respVarM         = mean(subjColl.respVar, 1);
+        
+        lims = identifyLimits(subjColl, 0);
+        subjColl.limitsAmean = lims.audioMean;     
+        
+        collectedSet(ii, kk) = subjColl;        
+    end
+    
+    LP  = collectedSet(ii,1);
+    uLP = collectedSet(ii,2); 
+    CC  = collectedSet(ii,3);
+    
+    CRi(ii).curSess          = LP.curSess;
+    CRi(ii).numContTrials    = LP.numContTrialsFin + uLP.numContTrialsFin + CC.numContTrialsFin;
+    CRi(ii).numPertTrialsLP  = LP.numPertTrialsFin;
+    CRi(ii).numPertTrialsuLP = uLP.numPertTrialsFin;
+    CRi(ii).numPertTrialsCC  = CC.numPertTrialsFin;
+
+    CRi(ii).secTime             = LP.secTime;
+    CRi(ii).audioMf0MeanCont    = meanRunAudioData([LP.audioMf0SecCont, uLP.audioMf0SecCont, CC.audioMf0SecCont]);
+    CRi(ii).audioMf0MeanPertLP  = LP.audioMf0MeanPert;
+    CRi(ii).audioMf0MeanPertuLP = uLP.audioMf0MeanPert;
+    CRi(ii).audioMf0MeanPertCC  = CC.audioMf0MeanPert;
+    
+%     identifyLimits = 
+%     CRi(ii).limitsAMean  = 
+
+%     statLib(ii,:) = packStatLib(mask, voic);
+%     
+    CRm.numContTrials    = CRm.numContTrials + LP.numContTrialsFin + uLP.numContTrialsFin + CC.numContTrialsFin;
+    CRm.numPertTrialsLP  = CRm.numPertTrialsLP + LP.numPertTrialsFin;
+    CRm.numPertTrialsuLP = CRm.numPertTrialsuLP + uLP.numPertTrialsFin;
+    CRm.numPertTrialsCC  = CRm.numPertTrialsCC + CC.numPertTrialsFin;
+    
+    CRm.audioMf0SecPertLP  = cat(2, CRm.audioMf0SecPertLP, LP.audioMf0SecPert);
+    CRm.audioMf0SecPertuLP = cat(2, CRm.audioMf0SecPertuLP, uLP.audioMf0SecPert);
+    CRm.audioMf0SecPertCC  = cat(2, CRm.audioMf0SecPertCC, CC.audioMf0SecPert);
+    
+    % This will take all the control trials from all conditions and
+    % concatenate them in one big matrix
+    CRm.audioMf0SecCont = cat(2, CRm.audioMf0SecCont, LP.audioMf0SecCont);
+    CRm.audioMf0SecCont = cat(2, CRm.audioMf0SecCont, uLP.audioMf0SecCont);
+    CRm.audioMf0SecCont = cat(2, CRm.audioMf0SecCont, CC.audioMf0SecCont);
+    
+    unSubLP.respVar  = cat(1, unSubLP.respVar, LP.respVar);
+    unSubuLP.respVar = cat(1, unSubuLP.respVar, uLP.respVar);
+    unSubCC.respVar  = cat(1, unSubCC.respVar, CC.respVar);
+end
+
+CRm.secTime             = LP.secTime;
+CRm.audioMf0MeanCont    = meanRunAudioData(CRm.audioMf0SecCont);
+CRm.audioMf0MeanPertLP  = meanRunAudioData(CRm.audioMf0SecPertLP);
+CRm.audioMf0MeanPertuLP = meanRunAudioData(CRm.audioMf0SecPertuLP);
+CRm.audioMf0MeanPertCC  = meanRunAudioData(CRm.audioMf0SecPertCC);
+
+unSubLP.respVarM      = mean(unSubLP.respVar, 1);
+unSubuLP.respVarM     = mean(unSubuLP.respVar, 1);
+unSubCC.respVarM      = mean(unSubCC.respVar, 1);
+
+CRm.respVarLP          = unSubLP.respVar;
+CRm.respVaruLP         = unSubuLP.respVar;
+CRm.respVarCC          = unSubCC.respVar;
+CRm.respVarMLP         = unSubLP.respVarM;
+CRm.respVarMuLP        = unSubuLP.respVarM;
+CRm.respVarMCC         = unSubCC.respVarM;
+% 
+% limsLP = identifyLimits(CRm, 1);
+% CRm.limitsAmeanM = limsLP.audioMean;
+% limsuLP = identifyLimits(CRm, 2);
+% CRm.limitsAmeanV = limsuLP.audioMean;
+% limsCC = identifyLimits(CRm, 2);
+% CRm.limitsAmeanV = limsCC.audioMean;
+
 end
 
 function statLib = packStatLib(mask, voic)
