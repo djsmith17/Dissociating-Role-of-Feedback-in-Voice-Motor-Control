@@ -31,13 +31,13 @@ function dfRecBaselineVoice()
 close all;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot33'; % Subject#, Pilot#, null
+subject    = 'null'; % Subject#, Pilot#, null
 run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
 gender     = 'male';    % "male" or "female"
 numTrials  = 3;         % number of trials;
 
-VoiceRec = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
-switch VoiceRec
+recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
+switch recType
     case 'Calibrate Microphone'
         VoiceRecsw = 0;
     case 'Baseline Voice'
@@ -59,7 +59,7 @@ if VoiceRecsw == 1 % Baseline Voice
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
 else               % Audio setup test
-    expParam.trialLen = 100;                      % Seconds
+    expParam.trialLen = 10;                      % Seconds
     expParam.numTrial = 1;
     expParam.AudFBSw  = 0;
     expParam.cuePause = 0;
@@ -141,8 +141,13 @@ for ii = 1:expParam.numTrial
     set([H2 trigCirc],'Visible','off'); % Turn off the 'eee' and trigMark
     
     % Load the Audapter saved data and save some as wav Files
-    data    = dfSaveRawData(expParam, dirs);
+    data = AudapterIO('getData');       % This will need to become a try statement again
     rawData = cat(1, rawData, data);
+    
+    switch recType
+        case 'Baseline Voice'
+            dfSaveWavRec(data, expParam, dirs);
+    end
     
     pause(expParam.resPause)
 end
@@ -160,9 +165,7 @@ DRF.qRes = qRes;
 
 % Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-switch VoiceRec
-    case 'Calibrate Microphone'
-        return
+switch recType
     case 'Baseline Voice'
         fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
         save(dirs.RecFileDir, 'DRF')

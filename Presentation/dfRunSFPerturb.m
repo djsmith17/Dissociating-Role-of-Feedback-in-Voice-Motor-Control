@@ -186,8 +186,8 @@ for ii = 1:expParam.numTrial
     Audapter('stop');
     set([H2 trigCirc],'Visible','off');
     
-    % Load the Audapter saved data and save some as wav Files
-    data    = dfSaveRawData(expParam, dirs);
+    % Load the Audapter saved data and save as wav Files
+    data = AudapterIO('getData');       % This will need to become a try statement again
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
        
@@ -203,6 +203,14 @@ for ii = 1:expParam.numTrial
     set([rec fbLines], 'Visible', 'on');
     
     pltStr = updateLiveResult(dataDAQ, expParam, pltStr);
+    
+    switch recType
+        case 'Diagnostic'
+            dfSaveWavRec(data, expParam, dirs);
+        case 'Full'
+            dfSaveWavRec(data, expParam, dirs);
+    end
+    
     pause(expParam.resPause)
     set([rec fbLines], 'Visible', 'off');
 end
@@ -223,8 +231,6 @@ DRF.rawData     = rawData;
 % Save the large data structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 switch recType
-    case 'Practice'
-        return
     case 'Diagnostic'
         fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
         save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
