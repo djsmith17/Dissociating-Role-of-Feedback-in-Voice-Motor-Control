@@ -18,11 +18,11 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
-PolPlt.MaskVVoice        = 0;
-PolPlt.AllSubjMaskvVoice = 0;
+PolPlt.MaskVVoice        = 1;
+PolPlt.AllSubjMaskvVoice = 1;
 
 ppi        = 300;
-scRes      = [1920 1080];
+scRes      = [2560 1440];
 scDim      = [18.625 11.75];
 targFigDim = [15 4];
 
@@ -53,6 +53,7 @@ if PolPlt.MaskVVoice == 1
     for ii = 1:numIndivi
         pltName = pltNm.pltNameMVi{ii}; % From Pooled Analysis Results File
         drawMaskvVoiceMeanf0(combDataStr(ii,1), combDataStr(ii,2), statLib(ii,:), targPixDim, pltName, dirs.SavResultsDir)
+        pause(1.0)
     end
 end
 
@@ -67,6 +68,7 @@ if strcmp(PolPlt.analyses, 'LarynxPos') == 1
     for ii = 1:numIndivi
         pltName = ['LarynxPos ' CRi(ii).curSess];
         drawMeanSubjf0Resp_CollarPosDiff(CRi(ii), targPixDim, pltName, dirs.SavResultsDir)
+        pause(1.0)
     end
     
     pltName = ['LarynxPos ' CRm.curSess];
