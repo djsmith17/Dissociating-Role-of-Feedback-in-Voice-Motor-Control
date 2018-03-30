@@ -39,14 +39,12 @@ else
 end
 
 if PolPlt.MeanTrialMicf0 == 1
-    drawMeanTrialMicf0(combDataStr(1,1), dirs.SavResultsDir)
-    drawMeanTrialMicf0(combDataStr(1,2), dirs.SavResultsDir)
-    drawMeanTrialMicf0(combDataStr(2,1), dirs.SavResultsDir)
-    drawMeanTrialMicf0(combDataStr(2,2), dirs.SavResultsDir)
-    drawMeanTrialMicf0(combDataStr(3,1), dirs.SavResultsDir)
-    drawMeanTrialMicf0(combDataStr(3,2), dirs.SavResultsDir)
-    drawMeanTrialMicf0(combDataStr(4,1), dirs.SavResultsDir)
-    drawMeanTrialMicf0(combDataStr(4,2), dirs.SavResultsDir)
+    numIndivi = length(pltNm.pltNameMVi);
+    
+    for ii = 1:numIndivi
+        drawMeanTrialMicf0(combDataStr(ii,1), dirs.SavResultsDir)
+        drawMeanTrialMicf0(combDataStr(ii,2), dirs.SavResultsDir)
+    end
 end
 
 if PolPlt.MaskVVoice == 1
@@ -63,12 +61,17 @@ if PolPlt.AllSubjMaskvVoice == 1
     drawMeanSubjf0Resp(allSubjRes, statLibAll, targPixDim, pltName, dirs.SavResultsDir)
 end
 
-
-
-
-
-
-
+if strcmp(PolPlt.analyses, 'LarynxPos') == 1
+    numIndivi = length(pltNm.pltNameMVi);
+    
+    for ii = 1:numIndivi
+        pltName = ['LarynxPos ' CRi(ii).curSess];
+        drawMeanSubjf0Resp_CollarPosDiff(CRi(ii), targPixDim, pltName, dirs.SavResultsDir)
+    end
+    
+    pltName = ['LarynxPos ' CRm.curSess];
+    drawMeanSubjf0Resp_CollarPosDiff(CRm, targPixDim, pltName, dirs.SavResultsDir)
+end
 
 close all
 end
