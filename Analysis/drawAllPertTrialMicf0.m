@@ -1,4 +1,5 @@
 function drawAllPertTrialMicf0(res, plotFolder)
+% drawAllPertTrialMicf0(res, plotFolder) plots the pitch traces 
 
 curSess          = res.curSess;
 f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
