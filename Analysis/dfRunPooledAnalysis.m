@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets
+pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -210,6 +210,11 @@ thisStruc.respVar         = [];
 thisStruc.audioMf0MeanPert = [];
 thisStruc.audioMf0MeanCont = [];
 thisStruc.respVarM         = [];
+
+thisStruc.tossedAll        = [];
+thisStruc.tossedLate       = [];
+thisStruc.tossedBreak      = [];
+thisStruc.tossedMisCalc    = [];
 end
 
 function meanAudio = meanRunAudioData(secAudio)
@@ -275,6 +280,31 @@ for ii = 1:numSubj
             subjColl.audioMf0SecPert = cat(2, subjColl.audioMf0SecPert, curRun.audioMf0SecPert);
             subjColl.audioMf0SecCont = cat(2, subjColl.audioMf0SecCont, curRun.audioMf0SecCont);
             subjColl.respVar         = cat(1, subjColl.respVar, curRun.respVar);
+            
+            numTossed                = length(curRun.removedTrialTracker);
+            subjColl.tossedAll       = cat(1, subjColl.tossedAll, numTossed);
+            
+            if numTossed > 0  
+                idxLateC = strfind(curRun.removedTrialTracker(:,2), 'Participant started too late!!');
+                [~, idxLate] = find(not(cellfun('isempty', idxLateC)));
+                
+                idxBreakC = strfind(curRun.removedTrialTracker(:,2), 'Participant had a voice break!!');
+                [~, idxBreak] = find(not(cellfun('isempty', idxBreakC)));
+                
+                idxMisC = strfind(curRun.removedTrialTracker(:,2), 'Miscalculated pitch Trace');
+                [~, idxMis] = find(not(cellfun('isempty', idxMisC)));   
+                
+                numTossedLate  = sum(idxLate);
+                numTossedBreak = sum(idxBreak);
+                numTossedMisCalc  = sum(idxMis);       
+            else
+                numTossedLate = 0;
+                numTossedBreak = 0;
+                numTossedMisCalc  = 0;
+            end
+            subjColl.tossedLate       = cat(1, subjColl.tossedLate, numTossedLate);
+            subjColl.tossedBreak      = cat(1, subjColl.tossedBreak, numTossedBreak);
+            subjColl.tossedMisCalc    = cat(1, subjColl.tossedMisCalc, numTossedMisCalc);      
         end
         
         subjColl.f0b             = mean(subjColl.runf0b);
@@ -285,6 +315,11 @@ for ii = 1:numSubj
         subjColl.audioMf0MeanPert = meanRunAudioData(subjColl.audioMf0SecPert);
         subjColl.audioMf0MeanCont = meanRunAudioData(subjColl.audioMf0SecCont);
         subjColl.respVarM         = mean(subjColl.respVar, 1);
+        
+        subjColl.perTossed        = round(100*(sum(subjColl.tossedAll)/20), 1);
+        subjColl.perTossedLate    = round(100*(sum(subjColl.tossedLate)/20), 1);
+        subjColl.perTossedBreak   = round(100*(sum(subjColl.tossedBreak)/20), 1);
+        subjColl.perTossedMisCalc = round(100*(sum(subjColl.tossedMisCalc)/20), 1);
         
         lims = identifyLimits(subjColl, 0);
         subjColl.limitsAmean = lims.audioMean;     
