@@ -7,8 +7,8 @@ wavFileLoc    = [resultFolder, '\trialRec.wav'];
 txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
 [~, numTrial] = size(trialset);
 
-psDir         = dirs.Code;                        %Praat scripting
-pbDir         = fullfile(helperFolder, 'praatBatching'); %Praat batching
+psDir         = dirs.Code;                               % Praat scripting
+pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 
 tStep = 0.005; % seconds; hard set
 fsA   = 1/tStep;
