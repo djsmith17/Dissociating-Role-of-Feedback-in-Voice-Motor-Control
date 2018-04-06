@@ -1,94 +1,128 @@
 function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
-%Analyses the microphone data from the somatosensory perturbation
-%experiment. Measures the change in f0 over each trial, and each run for a
-%given participant. At the end it approximates a general response to
-%inflation to be used in the auditory perturbation experiment
+% [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
+% This function analyzes the raw audio data that was recorded by Audapter 
+% in the experiments measuring changes in f0. It first does a
+% preprocessing step where it identifies any temporal errors in
+% production, and also identifies and corrects for any lags in recording.
+% Once all the data are processed, they are handed off
+% to a function to do the frequency analysis of the audio signals. 
+%
+% An important distinction in the processing step is the difference between
+% the recorded trials that are to be saved and further analyzed, and those
+% that will be thrown out. Any variables that refer to the full trial set
+% will not have any additional prefix/suffix. Variables refering to the 
+% set of trials that passed the 'temportal' preprocessing and will be 
+% saved for further analyses will have a prefix/suffix of 'Svt'.
+% 
+% dirs:     The set of directories we are currently working in 
+% expParam: The experimental parameters of the recorded experiment
+% rawData:  Raw Audapter data structures
+% f0b:      Baseline fundamental frequency, recorded from baseline trials
+% AudFlag:  Flag to check if analyses of audio data should be performed
+% iRF:      Inflation Response Flag; should the inflation response be calculated
+% niAn:     Analysis variables used to analyze NIDAQ data
+%
+% auAn:  Analysis variables used to analyze Audapter data
+% auRes: Structure of result vars that are needed for stats and plotting
+%
+% This function calls the following functions
+% dfAnalysisAudio.m
+%
+% Requires the Signal Processing Toolbox
 
-%Requires the Signal Processing Toolbox
-
-%Identify some starting variables
-auAn.AnaType  = 'Audapter';
+% Identify some Experimental variables
+auAn.AnaType   = 'Audapter';
 auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
 auAn.curSess   = expParam.curSess;
 auAn.f0Type    = 'Praat';
-auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis' auAn.f0Type '.mat'];
+auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis.mat'];
 auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = f0b;
 
-fprintf('\nStarting Audapter Analysis for %s, %s\n', auAn.subject, auAn.run)
+fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, niAn.bTf0b)
 
-auAn.sRate    = expParam.sRateAnal;
-auAn.sRateNi  = niAn.sRate;
+% Idenitfy some Recording Variables
+auAn.sRate        = expParam.sRateAnal;        % Sampling Rate of Audapter (down-sampled)
+auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
-auAn.trialLen  = expParam.trialLen;
-auAn.numSamp   = auAn.sRate*auAn.trialLen;
-auAn.numTrial  = expParam.numTrial;
-auAn.trialType = expParam.trialType;
-auAn.expTrigs  = expParam.trigs(:,:,1); %Time
-auAn.anaTrigs  = expParam.trigs(:,:,3);
+auAn.trialLen     = expParam.trialLen;         % Length of recording (s)
+auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Length of recording (points)
 
-auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
-auAn.audioM     = [];
-auAn.audioH     = [];
-auAn.audioMSv   = [];
-auAn.audioHSv   = [];
-auAn.svIdx      = [];
-auAn.expTrigsSv = [];
-auAn.contIdx    = [];
-auAn.contTrig   = [];
-auAn.pertIdx    = [];
-auAn.pertTrig   = [];
-auAn.allAuNiDelays = [];
+auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; % Time Vector based on numSamp
+auAn.audioM     = []; % Mic data that has received temporal preprocessing (all recorded trials)
+auAn.audioH     = []; % Head data that has received temporal preprocessing (all recorded trials)
+auAn.numTrial   = expParam.numTrial;         % Number of trials recorded
+auAn.trialType  = expParam.trialType;        % Key for identifying Control (0) & Perturbed (1) trials
+auAn.expTrigs   = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
+auAn.anaTrigs   = expParam.trigs(:,:,3); % Trigger Onset and Offset (Points; Audadapter) 
+auAn.removedTrialTracker = {}; % List of Trials that were thrown out during Analysis
 
-% audioPP = [];
-svC = 0;
+auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
+auAn.audioHSvt     = []; % Headphone recordings for the trials saved for further analyses
+auAn.numTrialSvt   = []; % Number of trials saved for further analyses
+auAn.allIdxSvt     = []; % Vector of indicies of all recorded trials saved for further analyses.
+auAn.trialTypeSvt  = []; % Key for identifying Control (0) & Perturbed (1) trials
+auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for further analyses
+auAn.allAuNiDelays = []; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+
+auAn.numPertTrialSvt = []; % Number of perturbed trials saved for further analyses
+auAn.pertIdxSvt      = []; % Vector of indicies of perturbed SAVED trials (Referencing allIdxSvt)
+auAn.pertTrigSvt     = []; % Trigger Onset and Offset (Time) for perturbed SAVED trials
+auAn.numContTrialSvt = []; % Number of control trials saved for further analyses
+auAn.contIdxSvt      = []; % Vector of indicies of control SAVED trials (Referencing allIdxSvt)
+auAn.contTrigSvt     = []; % Trigger Onset and Offset (Time) for control SAVED trials
+
+svC = 0; % Saved Trial Count
 for ii = 1:auAn.numTrial
-    data = rawData(ii);
+    data = rawData(ii);       % Get the data from this trial
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
-    MrawNi = niAn.audioM(:,ii);   
+    MrawNi = niAn.audioM(:,ii); % Microphone (NIDAQ) 
    
-    [time, mic, head, sigDelay, preProSt] = preProc(auAn, Mraw, Hraw, MrawNi, expTrigs, anaTrigs);
+    % Preprocessing step identifies time-series errors in production/recording
+    [mic, head, sigDelay, preProSt] = preProcAudio(auAn, Mraw, Hraw, MrawNi, anaTrigs);
     
-%     audioPP(ii).time = time;
-%     audioPP(ii).mic  = mic;
-%     audioPP(ii).head = head;
-    auAn.audioM = cat(2, auAn.audioM, mic);
-    auAn.audioH = cat(2, auAn.audioH, head);
+    auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual analysis
+    auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual analysis
 
-%     OST  = data.ost_stat;
-    if preProSt.saveT == 0 %Don't save the trial :(
+    if preProSt.saveT == 0     % Don't save the trial :(
         fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
-    elseif preProSt.saveT == 1 %Save the Trial
-        svC = svC + 1;
+        removedTrial = {['Trial ' num2str(ii)], preProSt.saveTmsg};
+        auAn.removedTrialTracker = cat(1, auAn.removedTrialTracker, removedTrial);
+    elseif preProSt.saveT == 1 % Save the Trial
+        svC = svC + 1; % Iterate Saved Trial Count
         
-        auAn.svIdx      = cat(1, auAn.svIdx, ii);
-        auAn.expTrigsSv = cat(1, auAn.expTrigsSv, expTrigs);
+        auAn.allIdxSvt   = cat(1, auAn.allIdxSvt, ii); % Save the experimental index
+        auAn.expTrigsSvt = cat(1, auAn.expTrigsSvt, expTrigs); % Save the triggers from this index
         if auAn.trialType(ii) == 0
-            auAn.contIdx  = cat(1, auAn.contIdx, svC);
-            auAn.contTrig = cat(1, auAn.contTrig, expTrigs);
+            auAn.contIdxSvt  = cat(1, auAn.contIdxSvt, svC); %
+            auAn.contTrigSvt = cat(1, auAn.contTrigSvt, expTrigs); %
         else
-            auAn.pertIdx  = cat(1, auAn.pertIdx, svC);
-            auAn.pertTrig = cat(1, auAn.pertTrig, expTrigs);
+            auAn.pertIdxSvt  = cat(1, auAn.pertIdxSvt, svC); %
+            auAn.pertTrigSvt = cat(1, auAn.pertTrigSvt, expTrigs); %
         end   
         auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
     end
 end
-auAn.numSaveTrials = length(auAn.svIdx);
-auAn.numContTrials = length(auAn.contIdx);
-auAn.numPertTrials = length(auAn.pertIdx);
 
-% auAn.audioPP = audioPP;
+% Find only the trials we care about
+auAn.audioMSvt     = auAn.audioM(:, auAn.allIdxSvt); % Grabbing the recorded audio based on the saved indices
+auAn.audioHSvt     = auAn.audioH(:, auAn.allIdxSvt); % Grabbing the recorded audio based on the saved indices
+auAn.trialTypeSvt  = auAn.trialType(auAn.allIdxSvt); % The order of trial type based on the saved trials post-tP
 
-%The Audio Analysis
+auAn.numTrialSvt     = length(auAn.allIdxSvt);
+auAn.numPertTrialSvt = length(auAn.pertIdxSvt);
+auAn.numContTrialSvt = length(auAn.contIdxSvt);
+
+% The Audio Analysis
 f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
@@ -96,73 +130,73 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [timeSec, micP, headP, AuNidelay, pp] = preProc(An, micR, headR, micRNi, expTrigs, auTrigs)
-%This function performs pre-processing on the recorded audio data before
-%frequency analysis is applied. This function takes the following inputs:
+function [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
+% [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
+% This function performs preprocessing on the time-series recorded audio 
+% data before frequency analysis methods are applied. This identifies
+% delays between the Audapter recorded audio and the NIDAQ recorded audio,
+% and processing delays between the Audapter microphone and headphone
+% recordings. The Audapter audio signals are shifted after the delays are
+% indentified.
+%
+% This script also calculates the time of voice onset and identifies if 
+% the participant started too late (during the pre-perturbation period), 
+% or had a voice break If either of these are the case, the trial is thrown
+% out for further analyses.
+% 
+% Inputs:
+% An:      Analysis variables structure
+% micR:    Raw Microphone signal (Audapter)
+% headR:   Raw Headphone signal  (Audapter)
+% micRNI:  Raw Microphone signal (NIDAQ)
+% auTrigs: Trigger points (Au) of perturbation onset and offset (per trial) 
+%
+% Outputs:
+% micP:      Processed Microphone signal
+% headP:     Processed Headphone signal
+% AuNidelay: Calculated delay between NIDAQ and Audapter
+% pp:        Preprocessing results structure. This has information
+%            regarding the envelope of the recorded audio file, and 
+%            if the participant started late, or has a voice break. 
 
-%An:     Set of useful analysis variables
-%micR:   Raw Microphone (audapter) signal
-%headR:  Raw Headphone (audapter) signal
-%micRNI: Raw Microphone (NIDAQ) signal
-%trigs:  Triggers for the given trial
+micR      = double(micR);    % Convert to data type double
+headR     = double(headR);   % Convert to data type double
+AudFB     = An.AudFB;        % Auditory feedback type used
+fs        = An.sRate;        % Sampling rate (Audapter)
+fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
+frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
+numSamp   = An.numSamp;      % Number of samples for length of recording
 
-%This function outputs the following
-%micP:   Processed Microphone signal
-%headP:  Processed Headphone signal
-%AuNidelay: Calculated delay between NIDAQ and Audapter
-%pp:     preprocessing structure Reason, if any, that the trial was thrown out
-
-micR      = double(micR);
-headR     = double(headR);
-AudFB     = An.AudFB;
-fs        = An.sRate;
-fsNI      = An.sRateNi;
-frameLen  = An.frameLenDown;
-numSamp   = An.numSamp;
-
-%We are going to section the audio recording from 0.5s ahead of 
-%perturbation onset to 1.0s after perturbation offset.
+% We are going to section the audio recording from 0.5s ahead of 
+% perturbation onset to 1.0s after perturbation offset.
 preOn   = 0.5*fs;
 postOff = 1.0*fs;
 
-%Low Pass filter under 300Hz
-cutOff   = 300; %Hz
-[B,A]    = butter(4,(cutOff)/(fs/2));
-micFilt  = filtfilt(B, A, micR); %Low-pass filtered under 500Hz
-headFilt = filtfilt(B, A, headR); %Low-pass filtered under 500Hz
-
 micRds     = resample(micR, fsNI, fs);
-AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); %Expected that NIDAQ will lead Audapter
+AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
 if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
 else
-    AuMHdelay = xCorrTimeLag(micR, headR, fs); %Expected that Mic will lead Head
+    AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
 end
 AuMHdelayP = AuMHdelay*fs;
 
-%Adjust for delay between raw Audapter Mic and Audapter Headphones
+% Adjust for delay between raw Audapter Mic and Audapter Headphones
 micAuAl  = micR(1:(end-AuMHdelayP));
 headAuAl = headR((AuMHdelayP+1):end); 
 
-%Adjust for delay between Audapter and NIDAQ
+% Adjust for delay between Audapter and NIDAQ
 micAuNi    = micAuAl(AuNidelayP:end);
 headAuNi   = headAuAl(AuNidelayP:end);
 
-%The period on either side of the pertrubation period.
+% Audio points on either side of the perturbation period.
 audioSecSt = auTrigs(1) - preOn;
 audioSecSp = auTrigs(2) + postOff;
 
-%Section the both audio samples around section period. 
-sectionInd = audioSecSt:audioSecSp;
-
-time    = sectionInd/fs;
-micSec  = micAuNi(sectionInd);
-headSec = headAuNi(sectionInd);
-
-%Find the onset of Voicing
-pp = findVoiceOnsetThresh(micAuNi, fs, audioSecSt);
+% Find the onset of voicing
+pp = findVoiceOnset(micAuNi, fs, audioSecSt, audioSecSp);
 
 if pp.voiceOnsetLate
     saveT    = 0;  
@@ -172,24 +206,29 @@ elseif pp.chk4Break
     saveTmsg = 'Participant had a voice break!!';
 elseif length(micAuNi) < numSamp
     saveT    = 0;
-    saveTmsg = 'Recording too short';
+    saveTmsg = 'Recording too short!!';
 else
     saveT    = 1;
     saveTmsg = 'Everything is good'; 
 end
 
-timeSec = time; 
+% Grab the full numSamp so they can be concatenated cleanly
 micP    = micAuNi(1:numSamp);
 headP   = headAuNi(1:numSamp);
 
-pp.saveT    = saveT;
-pp.saveTmsg = saveTmsg;
+pp.saveT    = saveT;    % Save trial or no?
+pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
-%if timeLag is positive, then sig1 leads sig2. 
-%if timeLag is negative, then sig1 lags sig2.
+% xCorrTimeLag(sig1, sig2, fs) calculates the lag between two (seemingly) 
+% identical time based signals. 
+%
+% if timeLag is positive, then sig1 leads sig2. 
+% if timeLag is negative, then sig1 lags sig2.
 
+% Simple crosscorrelation between two signals
+% Finds the largest peak of the result
 [r, lags]    = xcorr(sig1, sig2);
 [~, peakInd] = max(r);
 maxLag       = lags(peakInd);
@@ -197,64 +236,78 @@ timeLag      = maxLag/fs;
 timeLag      = -timeLag;
 end
 
-function pp = findVoiceOnsetThresh(audio, fs, audioSt)
+function pp = findVoiceOnset(audio, fs, audioSt, audioSp)
+% pp = findVoiceOnset(audio, fs, audioSt, audioSecSp) identifies
+% onset of voice by the envelope of a microphone recording (audio).
+% Based on a specific point (audioSt), this script identifies if the 
+% participant started production late. Then the script identifies any
+% points where the participant might have had a voice break, up to the end
+% of interesting data will be collected (audioSp). 
+%
+% This returns a structure (pp) with the results of the voice onset 
+% detection methods, and boolean values for whether the participant started
+% late (pp.voiceOnsetLate) or if they had a voice break (pp.chk4Break)
 
-%audioSt is the index in the full audio signal from where we will start to
-%do frequency analysis
-
-pp.thresh   = 0.3;
-pp.breakTol = 0.1;
+pp.thresh   = 0.3; % Threshold of Decimal amount of full peak height
+pp.breakTol = 0.1; % Voice Break Tolerance; Time (s)
+pp.envCutOf = 40;  % Cutoff frequency for enveloping the audio
 pp.fs       = fs;
 pp.audio    = audio;
 pp.audioSt  = audioSt;
+pp.audioSp  = audioSp;
 pp.lenSig   = length(audio);
-pp.t        = 0:1/fs:(pp.lenSig-1)/fs;
+pp.t        = 0:1/fs:(pp.lenSig-1)/fs; % Not used, but useful if debugging
 
-[B,A] = butter(4,40/(fs/2)); %Low-pass filter under 40
+% 4th order low-pass butter filter settings
+[B,A] = butter(4, pp.envCutOf/(fs/2));
 
-%Envelope the signal removing all high frequncies. 
-%This shows the general change in amplitude over time (~RMS). 
+% Envelope the signal by low-pass filtering (change in amplitude/time ~RMS)
 pp.env  = filter(B,A,abs(audio));  
 
-%The largest peak in the envelope theoretically occurs during voicing
+% Largest peak in the envelope theoretically occurs during voicing
 pp.maxPeak = max(pp.env); 
 
-%I don't want to start my signal at the max value, so start lower down on
-%the envelope as a threshold
+% Find values that are within threshold of max 'voicing' value
 pp.threshIdx     = find(pp.env > pp.thresh*pp.maxPeak); 
 
-%The first index of the theoretical useable signal (Voice onset)
+% First index of the theoretical useable signal (Voice onset)
 pp.voiceOnsetInd = pp.threshIdx(1);
 
-%Check the voice onset time against when we want to start analyzing data
+% Check the voice onset time against when we want to start analyzing data
 pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
 
-%The rest of the signal base the first index...are there any dead zones??
-pp.fallOffLog = pp.env(pp.voiceOnsetInd:end) < pp.thresh*pp.maxPeak;
-pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; %Last longer than 300ms
+% Check the whole The rest of the signal base the first index...are there any dead zones??
+pp.fallOffLog = pp.env(pp.voiceOnsetInd:audioSp) < pp.thresh*pp.maxPeak;
+pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than break tolerance
 end
 
 function lims = identifyLimits(An)
+% lims = identifyLimits(An) calculates limits of analyzed data 
+% so that the limits used in plotting are dynamic and fit the data. 
+%
+% lims is a structure of the resultant limits [X1 X2 Y1 Y2] for given data
+% This sub function is redundant within other functions and might
+% eventually become its own function
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
-%Full Individual Trials: f0 Audio
-if ~isempty(An.audioMf0_pPP)
-    pertTrialsM = An.audioMf0_pPP;
-    pertTrialsH = An.audioHf0_pPP;
+%Individual Full Trials (Perturbed): f0 Audio
+if ~isempty(An.audioMf0p)
+    pertTrialsM = An.audioMf0p;
+    pertTrialsH = An.audioHf0p;
     sec = 100:700;
 
     uLMa = max(pertTrialsM(sec,:));
-    uLMa(find(uLMa > 150)) = 0;
+    uLMa(find(uLMa > 200)) = 0;
     lLMa = min(pertTrialsM(sec,:));
-    lLMa(find(lLMa < -150)) = 0;
+    lLMa(find(lLMa < -300)) = 0;
 
     uLM = round(max(uLMa)) + 20;
     lLM = round(min(lLMa)) - 20;
        
     uLHa = max(pertTrialsH(sec,:));
-    uLHa(find(uLHa > 150)) = 0;
+    uLHa(find(uLHa > 200)) = 0;
     lLHa = min(pertTrialsH(sec,:));
-    lLHa(find(lLHa < -150)) = 0;
+    lLHa(find(lLHa < -300)) = 0;
     
     uLH = round(max(uLHa)) + 20;
     lLH = round(min(lLHa)) - 20;
@@ -279,7 +332,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMean%%%%%%%%%%%
-%Section Mean Pertrubed Trials: f0 Audio 
+%Mean Sectioned Trials (Perturbed): f0 Audio 
 if ~isempty(An.audioMf0_meanp)
     [~, Imax] = max(An.audioMf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioMf0_meanp(Imax,1) + An.audioMf0_meanp(Imax,2) + 10);
@@ -309,7 +362,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMH%%%%%%%%%%%%
-%Section Mean Pertrubed Trials: f0 Audio 
+%Mean Sectioned Trials (Perturbed): f0 Audio 
 if ~isempty(An.audioHf0_meanp)
     [~, Imax] = max(An.audioHf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioHf0_meanp(Imax,1) + An.audioHf0_meanp(Imax,2) + 10);
@@ -349,11 +402,18 @@ if ~isempty(An.audioHf0_meanp)
 else
     lims.audioMH = [-0.5 1.0 -100 50];
 end
-
 end
 
 function res = packResults(auAn, lims)
+% res = packResults(auAn, lims) takes the values stored in the analysis 
+% variables structure and repackages the important variables into a new 
+% structure that have common names between other analysis methods. 
+% This makes it easy to switch back and forth between different result 
+% structures for plotting, and it makes the plotting functions reliant on
+% a a uniform naming style, that does not change, even when the analysis
+% methods/names may.
 
+% Information about the experiment/subject
 res.expType = auAn.expType;
 res.subject = auAn.subject;
 res.run     = auAn.run;
@@ -363,36 +423,58 @@ res.AudFB   = auAn.AudFB;
 res.f0Type = auAn.f0Type;
 res.etMH   = auAn.etMH;
 
-res.numTrials     = auAn.numTrial;
-res.audioM        = auAn.audioM;
-res.audioH        = auAn.audioH;
-res.svIdx         = auAn.svIdx;
-res.expTrigsSv    = auAn.expTrigsSv;
-res.pertIdx       = auAn.pertIdx;     % The indices of the svIdx;
-res.pertTrig      = auAn.pertTrig;
-res.contIdx       = auAn.contIdx;     % The indices of the svIdx;
-res.contTrig      = auAn.contTrig;
-res.numSaveTrials = auAn.numSaveTrials;
-res.numContTrials = auAn.numContTrials;
-res.numPertTrials = auAn.numPertTrials;
-res.allAuNiDelays = auAn.allAuNiDelays;
+% Raw Recorded data
+res.numTrial      = auAn.numTrial;    % Total trials recorded
+res.audioM        = auAn.audioM;      % Raw microphone recording (no lag correction)
+res.audioH        = auAn.audioH;      % Raw headphone recording  (no lag correction)
+res.removedTrialTracker = auAn.removedTrialTracker;
 
+% Post temporal processing data
+res.numTrialSvt   = auAn.numTrialSvt;   % Number of trials saved (post temporal processing)
+res.allIdxSvt     = auAn.allIdxSvt;     % Vector of indicies of recorded trials saved (post temporal processing)
+res.trialTypeSvt  = auAn.trialTypeSvt;  % Key for identifying Control (0) & Perturbed (1) trials (post temporal processing)
+res.expTrigsSvt   = auAn.expTrigsSvt;   % Trigger Onset and Offset (Time) for trials saved (post temporal processing)
+res.allAuNiDelays = auAn.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+
+res.numPertTrialSvt = auAn.numPertTrialSvt; % Number of perturbed trials saved (post temporal processing)
+res.pertIdxSvt      = auAn.pertIdxSvt;      % Vector of indicies of perturbed trials (Referencing allIdxSvt) (post temporal processing)
+res.pertTrigSvt     = auAn.pertTrigSvt;     % Trigger Onset and Offset (Time) for perturbed trials (post temporal processing)
+res.numContTrialSvt = auAn.numContTrialSvt; % Number of control trials saved (post temporal processing)
+res.contIdxSvt      = auAn.contIdxSvt;      % Vector of indicies of control trials (Referencing allIdxSvt) (post temporal processing)
+res.contTrigSvt     = auAn.contTrigSvt;     % Trigger Onset and Offset (Time) for control trials (post temporal processing)
+
+% Audio f0 analysis
 res.timef0        = auAn.timef0;
 res.f0b           = auAn.f0b;
 
+res.svf0Idx      = auAn.svf0Idx;
+res.expTrigsf0Sv = auAn.expTrigsf0Sv;
+res.pertf0Idx    = auAn.pertf0Idx;
+res.contf0Idx    = auAn.contf0Idx;
+
+res.numTrialsPP     = auAn.numTrialsPP;
 res.numContTrialsPP = auAn.numContTrialsPP;
 res.numPertTrialsPP = auAn.numPertTrialsPP;
-res.pertTrigPP      = auAn.pertTrigPP;
+res.pertTrigPP      = auAn.pertTrigsR;
 
-%Full Individual Trials: Mic/Head f0 Trace 
-res.audioMf0TrialPert = auAn.audioMf0_pPP;
-res.audioMf0TrialCont = auAn.audioMf0_cPP;
-res.audioHf0TrialPert = auAn.audioHf0_pPP;
-res.audioHf0TrialCont = auAn.audioHf0_cPP;
+% Which trials did I end up saving and plotting at the end of the day?
+res.allIdxFin        = res.svf0Idx;
+res.pertIdxFin       = res.pertf0Idx;
+res.contIdxFin       = res.contf0Idx;
+res.numTrialsFin     = res.numTrialsPP;
+res.numContTrialsFin = res.numContTrialsPP;
+res.numPertTrialsFin = res.numPertTrialsPP;
+res.pertTrigsFin     = res.pertTrigPP;
+
+%Individual Full Trials: Mic/Head f0 Trace 
+res.audioMf0TrialPert = auAn.audioMf0p;
+res.audioMf0TrialCont = auAn.audioMf0c;
+res.audioHf0TrialPert = auAn.audioHf0p;
+res.audioHf0TrialCont = auAn.audioHf0c;
 res.limitsA           = lims.audioM;
 res.limitsAudRes      = lims.audioAudRespMH;
 
-%Sections Trials: Mic/Head f0
+%Individual Sectioned Trials: Mic/Head f0 Trace
 res.secTime          = auAn.secTime;
 res.audioMf0SecPert  = auAn.audioMf0_Secp;
 res.audioMf0SecCont  = auAn.audioMf0_Secc;

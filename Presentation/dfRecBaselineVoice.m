@@ -31,21 +31,13 @@ function dfRecBaselineVoice()
 close all;
 
 % Main Experimental prompt: Subject/Run Information
-prompt = {'Subject ID:',...
-          'Session ID:',...
-          'Gender ("male" or "female")',...
-          'Number of Trials:'};
-name = 'Subject Information';
-numlines = 1;
-defaultanswer = {'null', 'BV1', 'female', '3'};
-ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+subject    = 'null'; % Subject#, Pilot#, null
+run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
+gender     = 'male';    % "male" or "female"
+numTrials  = 3;         % number of trials;
 
-if isempty(ExpPrompt)
-    return
-end
-
-VoiceRec = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
-switch VoiceRec
+recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
+switch recType
     case 'Calibrate Microphone'
         VoiceRecsw = 0;
     case 'Baseline Voice'
@@ -55,13 +47,26 @@ end
 %Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.subject    = ExpPrompt{1}; %Subject#, Pilot#, null
-expParam.run        = ExpPrompt{2};
+expParam.subject    = subject; 
+expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
-expParam.gender     = ExpPrompt{3};
-expParam.trialLen   = 4;                        % Seconds
-expParam.numTrial   = str2double(ExpPrompt{4});
-expParam.AudFBSw    = 0;
+expParam.gender     = gender;
+
+if VoiceRecsw == 1 % Baseline Voice
+    expParam.trialLen = 4;                        % Seconds
+    expParam.numTrial = numTrials;
+    expParam.AudFBSw  = 0;
+    expParam.cuePause = 1.0;
+    expParam.resPause = 2.0;
+else               % Audio setup test
+    expParam.trialLen = 10;                      % Seconds
+    expParam.numTrial = 1;
+    expParam.AudFBSw  = 0;
+    expParam.cuePause = 0;
+    expParam.resPause = 0;
+end
+
+fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
@@ -101,16 +106,8 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 expParam.boundsRMS = 3;
 expParam.targRMS   = 70;
 
-if VoiceRecsw == 1
-    expParam.cuePause = 1.0;
-    expParam.resPause = 2.0;
-else
-    expParam.cuePause = 0;
-    expParam.resPause = 0;
-end
-
 % Dim the lights (Set the visual Feedback)
-[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
+[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
 pause(5);                % Let them breathe a sec
@@ -144,8 +141,13 @@ for ii = 1:expParam.numTrial
     set([H2 trigCirc],'Visible','off'); % Turn off the 'eee' and trigMark
     
     % Load the Audapter saved data and save some as wav Files
-    data    = dfSaveRawData(expParam, dirs);
+    data = AudapterIO('getData');       % This will need to become a try statement again
     rawData = cat(1, rawData, data);
+    
+    switch recType
+        case 'Baseline Voice'
+            dfSaveWavRec(data, expParam, dirs);
+    end
     
     pause(expParam.resPause)
 end
@@ -163,7 +165,11 @@ DRF.qRes = qRes;
 
 % Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-save(dirs.RecFileDir, 'DRF')
+switch recType
+    case 'Baseline Voice'
+        fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
+        save(dirs.RecFileDir, 'DRF')
+end
 
 fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
 fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)

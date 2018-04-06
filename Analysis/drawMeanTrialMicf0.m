@@ -1,16 +1,14 @@
 function drawMeanTrialMicf0(res, plotFolder)
-%drawDAQMeanTrialMicf0(niRes, plotFolder) is plotting function for
-%displaying differences in microphone channel recordings between perturbed
-%and control trials. If your data set does not have any control trials,
-%this will give an error
+% drawDAQMeanTrialMicf0(res, plotFolder) plots differences in microphone 
+% recordings between perturbed and control trials. 
 
 curSess          = res.curSess;
-f0b              = round(10*res.f0b)/10;
-f0Type           = res.f0Type;
-etMH             = res.etMH;
+f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
+% f0Type           = res.f0Type;
+% etMH             = res.etMH;
 AudFB            = res.AudFB;
-numCT            = res.numContTrialsPP;
-numPT            = res.numPertTrialsPP;
+numCT            = res.numContTrialsFin;
+numPT            = res.numPertTrialsFin;
 
 time             = res.secTime;
 meanf0PertOnset  = res.audioMf0MeanPert(:,1);
@@ -24,9 +22,10 @@ meanf0ContOffset = res.audioMf0MeanCont(:,3);
 CIf0ContOffset   = res.audioMf0MeanCont(:,4);
 limits           = res.limitsAmean;
 
-statSM = round(10*res.respVarM(2))/10;
-statRM = round(10*res.respVarM(3))/10;
+statSM = round(res.respVarM(2), 1);
+statRM = round(res.respVarM(3), 1);
 statRP = round(res.respVarM(4));
+curSess(strfind(curSess, '_')) = ' ';
 
 lgdCurv = [];
 lgdLabl = {};
@@ -34,22 +33,21 @@ lgdLabl = {};
 plotpos = [10 100];
 plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
-set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+set(InterTrialf0, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
 
 dottedStartx = [0 0];
 dottedy      = [-300 300];
 
 ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
-
 %Onset of Perturbation
 axes(ha(1))
 if ~isempty(meanf0ContOnset)
-    uH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'b', 1); %Unperturbed
+    uH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', '-b', 'transparent', 1); %Unperturbed
     lgdCurv = [lgdCurv uH.mainLine];
     lgdLabl = [lgdLabl, [num2str(numCT) ' Control Trials']];
     hold on
 end
-pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'r', 1); %Perturbed
+pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'lineprops', '-r', 'transparent', 1); %Perturbed
 lgdCurv = [lgdCurv pH.mainLine];
 lgdLabl = [lgdLabl, [num2str(numPT) ' Perturbed Trials']];
 hold on
@@ -59,24 +57,26 @@ xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', '
 title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
+set(gca,'YTickLabelMode', 'auto',...
+        'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold')
 
 %Offset of Perturbation
 axes(ha(2))
 if ~isempty(meanf0ContOffset)
-    shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'b', 1)  %Unperturbed
+    shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', 'b', 'transparent', 1)  %Unperturbed
     hold on
 end
-shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'r', 1) %Perturbed
+shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'lineprops', 'r', 'transparent', 1) %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
 title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
-set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
+set(gca,'YTickLabelMode', 'auto',...
+        'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
         'FontSize', 16,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
@@ -103,17 +103,18 @@ legend(lgdCurv, lgdLabl,...
             'FontWeight', 'bold',...
             'Position', [0.35 0.2 0.1 0.1]);
         
-timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
-                     'string', {f0Type;
-                            ['Analysis Time: ' num2str(etMH) ' min']},...
-                        'LineStyle','none',...
-                        'FontWeight','bold',...
-                        'FontSize',8,...
-                        'FontName','Arial');
-
+% timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
+%                      'string', {f0Type;
+%                             ['Analysis Time: ' num2str(etMH) ' min']},...
+%                         'LineStyle','none',...
+%                         'FontWeight','bold',...
+%                         'FontSize',8,...
+%                         'FontName','Arial');
+         
+                    
 plots = {'InterTrialf0'};
 for i = 1:length(plots)
-    plTitle = [curSess '_' plots{i} f0Type '.jpg'];
+    plTitle = [curSess '_' plots{i} '.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

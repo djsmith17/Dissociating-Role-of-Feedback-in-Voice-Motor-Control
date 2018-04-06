@@ -11,9 +11,9 @@ function dfRunSubjPlotting()
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'Pilot28'}; %List of multiple participants.
+sPlt.participants  = {'Pilot0', 'Pilot21', 'Pilot28', 'Pilot29', 'Pilot30', 'Pilot31', 'Pilot33'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'SF2'}; %All runs to consider 
+sPlt.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
@@ -21,18 +21,17 @@ dirs               = dfDirs(sPlt.project);
 sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
-sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
-sPlt.drawMeanTrial_PertCont = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
+sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
+sPlt.drawMeanTrial_PertCont  = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
+sPlt.drawAllTrial_Pert       = 1; % All Perturbed Trials Microphone input
 sPlt.drawMeanTrial_MicHead  = 0; % Mean Perturbed Trials. Microphone vs Headphones
-
-sPlt.NIDAQ_AllPertTrial      = 0; % 
-
+ 
 for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
-        dirs.SavResultsDir  = fullfile(dirs.Results, participant, run); %The Analyzed Results Folder...Where Plots will go
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsPraatDRF.mat']); %The Analyzed Results FIle
+        dirs.SavResultsDir  = fullfile(dirs.Results, participant, run); % Analyzed Results Folder...Where Plots will go
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']); %The Analyzed Results FIle
 
         if exist(dirs.SavResultsFile, 'file') == 0
             fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
@@ -55,17 +54,17 @@ for ii = 1:sPlt.numPart
         
         if sPlt.drawMeanTrial_PertCont == 1
             drawMeanTrialMicf0(res, dirs.SavResultsDir)
-            drawAllTrialMicf0(res, dirs.SavResultsDir)
         end
+        
+        if sPlt.drawAllTrial_Pert == 1
+            drawAllPertTrialMicf0(res, dirs.SavResultsDir)
+        end            
         
         if sPlt.drawMeanTrial_MicHead == 1
             drawAudRespIndivTrial(res, dirs.SavResultsDir)
             drawAudRespMeanTrial(res, dirs.SavResultsDir)
         end
-                      
-        if sPlt.NIDAQ_AllPertTrial == 1
-            drawDAQAllPertTrialMicf0(res, dirs.SavResultsDir)
-        end 
     end
 end
+close all
 end

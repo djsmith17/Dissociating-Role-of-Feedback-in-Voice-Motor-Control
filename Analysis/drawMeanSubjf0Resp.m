@@ -5,16 +5,16 @@ numControl       = allSubjRes.numControlTrials;
 numMasked        = allSubjRes.numMaskedTrials;
 numVoiced        = allSubjRes.numVoicedTrials;
 
-time              = allSubjRes.secTime;
+time             = allSubjRes.secTime;
+meanf0ContOnset  = allSubjRes.audioMf0MeanCont(:,1);
+CIf0ContOnset    = allSubjRes.audioMf0MeanCont(:,2);
+meanf0ContOffset = allSubjRes.audioMf0MeanCont(:,3);
+CIf0ContOffset   = allSubjRes.audioMf0MeanCont(:,4);
+
 meanf0PertOnsetM  = allSubjRes.audioMf0MeanPertM(:,1);
 CIf0PertOnsetM    = allSubjRes.audioMf0MeanPertM(:,2);
 meanf0PertOffsetM = allSubjRes.audioMf0MeanPertM(:,3);
 CIf0PertOffsetM   = allSubjRes.audioMf0MeanPertM(:,4);
-
-meanf0ContOnsetM  = allSubjRes.audioMf0MeanContM(:,1);
-CIf0ContOnsetM    = allSubjRes.audioMf0MeanContM(:,2);
-meanf0ContOffsetM = allSubjRes.audioMf0MeanContM(:,3);
-CIf0ContOffsetM   = allSubjRes.audioMf0MeanContM(:,4);
 limitsM           = allSubjRes.limitsAmeanM;
 
 meanf0PertOnsetV  = allSubjRes.audioMf0MeanPertV(:,1);
@@ -23,10 +23,10 @@ meanf0PertOffsetV = allSubjRes.audioMf0MeanPertV(:,3);
 CIf0PertOffsetV   = allSubjRes.audioMf0MeanPertV(:,4);
 limitsV           = allSubjRes.limitsAmeanV;
 
-statSMM = round(10*statLib(1))/10;
-statSMV = round(10*statLib(2))/10;
-statRMM = round(10*statLib(3))/10;
-statRMV = round(10*statLib(4))/10;
+statSMM = round(statLib(1), 1);
+statSMV = round(statLib(2), 1);
+statRMM = round(statLib(3), 1);
+statRMV = round(statLib(4), 1);
 statRPM = round(statLib(5));
 statRPV = round(statLib(6));
 statSP  = statLib(7);
@@ -58,11 +58,11 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 axes(ha(1))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-nC = shadedErrorBar(time, meanf0ContOnsetM, CIf0ContOnsetM, 'k', 1); %Voice
+nC = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', 'k', 'transparent', 1); %Voice
 hold on
-nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, maskColor, 1); %Masked
+nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
 hold on
-nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, voicColor, 1); %Voice
+nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
 set(nM.mainLine, 'LineWidth', lineThick)
 set(nV.mainLine, 'LineWidth', lineThick)
@@ -81,11 +81,11 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 axes(ha(2))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-fC = shadedErrorBar(time, meanf0ContOffsetM, CIf0ContOffsetM, 'k', 1); %Voice
+fC = shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', 'k', 'transparent', 1); %Voice
 hold on
-fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, maskColor, 1); %Masked
+fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
 hold on
-fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, voicColor, 1); %Voice
+fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
 set(fM.mainLine, 'LineWidth', lineThick)
 set(fV.mainLine, 'LineWidth', lineThick)

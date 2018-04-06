@@ -1,4 +1,4 @@
-function [color, newPos] = dfUpdateVisFB(anMsr, rmsMean)
+function [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean)
 % [color, newPos] = dfUpdateVisFB(anMsr, rmsMean) updates the height and 
 % color of the loudness feedback bar that follows each trial in both the 
 % SFPerturb and AFPerturb scripts.
@@ -19,9 +19,12 @@ newPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth newRecHeight];
 % Compare against the min and max allowable RMS values
 if newDrawHeight > anMsr.drawMaxH
     color = 'red';
+    loudResult = 1;
 elseif newDrawHeight < anMsr.drawMinH
     color = 'red';
+    loudResult = -1;
 else
     color = 'green';
+    loudResult = 0;
 end
 end

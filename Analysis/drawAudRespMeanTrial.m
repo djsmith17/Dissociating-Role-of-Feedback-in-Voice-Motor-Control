@@ -2,7 +2,7 @@ function drawAudRespMeanTrial(res, plotFolder)
 %Showing the mean 
 
 curSess          = res.curSess;
-f0b              = round(10*res.f0b)/10;
+f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
 numPT            = res.numPertTrialsPP;
 
