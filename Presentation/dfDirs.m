@@ -20,14 +20,17 @@ host     = deblank(host);
 %% Set appropriate directories for code, data input and output, based on system hostname.
 switch host
     case 'SAR-D-635-1528'
-        dirs.RecData        = fullfile('C:\DATA', project);  % Dir to save raw Data to
-        dirs.SavData        = fullfile('W:\Experiments\', project);                  % Dir to open raw Data from
-                                                                                     % RecData must be moved to SavData for backup and local disk space consolidation
-        dirs.Project        = fullfile('C:\GitHub', project);
-        dirs.Prelim         = fullfile('C:\GitHub', project, 'Presentation\PrelimFiles'); % Dir for project specific helper files
-        dirs.Code           = fullfile('C:\GitHub', project, 'Analysis');                 % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\GitHub', project, 'Results');                  % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';                               % Dir to multiple function used for general analysis
+        % RecData must be moved to SavData for backup and local disk space consolidation
+        dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to
+        dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
+      
+        dirs.Code           = fullfile('C:\GitHub', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for project specific helper files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ data analysis Code
+        
+        dirs.Results        = 'C:\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -146,5 +149,6 @@ end
 %% Set up path so code is accessible to Matlab
 addpath(genpath(dirs.Code));        % Add dir w/ your code path
 addpath(genpath(dirs.Prelim));      % Add dir w/ Prelim Files
+addpath(genpath(dirs.Results));     % Where to find and save results
 addpath(genpath(dirs.helpers));     % Add dir w/ helpers code path
 end
