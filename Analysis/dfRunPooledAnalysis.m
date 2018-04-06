@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'SfN2017'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -25,7 +25,7 @@ if exist(dirs.PooledConfigF, 'file') == 0
     fprintf('\nERROR: Pooled Config File %s does not exist! Please create it with a GenConfig Function\n', dirs.PooledConfigF)
     return
 else
-    % Load the configuration file. Should return a data structure cF
+    % Load the configuration file. Should return a data structure 'cF'
     load(dirs.PooledConfigF)
 end 
 
@@ -123,8 +123,8 @@ for ii = 1:pA.numPart
         thisStruc.numContTrialsFin = sum(thisStruc.allContTrials);
         thisStruc.numPertTrialsFin = sum(thisStruc.allPertTrials);
         
-        thisStruc.audioMf0MeanPert = meanRunAudioData(thisStruc.audioMf0SecPert);
-        thisStruc.audioMf0MeanCont = meanRunAudioData(thisStruc.audioMf0SecCont);
+        thisStruc.audioMf0MeanPert = meanSecData(thisStruc.audioMf0SecPert);
+        thisStruc.audioMf0MeanCont = meanSecData(thisStruc.audioMf0SecCont);
         thisStruc.respVarM         = mean(thisStruc.respVar, 1);
         
         lims = identifyLimits(thisStruc, 0);
@@ -153,9 +153,9 @@ for ii = 1:pA.numPart
     unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
 end
 allSubjRes.secTime           = mask.secTime;
-allSubjRes.audioMf0MeanCont  = meanRunAudioData(allSubjRes.audioMf0SecCont);
-allSubjRes.audioMf0MeanPertM = meanRunAudioData(allSubjRes.audioMf0SecPertM);
-allSubjRes.audioMf0MeanPertV = meanRunAudioData(allSubjRes.audioMf0SecPertV);
+allSubjRes.audioMf0MeanCont  = meanSecData(allSubjRes.audioMf0SecCont);
+allSubjRes.audioMf0MeanPertM = meanSecData(allSubjRes.audioMf0SecPertM);
+allSubjRes.audioMf0MeanPertV = meanSecData(allSubjRes.audioMf0SecPertV);
 
 unSubM.respVarM              = mean(unSubM.respVar, 1);
 unSubV.respVarM              = mean(unSubV.respVar, 1);
@@ -217,10 +217,10 @@ thisStruc.tossedBreak      = [];
 thisStruc.tossedMisCalc    = [];
 end
 
-function meanAudio = meanRunAudioData(secAudio)
+function meanData = meanSecData(secData)
 
-OnsetSecs  = secAudio(:,:,1);
-OffsetSecs = secAudio(:,:,2);
+OnsetSecs  = secData(:,:,1);
+OffsetSecs = secData(:,:,2);
 [~, numTrial] = size(OnsetSecs);
 
 meanOnset  = mean(OnsetSecs, 2);
@@ -235,7 +235,7 @@ SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
 NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+meanData   = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
 function [CRi, CRm] = collarResultConcat(allDataStr)
@@ -312,8 +312,8 @@ for ii = 1:numSubj
         subjColl.numContTrialsFin = sum(subjColl.allContTrials);
         subjColl.numPertTrialsFin = sum(subjColl.allPertTrials);
         
-        subjColl.audioMf0MeanPert = meanRunAudioData(subjColl.audioMf0SecPert);
-        subjColl.audioMf0MeanCont = meanRunAudioData(subjColl.audioMf0SecCont);
+        subjColl.audioMf0MeanPert = meanSecData(subjColl.audioMf0SecPert);
+        subjColl.audioMf0MeanCont = meanSecData(subjColl.audioMf0SecCont);
         subjColl.respVarM         = mean(subjColl.respVar, 1);
         
         subjColl.perTossed        = round(100*(sum(subjColl.tossedAll)/20), 1);
@@ -338,7 +338,7 @@ for ii = 1:numSubj
     CRi(ii).numPertTrialsCC  = CC.numPertTrialsFin;
 
     CRi(ii).secTime             = LP.secTime;
-    CRi(ii).audioMf0MeanCont    = meanRunAudioData([LP.audioMf0SecCont, uLP.audioMf0SecCont, CC.audioMf0SecCont]);
+    CRi(ii).audioMf0MeanCont    = meanSecData([LP.audioMf0SecCont, uLP.audioMf0SecCont, CC.audioMf0SecCont]);
     CRi(ii).audioMf0MeanPertLP  = LP.audioMf0MeanPert;
     CRi(ii).audioMf0MeanPertuLP = uLP.audioMf0MeanPert;
     CRi(ii).audioMf0MeanPertCC  = CC.audioMf0MeanPert;
@@ -369,10 +369,10 @@ for ii = 1:numSubj
 end
 
 CRm.secTime             = LP.secTime;
-CRm.audioMf0MeanCont    = meanRunAudioData(CRm.audioMf0SecCont);
-CRm.audioMf0MeanPertLP  = meanRunAudioData(CRm.audioMf0SecPertLP);
-CRm.audioMf0MeanPertuLP = meanRunAudioData(CRm.audioMf0SecPertuLP);
-CRm.audioMf0MeanPertCC  = meanRunAudioData(CRm.audioMf0SecPertCC);
+CRm.audioMf0MeanCont    = meanSecData(CRm.audioMf0SecCont);
+CRm.audioMf0MeanPertLP  = meanSecData(CRm.audioMf0SecPertLP);
+CRm.audioMf0MeanPertuLP = meanSecData(CRm.audioMf0SecPertuLP);
+CRm.audioMf0MeanPertCC  = meanSecData(CRm.audioMf0SecPertCC);
 
 unSubLP.respVarM      = mean(unSubLP.respVar, 1);
 unSubuLP.respVarM     = mean(unSubuLP.respVar, 1);
