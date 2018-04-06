@@ -49,8 +49,8 @@ switch host
         dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
         dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
         
-        dirs.Results        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/dfResults/Results';                  % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/MATLAB-Toolboxes';                               % Dir to multiple function used for general analysis
+        dirs.Results        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/dfResults/Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -61,14 +61,16 @@ switch host
         dirs.saveFileSuffix = '';
     case 'CNS-WS5'
         % RecData must be moved to SavData for backup and local disk space consolidation
-        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir to save raw Data to
-        dirs.SavData        = fullfile('W:\Experiments\', project);                 % Dir to open raw Data from
+        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project);   % Dir to save raw Data to
+        dirs.SavData        = fullfile('W:\Experiments\', project);                   % Dir to open raw Data from
         
-        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
-        dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project); % The full code base
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results';  % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';   % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -82,11 +84,13 @@ switch host
         dirs.RecData        = fullfile('E:\Documents\DATA', project); % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments\', project);   % Dir to open raw Data from
         
-        dirs.Project        = fullfile('E:\Documents\MATLAB', project);
-        dirs.Prelim         = fullfile('E:\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('E:\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('E:\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'E:\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Code           = fullfile('E:\Documents\MATLAB', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'E:\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'E:\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -100,11 +104,13 @@ switch host
         dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments', project);                  % Dir to open raw Data from
         
-        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB');
-        dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -118,11 +124,13 @@ switch host
         dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to  
         dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
         
-        dirs.Project        = fullfile('C:\GitHub', project);
-        dirs.Prelim         = fullfile('C:\GitHub', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\GitHub', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\GitHub', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Code           = fullfile('C:\GitHub', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
