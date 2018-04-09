@@ -40,13 +40,12 @@ pA.condVar       = cF.condVar;      % Variable to test the condition
 pltNm.pltNameMVi  = cF.pltNameMVi;
 pltNm.pltNameMVm  = cF.pltNameMVm;
 
-% allDataStr is 3D struc with dim (Parti nRun Cond);
-allDataStr = [];
+% Load all saved results and order into a large data structure
+allDataStr = []; % (numPart x numRuns)
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
 
     subjRes  = [];
-    condARes = []; condBRes = [];
     fprintf('Sorting Runs for %s\n', participant)
     for jj = 1:pA.numRuns
         run              = pA.runs{ii, jj};
@@ -58,27 +57,13 @@ for ii = 1:pA.numPart
             return
         else   
             load(dirs.SavFile)
-            % Returns a results struture of res
+            % Returns a results struture of 'res'
         end
         
-        % Which variable are we sorting against?
-        condTest = eval(pA.condVar);
-        % Which condition in our list, is the one in this run?
-%         [~, condPos] = ismember(condTest, pA.cond);
-        
-        if strcmp(condTest, pA.cond{1})
-            condARes = cat(2, condARes, res);
-        else
-            condBRes = cat(2, condBRes, res);
-        end    
+        subjRes = cat(2, subjRes, res);  
     end
-    subjRes = cat(3, subjRes, condARes); % Cat the conditions along the z axis
-    subjRes = cat(3, subjRes, condBRes); % Cat the conditions along the z axis
-    
     allDataStr = cat(1, allDataStr, subjRes);
 end
-
-[~, numRunCond, ~] = size(allDataStr);
 
 allSubjRes.numControlTrials = 0;
 allSubjRes.numMaskedTrials  = 0;
@@ -94,43 +79,45 @@ statLib = [];
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Combining task conditions for %s\n', participant)
+    
+    
     for jj = 1:2 % Masking Noise, then Voice Conditions
         
-        thisStruc = initOrgStruct();
-        thisStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
-        thisStruc.curSess = [thisStruc.subject ' ' pA.cond{jj}];
+        unpkStruc = initUnpackStruct();
+        unpkStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+        unpkStruc.curSess = [unpkStruc.subject ' ' pA.cond{jj}];
         
         for kk = 1:numRunCond
             curRun = allDataStr(ii, kk, jj);
             
-            thisStruc.studyID = curRun.subject; % Study ID
-            thisStruc.AudFB   = curRun.AudFB;
+            unpkStruc.studyID = curRun.subject; % Study ID
+            unpkStruc.AudFB   = curRun.AudFB;
             
-            thisStruc.runs   = cat(1, thisStruc.runs, curRun.run);
-            thisStruc.runf0b = cat(1, thisStruc.runf0b, curRun.f0b);
+            unpkStruc.runs   = cat(1, unpkStruc.runs, curRun.run);
+            unpkStruc.runf0b = cat(1, unpkStruc.runf0b, curRun.f0b);
             
-            thisStruc.allContTrials = cat(1, thisStruc.allContTrials, curRun.numContTrialsFin);
-            thisStruc.allPertTrials = cat(1, thisStruc.allPertTrials, curRun.numPertTrialsFin);
+            unpkStruc.allContTrials = cat(1, unpkStruc.allContTrials, curRun.numContTrialsFin);
+            unpkStruc.allPertTrials = cat(1, unpkStruc.allPertTrials, curRun.numPertTrialsFin);
             
-            thisStruc.secTime = curRun.secTime;
-            thisStruc.audioMf0SecPert = cat(2, thisStruc.audioMf0SecPert, curRun.audioMf0SecPert);
-            thisStruc.audioMf0SecCont = cat(2, thisStruc.audioMf0SecCont, curRun.audioMf0SecCont);
-            thisStruc.respVar         = cat(1, thisStruc.respVar, curRun.respVar);
+            unpkStruc.secTime = curRun.secTime;
+            unpkStruc.audioMf0SecPert = cat(2, unpkStruc.audioMf0SecPert, curRun.audioMf0SecPert);
+            unpkStruc.audioMf0SecCont = cat(2, unpkStruc.audioMf0SecCont, curRun.audioMf0SecCont);
+            unpkStruc.respVar         = cat(1, unpkStruc.respVar, curRun.respVar);
         end
         
-        thisStruc.f0b             = mean(thisStruc.runf0b);
+        unpkStruc.f0b             = mean(unpkStruc.runf0b);
         
-        thisStruc.numContTrialsFin = sum(thisStruc.allContTrials);
-        thisStruc.numPertTrialsFin = sum(thisStruc.allPertTrials);
+        unpkStruc.numContTrialsFin = sum(unpkStruc.allContTrials);
+        unpkStruc.numPertTrialsFin = sum(unpkStruc.allPertTrials);
         
-        thisStruc.audioMf0MeanPert = meanSecData(thisStruc.audioMf0SecPert);
-        thisStruc.audioMf0MeanCont = meanSecData(thisStruc.audioMf0SecCont);
-        thisStruc.respVarM         = mean(thisStruc.respVar, 1);
+        unpkStruc.audioMf0MeanPert = meanSecData(unpkStruc.audioMf0SecPert);
+        unpkStruc.audioMf0MeanCont = meanSecData(unpkStruc.audioMf0SecCont);
+        unpkStruc.respVarM         = mean(unpkStruc.respVar, 1);
         
-        lims = identifyLimits(thisStruc, 0);
-        thisStruc.limitsAmean = lims.audioMean;
+        lims = identifyLimits(unpkStruc, 0);
+        unpkStruc.limitsAmean = lims.audioMean;
         
-        combDataStr(ii,jj) = thisStruc;        
+        combDataStr(ii,jj) = unpkStruc;        
     end
     mask = combDataStr(ii,1);
     voic = combDataStr(ii,2); 
@@ -152,6 +139,7 @@ for ii = 1:pA.numPart
     unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
     unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
 end
+
 allSubjRes.secTime           = mask.secTime;
 allSubjRes.audioMf0MeanCont  = meanSecData(allSubjRes.audioMf0SecCont);
 allSubjRes.audioMf0MeanPertM = meanSecData(allSubjRes.audioMf0SecPertM);
@@ -178,6 +166,8 @@ else
     CRi = []; CRm = [];
 end
 
+
+% Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll', 'pltNm', 'CRi', 'CRm')
@@ -186,35 +176,35 @@ dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 % xlswrite(dirs.excelFile, statLib, 1)
 end
 
-function thisStruc = initOrgStruct()
+function unpkStr = initUnpackStruct()
 
-thisStruc.subject = [];
-thisStruc.curSess = [];
-thisStruc.studyID = [];
-thisStruc.AudFB   = [];
-thisStruc.runs    = {};
+unpkStr.subject = [];
+unpkStr.curSess = [];
+unpkStr.studyID = [];
+unpkStr.AudFB   = [];
+unpkStr.runs    = {};
 
-thisStruc.runf0b  = [];
-thisStruc.f0b     = [];
+unpkStr.runf0b  = [];
+unpkStr.f0b     = [];
 
-thisStruc.allContTrials    = [];
-thisStruc.numContTrialsFin = [];
-thisStruc.allPertTrials    = [];
-thisStruc.numPertTrialsFin = [];
+unpkStr.allContTrials    = [];
+unpkStr.numContTrialsFin = [];
+unpkStr.allPertTrials    = [];
+unpkStr.numPertTrialsFin = [];
 
-thisStruc.secTime  = [];
-thisStruc.audioMf0SecPert = [];
-thisStruc.audioMf0SecCont = [];
-thisStruc.respVar         = [];
+unpkStr.secTime         = [];
+unpkStr.audioMf0SecPert = [];
+unpkStr.audioMf0SecCont = [];
+unpkStr.respVar         = [];
 
-thisStruc.audioMf0MeanPert = [];
-thisStruc.audioMf0MeanCont = [];
-thisStruc.respVarM         = [];
+unpkStr.audioMf0MeanPert = [];
+unpkStr.audioMf0MeanCont = [];
+unpkStr.respVarM         = [];
 
-thisStruc.tossedAll        = [];
-thisStruc.tossedLate       = [];
-thisStruc.tossedBreak      = [];
-thisStruc.tossedMisCalc    = [];
+unpkStr.tossedAll        = [];
+unpkStr.tossedLate       = [];
+unpkStr.tossedBreak      = [];
+unpkStr.tossedMisCalc    = [];
 end
 
 function meanData = meanSecData(secData)
@@ -261,7 +251,7 @@ unSubCC.respVar        = [];
 
 for ii = 1:numSubj
     for kk = 1:numCollarPos
-        subjColl = initOrgStruct();
+        subjColl = initUnpackStruct();
         
         subjColl.subject = allDataStr(ii, 1, 1).subject;
         subjColl.curSess = [subjColl.subject 'Resp_CollarLoc'];
