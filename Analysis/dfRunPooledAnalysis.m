@@ -183,7 +183,7 @@ fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll', 'pltNm', 'CRi', 'CRm')
 
 dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
-xlswrite(dirs.excelFile, statLib, 1)
+% xlswrite(dirs.excelFile, statLib, 1)
 end
 
 function thisStruc = initOrgStruct()
@@ -391,7 +391,6 @@ CRm.respVarMCC         = unSubCC.respVarM;
 % CRm.limitsAmeanV = limsuLP.audioMean;
 % limsCC = identifyLimits(CRm, 2);
 % CRm.limitsAmeanV = limsCC.audioMean;
-
 end
 
 function statLib = packStatLib(mask, voic)
@@ -412,19 +411,6 @@ statLib(9) = pPerc; %p-value percent increase
 end
 
 function lims = identifyLimits(An, fl)
-
-%Full Inidividual Trials: Pressure Sensor
-lims.pressure   = [0 4 0 5];
-
-%Aligned Pressure Data
-lims.pressureAl = [0 3.5 0 5];
-
-%Full Individual Trials: Force Sensors
-lims.force      = [0 4 1 5];
-
-%Full trial f0 analysis
-%Full Individual Trials: f0 Audio 
-lims.audio      = [0 4 -100 100];
 
 %Section Mean Pertrubed Trials: f0 Audio 
 if fl == 1
