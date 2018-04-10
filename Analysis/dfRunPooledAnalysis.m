@@ -44,9 +44,9 @@ pltNm.pltNameMVm  = cF.pltNameMVm;
 allDataStr = []; % (numPart x numRuns)
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
-
-    subjRes  = [];
     fprintf('Sorting Runs for %s\n', participant)
+    
+    subjRes  = [];
     for jj = 1:pA.numRuns
         run              = pA.runs{ii, jj};
         dirs.SavFileDir  = fullfile(dirs.Results, participant, run);                      % Where results are saved
@@ -80,45 +80,42 @@ for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Combining task conditions for %s\n', participant)
     
-    
-    for jj = 1:2 % Masking Noise, then Voice Conditions
+    unpkStruc         = initUnpackStruct();
+    unpkStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+    unpkStruc.curSess = [unpkStruc.subject ' ' pA.cond{jj}];
         
-        unpkStruc = initUnpackStruct();
-        unpkStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
-        unpkStruc.curSess = [unpkStruc.subject ' ' pA.cond{jj}];
-        
-        for kk = 1:numRunCond
-            curRun = allDataStr(ii, kk, jj);
-            
-            unpkStruc.studyID = curRun.subject; % Study ID
-            unpkStruc.AudFB   = curRun.AudFB;
-            
-            unpkStruc.runs   = cat(1, unpkStruc.runs, curRun.run);
-            unpkStruc.runf0b = cat(1, unpkStruc.runf0b, curRun.f0b);
-            
-            unpkStruc.allContTrials = cat(1, unpkStruc.allContTrials, curRun.numContTrialsFin);
-            unpkStruc.allPertTrials = cat(1, unpkStruc.allPertTrials, curRun.numPertTrialsFin);
-            
-            unpkStruc.secTime = curRun.secTime;
-            unpkStruc.audioMf0SecPert = cat(2, unpkStruc.audioMf0SecPert, curRun.audioMf0SecPert);
-            unpkStruc.audioMf0SecCont = cat(2, unpkStruc.audioMf0SecCont, curRun.audioMf0SecCont);
-            unpkStruc.respVar         = cat(1, unpkStruc.respVar, curRun.respVar);
-        end
-        
-        unpkStruc.f0b             = mean(unpkStruc.runf0b);
-        
-        unpkStruc.numContTrialsFin = sum(unpkStruc.allContTrials);
-        unpkStruc.numPertTrialsFin = sum(unpkStruc.allPertTrials);
-        
-        unpkStruc.audioMf0MeanPert = meanSecData(unpkStruc.audioMf0SecPert);
-        unpkStruc.audioMf0MeanCont = meanSecData(unpkStruc.audioMf0SecCont);
-        unpkStruc.respVarM         = mean(unpkStruc.respVar, 1);
-        
-        lims = identifyLimits(unpkStruc, 0);
-        unpkStruc.limitsAmean = lims.audioMean;
-        
-        combDataStr(ii,jj) = unpkStruc;        
+    for jj = 1:pA.numRuns
+        curRun = allDataStr(ii, jj);
+
+        unpkStruc.studyID = curRun.subject; % Study ID
+        unpkStruc.AudFB   = curRun.AudFB;
+
+        unpkStruc.runs   = cat(1, unpkStruc.runs, curRun.run);
+        unpkStruc.runf0b = cat(1, unpkStruc.runf0b, curRun.f0b);
+
+        unpkStruc.allContTrials = cat(1, unpkStruc.allContTrials, curRun.numContTrialsFin);
+        unpkStruc.allPertTrials = cat(1, unpkStruc.allPertTrials, curRun.numPertTrialsFin);
+
+        unpkStruc.secTime = curRun.secTime;
+        unpkStruc.audioMf0SecPert = cat(2, unpkStruc.audioMf0SecPert, curRun.audioMf0SecPert);
+        unpkStruc.audioMf0SecCont = cat(2, unpkStruc.audioMf0SecCont, curRun.audioMf0SecCont);
+        unpkStruc.respVar         = cat(1, unpkStruc.respVar, curRun.respVar);
     end
+        
+    unpkStruc.f0b             = mean(unpkStruc.runf0b);
+
+    unpkStruc.numContTrialsFin = sum(unpkStruc.allContTrials);
+    unpkStruc.numPertTrialsFin = sum(unpkStruc.allPertTrials);
+
+    unpkStruc.audioMf0MeanPert = meanSecData(unpkStruc.audioMf0SecPert);
+    unpkStruc.audioMf0MeanCont = meanSecData(unpkStruc.audioMf0SecCont);
+    unpkStruc.respVarM         = mean(unpkStruc.respVar, 1);
+
+    lims = identifyLimits(unpkStruc, 0);
+    unpkStruc.limitsAmean = lims.audioMean;
+
+    combDataStr(ii,jj) = unpkStruc;        
+
     mask = combDataStr(ii,1);
     voic = combDataStr(ii,2); 
     
@@ -174,6 +171,11 @@ save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 
 
 dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 % xlswrite(dirs.excelFile, statLib, 1)
+end
+
+function combineTaskCond 
+
+
 end
 
 function unpkStr = initUnpackStruct()
