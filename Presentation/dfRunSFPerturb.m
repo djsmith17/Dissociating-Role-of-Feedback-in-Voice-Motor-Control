@@ -71,6 +71,7 @@ expParam.targRMS      = blLoudness;
 expParam.gender       = gender;
 expParam.balloon      = balloon;
 expParam.tightness    = tightness;
+expParam.InflaVarNm   = 'N/A';
 expParam.niDev        = 'Dev2';              % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
@@ -130,9 +131,9 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.2; %Give them a moment to start speaking
+expParam.buffPause = 0.2; % Give them a moment to start speaking
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
-expParam.boundsRMS = 3;  %+/- dB
+expParam.boundsRMS = 3;   % +/- dB
 
 % This is where the fun begins
 fprintf('\nStarting Trials\n\n')
@@ -187,7 +188,7 @@ for ii = 1:expParam.numTrial
     set([H2 trigCirc],'Visible','off');
     
     % Load the Audapter saved data and save as wav Files
-    data = AudapterIO('getData');       % This will need to become a try statement again
+    data    = AudapterIO('getData'); % This will need to become a try statement again
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
        
