@@ -43,7 +43,7 @@ auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = f0b;
 
-fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, niAn.bTf0b)
+fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, auAn.bTf0b)
 
 % Idenitfy some Recording Variables
 auAn.sRate        = expParam.sRateAnal;        % Sampling Rate of Audapter (down-sampled)
