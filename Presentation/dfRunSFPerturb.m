@@ -27,9 +27,9 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null'; % Subject#, Pilot#, null
+subject    = 'null';    % Subject#, Pilot#, null
 run        = 'SF1';     % SF1, DS1, etc
-blLoudness = 79.34;        % (dB SPL) Baseline loudness
+blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 balloon    = '2.0E_2';  % Which pertrubation balloon?
 tightness  = 10;        % (inches of slack in bungie cord)
@@ -248,7 +248,15 @@ if expParam.bVis == 1
 end
 end
 
-function presH = initLiveResult(expParam, defMon)
+function resH = initLiveResult(expParam, defMon)
+% resH = initLiveResult(expParam, defMon) creates a figure by which to
+% display recorded signal during a recording session. This is currently
+% configured for recording pressure in the perturbatron balloon.
+% 
+% expParam: Experimental paramenters of the recording
+% defMon  : Monitor definitions
+%
+% resH    : Figure handle for the generated figure. 
 
 curSess  = expParam.curSess;
 balloon  = expParam.balloon;
@@ -274,7 +282,7 @@ else
 end
 winPos = figPosition;
 
-presH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
+resH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
 
 mark = plot([1 1], [-1 5], 'k-', 'LineWidth', 2);
 axis([0 3.5 -0.5 5.0])
