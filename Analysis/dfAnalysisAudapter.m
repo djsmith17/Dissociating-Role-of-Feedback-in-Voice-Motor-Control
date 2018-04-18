@@ -11,7 +11,7 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFla
 % the recorded trials that are to be saved and further analyzed, and those
 % that will be thrown out. Any variables that refer to the full trial set
 % will not have any additional prefix/suffix. Variables refering to the 
-% set of trials that passed the 'temportal' preprocessing and will be 
+% set of trials that passed the 'temporal' preprocessing and will be 
 % saved for further analyses will have a prefix/suffix of 'Svt'.
 % 
 % dirs:     The set of directories we are currently working in 
@@ -85,8 +85,12 @@ for ii = 1:auAn.numTrial
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
-    MrawNi = niAn.audioM(:,ii); % Microphone (NIDAQ) 
-   
+    if isfield(niAn, 'audioM')
+        MrawNi = niAn.audioM(:,ii);          % Microphone (NIDAQ) 
+    else
+        MrawNi = resample(Mraw, 8000, 16000);
+    end
+    
     % Preprocessing step identifies time-series errors in production/recording
     [mic, head, sigDelay, preProSt] = preProcAudio(auAn, Mraw, Hraw, MrawNi, anaTrigs);
     
