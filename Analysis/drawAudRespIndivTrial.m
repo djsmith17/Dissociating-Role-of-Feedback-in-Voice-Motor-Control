@@ -3,16 +3,16 @@ function drawAudRespIndivTrial(res, plotFolder)
 curSess          = res.curSess;
 f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
+numPT            = res.numPertTrialsFin;
+pertTrig         = res.pertTrigsFin;
 
 time             = res.timef0;
 micf0Trials      = res.audioMf0TrialPert;
 heaf0Trials      = res.audioHf0TrialPert;
 limits           = res.limitsAudRes;
-numTrial         = res.numPertTrialsPP;
-trigs            = res.pertTrigPP;
 
-plotpos = [10 0];
-plotdim = [1200 1050];
+plotpos = [10 100];
+plotdim = [1600 800];
 IndivTrialAudResp = figure('Color', [1 1 1]);
 set(IndivTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
@@ -21,16 +21,16 @@ headColor    = 'r';
 pertBoxC     = [0.8 0.8 0.8];
 fontN        = 'Arial';
 legAnnoFSize = 12;
-titleFSize   = 10;
-axisLSize    = 10;
+titleFSize   = 14;
+axisLSize    = 14;
 lineThick    = 4;
 
-ha = tight_subplot(5, 2, [0.02 0.02],[0.05 0.12],[0.03 0.03]);
+ha = tight_subplot(2, 5, [0.15 0.05],[0.12 0.15],[0.08 0.08]);
 
-for ii = 1:numTrial      
+for ii = 1:numPT      
     axes(ha(ii))
         
-    pertAx  = [trigs(ii,1), trigs(ii,2)];
+    pertAx  = [pertTrig(ii,1), pertTrig(ii,2)];
     pertAy  = [200 200];
     
     area(pertAx, pertAy, -200, 'FaceColor', pertBoxC, 'EdgeColor', pertBoxC)
@@ -51,13 +51,13 @@ for ii = 1:numTrial
              'FontSize', axisLSize,...
              'FontWeight','bold')
 end
-legend([mH hH],{'Microphone', 'Headphones'},...
-            'Position', [0.8 0.30 0.1 0.1],...
-            'Box', 'off',...
-            'Edgecolor', [1 1 1],...
-            'FontName', fontN,...
-            'FontSize', legAnnoFSize,...
-            'FontWeight', 'bold');
+legend([mH hH], {'Microphone', 'Headphones'},...
+                 'Position', [0.8 0.93 0.05 0.05],...
+                 'Box', 'off',...
+                 'Edgecolor', [1 1 1],...
+                 'FontName', fontN,...
+                 'FontSize', legAnnoFSize,...
+                 'FontWeight', 'bold');
         
 sup = suptitle({curSess; ['AudFB: ' AudFB]; ['f0: ' num2str(f0b) 'Hz']});
 set(sup, 'FontName', fontN,...
