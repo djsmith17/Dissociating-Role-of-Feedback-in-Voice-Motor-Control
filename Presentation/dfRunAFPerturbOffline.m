@@ -31,6 +31,7 @@ blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
+collectNewData         = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
@@ -54,8 +55,6 @@ switch recType
         numTrials = 40;
         perCatch  = 0.25;
 end
-
-collectNewData         = 1; %Boolean
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -242,6 +241,8 @@ close all
 
 f0b = OA.expParam.f0b;
 aFa = 1; iRf = 0;
+niAn = struct;
+niAn.sRate = 8000;
 [auAn, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0b, aFa, iRf, niAn);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
@@ -257,8 +258,8 @@ fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
 load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
-mic      = baseData.signalIn;
 fs       = DRF.expParam.sRateAnal;
+mic      = [baseData.signalIn; zeros(fs*0.15,1)];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
 frameLen = baseData.params.frameLen;
