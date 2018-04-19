@@ -31,14 +31,14 @@ blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
-pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
+pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
 switch pertType
     case 'Linear Standard'
         pertTypeSw = 0;
-    case 'Sinusoid Matched'
+    case 'Sigmoid Matched'
         pertTypeSw = 1;
 end
 
