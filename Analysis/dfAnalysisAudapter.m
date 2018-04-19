@@ -192,8 +192,13 @@ micAuAl  = micR(1:(end-AuMHdelayP));
 headAuAl = headR((AuMHdelayP+1):end); 
 
 % Adjust for delay between Audapter and NIDAQ
-micAuNi    = micAuAl(AuNidelayP:end);
-headAuNi   = headAuAl(AuNidelayP:end);
+if AuNidelayP > 0 % As long as the delay is non 0
+    micAuNi    = micAuAl(AuNidelayP:end);
+    headAuNi   = headAuAl(AuNidelayP:end);
+else
+    micAuNi    = micAuAl;
+    headAuNi   = headAuAl;
+end
 
 % Audio points on either side of the perturbation period.
 audioSecSt = auTrigs(1) - preOn;
