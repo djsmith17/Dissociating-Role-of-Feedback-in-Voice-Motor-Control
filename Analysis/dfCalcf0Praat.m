@@ -1,13 +1,14 @@
 function [time, trialsetf0, fsA] = dfCalcf0Praat(dirs, trialset, fs, bTf0b)
 %This asks praat to calculate f0 for a given saved wav file. 
 
-helperFolder  = dirs.helpers;
-resultFolder  = dirs.SavResultsDir;
+analysisFolder = dirs.Analysis;
+helperFolder   = dirs.helpers;
+resultFolder   = dirs.SavResultsDir;
 wavFileLoc    = [resultFolder, '\trialRec.wav'];
 txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
 [~, numTrial] = size(trialset);
 
-psDir         = dirs.Code;                               % Praat scripting
+psDir         = analysisFolder;                          % Praat scripting
 pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 
 tStep = 0.005; % seconds; hard set
