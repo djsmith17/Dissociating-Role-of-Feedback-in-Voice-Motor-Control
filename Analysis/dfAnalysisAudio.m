@@ -383,7 +383,7 @@ if numTrial > 0
     end
     [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
 else
-    numSampSec = 300;
+    numSampSec = 301;
 end
 
 secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
