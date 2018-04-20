@@ -77,7 +77,7 @@ expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 expParam.bVis         = 1;
-expParam.bPlay        = 0;
+expParam.bPlay        = 1;
 
 expParam.baseRun      = BaseRun;
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
@@ -208,9 +208,9 @@ if collectNewData == 1
         end
         
         %Play the sound, if you care to
-        if expParam.bPlay; soundsc(data.signalIn, data.expParam.sRateAnal); end
+        if expParam.bPlay; soundsc(data.signalIn, expParam.sRateAnal); end
 
-        pause(expParam.resPause)
+        pause(10)
     end
     close all;
     elapsed_time = toc(ET)/60;    % Elapsed Time of the experiment
