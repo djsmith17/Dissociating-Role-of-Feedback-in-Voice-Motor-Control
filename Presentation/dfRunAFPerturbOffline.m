@@ -162,10 +162,6 @@ if collectNewData == 1
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
    
-    % Load the PreRecorded Baseline Mic signal
-    [mic_frames, f0b] = OfflineLoadBaselineVoice(dirs);
-    expParam.f0b = f0b;
-
     DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
         expParam.curTrialNum  = ii;
@@ -188,6 +184,10 @@ if collectNewData == 1
         AudapterIO('init', p);
         Audapter('reset');
         pause(expParam.buffPause)
+        
+        % Load the PreRecorded Baseline Mic signal
+        [mic_frames, f0b] = OfflineLoadBaselineVoice(dirs);
+        expParam.f0b = f0b;
 
         for n = 1:length(mic_frames)
             Audapter('runFrame', mic_frames{n});
