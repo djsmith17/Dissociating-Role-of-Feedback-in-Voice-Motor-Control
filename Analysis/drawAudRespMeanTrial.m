@@ -33,17 +33,17 @@ fontN        = 'Arial';
 legAnnoFSize = 10;
 titleFSize   = 14;
 axisLSize    = 12;
-lineThick    = 4;
+lineThick    = 1;
 
 ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
-plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
-hold on
 mH = shadedErrorBar(time, meanf0MicOnset, CIf0MicOnset, 'lineprops', micColor, 'transparent', 1); %Pertrubed Microphone
 hold on
 hH = shadedErrorBar(time, meanf0HeadOnset, CIf0HeadOnset, 'lineprops', headColor, 'transparent', 1); %Perturbed Headphones
+hold on
+plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', 4)
 
 set(mH.mainLine, 'LineWidth', lineThick)
 set(hH.mainLine, 'LineWidth', lineThick)
