@@ -127,7 +127,7 @@ auAn.numPertTrialSvt = length(auAn.pertIdxSvt);
 auAn.numContTrialSvt = length(auAn.contIdxSvt);
 
 % The Audio Analysis
-f0Flag = 1;
+f0Flag = 0;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 lims  = identifyLimits(auAn);
