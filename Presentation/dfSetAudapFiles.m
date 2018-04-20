@@ -51,19 +51,20 @@ audStimP.SpPoint   = round(audStimP.SpTime*audStimP.fs);% Points
 audStimP.InflaT    = InflaT;  % seconds
 audStimP.InflaV    = InflaV;  % cents
 audStimP.rampLenT  = [];      % Time (s)
+audStimP.rampT     = [];      % Time Vector of ramp from Start (0) to finish (rampLenT)
 audStimP.rampLenP  = [];      % Points
 audStimP.rampMin   = [];
 audStimP.ramp      = [];
 audStimP.rampRv    = [];
 
-audStimP.steadyLen  = [];
-audStimP.steadyLenP = [];
+audStimP.steadyLenP  = [];
+audStimP.steadyLenT = [];
 
 %Define the slope for the Aud. perturbation stimulus
 if pertSw == 0 %Linear Standard Stimulus
     audStimP.rampLenT   = 0.15; % seconds          HardSet
-    ausStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
-    audStimP.rampLenP   = round(audStimP.rampLenT*audStimP.fs);
+    audStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
+    audStimP.rampLenP   = length(audStimP.rampT);
     
     if trialType == 0
         audStimP.rampMin = 0;
@@ -74,7 +75,8 @@ if pertSw == 0 %Linear Standard Stimulus
     end              
 elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
     audStimP.rampLenT   = InflaT; % seconds
-    audStimP.rampLenP = round(audStimP.rampLenT*audStimP.fs);
+    audStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
+    audStimP.rampLenP   = length(audStimP.rampT);
     
     if trialType == 0
         audStimP.rampMin = 0;
@@ -88,12 +90,12 @@ end
 audStimP.rampRv = fliplr(audStimP.ramp);
 
 audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLenP-1);
-audStimP.rampUPRange = (0:audStimP.rampLenP-1) + (audStimP.SpPoint - audStimP.rampLenP);
+audStimP.rampUPRange = audStimP.SpPoint + (0:audStimP.rampLenP-1);
 audStimP.steadySt    = audStimP.rampDNRange(end)+1;
 audStimP.steadySp    = audStimP.rampUPRange(1)-1;
 audStimP.steadyRange = audStimP.steadySt:audStimP.steadySp;
-audStimP.steadyLen   = length(audStimP.steadyRange);
-audStimP.steadyLenP  = audStimP.steadyLen/audStimP.fs;
+audStimP.steadyLenP  = length(audStimP.steadyRange);
+audStimP.steadyLenT  = audStimP.steadyLenP/audStimP.fs;
 
 stim = zeros(audStimP.lenTrialP,1);
 stim(audStimP.rampDNRange) = audStimP.ramp;
@@ -112,7 +114,7 @@ function OST_tline = writeOSTportions(audStimP)
 tStep      = audStimP.tStep;
 StTime     = audStimP.StTime;
 rampLen    = audStimP.rampLenP;
-steadyLenP = audStimP.steadyLenP;
+steadyLen  = audStimP.steadyLenT;
 
 %The number of changes to f0 + the hold + last THREE clean-up lines
 n = 2*rampLen + 1 + 3;
@@ -136,7 +138,7 @@ for i = 1:n
     if i <= rampLen
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #DownShift ' num2str(i) ' of ' num2str(rampLen)];
     elseif i == rampLen + 1 
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(steadyLenP) ' NaN {} #Hold for the pitch-shift hold period'];
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(steadyLen) ' NaN {} #Hold for the pitch-shift hold period'];
     elseif i <= 2*rampLen + 1
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #UpShift ' num2str(i) ' of ' num2str(rampLen)];    
     elseif i == 2*rampLen + 2

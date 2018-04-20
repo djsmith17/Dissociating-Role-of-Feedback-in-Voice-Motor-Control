@@ -22,7 +22,7 @@ function dfRunAFPerturbOffline()
 close all;
 ET = tic;
 rng('shuffle');
-debug = 0;
+debug = 1;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot0';    % Subject#, Pilot#, null
