@@ -135,9 +135,8 @@ if collectNewData == 1
     p = getAudapterDefaultParams(expParam.gender);
 
     %Set up Parameters to control NIDAQ and Perturbatron
-    [s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLen);
-    expParam.sRateQ = s.Rate; % NIDAQ sampling rate
-    expParam.niCh   = niCh;   % Structure of Channel Names
+    expParam.sRateQ = 8000; % NIDAQ sampling rate
+    expParam.niCh   = [];   % Structure of Channel Names
 
     %Set up OST and PCF Files
     expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
@@ -180,10 +179,6 @@ if collectNewData == 1
         Audapter('ost', expParam.ostFN, 0);
         Audapter('pcf', expParam.pcfFN, 0);
         
-        %Setup which perturb file we want
-        NIDAQsig = [expParam.sigs(:,ii) nVS];
-        queueOutputData(s, NIDAQsig);
-        
         %Cue to begin trial
         pause(expParam.cuePause)
         
@@ -198,7 +193,7 @@ if collectNewData == 1
             Audapter('runFrame', mic_frames{n});
         end
 
-        [dataDAQ, ~] = s.startForeground;
+        dataDAQ = [];
 
         %Save the data
         data    = AudapterIO('getData'); % This will need to become a try statement again
