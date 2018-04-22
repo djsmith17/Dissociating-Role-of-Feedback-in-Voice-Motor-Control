@@ -77,7 +77,7 @@ expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 expParam.bVis         = 1;
-expParam.bPlay        = 1;
+expParam.bPlay        = 0;
 
 expParam.baseRun      = BaseRun;
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
@@ -161,6 +161,9 @@ if collectNewData == 1
     load(dirs.InflaVarFile);
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
+    
+    [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs);
+    expParam.f0b = f0b;
    
     DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
@@ -186,8 +189,8 @@ if collectNewData == 1
         pause(expParam.buffPause)
         
         % Load the PreRecorded Baseline Mic signal
-        [mic_frames, f0b] = OfflineLoadBaselineVoice(dirs);
-        expParam.f0b = f0b;
+        %Split the signal into frames
+        mic_frames = makecell(mic_reSamp, expParam.frameLen*expParam.downFact);
 
         for n = 1:length(mic_frames)
             Audapter('runFrame', mic_frames{n});
@@ -238,13 +241,13 @@ f0b = OA.expParam.f0b;
 aFa = 1; iRf = 0;
 niAn = struct;
 niAn.sRate = 8000;
-[auAn, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0b, aFa, iRf, niAn);
+[~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0b, aFa, iRf, niAn);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
 drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
 end
 
-function [mic_frames, f0b] = OfflineLoadBaselineVoice(dirs)
+function [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
 trial = 1;
 
@@ -257,12 +260,9 @@ fs       = DRF.expParam.sRateAnal;
 mic      = [baseData.signalIn; zeros(fs*0.15,1)];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
-frameLen = baseData.params.frameLen;
 
 %Resample at 48000Hz
 mic_reSamp = resample(mic, sr*downFact, fs);
-%Split the signal into frames
-mic_frames = makecell(mic_reSamp, frameLen*downFact);
 
 f0b = DRF.qRes.meanf0;
 end
