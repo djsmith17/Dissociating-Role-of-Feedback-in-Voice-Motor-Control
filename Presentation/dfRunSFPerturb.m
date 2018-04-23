@@ -28,11 +28,11 @@ rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'null'; % Subject#, Pilot#, null
-run        = 'SF1';     % SF1, DS1, etc
-blLoudness = 79.34;        % (dB SPL) Baseline loudness
+run        = 'test';     % SF1, DS1, etc
+blLoudness = 60;        % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
-balloon    = '2.0E_2';  % Which pertrubation balloon?
-tightness  = 10;        % (inches of slack in bungie cord)
+balloon    = '2.0E_2';  % Which perturbation balloon?
+tightness  = 'n/a';        % (inches of slack in bungie cord)
 
 % Dialogue box asking for what type of Auditory Feedback
 AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
@@ -130,7 +130,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.2; %Give them a moment to start speaking
+expParam.buffPause = 0.8; %Give them a moment to start speaking
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;  %+/- dB
 
