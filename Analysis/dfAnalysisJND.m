@@ -15,7 +15,7 @@ end
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 JNDa.participant  = answer{1}; %List of multiple participants.
 JNDa.runType      = answer{2};
-JNDa.runs2Analyze = str2num(answer{3});
+JNDa.runs2Analyze = str2double(answer{3});
 numRuns           = length(JNDa.runs2Analyze);
 
 dirs = dfDirs(JNDa.project);
