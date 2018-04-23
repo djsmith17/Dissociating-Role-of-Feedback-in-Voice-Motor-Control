@@ -130,7 +130,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.2; %Give them a moment to start speaking
+expParam.buffPause = 0.8; %Give them a moment to start speaking
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;  %+/- dB
 
