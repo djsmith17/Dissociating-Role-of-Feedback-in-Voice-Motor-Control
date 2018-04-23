@@ -83,11 +83,14 @@ elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
         audStimP.ramp    = zeros(audStimP.rampLenP, 1);
     else
         x = linspace(0, 10, audStimP.rampLenP);
-        audStimP.rampMin  = round(InflaV*100)/100; % cents
+        audStimP.rampMin  = InflaV; % cents
         audStimP.ramp     = audStimP.rampMin*sigmf(x, [1 5]);
     end                     
 end
-audStimP.rampRv = fliplr(audStimP.ramp);
+
+audStimP.ramp    = round(audStimP.ramp, 2)/ 100;
+audStimP.rampMin = round(audStimP.rampMin,2)/ 100;
+audStimP.rampRv  = fliplr(audStimP.ramp);
 
 audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLenP-1);
 audStimP.rampUPRange = audStimP.SpPoint + (0:audStimP.rampLenP-1);
@@ -99,8 +102,8 @@ audStimP.steadyLenT  = audStimP.steadyLenP/audStimP.fs;
 
 stim = zeros(audStimP.lenTrialP,1);
 stim(audStimP.rampDNRange) = audStimP.ramp;
-stim(audStimP.rampUPRange) = audStimP.rampRv;
 stim(audStimP.steadyRange) = audStimP.rampMin;
+stim(audStimP.rampUPRange) = audStimP.rampRv;
 
 audStimP.stim = stim;
 end
@@ -207,11 +210,11 @@ PCF_tline{8} = '2, 0.0, 0.0, 0, 0';
 %The +2 comes from the numbering on the PCF ahead of these commands
 for i = 1:n
     if i <= rampLen
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(ramp(i)/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(ramp(i)) ', 0.0, 0, 0'];
     elseif i == rampLen + 1 
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampMin/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampMin) ', 0.0, 0, 0'];
     elseif i <= 2*rampLen + 1
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampRv(i-rampLen-1)/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampRv(i-rampLen-1)) ', 0.0, 0, 0'];
     elseif i == 2*rampLen + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       

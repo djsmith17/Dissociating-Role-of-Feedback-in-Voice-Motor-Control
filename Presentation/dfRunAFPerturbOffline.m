@@ -25,8 +25,8 @@ rng('shuffle');
 debug = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';    % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
+subject    = 'PureTone200';    % Subject#, Pilot#, null
+run        = 'AF4';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
@@ -46,7 +46,7 @@ end
 recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
 switch recType
     case 'Practice'
-        numTrials = 4;
+        numTrials = 1;
         perCatch  = 1.00;
     case 'Diagnostic'
         numTrials = 10;
@@ -190,7 +190,7 @@ if collectNewData == 1
         
         % Load the PreRecorded Baseline Mic signal
         %Split the signal into frames
-        mic_frames = makecell(mic_reSamp, expParam.frameLen*expParam.downFact);
+        mic_frames = makecell(mic_reSamp, expParam.frameLen);
 
         for n = 1:length(mic_frames)
             Audapter('runFrame', mic_frames{n});
@@ -203,17 +203,12 @@ if collectNewData == 1
         DAQin   = cat(3, DAQin, dataDAQ);
         rawData = cat(1, rawData, data);
         
-        switch recType
-            case 'Diagnostic'
-                dfSaveWavRec(data, expParam, dirs);
-            case 'Full'
-                dfSaveWavRec(data, expParam, dirs);
-        end
+        dfSaveWavRec(data, expParam, dirs);
         
         %Play the sound, if you care to
         if expParam.bPlay; soundsc(data.signalIn, expParam.sRateAnal); end
 
-        pause(10)
+        pause(2)
     end
     close all;
     elapsed_time = toc(ET)/60;    % Elapsed Time of the experiment
