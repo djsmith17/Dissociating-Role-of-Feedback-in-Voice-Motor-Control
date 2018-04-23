@@ -46,7 +46,7 @@ end
 recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
 switch recType
     case 'Practice'
-        numTrials = 1;
+        numTrials = 4;
         perCatch  = 1.00;
     case 'Diagnostic'
         numTrials = 10;
@@ -77,7 +77,7 @@ expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 expParam.bVis         = 1;
-expParam.bPlay        = 0;
+expParam.bPlay        = 1;
 
 expParam.baseRun      = BaseRun;
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
@@ -206,9 +206,9 @@ if collectNewData == 1
         dfSaveWavRec(data, expParam, dirs);
         
         %Play the sound, if you care to
-        if expParam.bPlay; soundsc(data.signalIn, expParam.sRateAnal); end
+        if expParam.bPlay; soundsc(data.signalOut, expParam.sRateAnal); end
 
-        pause(2)
+        pause(10)
     end
     close all;
     elapsed_time = toc(ET)/60;    % Elapsed Time of the experiment

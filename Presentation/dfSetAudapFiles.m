@@ -37,7 +37,7 @@ function audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertNam
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.pertSw    = pertSw;    % 0: -100c   1: LarMag
 audStimP.pertName  = pertName;  % 'Linear Standard', 'Sigmoid Matched'
-audStimP.tStep     = 0.005;    % seconds
+audStimP.tStep     = 0.001;    % seconds
 audStimP.fs        = 1/audStimP.tStep;
 audStimP.lenTrialT = trialLen;                                  % Trial Length (Seconds)
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.fs;            % Trial Length (Pert-Points)
@@ -88,8 +88,8 @@ elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
     end                     
 end
 
-audStimP.ramp    = round(audStimP.ramp, 2)/ 100;
-audStimP.rampMin = round(audStimP.rampMin,2)/ 100;
+audStimP.ramp    = round((audStimP.ramp/100), 3);
+audStimP.rampMin = round((audStimP.rampMin/100), 3);
 audStimP.rampRv  = fliplr(audStimP.ramp);
 
 audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLenP-1);
@@ -281,7 +281,7 @@ plot(time, stim, 'LineWidth', 3)
 xlabel('Time (s)', 'FontSize', 16, 'FontWeight', 'bold')
 ylabel('f0 Shift (cents)', 'FontSize', 16, 'FontWeight', 'bold')
 title({'Auditory Feedback Perturbation Stimulus'; pertName}, 'FontSize', 18, 'FontWeight', 'bold')
-axis([0 4 -101 10]); box off;
+axis([0 4 -1.1 1]); box off;
 
 annotation('textbox',[0.62 0.25 0.40 0.1],...
            'String', {['Fall/Rise Time: ' num2str(pertTime) ' seconds'],...
