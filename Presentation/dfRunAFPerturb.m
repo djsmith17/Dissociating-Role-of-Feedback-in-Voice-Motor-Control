@@ -29,7 +29,7 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';    % Subject#, Pilot#, null
+subject    = 'PureTone200';    % Subject#, Pilot#, null
 run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
@@ -51,8 +51,8 @@ switch recType
         numTrials = 4;
         perCatch  = 1.00;
     case 'Diagnostic'
-        numTrials = 10;
-        perCatch  = 0.50;
+        numTrials = 4;
+        perCatch  = 1.00;
     case 'Full'
         numTrials = 40;
         perCatch  = 0.25;
