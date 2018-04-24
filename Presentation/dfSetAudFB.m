@@ -15,24 +15,28 @@ function [expParam, p] = dfSetAudFB(expParam, dirs, p)
 if  expParam.AudFBSw == 0
     p.fb          = 1;  % Microphone FB
     p.bPitchShift = 0;  % No pitch-shifting
+    p.bBypassFmt  = 1;  % No Formant tracking
+    p.dScale      = 8.00;
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];
     
 %PITCH-SHIFTED AUDITORY FEEDBACK OF THEIR VOICE
 elseif expParam.AudFBSw == 1
-    p.fb          = 1;   % Microphone FB
-    p.bPitchShift = 1;   % Pitch-shifting
-%     p.dScale      = 1; %Headphone Scalar
+    p.fb          = 1;    % Microphone FB
+    p.bPitchShift = 1;    % Pitch-shifting
+    p.bBypassFmt  = 1;    % No Formant tracking
+    p.dScale      = 8.00; %Headphone Scalar
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];
 
 %SPEECH-SHAPED MASKING NOISE
 elseif expParam.AudFBSw == 2
-    p.fb          = 0;   % Audio File (Masking)
+    p.fb          = 0;    % Audio File (Masking)
     p.bPitchShift = 0;
-%     p.dScale      = 1; %Headphone Scalar
+    p.bBypassFmt  = 1;    % No Formant tracking
+    p.dScale      = 1; % Headphone Scalar
     
     %Uses Speech-Shaped Noise stored in util
     noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
