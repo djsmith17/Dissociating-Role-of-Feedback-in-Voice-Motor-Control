@@ -5,6 +5,8 @@ f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
 numPT            = res.numPertTrialsFin;
 pertTrig         = res.pertTrigsFin;
+MHDelays         = res.allAuMHDelays;
+AuNiDelays       = round(res.allAuNiDelays, 3);
 
 time             = res.timef0;
 micf0Trials      = res.audioMf0TrialPert;
@@ -25,7 +27,7 @@ titleFSize   = 14;
 axisLSize    = 14;
 lineThick    = 4;
 
-ha = tight_subplot(2, 5, [0.15 0.05],[0.12 0.15],[0.08 0.08]);
+ha = tight_subplot(1, 4, [0.15 0.05],[0.12 0.15],[0.08 0.08]);
 
 for ii = 1:numPT      
     axes(ha(ii))
@@ -44,7 +46,7 @@ for ii = 1:numPT
         ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
     end
     
-    title({['Trial ' num2str(ii)], [num2str(pertTrig(ii,1)) '  ' num2str(pertTrig(ii,2))]}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
+    title({['Trial ' num2str(ii)], [num2str(pertTrig(ii,1)) '  ' num2str(pertTrig(ii,2))], [AuNiDelays(ii)]}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
     axis(limits); box off
 
     set(gca, 'FontName', fontN,...

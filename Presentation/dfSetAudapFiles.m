@@ -255,7 +255,7 @@ fclose(fid);
 end
 
 function drawStimulus(audStimP, dirs)
-close all
+% close all
 
 time     = audStimP.time;
 stim     = audStimP.stim;

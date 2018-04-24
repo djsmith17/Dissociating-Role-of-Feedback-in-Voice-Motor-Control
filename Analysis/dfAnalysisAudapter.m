@@ -67,6 +67,7 @@ auAn.numTrialSvt   = []; % Number of trials saved for further analyses
 auAn.allIdxSvt     = []; % Vector of indicies of all recorded trials saved for further analyses.
 auAn.trialTypeSvt  = []; % Key for identifying Control (0) & Perturbed (1) trials
 auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for further analyses
+auAn.allAuMHDelays = []; % Vector of the delays between the Audapter microphone and Headphone recordings
 auAn.allAuNiDelays = []; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 
 auAn.numPertTrialSvt = []; % Number of perturbed trials saved for further analyses
@@ -92,7 +93,7 @@ for ii = 1:auAn.numTrial
     end
     
     % Preprocessing step identifies time-series errors in production/recording
-    [mic, head, sigDelay, preProSt] = preProcAudio(auAn, Mraw, Hraw, MrawNi, anaTrigs);
+    [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, MrawNi, anaTrigs);
     
     auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual analysis
     auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual analysis
@@ -113,7 +114,8 @@ for ii = 1:auAn.numTrial
             auAn.pertIdxSvt  = cat(1, auAn.pertIdxSvt, svC); %
             auAn.pertTrigSvt = cat(1, auAn.pertTrigSvt, expTrigs); %
         end   
-        auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, sigDelay);
+        auAn.allAuMHDelays = cat(1, auAn.allAuMHDelays, preProSt.AuMHdelay);
+        auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, preProSt.AuNidelay);
     end
 end
 
@@ -134,7 +136,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
+function [micP, headP, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 % [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 % This function performs preprocessing on the time-series recorded audio 
 % data before frequency analysis methods are applied. This identifies
@@ -227,6 +229,8 @@ headP   = headAuNi(1:numSamp);
 
 pp.saveT    = saveT;    % Save trial or no?
 pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
+pp.AuMHdelay = AuMHdelay;
+pp.AuNidelay = AuNidelay;
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
@@ -443,6 +447,7 @@ res.numTrialSvt   = auAn.numTrialSvt;   % Number of trials saved (post temporal 
 res.allIdxSvt     = auAn.allIdxSvt;     % Vector of indicies of recorded trials saved (post temporal processing)
 res.trialTypeSvt  = auAn.trialTypeSvt;  % Key for identifying Control (0) & Perturbed (1) trials (post temporal processing)
 res.expTrigsSvt   = auAn.expTrigsSvt;   % Trigger Onset and Offset (Time) for trials saved (post temporal processing)
+res.allAuMHDelays = auAn.allAuMHDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 res.allAuNiDelays = auAn.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 
 res.numPertTrialSvt = auAn.numPertTrialSvt; % Number of perturbed trials saved (post temporal processing)
