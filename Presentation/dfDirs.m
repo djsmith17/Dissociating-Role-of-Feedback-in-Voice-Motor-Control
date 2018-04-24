@@ -20,14 +20,17 @@ host     = deblank(host);
 %% Set appropriate directories for code, data input and output, based on system hostname.
 switch host
     case 'SAR-D-635-1528'
-        dirs.RecData        = fullfile('C:\DATA', project);  % Dir to save raw Data to
-        dirs.SavData        = fullfile('W:\Experiments\', project);                  % Dir to open raw Data from
-                                                                                     % RecData must be moved to SavData for backup and local disk space consolidation
-        dirs.Project        = fullfile('C:\GitHub', project);
-        dirs.Prelim         = fullfile('C:\GitHub', project, 'Presentation\PrelimFiles'); % Dir for project specific helper files
-        dirs.Code           = fullfile('C:\GitHub', project, 'Analysis');                 % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\GitHub', project, 'Results');                  % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';                               % Dir to multiple function used for general analysis
+        % RecData must be moved to SavData for backup and local disk space consolidation
+        dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to
+        dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
+      
+        dirs.Code           = fullfile('C:\GitHub', project);             % The full code base
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -36,15 +39,22 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
+<<<<<<< HEAD
+    case 'dhcp-wifi-8021x-155-41-87-124.bu.edu'
+        % RecData must be moved to SavData for backup and local disk space consolidation
+=======
     case 'dhcp-wifi-8021x-155-41-27-125.bu.edu'
+>>>>>>> master
         dirs.RecData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');  % Dir to save raw Data to
-        dirs.SavData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');                  % Dir to open raw Data from
-                                                                                     % RecData must be moved to SavData for backup and local disk space consolidation
-        dirs.Project        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project);
-        dirs.Prelim         = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project, 'Presentation\PrelimFiles'); % Dir for project specific helper files
-        dirs.Code           = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project, 'Analysis');                 % Dir w/ data analysis Code
-        dirs.Results        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project, 'Results');                  % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/MATLAB-Toolboxes';                               % Dir to multiple function used for general analysis
+        dirs.SavData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');  % Dir to open raw Data from
+        
+        dirs.Code           = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study', project);    % The full code base
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/dfResults/Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = '/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -54,14 +64,17 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
     case 'CNS-WS5'
-        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles
-        dirs.SavData        = fullfile('W:\Experiments\', project);
-       
-        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
-        dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        % RecData must be moved to SavData for backup and local disk space consolidation
+        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project);   % Dir to save raw Data to
+        dirs.SavData        = fullfile('W:\Experiments\', project);                   % Dir to open raw Data from
+        
+        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project); % The full code base
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results';  % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';   % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -70,32 +83,18 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
-    case 'tongue'
-        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles
-        dirs.SavData        = fullfile('W:\Experiments\', project);
-       
-        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
-        dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
-        
-        dirs.RecFileDir     = '';
-        dirs.RecWaveDir     = '';
-        dirs.SavFileDir     = '';
-        dirs.SavResultsDir  = '';
-       
-        dirs.InflaRespFile  = '';
-        dirs.saveFileSuffix = '';                                                                           % Used to name figures. Includes the filter, window size, signal processing
     case 'DanteRig'
-        dirs.RecData        = fullfile('E:\Documents\DATA', project); % Dir w/ raw datafiles  
-        dirs.SavData        = fullfile('W:\Experiments\', project);
+        % RecData must be moved to SavData for backup and local disk space consolidation
+        dirs.RecData        = fullfile('E:\Documents\DATA', project); % Dir to save raw Data to
+        dirs.SavData        = fullfile('W:\Experiments\', project);   % Dir to open raw Data from
         
-        dirs.Project        = fullfile('E:\Documents\MATLAB', project);
-        dirs.Prelim         = fullfile('E:\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('E:\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('E:\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'E:\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Code           = fullfile('E:\Documents\MATLAB', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'E:\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'E:\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -105,14 +104,17 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';  
     case '677-GUE-WL-0001'
-        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir w/ raw datafiles  
-        dirs.SavData        = fullfile('W:\Experiments', project);
+        % RecData must be moved to SavData for backup and local disk space consolidation
+        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir to save raw Data to
+        dirs.SavData        = fullfile('W:\Experiments', project);                  % Dir to open raw Data from
         
-        dirs.Project        = fullfile('C:\Users\djsmith\Documents\MATLAB');
-        dirs.Prelim         = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\Users\djsmith\Documents\MATLAB', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -122,14 +124,17 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
     case '677-gue-wl-0003'
-        dirs.RecData        = fullfile('C:\DATA', project); % Dir w/ raw datafiles  
-        dirs.SavData        = fullfile('W:\Experiments', project);
+        % RecData must be moved to SavData for backup and local disk space consolidation
+        dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to  
+        dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
         
-        dirs.Project        = fullfile('C:\GitHub', project);
-        dirs.Prelim         = fullfile('C:\GitHub', project, 'Presentation\PrelimFiles'); %Dir for project specific helper files
-        dirs.Code           = fullfile('C:\GitHub', project, 'Analysis');           % Dir w/ data analysis Code
-        dirs.Results        = fullfile('C:\GitHub', project, 'Results');            % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';                         % Dir to multiple function used for general analysis
+        dirs.Code           = fullfile('C:\GitHub', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
@@ -146,5 +151,6 @@ end
 %% Set up path so code is accessible to Matlab
 addpath(genpath(dirs.Code));        % Add dir w/ your code path
 addpath(genpath(dirs.Prelim));      % Add dir w/ Prelim Files
+addpath(genpath(dirs.Results));     % Where to find and save results
 addpath(genpath(dirs.helpers));     % Add dir w/ helpers code path
 end

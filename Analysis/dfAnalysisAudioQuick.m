@@ -54,10 +54,10 @@ function fV = setFreqAnalVar(sRate, voiceInd)
 fV.sRate      = sRate;
 
 fV.freqCutOff = 400;
-fV.win        = 0.015;       % seconds
+fV.win        = 0.050;       % seconds
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*sRate;
-fV.pOV        = 0.80;        % 80% overlap
+fV.pOV        = 0.50;        % 80% overlap
 fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.voiceInd   = voiceInd;
 end
@@ -67,9 +67,6 @@ ET = tic;
 [numTrial, ~] = size(rawData);
 
 fs   = fV.sRate;
-
-%Low-Pass filter for the given cut off frequency
-[B,A]    = butter(4,(fV.freqCutOff)/(fs/2));
 
 audiof0 = []; trialf0 = []; audioRMS = [];
 f0Max = 0; f0Min = 0;
@@ -94,11 +91,9 @@ for j = 1:numTrial %Trial by Trial
         winIdx  = trialWinSt(i):trialWinSt(i)+ fV.winP - 1;
         timeWin = mean(timeT(winIdx));
         
-        voiceWin   = voiceT(winIdx);
-        voiceWinHP = filtfilt(B, A, voiceWin);
-         
         % What is the f0??
-        f0Win = simpleAutoCorr(voiceWinHP, fV);      
+        voiceWin   = voiceT(winIdx);
+        f0Win = simpleAutoCorr(voiceWin, fV);      
         
         timef0  = cat(1, timef0, timeWin);
         voicef0 = cat(1, voicef0, f0Win);

@@ -86,7 +86,9 @@ if strcmp(collectNewData, 'yes')
     pltStr = [];
     presH = initLiveResult(expParam, 2);
     for ii = 1:expParam.numTrial
-        expParam.curTrial = ii;
+        expParam.curTrialNum  = ii;
+        expParam.curTrial     = ['Trial' num2str(ii)];
+        expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
         
         %Setup which perturb file we want
         NIDAQsig = [expParam.sigs(:,ii) nVS];
@@ -128,7 +130,15 @@ drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
 % drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
 end
 
-function presH = initLiveResult(expParam, defMon)
+function resH = initLiveResult(expParam, defMon)
+% resH = initLiveResult(expParam, defMon) creates a figure by which to
+% display recorded signal during a recording session. This is currently
+% configured for recording pressure in the perturbatron balloon.
+% 
+% expParam: Experimental paramenters of the recording
+% defMon  : Monitor definitions
+%
+% resH    : Figure handle for the generated figure. 
 
 curSess  = expParam.curSess;
 balloon  = expParam.balloon;
@@ -154,7 +164,7 @@ else
 end
 winPos = figPosition;
 
-presH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
+resH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
 
 mark = plot([1 1], [-1 5], 'k-', 'LineWidth', 2);
 axis([0 3.5 -0.5 5.0])
@@ -175,7 +185,7 @@ function pltStr = updateLiveResult(daqIn, expParam, pltStr)
 
 sig      = daqIn(:,4);
 numTrial = expParam.numTrial;
-curTrial = expParam.curTrial;
+curTrial = expParam.curTrialNum;
 fs       = expParam.sRateQ;
 trigs    = expParam.trigs(:,:,2);
 trialColors = distinguishable_colors(numTrial);

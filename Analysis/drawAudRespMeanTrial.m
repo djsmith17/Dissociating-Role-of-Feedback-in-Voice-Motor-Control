@@ -1,10 +1,11 @@
 function drawAudRespMeanTrial(res, plotFolder)
-%Showing the mean 
+% drawAudRespMeanTrial(res, plotFolder) displays results of pitch-shift
+% experiments 
 
 curSess          = res.curSess;
 f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
-numPT            = res.numPertTrialsPP;
+numPT            = res.numPertTrialsFin;
 
 time             = res.secTime;
 meanf0MicOnset   = res.audioMf0MeanPert(:,1);
@@ -29,20 +30,20 @@ micColor     = 'b';
 headColor    = 'r';
 pertLineC    = [0.3 0.3 0.3];
 fontN        = 'Arial';
-legAnnoFSize = 12;
+legAnnoFSize = 10;
 titleFSize   = 14;
-axisLSize    = 10;
-lineThick    = 4;
+axisLSize    = 12;
+lineThick    = 1;
 
-ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
+ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
-plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
+mH = shadedErrorBar(time, meanf0MicOnset, CIf0MicOnset, 'lineprops', micColor, 'transparent', 1); %Pertrubed Microphone
 hold on
-mH = shadedErrorBar(time, meanf0MicOnset, CIf0MicOnset, micColor, 1); %Pertrubed Microphone
+hH = shadedErrorBar(time, meanf0HeadOnset, CIf0HeadOnset, 'lineprops', headColor, 'transparent', 1); %Perturbed Headphones
 hold on
-hH = shadedErrorBar(time, meanf0HeadOnset, CIf0HeadOnset, headColor, 1); %Perturbed Headphones
+plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', 4)
 
 set(mH.mainLine, 'LineWidth', lineThick)
 set(hH.mainLine, 'LineWidth', lineThick)
@@ -60,9 +61,9 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 axes(ha(2))
 plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
 hold on
-mH2 = shadedErrorBar(time, meanf0MicOffset, CIf0MicOffset, micColor, 1);  %Perturbed Microphone
+mH2 = shadedErrorBar(time, meanf0MicOffset, CIf0MicOffset, 'lineprops', micColor, 'transparent', 1);  %Perturbed Microphone
 hold on
-hH2 = shadedErrorBar(time, meanf0HeadOffset, CIf0HeadOffset, headColor, 1); %Perturbed Headphones
+hH2 = shadedErrorBar(time, meanf0HeadOffset, CIf0HeadOffset, 'lineprops', headColor, 'transparent', 1); %Perturbed Headphones
 
 set(mH2.mainLine, 'LineWidth', lineThick)
 set(hH2.mainLine, 'LineWidth', lineThick)

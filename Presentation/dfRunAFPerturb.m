@@ -29,19 +29,11 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-prompt = {'Subject ID:',...
-          'Session ID:',...
-          'Baseline Loudness (dB SPL):',...
-          'Gender ("male" or "female"):',...
-          'Inflation Vars:'};
-name = 'Subject Information';
-numlines = 1;
-defaultanswer = {'null', 'AF1', '60', 'female', 'IV1'};
-ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
-
-if isempty(ExpPrompt)
-    return
-end
+subject    = 'PureTone200';    % Subject#, Pilot#, null
+run        = 'AF1';     % AF1, DS1, etc
+blLoudness = 79.34;     % (dB SPL) Baseline loudness
+gender     = 'female';  % "male" or "female"
+InflaVarNm = 'IV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
@@ -53,25 +45,30 @@ switch pertType
 end
 
 % Dialogue box asking if Practice set or Full set of trials
-num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full');
-switch num_trials
+recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
+switch recType
     case 'Practice'
         numTrials = 4;
-        perCatch  = 0.25;
-    case 'Full'
+        perCatch  = 1.00;
+    case 'Diagnostic'
         numTrials = 4;
-        perCatch  = 0.0;
+        perCatch  = 1.00;
+    case 'Full'
+        numTrials = 40;
+        perCatch  = 0.25;
 end
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType      = 'Auditory Perturbation_Perceptual';
-expParam.subject      = ExpPrompt{1};
-expParam.run          = ExpPrompt{2};
+expParam.subject      = subject;
+expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = str2double(ExpPrompt{3});
-expParam.gender       = ExpPrompt{4};
-expParam.InflaVar     = ExpPrompt{5};
+expParam.targRMS      = blLoudness;
+expParam.gender       = gender;
+expParam.balloon      = 'N/A';
+expParam.tightness    = 'N/A';
+expParam.InflaVarNm   = InflaVarNm;
 expParam.niDev        = 'Dev2';                      % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen     = 4;                           % Seconds
 expParam.numTrial     = numTrials;
@@ -81,7 +78,6 @@ expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
-expParam.InflaFile    = [expParam.subject expParam.InflaVar 'DRF.mat']; % Results from the laryngeal perturbation experiment
 expParam.bVis         = 0;
 
 %Set our dirs based on the project
@@ -97,11 +93,14 @@ if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
 
-% Look for the Inflation Response Files
-dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVar, expParam.InflaFile);
+% Look for the Inflation Response Files. Should Return InflaVar
+expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat']; % Results from the laryngeal perturbation experiment
+dirs.InflaVarFile  = fullfile(dirs.SavData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
     fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
     return
+else
+    fprintf('Inflation Variables found!!\n')
 end
 
 %Paradigm Configurations
@@ -139,6 +138,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
+expParam.buffPause = 0.2; % Give them a moment to start speaking
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;   % +/- dB
 
@@ -151,14 +151,16 @@ expParam.InflaV   = InflaVar(2);
 fprintf('\nStarting Trials\n\n')
 
 %Dim the lights (Set the visual Feedback)
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.targRMS, expParam.boundsRMS);
+[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
 pause(5);                % Let them breathe a sec
 set(H3,'Visible','off'); % Turn off 'Ready?'
 
 DAQin = []; rawData = [];
+loudResults = [];
 for ii = 1:expParam.numTrial
+    expParam.curTrialNum  = ii;
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
@@ -185,28 +187,38 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
+    pause(expParam.buffPause)
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
-    [dataDAQ, time] = s.startForeground;
+    [dataDAQ, ~] = s.startForeground;
     
     %Phonation End
     Audapter('stop');
     set([H2 trigCirc],'Visible','off');
     
     %Save the data
-    data    = dfSaveRawData(expParam, dirs);
+    data    = AudapterIO('getData'); % This will need to become a try statement again
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
     
     %Grab smooth RMS trace from 'data' structure
     rmsMean = dfCalcMeanRMS(data);
     %Compare against baseline and updated Visual Feedback
-    [color, newPos] = dfUpdateVisFB(anMsr, rmsMean);
+    [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
+    loudResults = cat(1, loudResults, loudResult);
+    dispLoudnessResult(loudResult)
     
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
-    set([rec fbLines], 'Visible', 'on');  
+    set([rec fbLines], 'Visible', 'on'); 
+    
+    switch recType
+        case 'Diagnostic'
+            dfSaveWavRec(data, expParam, dirs);
+        case 'Full'
+            dfSaveWavRec(data, expParam, dirs);
+    end
     
     pause(expParam.resPause)
     set([rec fbLines], 'Visible', 'off');
@@ -217,6 +229,7 @@ fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
 
 % Store all the variables and data from the session in a large structure
 expParam.elapsedTime = elapsed_time;
+expParam.loudResults = loudResults;
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
 DRF.p           = p;
@@ -226,10 +239,12 @@ DRF.rawData     = rawData;
 
 % Save the large structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-switch num_trials
-    case 'Practice'
-        return
+switch recType
+    case 'Diagnostic'
+        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
+        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
     case 'Full'
+        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
         save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 end
 
@@ -271,4 +286,18 @@ plTitle = 'Online AFA Time Warp Spectrum';
 saveFileName = [savedResdir plTitle '.png'];
 
 % export_fig(saveFileName)
+end
+
+function dispLoudnessResult(loudResult)
+
+switch loudResult
+    case -1
+        result = 'too soft';
+    case 0
+        result = 'just right';
+    case 1
+        result = 'too loud';
+end
+
+fprintf('Subject was %s\n', result)
 end

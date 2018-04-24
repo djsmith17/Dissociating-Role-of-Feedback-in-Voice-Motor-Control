@@ -19,7 +19,7 @@ sound_one$ = selected$ ("Sound")
 start = Get start time
 end   = Get end time
 
-To Pitch (ac)... 0.005 75 15 off 0.03 0.45 0.01 0.35 0.14 300
+To Pitch (ac)... 0.005 75 15 off 0.03 0.45 0.02 0.35 0.14 300
 
 for i to (end - start)/0.005
     time = start + i * 0.005

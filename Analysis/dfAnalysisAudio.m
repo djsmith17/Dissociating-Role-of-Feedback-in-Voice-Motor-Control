@@ -362,26 +362,29 @@ preEve  = 0.5; posEve = 1.0;
 secSigs    = [];
 OnsetSecs  = [];
 OffsetSecs = [];
-for ii = 1:numTrial
-    OnsetT   = trigs(ii, 1); % Onset time
-    OffsetT  = trigs(ii, 2); % Offset time
-    
-    OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
-    OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
-    OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
-    
-    OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
-    OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
-    OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
-        
-    OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
-    OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
-    
-    OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
-    OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
-end
+if numTrial > 0
+    for ii = 1:numTrial
+        OnsetT   = trigs(ii, 1); % Onset time
+        OffsetT  = trigs(ii, 2); % Offset time
 
-numSampSec = length(OnsetSec); % number of samples in sectioned signals
+        OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
+        OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
+        OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
+
+        OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
+        OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
+        OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
+
+        OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
+        OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
+
+        OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
+        OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
+    end
+    [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
+else
+    numSampSec = 301;
+end
 
 secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
 secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
