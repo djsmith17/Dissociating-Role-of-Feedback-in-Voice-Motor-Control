@@ -186,11 +186,12 @@ if strcmp(AudFB, 'Masking Noise')
     AuMHdelay = (frameLen*12)/fs;
 else
     AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
+    [timeSet, delaySet] = MHdelayChunked(micR, headR, fs);
 end
 AuMHdelayP = AuMHdelay*fs;
 
 % Adjust for delay between raw Audapter Mic and Audapter Headphones
-micAuAl  = micR(1:(end-AuMHdelayP));
+    micAuAl  = micR(1:(end-AuMHdelayP));
 headAuAl = headR((AuMHdelayP+1):end); 
 
 % Adjust for delay between Audapter and NIDAQ
@@ -231,6 +232,28 @@ pp.saveT    = saveT;    % Save trial or no?
 pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
 pp.AuMHdelay = AuMHdelay;
 pp.AuNidelay = AuNidelay;
+end
+
+function [timeSet, delaySet] = MHdelayChunked(sig1, sig2, fs)
+
+numSamp = length(sig1);
+chunkL = 0.05;
+chunkP = fs*chunkL;
+numChunk = floor(numSamp/chunkP);
+
+timeSet  = zeros(numChunk, 1);
+delaySet = zeros(numChunk, 1);
+for ii = 1:numChunk
+    set = (1:chunkP) + (ii-1)*chunkP;
+    
+    timeChunk = set(1)/fs;
+    sig1Chunk = sig1(set);
+    sig2Chunk = sig2(set);
+    
+    delay = xCorrTimeLag(sig1Chunk, sig2Chunk, fs);
+    timeSet(ii)  = timeChunk;
+    delaySet(ii) = delay*1000;
+end
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
