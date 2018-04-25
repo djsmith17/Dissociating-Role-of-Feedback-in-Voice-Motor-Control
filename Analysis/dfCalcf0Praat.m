@@ -74,7 +74,7 @@ recLen = length(f0_str);
 praatUndLog = strncmp('--undefined--',f0_str,3);
 for ii = 1:recLen
     if praatUndLog(ii) == 1
-        f0_str{ii} = num2str(bTf0b);
+        f0_str{ii} = 'NaN';
     end
 end
 f0   = str2double(f0_str);
