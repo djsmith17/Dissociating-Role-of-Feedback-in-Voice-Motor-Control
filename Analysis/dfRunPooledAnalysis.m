@@ -37,14 +37,14 @@ pA.cond          = cF.cond;         % Conditions to test against
 pA.numCond       = length(pA.cond); 
 pA.condVar       = cF.condVar;      % Variable to test the condition
 
-pltNm.pltNameMVi  = cF.pltNameMVi;
-pltNm.pltNameMVm  = cF.pltNameMVm;
+pA.pltNameMVi    = cF.pltNameMVi;
+pA.pltNameMVm    = cF.pltNameMVm;
 
 % Load all saved results and order into a large data structure
 allDataStr = []; % (numPart x numRuns)
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
-    fprintf('Sorting Runs for %s\n', participant)
+    fprintf('Loading Runs for %s\n', participant)
     
     subjRes  = [];
     for jj = 1:pA.numRuns
@@ -75,66 +75,69 @@ allSubjRes.audioMf0SecPertV = [];
 unSubM.respVar           = [];
 unSubV.respVar           = [];
 
-statLib = [];
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
-    fprintf('Combining task conditions for %s\n', participant)
+    fprintf('Sorting task conditions for %s\n', participant)
     
-    unpkStruc         = initUnpackStruct();
-    unpkStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
-    unpkStruc.curSess = [unpkStruc.subject ' ' pA.cond{jj}];
-        
+    sortStruc         = initSortedStruct(pA.numCond);
+    sortStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+    sortStruc.curSess = sortStruc.subject;
+ 
     for jj = 1:pA.numRuns
         curRun = allDataStr(ii, jj);
 
-        unpkStruc.studyID = curRun.subject; % Study ID
-        unpkStruc.AudFB   = curRun.AudFB;
+        sortStruc.studyID = curRun.subject; % Study ID
+        
+        whichCondAr = strcmp(pA.cond, eval(pA.condVar));
+        wC          = find(whichCondAr == 1);            % Which Condition?
+        
+        sortStruc.runs{wC}   = cat(1, sortStruc.runs{wC}, {curRun.run});
+        sortStruc.runf0b{wC} = cat(1, sortStruc.runf0b{wC}, curRun.f0b);
+        
+        sortStruc.AudFB{wC}  = cat(1, sortStruc.AudFB{wC}, {curRun.AudFB});    
 
-        unpkStruc.runs   = cat(1, unpkStruc.runs, curRun.run);
-        unpkStruc.runf0b = cat(1, unpkStruc.runf0b, curRun.f0b);
+        sortStruc.allContTrials{wC} = cat(1, sortStruc.allContTrials{wC}, curRun.numContTrialsFin);
+        sortStruc.allPertTrials{wC} = cat(1, sortStruc.allPertTrials{wC}, curRun.numPertTrialsFin);
 
-        unpkStruc.allContTrials = cat(1, unpkStruc.allContTrials, curRun.numContTrialsFin);
-        unpkStruc.allPertTrials = cat(1, unpkStruc.allPertTrials, curRun.numPertTrialsFin);
-
-        unpkStruc.secTime = curRun.secTime;
-        unpkStruc.audioMf0SecPert = cat(2, unpkStruc.audioMf0SecPert, curRun.audioMf0SecPert);
-        unpkStruc.audioMf0SecCont = cat(2, unpkStruc.audioMf0SecCont, curRun.audioMf0SecCont);
-        unpkStruc.respVar         = cat(1, unpkStruc.respVar, curRun.respVar);
+        sortStruc.secTime             = curRun.secTime;
+        sortStruc.audioMf0SecPert{wC} = cat(2, sortStruc.audioMf0SecPert{wC}, curRun.audioMf0SecPert);
+        sortStruc.audioMf0SecCont{wC} = cat(2, sortStruc.audioMf0SecCont{wC}, curRun.audioMf0SecCont);
+        sortStruc.respVar{wC}         = cat(1, sortStruc.respVar{wC}, curRun.respVar);
     end
         
-    unpkStruc.f0b             = mean(unpkStruc.runf0b);
+    for kk = 1:pA.numCond
+        sortStruc.f0b(kk)              = mean(sortStruc.runf0b{kk});
+        sortStruc.numContTrialsFin(kk) = sum(sortStruc.allContTrials{kk});
+        sortStruc.numPertTrialsFin(kk) = sum(sortStruc.allPertTrials{kk});
+        
+        sortStruc.audioMf0MeanPert{kk} = meanSecData(sortStruc.audioMf0SecPert{kk});
+        sortStruc.audioMf0MeanCont{kk} = meanSecData(sortStruc.audioMf0SecCont{kk});
+        sortStruc.respVarM(kk, :)      = mean(sortStruc.respVar{kk}, 1);
+    end
+   
+    lims = identifyLimits(sortStruc);
+    sortStruc.limitsAmean = lims.audioMean;
 
-    unpkStruc.numContTrialsFin = sum(unpkStruc.allContTrials);
-    unpkStruc.numPertTrialsFin = sum(unpkStruc.allPertTrials);
-
-    unpkStruc.audioMf0MeanPert = meanSecData(unpkStruc.audioMf0SecPert);
-    unpkStruc.audioMf0MeanCont = meanSecData(unpkStruc.audioMf0SecCont);
-    unpkStruc.respVarM         = mean(unpkStruc.respVar, 1);
-
-    lims = identifyLimits(unpkStruc, 0);
-    unpkStruc.limitsAmean = lims.audioMean;
-
-    combDataStr(ii,jj) = unpkStruc;        
-
-    mask = combDataStr(ii,1);
-    voic = combDataStr(ii,2); 
+    statLib            = packStatLib(sortStruc);
+    sortStruc.statLib  = statLib;
+    sortStruc.pltName  = pA.pltNameMVi(ii);
     
-    statLib(ii,:) = packStatLib(mask, voic);
-    
-    allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrialsFin + voic.numContTrialsFin;
-    allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrialsFin;
-    allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrialsFin;
-    
-    allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
-    allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);
-    
-    % This will take all the control trials from all conditions and
-    % concatenate them in one big matrix
-    allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, mask.audioMf0SecCont);
-    allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, voic.audioMf0SecCont);
-    
-    unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
-    unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
+    pooledRunStr(ii)   = sortStruc;        
+   
+%     allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrialsFin + voic.numContTrialsFin;
+%     allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrialsFin;
+%     allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrialsFin;
+%     
+%     allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
+%     allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);
+%     
+%     % This will take all the control trials from all conditions and
+%     % concatenate them in one big matrix
+%     allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, mask.audioMf0SecCont);
+%     allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, voic.audioMf0SecCont);
+%     
+%     unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
+%     unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
 end
 
 allSubjRes.secTime           = mask.secTime;
@@ -173,40 +176,42 @@ dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 % xlswrite(dirs.excelFile, statLib, 1)
 end
 
-function combineTaskCond 
+function combineTaskCond()
+
+
 
 
 end
 
-function unpkStr = initUnpackStruct()
+function sortStr = initSortedStruct(numCond)
 
-unpkStr.subject = [];
-unpkStr.curSess = [];
-unpkStr.studyID = [];
-unpkStr.AudFB   = [];
-unpkStr.runs    = {};
+sortStr.subject = [];
+sortStr.curSess = [];
+sortStr.studyID = [];
+sortStr.runs    = cell(numCond, 1);
+sortStr.runf0b  = cell(numCond, 1);
+sortStr.f0b     = zeros(numCond, 1);
 
-unpkStr.runf0b  = [];
-unpkStr.f0b     = [];
+sortStr.AudFB   = cell(numCond, 1);
 
-unpkStr.allContTrials    = [];
-unpkStr.numContTrialsFin = [];
-unpkStr.allPertTrials    = [];
-unpkStr.numPertTrialsFin = [];
+sortStr.allContTrials    = cell(numCond, 1);
+sortStr.numContTrialsFin = zeros(numCond, 1);
+sortStr.allPertTrials    = cell(numCond, 1);
+sortStr.numPertTrialsFin = zeros(numCond, 1);
 
-unpkStr.secTime         = [];
-unpkStr.audioMf0SecPert = [];
-unpkStr.audioMf0SecCont = [];
-unpkStr.respVar         = [];
+sortStr.secTime         = [];
+sortStr.audioMf0SecPert = cell(numCond, 1);
+sortStr.audioMf0SecCont = cell(numCond, 1);
+sortStr.respVar         = cell(numCond, 1);
 
-unpkStr.audioMf0MeanPert = [];
-unpkStr.audioMf0MeanCont = [];
-unpkStr.respVarM         = [];
+sortStr.audioMf0MeanPert = cell(numCond, 1);
+sortStr.audioMf0MeanCont = cell(numCond, 1);
+sortStr.respVarM         = zeros(numCond, 4);
 
-unpkStr.tossedAll        = [];
-unpkStr.tossedLate       = [];
-unpkStr.tossedBreak      = [];
-unpkStr.tossedMisCalc    = [];
+sortStr.tossedAll        = [];
+sortStr.tossedLate       = [];
+sortStr.tossedBreak      = [];
+sortStr.tossedMisCalc    = [];
 end
 
 function meanData = meanSecData(secData)
@@ -253,7 +258,7 @@ unSubCC.respVar        = [];
 
 for ii = 1:numSubj
     for kk = 1:numCollarPos
-        subjColl = initUnpackStruct();
+        subjColl = initSortedStruct();
         
         subjColl.subject = allDataStr(ii, 1, 1).subject;
         subjColl.curSess = [subjColl.subject 'Resp_CollarLoc'];
@@ -385,55 +390,67 @@ CRm.respVarMCC         = unSubCC.respVarM;
 % CRm.limitsAmeanV = limsCC.audioMean;
 end
 
-function statLib = packStatLib(mask, voic)
+function statLib = packStatLib(ss)
 
-[~, pStim] = ttest2(mask.respVar(:,2), voic.respVar(:,2));
-[~, pResp] = ttest2(mask.respVar(:,3), voic.respVar(:,3));
-[~, pPerc] = ttest2(mask.respVar(:,4), voic.respVar(:,4));
+cond1 = ss.respVar{1};
+cond2 = ss.respVar{2};
 
-statLib(1) = mask.respVarM(2); %Masking StimMag
-statLib(2) = voic.respVarM(2); %Voicing StimMag
-statLib(3) = mask.respVarM(3); %Masking RespMag
-statLib(4) = voic.respVarM(3); %Voicing RespMag
-statLib(5) = mask.respVarM(4); %Masking %
-statLib(6) = voic.respVarM(4); %Voicing %
-statLib(7) = pStim; %p-value stimulus
-statLib(8) = pResp; %p-value response
-statLib(9) = pPerc; %p-value percent increase 
+condM1 = ss.respVarM(1,:);
+condM2 = ss.respVarM(2,:);
+
+[~, pStim] = ttest2(cond1(:,2), cond2(:,2));
+[~, pResp] = ttest2(cond1(:,3), cond2(:,3));
+[~, pPerc] = ttest2(cond1(:,4), cond2(:,4));
+
+statLib(1) = condM1(2); % Condition 1 StimMag
+statLib(2) = condM2(2); % Condition 2 StimMag
+statLib(3) = condM1(3); % Condition 1 RespMag
+statLib(4) = condM2(3); % Condition 2 RespMag
+statLib(5) = condM1(4); % Condition 1 %
+statLib(6) = condM2(4); % Condition 2 %
+statLib(7) = pStim;     % p-value stimulus
+statLib(8) = pResp;     % p-value response
+statLib(9) = pPerc;     % p-value percent increase 
 end
 
-function lims = identifyLimits(An, fl)
+function lims = identifyLimits(ss)
 
-%Section Mean Pertrubed Trials: f0 Audio 
-if fl == 1
-    audioMean = An.audioMf0MeanPertM;
-elseif fl == 2
-    audioMean = An.audioMf0MeanPertV;
-else
-    audioMean = An.audioMf0MeanPert;
+mf0MeanPert = ss.audioMf0MeanPert;
+numCond = length(mf0MeanPert);
+
+setupBoundSec = zeros(numCond, 1);
+setlwBoundSec = zeros(numCond, 1);
+for ii = 1:numCond
+    audioMean = mf0MeanPert{ii};    
+
+    [~, Imax] = max(audioMean(:,1)); %Max Pert Onset
+    upBoundOn = round(audioMean(Imax,1) + audioMean(Imax,2) + 10);
+    [~, Imin] = min(audioMean(:,1)); %Min Pert Onset
+    lwBoundOn = round(audioMean(Imin,1) - audioMean(Imin,2) - 10);
+
+    [~, Imax] = max(audioMean(:,3)); %Max Pert Offset
+    upBoundOf = round(audioMean(Imax,3) + audioMean(Imax,4) + 10);
+    [~, Imin] = min(audioMean(:,3)); %Min Pert Offset
+    lwBoundOf = round(audioMean(Imin,3) - audioMean(Imin,4) - 10);
+
+    if upBoundOn > upBoundOf
+        upBoundSec = upBoundOn;
+    else
+        upBoundSec = upBoundOf;
+    end
+
+    if lwBoundOn < lwBoundOf
+        lwBoundSec = lwBoundOn;
+    else
+        lwBoundSec = lwBoundOf;
+    end
+    
+    setupBoundSec(ii) = upBoundSec;
+    setlwBoundSec(ii) = lwBoundSec;  
 end
 
-[~, Imax] = max(audioMean(:,1)); %Max Pert Onset
-upBoundOn = round(audioMean(Imax,1) + audioMean(Imax,2) + 10);
-[~, Imin] = min(audioMean(:,1)); %Min Pert Onset
-lwBoundOn = round(audioMean(Imin,1) - audioMean(Imin,2) - 10);
+maxUpBound = max(setupBoundSec);
+minLwBound = min(setlwBoundSec);
 
-[~, Imax] = max(audioMean(:,3)); %Max Pert Offset
-upBoundOf = round(audioMean(Imax,3) + audioMean(Imax,4) + 10);
-[~, Imin] = min(audioMean(:,3)); %Min Pert Offset
-lwBoundOf = round(audioMean(Imin,3) - audioMean(Imin,4) - 10);
-
-if upBoundOn > upBoundOf
-    upBoundSec = upBoundOn;
-else
-    upBoundSec = upBoundOf;
-end
-
-if lwBoundOn < lwBoundOf
-    lwBoundSec = lwBoundOn;
-else
-    lwBoundSec = lwBoundOf;
-end
-
-lims.audioMean = [-0.5 1.0 lwBoundSec upBoundSec];
+lims.audioMean = [-0.5 1.0 minLwBound maxUpBound];
 end
