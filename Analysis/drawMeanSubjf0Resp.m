@@ -127,6 +127,16 @@ statBox = annotation('textbox',[.30 .75 0.45 0.1],...
                       'FontSize', legAnnoFSize,...
                       'FontWeight','bold');
 
+if ~strcmp(curSess,  'Mean Participant Response')
+    figureL = pltName(end);
+    figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
+                            'string', figureL,...
+                            'LineStyle', 'none',...
+                            'FontName', fontN,...
+                            'FontSize', titleFSize,...
+                            'FontWeight','bold');
+end
+
 legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numControl) ' Control Trials'], [num2str(numPerturb(1)) ' Masked Trials'], [num2str(numPerturb(2)) ' Not Masked Trials']},...
             'Position', [0.83 0.75 0.1 0.1],...
             'Box', 'off',...
@@ -142,25 +152,6 @@ for i = 1:length(plots)
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
 end
-end
-
-function limits = checkLims(limitsM, limitsV)
-
-if limitsM(3) < limitsV(3)
-    lwLimit = limitsM(3);
-else
-    lwLimit = limitsV(3);
-end
-
-if limitsM(4) > limitsV(4)
-    upLimit = limitsM(4);
-else
-    upLimit = limitsV(4);
-end
-
-limits    = limitsV;
-limits(3) = lwLimit;
-limits(4) = upLimit;
 end
 
 function anno = checkSig(stat, thresh, anno)
