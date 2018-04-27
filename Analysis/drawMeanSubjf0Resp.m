@@ -1,4 +1,4 @@
-function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder)
+function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder, fLabel)
 
 curSess          = poolRes.curSess;
 numControl       = poolRes.numContTrialsFin;
@@ -127,7 +127,7 @@ statBox = annotation('textbox',[.30 .75 0.45 0.1],...
                       'FontSize', legAnnoFSize,...
                       'FontWeight','bold');
 
-if ~strcmp(curSess,  'Mean Participant Response')
+if fLabel == 1
     figureL = pltName(end);
     figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
                             'string', figureL,...

@@ -18,8 +18,8 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
-PolPlt.MaskVVoice        = 0;
-PolPlt.AllSubjMaskvVoice = 0;
+PolPlt.MaskVVoice        = 1;
+PolPlt.AllSubjMaskvVoice = 1;
 
 ppi        = 300;
 scRes      = [2560 1440];
@@ -46,28 +46,30 @@ if PolPlt.MeanTrialMicf0 == 1
 end
 
 if PolPlt.MaskVVoice == 1
+    fLabel = 0;
     numIndivi = length(pooledRunStr);
     for ii = 1:numIndivi
-        drawMeanSubjf0Resp(pooledRunStr(ii), targPixDim, dirs.SavResultsDir)
+        drawMeanSubjf0Resp(pooledRunStr(ii), targPixDim, dirs.SavResultsDir, fLabel)
     end
 end
 
 if PolPlt.AllSubjMaskvVoice == 1
-    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir)
+    fLabel = 0;
+    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel)
 end
 
-if strcmp(PolPlt.analyses, 'LarynxPos') == 1
-    numIndivi = length(pltNm.pltNameMVi);
-    
-    for ii = 1:numIndivi
-        pltName = ['LarynxPos ' CRi(ii).curSess];
-        drawMeanSubjf0Resp_CollarPosDiff(CRi(ii), targPixDim, pltName, dirs.SavResultsDir)
-        pause(1.0)
-    end
-    
-    pltName = ['LarynxPos ' CRm.curSess];
-    drawMeanSubjf0Resp_CollarPosDiff(CRm, targPixDim, pltName, dirs.SavResultsDir)
-end
+% if strcmp(PolPlt.analyses, 'LarynxPos') == 1
+%     numIndivi = length(pltNm.pltNameMVi);
+%     
+%     for ii = 1:numIndivi
+%         pltName = ['LarynxPos ' CRi(ii).curSess];
+%         drawMeanSubjf0Resp_CollarPosDiff(CRi(ii), targPixDim, pltName, dirs.SavResultsDir)
+%         pause(1.0)
+%     end
+%     
+%     pltName = ['LarynxPos ' CRm.curSess];
+%     drawMeanSubjf0Resp_CollarPosDiff(CRm, targPixDim, pltName, dirs.SavResultsDir)
+% end
 
 close all
 end
