@@ -65,15 +65,9 @@ for ii = 1:pA.numPart
     allDataStr = cat(1, allDataStr, subjRes);
 end
 
-allSubjRes.numControlTrials = 0;
-allSubjRes.numMaskedTrials  = 0;
-allSubjRes.numVoicedTrials  = 0;
-allSubjRes.secTime          = [];
-allSubjRes.audioMf0SecCont  = [];
-allSubjRes.audioMf0SecPertM = [];
-allSubjRes.audioMf0SecPertV = [];
-unSubM.respVar           = [];
-unSubV.respVar           = [];
+allSubjRes         = initSortedStruct(pA.numCond);
+allSubjRes.subject = 'Mean Participant Response';
+allSubjRes.curSess = allSubjRes.subject; 
 
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
@@ -84,25 +78,12 @@ for ii = 1:pA.numPart
     sortStruc.curSess = sortStruc.subject;
  
     for jj = 1:pA.numRuns
-        curRun = allDataStr(ii, jj);
+        curRes = allDataStr(ii, jj);
 
-        sortStruc.studyID = curRun.subject; % Study ID
+        sortStruc.studyID = curRes.subject; % Study ID
         
-        whichCondAr = strcmp(pA.cond, eval(pA.condVar));
-        wC          = find(whichCondAr == 1);            % Which Condition?
-        
-        sortStruc.runs{wC}   = cat(1, sortStruc.runs{wC}, {curRun.run});
-        sortStruc.runf0b{wC} = cat(1, sortStruc.runf0b{wC}, curRun.f0b);
-        
-        sortStruc.AudFB{wC}  = cat(1, sortStruc.AudFB{wC}, {curRun.AudFB});    
-
-        sortStruc.allContTrials{wC} = cat(1, sortStruc.allContTrials{wC}, curRun.numContTrialsFin);
-        sortStruc.allPertTrials{wC} = cat(1, sortStruc.allPertTrials{wC}, curRun.numPertTrialsFin);
-
-        sortStruc.secTime             = curRun.secTime;
-        sortStruc.audioMf0SecPert{wC} = cat(2, sortStruc.audioMf0SecPert{wC}, curRun.audioMf0SecPert);
-        sortStruc.audioMf0SecCont{wC} = cat(2, sortStruc.audioMf0SecCont{wC}, curRun.audioMf0SecCont);
-        sortStruc.respVar{wC}         = cat(1, sortStruc.respVar{wC}, curRun.respVar);
+        sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
+        allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
     end
         
     for kk = 1:pA.numCond
@@ -123,64 +104,57 @@ for ii = 1:pA.numPart
     sortStruc.pltName  = pA.pltNameMVi(ii);
     
     pooledRunStr(ii)   = sortStruc;        
-   
-%     allSubjRes.numControlTrials = allSubjRes.numControlTrials + mask.numContTrialsFin + voic.numContTrialsFin;
-%     allSubjRes.numMaskedTrials = allSubjRes.numMaskedTrials + mask.numPertTrialsFin;
-%     allSubjRes.numVoicedTrials = allSubjRes.numVoicedTrials + voic.numPertTrialsFin;
-%     
-%     allSubjRes.audioMf0SecPertM = cat(2, allSubjRes.audioMf0SecPertM, mask.audioMf0SecPert);
-%     allSubjRes.audioMf0SecPertV = cat(2, allSubjRes.audioMf0SecPertV, voic.audioMf0SecPert);
-%     
-%     % This will take all the control trials from all conditions and
-%     % concatenate them in one big matrix
-%     allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, mask.audioMf0SecCont);
-%     allSubjRes.audioMf0SecCont = cat(2, allSubjRes.audioMf0SecCont, voic.audioMf0SecCont);
-%     
-%     unSubM.respVar = cat(1, unSubM.respVar, mask.respVar);
-%     unSubV.respVar = cat(1, unSubV.respVar, voic.respVar);
 end
 
-allSubjRes.secTime           = mask.secTime;
-allSubjRes.audioMf0MeanCont  = meanSecData(allSubjRes.audioMf0SecCont);
-allSubjRes.audioMf0MeanPertM = meanSecData(allSubjRes.audioMf0SecPertM);
-allSubjRes.audioMf0MeanPertV = meanSecData(allSubjRes.audioMf0SecPertV);
+for kk = 1:pA.numCond
+    allSubjRes.f0b(kk)              = mean(allSubjRes.runf0b{kk});
+    allSubjRes.numContTrialsFin(kk) = sum(allSubjRes.allContTrials{kk});
+    allSubjRes.numPertTrialsFin(kk) = sum(allSubjRes.allPertTrials{kk});
 
-unSubM.respVarM              = mean(unSubM.respVar, 1);
-unSubV.respVarM              = mean(unSubV.respVar, 1);
-
-allSubjRes.respVarM          = unSubM.respVar;
-allSubjRes.respVarV          = unSubV.respVar;
-allSubjRes.respVarmM         = unSubM.respVarM;
-allSubjRes.respVarmV         = unSubV.respVarM;
-
-limsM = identifyLimits(allSubjRes, 1);
-allSubjRes.limitsAmeanM = limsM.audioMean;
-limsV = identifyLimits(allSubjRes, 2);
-allSubjRes.limitsAmeanV = limsV.audioMean;
-
-statLibAll = packStatLib(unSubM, unSubV);
-
-if strcmp(pA.pAnalysis, 'LarynxPos') == 1
-    [CRi, CRm] = collarResultConcat(allDataStr);
-else
-    CRi = []; CRm = [];
+    allSubjRes.audioMf0MeanPert{kk} = meanSecData(allSubjRes.audioMf0SecPert{kk});
+    allSubjRes.audioMf0MeanCont{kk} = meanSecData(allSubjRes.audioMf0SecCont{kk});
+    allSubjRes.respVarM(kk, :)      = mean(allSubjRes.respVar{kk}, 1);
 end
 
+lims = identifyLimits(allSubjRes);
+allSubjRes.limitsAmean = lims.audioMean;
+
+statLib             = packStatLib(allSubjRes);
+allSubjRes.statLib  = statLib;
+allSubjRes.pltName  = pA.pltNameMVm;
+
+% if strcmp(pA.pAnalysis, 'LarynxPos') == 1
+%     [CRi, CRm] = collarResultConcat(allDataStr);
+% else
+%     CRi = []; CRm = [];
+% end
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
-save(dirs.SavResultsFile, 'allDataStr', 'combDataStr', 'statLib', 'allSubjRes', 'statLibAll', 'pltNm', 'CRi', 'CRm')
+save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 
 dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 % xlswrite(dirs.excelFile, statLib, 1)
 end
 
-function combineTaskCond()
+function polRes = combineCondTrials(pA, curRes, polRes)
 
+whichCondAr = strcmp(pA.cond, eval(pA.condVar));
+wC          = find(whichCondAr == 1);            % Which Condition?
 
+polRes.runs{wC}   = cat(1, polRes.runs{wC}, {curRes.run});
+polRes.runf0b{wC} = cat(1, polRes.runf0b{wC}, curRes.f0b);
 
+polRes.AudFB{wC}  = cat(1, polRes.AudFB{wC}, {curRes.AudFB});    
 
+polRes.allContTrials{wC} = cat(1, polRes.allContTrials{wC}, curRes.numContTrialsFin);
+polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrialsFin);
+
+polRes.secTime             = curRes.secTime;
+polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
+polRes.audioMf0SecCont{wC} = cat(2, polRes.audioMf0SecCont{wC}, curRes.audioMf0SecCont);
+polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 end
 
 function sortStr = initSortedStruct(numCond)

@@ -32,7 +32,7 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4';...
 testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
 
 % The Recording Variable to check for the condition
-condVar = 'curRun.AudFB';
+condVar = 'curRes.AudFB';
 
 % How do you want to title the Result Plots?
 pltNameTop = 'SfN2017Results Figure ';
