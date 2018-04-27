@@ -1,27 +1,14 @@
-function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder, fLabel)
+function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder, fLabel, fStat)
 
 curSess          = poolRes.curSess;
+cond             = poolRes.cond;
+numCond          = length(cond);
 numControl       = poolRes.numContTrialsFin;
 numPerturb       = poolRes.numPertTrialsFin;
 
 time             = poolRes.secTime;
 contf0           = poolRes.audioMf0MeanCont;  
-pertF0           = poolRes.audioMf0MeanPert;
-
-meanf0ContOnset  = contf0(:,1);
-CIf0ContOnset    = contf0(:,2);
-meanf0ContOffset = contf0(:,3);
-CIf0ContOffset   = contf0(:,4);
-
-meanf0PertOnsetM  = pertF0{1}(:,1);
-CIf0PertOnsetM    = pertF0{1}(:,2);
-meanf0PertOffsetM = pertF0{1}(:,3);
-CIf0PertOffsetM   = pertF0{1}(:,4);
-
-meanf0PertOnsetV  = pertF0{2}(:,1);
-CIf0PertOnsetV    = pertF0{2}(:,2);
-meanf0PertOffsetV = pertF0{2}(:,3);
-CIf0PertOffsetV   = pertF0{2}(:,4);
+pertf0           = poolRes.audioMf0MeanPert;
 
 statLib = poolRes.statLib;
 statSMM = round(statLib(1), 1);
@@ -34,8 +21,11 @@ statSP  = statLib(7);
 statRP  = statLib(8);
 statPP  = statLib(9);
 
-limits = poolRes.limitsAmean;
+limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
+
+legLines = [];
+legNames = {};
 
 pValueThresh = 0.05;
 
@@ -47,8 +37,7 @@ set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 dottedStartx = [0 0];
 dottedy      = [-500 500];
-maskColor    = 'b';
-voicColor    = 'r';
+condColors   = {'b', 'r', 'g', 'm'};
 fontN        = 'Arial';
 legAnnoFSize = 25;
 titleFSize   = 35;
@@ -61,22 +50,23 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 axes(ha(1))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-nC = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', 'k', 'transparent', 1); %Voice
-hold on
-nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
-hold on
-nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
-set(nM.mainLine, 'LineWidth', lineThick)
-set(nV.mainLine, 'LineWidth', lineThick)
+nC = shadedErrorBar(time, contf0(:,1), contf0(:,2), 'lineprops', 'k', 'transparent', 1);
 set(nC.mainLine, 'LineWidth', lineThick)
+hold on
+
+for ii = 1:numCond
+    nM = shadedErrorBar(time, pertf0{ii}(:,1), pertf0{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
+    set(nM.mainLine, 'LineWidth', lineThick)
+    hold on
+end
+
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
-        'FontName', fontN,...
+set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
@@ -84,22 +74,27 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 axes(ha(2))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-fC = shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', 'k', 'transparent', 1); %Voice
-hold on
-fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
-hold on
-fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
-set(fM.mainLine, 'LineWidth', lineThick)
-set(fV.mainLine, 'LineWidth', lineThick)
+fC = shadedErrorBar(time, contf0(:,3), contf0(:,4), 'lineprops', 'k', 'transparent', 1);
 set(fC.mainLine, 'LineWidth', lineThick)
+legLines = cat(2, legLines, fC.mainLine);
+legNames = cat(2, legNames, {[num2str(numControl) ' Control Trials']});
+hold on
+
+for ii = 1:numCond
+    fM = shadedErrorBar(time, pertf0{ii}(:,3), pertf0{ii}(:,4), 'lineprops', condColors(ii), 'transparent', 1);
+    set(fM.mainLine, 'LineWidth', lineThick)
+    legLines = cat(2, legLines, fM.mainLine);
+    legNames = cat(2, legNames, {[num2str(numPerturb(ii)) ' ' cond{ii} ' Trials']});
+    hold on
+end
+
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 title('Offset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
-        'FontName', fontN,...
+set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
@@ -117,15 +112,17 @@ annoPerc = ['RP (M/NM): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
 annoStim = checkSig(statSP, pValueThresh, annoStim);
 annoResp = checkSig(statRP, pValueThresh, annoResp);
 annoPerc = checkSig(statPP, pValueThresh, annoPerc);
- 
-statBox = annotation('textbox',[.30 .75 0.45 0.1],...
-                     'string', {annoStim;
-                                annoResp
-                                annoPerc},...
-                      'LineStyle','none',...
-                      'FontName', fontN,...
-                      'FontSize', legAnnoFSize,...
-                      'FontWeight','bold');
+
+if fStat == 1
+    statBox = annotation('textbox',[.30 .75 0.45 0.1],...
+                         'string', {annoStim;
+                                    annoResp
+                                    annoPerc},...
+                          'LineStyle','none',...
+                          'FontName', fontN,...
+                          'FontSize', legAnnoFSize,...
+                          'FontWeight','bold');
+end
 
 if fLabel == 1
     figureL = pltName(end);
@@ -137,13 +134,13 @@ if fLabel == 1
                             'FontWeight','bold');
 end
 
-legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numControl) ' Control Trials'], [num2str(numPerturb(1)) ' Masked Trials'], [num2str(numPerturb(2)) ' Not Masked Trials']},...
-            'Position', [0.83 0.75 0.1 0.1],...
-            'Box', 'off',...
-            'Edgecolor', [1 1 1],...
-            'FontName', fontN,...
-            'FontSize', legAnnoFSize,...
-            'FontWeight', 'bold');
+legend(legLines, legNames,...
+       'Position', [0.83 0.75 0.1 0.1],...
+       'Box', 'off',...
+       'Edgecolor', [1 1 1],...
+       'FontName', fontN,...
+       'FontSize', legAnnoFSize,...
+       'FontWeight', 'bold');
 
 plots = {'Figure'};
 for i = 1:length(plots)
