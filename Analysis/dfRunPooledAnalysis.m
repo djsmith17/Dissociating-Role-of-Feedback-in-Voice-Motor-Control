@@ -86,13 +86,13 @@ for ii = 1:pA.numPart
         allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
     end
         
+    sortStruc.numContTrialsFin = sum(sortStruc.allContTrials);
+    sortStruc.audioMf0MeanCont = meanSecData(sortStruc.audioMf0SecCont);
     for kk = 1:pA.numCond
         sortStruc.f0b(kk)              = mean(sortStruc.runf0b{kk});
-        sortStruc.numContTrialsFin(kk) = sum(sortStruc.allContTrials{kk});
-        sortStruc.numPertTrialsFin(kk) = sum(sortStruc.allPertTrials{kk});
         
+        sortStruc.numPertTrialsFin(kk) = sum(sortStruc.allPertTrials{kk});
         sortStruc.audioMf0MeanPert{kk} = meanSecData(sortStruc.audioMf0SecPert{kk});
-        sortStruc.audioMf0MeanCont{kk} = meanSecData(sortStruc.audioMf0SecCont{kk});
         sortStruc.respVarM(kk, :)      = mean(sortStruc.respVar{kk}, 1);
     end
    
@@ -106,13 +106,13 @@ for ii = 1:pA.numPart
     pooledRunStr(ii)   = sortStruc;        
 end
 
+allSubjRes.numContTrialsFin = sum(allSubjRes.allContTrials);
+allSubjRes.audioMf0MeanCont = meanSecData(allSubjRes.audioMf0SecCont);
 for kk = 1:pA.numCond
     allSubjRes.f0b(kk)              = mean(allSubjRes.runf0b{kk});
-    allSubjRes.numContTrialsFin(kk) = sum(allSubjRes.allContTrials{kk});
+    
     allSubjRes.numPertTrialsFin(kk) = sum(allSubjRes.allPertTrials{kk});
-
     allSubjRes.audioMf0MeanPert{kk} = meanSecData(allSubjRes.audioMf0SecPert{kk});
-    allSubjRes.audioMf0MeanCont{kk} = meanSecData(allSubjRes.audioMf0SecCont{kk});
     allSubjRes.respVarM(kk, :)      = mean(allSubjRes.respVar{kk}, 1);
 end
 
@@ -148,12 +148,12 @@ polRes.runf0b{wC} = cat(1, polRes.runf0b{wC}, curRes.f0b);
 
 polRes.AudFB{wC}  = cat(1, polRes.AudFB{wC}, {curRes.AudFB});    
 
-polRes.allContTrials{wC} = cat(1, polRes.allContTrials{wC}, curRes.numContTrialsFin);
+polRes.allContTrials     = cat(1, polRes.allContTrials, curRes.numContTrialsFin);
 polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrialsFin);
 
 polRes.secTime             = curRes.secTime;
 polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
-polRes.audioMf0SecCont{wC} = cat(2, polRes.audioMf0SecCont{wC}, curRes.audioMf0SecCont);
+polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 end
 
@@ -168,18 +168,18 @@ sortStr.f0b     = zeros(numCond, 1);
 
 sortStr.AudFB   = cell(numCond, 1);
 
-sortStr.allContTrials    = cell(numCond, 1);
-sortStr.numContTrialsFin = zeros(numCond, 1);
+sortStr.allContTrials    = [];
+sortStr.numContTrialsFin = 0;
 sortStr.allPertTrials    = cell(numCond, 1);
 sortStr.numPertTrialsFin = zeros(numCond, 1);
 
 sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
-sortStr.audioMf0SecCont = cell(numCond, 1);
+sortStr.audioMf0SecCont = [];
 sortStr.respVar         = cell(numCond, 1);
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
-sortStr.audioMf0MeanCont = cell(numCond, 1);
+sortStr.audioMf0MeanCont = [];
 sortStr.respVarM         = zeros(numCond, 4);
 
 sortStr.tossedAll        = [];
