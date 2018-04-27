@@ -1,28 +1,29 @@
-function drawMeanSubjf0Resp(allSubjRes, statLib, targPixDim, pltName, plotFolder)
+function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder)
 
-curSess          = 'Mean Participant Response';
-numControl       = allSubjRes.numControlTrials;
-numMasked        = allSubjRes.numMaskedTrials;
-numVoiced        = allSubjRes.numVoicedTrials;
+curSess          = poolRes.curSess;
+numControl       = poolRes.numContTrialsFin;
+numPerturb       = poolRes.numPertTrialsFin;
 
-time             = allSubjRes.secTime;
-meanf0ContOnset  = allSubjRes.audioMf0MeanCont(:,1);
-CIf0ContOnset    = allSubjRes.audioMf0MeanCont(:,2);
-meanf0ContOffset = allSubjRes.audioMf0MeanCont(:,3);
-CIf0ContOffset   = allSubjRes.audioMf0MeanCont(:,4);
+time             = poolRes.secTime;
+contf0           = poolRes.audioMf0MeanCont;  
+pertF0           = poolRes.audioMf0MeanPert;
 
-meanf0PertOnsetM  = allSubjRes.audioMf0MeanPertM(:,1);
-CIf0PertOnsetM    = allSubjRes.audioMf0MeanPertM(:,2);
-meanf0PertOffsetM = allSubjRes.audioMf0MeanPertM(:,3);
-CIf0PertOffsetM   = allSubjRes.audioMf0MeanPertM(:,4);
-limitsM           = allSubjRes.limitsAmeanM;
+meanf0ContOnset  = contf0(:,1);
+CIf0ContOnset    = contf0(:,2);
+meanf0ContOffset = contf0(:,3);
+CIf0ContOffset   = contf0(:,4);
 
-meanf0PertOnsetV  = allSubjRes.audioMf0MeanPertV(:,1);
-CIf0PertOnsetV    = allSubjRes.audioMf0MeanPertV(:,2);
-meanf0PertOffsetV = allSubjRes.audioMf0MeanPertV(:,3);
-CIf0PertOffsetV   = allSubjRes.audioMf0MeanPertV(:,4);
-limitsV           = allSubjRes.limitsAmeanV;
+meanf0PertOnsetM  = pertF0{1}(:,1);
+CIf0PertOnsetM    = pertF0{1}(:,2);
+meanf0PertOffsetM = pertF0{1}(:,3);
+CIf0PertOffsetM   = pertF0{1}(:,4);
 
+meanf0PertOnsetV  = pertF0{2}(:,1);
+CIf0PertOnsetV    = pertF0{2}(:,2);
+meanf0PertOffsetV = pertF0{2}(:,3);
+CIf0PertOffsetV   = pertF0{2}(:,4);
+
+statLib = poolRes.statLib;
 statSMM = round(statLib(1), 1);
 statSMV = round(statLib(2), 1);
 statRMM = round(statLib(3), 1);
@@ -33,7 +34,9 @@ statSP  = statLib(7);
 statRP  = statLib(8);
 statPP  = statLib(9);
 
-limits = checkLims(limitsM, limitsV);
+limits = poolRes.limitsAmean;
+pltName = poolRes.pltName;
+
 pValueThresh = 0.05;
 
 % Plotting Variables
@@ -124,7 +127,7 @@ statBox = annotation('textbox',[.30 .75 0.45 0.1],...
                       'FontSize', legAnnoFSize,...
                       'FontWeight','bold');
 
-legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numControl) ' Control Trials'], [num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
+legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numControl) ' Control Trials'], [num2str(numPerturb(1)) ' Masked Trials'], [num2str(numPerturb(2)) ' Not Masked Trials']},...
             'Position', [0.83 0.75 0.1 0.1],...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...
