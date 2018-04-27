@@ -1,9 +1,9 @@
-function LarynxPosGenConfig()
+function LarynxPosGenConfig2()
 % Run this script to generate Pooled Analysis configuration files for 
 % Larynx Pos piloting
 
 project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pAnalysis     = 'LarynxPos';
+pAnalysis     = 'LarynxPos2';
 
 dirs               = dfDirs(project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pAnalysis);
@@ -37,14 +37,14 @@ pooledRuns  = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
                'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'};
            
 % Conditions to test against
-testingConditions = {'LP', 'uLP', 'CC'};
+testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
 
 % The Recording Variable to check for the condition
-condVar = 'pA.cond{ceil(str2double(curRes.run(end))/2)}'; 
+condVar = 'curRes.AudFB'; 
 
 % How do you want to title the Result Plots?
 pltNameTop = 'LarynxPos ';
-testType = 'Resp_CollarLoc';
+testType = 'Resp_MaskvVoice';
 % MaskvVoice Individual
 pltNameMVi = {[pltNameTop 'Pilot29' testType],...
               [pltNameTop 'Pilot30' testType],...
