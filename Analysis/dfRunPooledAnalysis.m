@@ -101,7 +101,7 @@ for ii = 1:pA.numPart
 
     statLib            = packStatLib(sortStruc);
     sortStruc.statLib  = statLib;
-    sortStruc.pltName  = pA.pltNameMVi(ii);
+    sortStruc.pltName  = pA.pltNameMVi{ii};
     
     pooledRunStr(ii)   = sortStruc;        
 end
@@ -123,11 +123,11 @@ statLib             = packStatLib(allSubjRes);
 allSubjRes.statLib  = statLib;
 allSubjRes.pltName  = pA.pltNameMVm;
 
-% if strcmp(pA.pAnalysis, 'LarynxPos') == 1
-%     [CRi, CRm] = collarResultConcat(allDataStr);
-% else
-%     CRi = []; CRm = [];
-% end
+if strcmp(pA.pAnalysis, 'LarynxPos') == 1
+    [CRi, CRm] = collarResultConcat(allDataStr);
+else
+    CRi = []; CRm = [];
+end
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
