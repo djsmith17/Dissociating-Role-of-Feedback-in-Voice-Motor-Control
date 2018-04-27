@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'SfN2017'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -123,11 +123,11 @@ statLib             = packStatLib(allSubjRes);
 allSubjRes.statLib  = statLib;
 allSubjRes.pltName  = pA.pltNameMVm;
 
-if strcmp(pA.pAnalysis, 'LarynxPos') == 1
-    [CRi, CRm] = collarResultConcat(allDataStr);
-else
-    CRi = []; CRm = [];
-end
+% if strcmp(pA.pAnalysis, 'LarynxPos') == 1
+%     [CRi, CRm] = collarResultConcat(allDataStr);
+% else
+%     CRi = []; CRm = [];
+% end
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);

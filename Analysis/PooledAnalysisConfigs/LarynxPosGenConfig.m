@@ -40,7 +40,7 @@ pooledRuns  = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
 testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
 
 % The Recording Variable to check for the condition
-condVar = 'res.AudFB'; 
+condVar = 'curRes.AudFB'; 
 
 % How do you want to title the Result Plots?
 pltNameTop = 'LarynxPos ';
@@ -52,7 +52,7 @@ pltNameMVi = {[pltNameTop 'Pilot29' 'Resp_MaskvVoice'],...
               [pltNameTop 'Pilot33' 'Resp_MaskvVoice'],...
               [pltNameTop 'Pilot21' 'Resp_MaskvVoice'],...
               [pltNameTop 'Pilot28' 'Resp_MaskvVoice'],...
-              [pltNameTop 'Pilot0' 'Resp_MaskvVoice']};
+              [pltNameTop 'Pilot0'  'Resp_MaskvVoice']};
 
 pltNameMVm =  [pltNameTop 'MeanSubjResp_MaskvVoice'];
 
