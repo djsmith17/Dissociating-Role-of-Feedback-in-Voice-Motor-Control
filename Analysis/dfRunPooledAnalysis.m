@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'SfN2017'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -97,6 +97,11 @@ end
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
 
+fprintf('\nAcross all subjects, analyses threw away %d trials.\n', allSubjRes.tossedAll);
+fprintf('%d trials were thrown away due to late starts\n', allSubjRes.tossedLate);
+fprintf('%d trials were thrown away due to voice breaks\n', allSubjRes.tossedBreak);
+fprintf('%d trials were thrown away due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
@@ -131,10 +136,10 @@ sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
 sortStr.respVarM         = zeros(numCond, 4);
 
-sortStr.tossedAll        = [];
-sortStr.tossedLate       = [];
-sortStr.tossedBreak      = [];
-sortStr.tossedMisCalc    = [];
+sortStr.tossedAll        = 0;
+sortStr.tossedLate       = 0;
+sortStr.tossedBreak      = 0;
+sortStr.tossedMisCalc    = 0;
 end
 
 function polRes = combineCondTrials(pA, curRes, polRes)
@@ -154,6 +159,23 @@ polRes.secTime             = curRes.secTime;
 polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
+
+tT = curRes.removedTrialTracker;
+if ~isempty(tT)
+    [tossedA, ~] = size(tT);
+    tossedL = sum(strcmp(tT(:,2), 'Participant started too late!!'));
+    tossedB = sum(strcmp(tT(:,2), 'Participant had a voice break!!'));
+    tossedC = sum(strcmp(tT(:,2), 'Miscalculated pitch Trace'));
+else
+    tossedA = 0;
+    tossedL = 0;
+    tossedB = 0;
+    tossedC = 0;
+end
+polRes.tossedAll     = polRes.tossedAll + tossedA;
+polRes.tossedLate    = polRes.tossedLate + tossedL;
+polRes.tossedBreak   = polRes.tossedBreak + tossedB;
+polRes.tossedMisCalc = polRes.tossedMisCalc + tossedC;
 end
 
 function polRes = meanCondTrials(pA, polRes)
