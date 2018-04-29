@@ -187,9 +187,9 @@ if strcmp(AudFB, 'Masking Noise')
 else
     AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
     [timeSet, delaySet] = MHdelayChunked(micR, headR, fs);
-    figure
-    plot(timeSet, delaySet)
-    pause; close
+%     figure
+%     plot(timeSet, delaySet)
+%     pause; close
 end
 AuMHdelayP = AuMHdelay*fs;
 

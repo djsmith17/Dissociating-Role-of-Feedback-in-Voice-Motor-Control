@@ -22,11 +22,11 @@ function dfRunAFPerturbOffline()
 close all;
 ET = tic;
 rng('shuffle');
-debug = 1;
+debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'PureTone200';    % Subject#, Pilot#, null
-run        = 'AF4';     % AF1, DS1, etc
+run        = 'AF8';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
@@ -77,7 +77,7 @@ expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 expParam.bVis         = 1;
-expParam.bPlay        = 1;
+expParam.bPlay        = 0;
 
 expParam.baseRun      = BaseRun;
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
@@ -150,7 +150,7 @@ if collectNewData == 1
 
     %Select the trigger points for perturbation onset and offset and creating
     %the digital signal to be sent to the NIDAQ
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);
 
     expParam.cuePause  = 1.0; % How long the cue period lasts
     expParam.buffPause = 0.2; % Give them a moment to start speaking
@@ -252,7 +252,7 @@ load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
 fs       = DRF.expParam.sRateAnal;
-mic      = [baseData.signalIn; zeros(fs*0.15,1)];
+mic      = [baseData.signalIn; zeros(fs*0.05,1)];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
 
