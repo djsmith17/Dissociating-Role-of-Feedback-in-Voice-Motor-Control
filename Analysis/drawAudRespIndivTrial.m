@@ -46,7 +46,7 @@ for ii = 1:numPT
         ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
     end
     
-    title({['Trial ' num2str(ii)], [num2str(pertTrig(ii,1)) '  ' num2str(pertTrig(ii,2))], [AuNiDelays(ii)]}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
+    title({['Trial ' num2str(ii)], [num2str(pertTrig(ii,1)) '  ' num2str(pertTrig(ii,2))]}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
     axis(limits); box off
 
     set(gca, 'FontName', fontN,...
