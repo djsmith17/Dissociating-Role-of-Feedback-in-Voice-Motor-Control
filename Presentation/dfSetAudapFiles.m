@@ -1,13 +1,12 @@
 function audStimP = dfSetAudapFiles(expParam, dirs, trial, debug)
-%This function will take care of the ost and the pcf function for a custom
-%pitch-shift reflex experiment recorded in Audapter. The custom 
-%perturbation shape and magnitude is based off a previously recorded 
-%'route' the participant's pitch takes when they're larynx is physically 
-%perturbed.
+% audStimP = dfSetAudapFiles(expParam, dirs, trial, debug) sets the ost and
+% pcf functions for a custom pitch-shift reflex experiment recorded in 
+% Audapter. 
+% This script creates two possible pitch-shifts. The first is a linear ramp
+% stimulus that has a rise/fall time of 150ms, and magnitude of 100 cents.
+% The second is sigmoidal ramp stimulus that matches the rise/fall time 
+% and magnitude of the laryngeal perturbation experiment.
 
-%I'm sorry this is awkward...It is going to do the iteration about 'trial'
-%within the function. There were just too many variables to pass. 
-%I know its ugly. Don't look at it!
 trialType = expParam.trialType(trial);
 trigs     = expParam.trigs(trial,:,1);
 
@@ -37,7 +36,7 @@ function audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertNam
 
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.pertSw    = pertSw;    % 0: -100c   1: LarMag
-audStimP.pertName  = pertName;  % '-100 cents ramped', 'Laryngeal Pert Matched'
+audStimP.pertName  = pertName;  % 'Linear Standard', 'Sigmoid Matched'
 audStimP.tStep     = 0.005;    % seconds
 audStimP.fs        = 1/audStimP.tStep;
 audStimP.lenTrialT = trialLen;                                  % Trial Length (Seconds)
@@ -51,51 +50,60 @@ audStimP.SpPoint   = round(audStimP.SpTime*audStimP.fs);% Points
 
 audStimP.InflaT    = InflaT;  % seconds
 audStimP.InflaV    = InflaV;  % cents
-audStimP.rampLen   = [];
-audStimP.steadyLen = [];
-audStimP.steadyLenP = [];
+audStimP.rampLenT  = [];      % Time (s)
+audStimP.rampT     = [];      % Time Vector of ramp from Start (0) to finish (rampLenT)
+audStimP.rampLenP  = [];      % Points
+audStimP.rampMin   = [];
 audStimP.ramp      = [];
 audStimP.rampRv    = [];
 
+audStimP.steadyLenP  = [];
+audStimP.steadyLenT = [];
+
 %Define the slope for the Aud. perturbation stimulus
-if pertSw == 0 %Linear Ramp down.
-    audStimP.PertT   = 0.15; % seconds          HardSet
-    audStimP.rampLen = round(audStimP.PertT*audStimP.fs);
+if pertSw == 0 %Linear Standard Stimulus
+    audStimP.rampLenT   = 0.15; % seconds          HardSet
+    audStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
+    audStimP.rampLenP   = length(audStimP.rampT);
     
-    if trialType == 0;
+    if trialType == 0
         audStimP.rampMin = 0;
-        audStimP.ramp    = zeros(audStimP.rampLen, 1);
+        audStimP.ramp    = zeros(audStimP.rampLenP, 1);
     else
         audStimP.rampMin = -100; % cents            HardSet
-        audStimP.ramp    = linspace(0, audStimP.rampMin, audStimP.rampLen);
+        audStimP.ramp    = linspace(0, audStimP.rampMin, audStimP.rampLenP);
     end              
-elseif pertSw == 1 %Sigmoid 0 -> LaryngStim Min 
-    audStimP.PertT   = InflaT; % seconds
-    audStimP.rampLen = round(audStimP.PertT*audStimP.fs);
+elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
+    audStimP.rampLenT   = InflaT; % seconds
+    audStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
+    audStimP.rampLenP   = length(audStimP.rampT);
     
-    if trialType == 0;
+    if trialType == 0
         audStimP.rampMin = 0;
-        audStimP.ramp    = zeros(audStimP.rampLen, 1);
+        audStimP.ramp    = zeros(audStimP.rampLenP, 1);
     else
-        x = linspace(0, 10, audStimP.rampLen);
-        audStimP.rampMin  = round(InflaV*100)/100; % cents
+        x = linspace(0, 10, audStimP.rampLenP);
+        audStimP.rampMin  = InflaV; % cents
         audStimP.ramp     = audStimP.rampMin*sigmf(x, [1 5]);
     end                     
 end
-audStimP.rampRv = fliplr(audStimP.ramp);
 
-audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLen-1);
-audStimP.rampUPRange = (0:audStimP.rampLen-1) + (audStimP.SpPoint - audStimP.rampLen);
+audStimP.ramp    = round((audStimP.ramp/100), 3);
+audStimP.rampMin = round((audStimP.rampMin/100), 3);
+audStimP.rampRv  = fliplr(audStimP.ramp);
+
+audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLenP-1);
+audStimP.rampUPRange = audStimP.SpPoint + (0:audStimP.rampLenP-1);
 audStimP.steadySt    = audStimP.rampDNRange(end)+1;
 audStimP.steadySp    = audStimP.rampUPRange(1)-1;
 audStimP.steadyRange = audStimP.steadySt:audStimP.steadySp;
-audStimP.steadyLen   = length(audStimP.steadyRange);
-audStimP.steadyLenP  = audStimP.steadyLen/audStimP.fs;
+audStimP.steadyLenP  = length(audStimP.steadyRange);
+audStimP.steadyLenT  = audStimP.steadyLenP/audStimP.fs;
 
 stim = zeros(audStimP.lenTrialP,1);
 stim(audStimP.rampDNRange) = audStimP.ramp;
-stim(audStimP.rampUPRange) = audStimP.rampRv;
 stim(audStimP.steadyRange) = audStimP.rampMin;
+stim(audStimP.rampUPRange) = audStimP.rampRv;
 
 audStimP.stim = stim;
 end
@@ -108,8 +116,8 @@ function OST_tline = writeOSTportions(audStimP)
 
 tStep      = audStimP.tStep;
 StTime     = audStimP.StTime;
-rampLen    = audStimP.rampLen;
-steadyLenP = audStimP.steadyLenP;
+rampLen    = audStimP.rampLenP;
+steadyLen  = audStimP.steadyLenT;
 
 %The number of changes to f0 + the hold + last THREE clean-up lines
 n = 2*rampLen + 1 + 3;
@@ -133,7 +141,7 @@ for i = 1:n
     if i <= rampLen
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #DownShift ' num2str(i) ' of ' num2str(rampLen)];
     elseif i == rampLen + 1 
-        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(steadyLenP) ' NaN {} #Hold for the pitch-shift hold period'];
+        OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(steadyLen) ' NaN {} #Hold for the pitch-shift hold period'];
     elseif i <= 2*rampLen + 1
         OST_tline{i+p} = [num2str(i+2) ' ELAPSED_TIME ' num2str(tStep) ' NaN {} #UpShift ' num2str(i) ' of ' num2str(rampLen)];    
     elseif i == 2*rampLen + 2
@@ -176,7 +184,7 @@ function PCF_tline = writePCFportions(audStimP)
 %The PCF expects f0 in units of semitones. My analysis saves f0 in cents. 
 %Divide by 100 to convert.
 
-rampLen   = audStimP.rampLen;
+rampLen   = audStimP.rampLenP;
 ramp      = audStimP.ramp;
 rampMin   = audStimP.rampMin;
 rampRv    = audStimP.rampRv;
@@ -202,11 +210,11 @@ PCF_tline{8} = '2, 0.0, 0.0, 0, 0';
 %The +2 comes from the numbering on the PCF ahead of these commands
 for i = 1:n
     if i <= rampLen
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(ramp(i)/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(ramp(i)) ', 0.0, 0, 0'];
     elseif i == rampLen + 1 
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampMin/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampMin) ', 0.0, 0, 0'];
     elseif i <= 2*rampLen + 1
-        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampRv(i-rampLen-1)/100) ', 0.0, 0, 0'];
+        PCF_tline{i+p} = [num2str(i+2) ', ' num2str(rampRv(i-rampLen-1)) ', 0.0, 0, 0'];
     elseif i == 2*rampLen + 2
         PCF_tline{i+p} = [num2str(i+2) ', 0.0, 0.0, 0, 0'];
     end       
@@ -247,20 +255,20 @@ fclose(fid);
 end
 
 function drawStimulus(audStimP, dirs)
-close all
+% close all
 
 time     = audStimP.time;
 stim     = audStimP.stim;
 
 pertName = audStimP.pertName;
 pertMag  = audStimP.rampMin;
-pertTime = audStimP.PertT;
+pertTime = audStimP.rampLenT;
 
 pertAx  = [audStimP.StTime, audStimP.SpTime];
 pertAy  = [200 200];
 
 plotpos = [10 50];
-plotdim = [1400 500];
+plotdim = [1200 500];
 pertColor = [0.8 0.8 0.8];
 AudStim = figure('Color', [1 1 1]);
 set(AudStim, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -271,16 +279,16 @@ hold on
 plot(time, stim, 'LineWidth', 3)
 
 xlabel('Time (s)', 'FontSize', 16, 'FontWeight', 'bold')
-ylabel('f0 Shift (cents)', 'FontSize', 16, 'FontWeight', 'bold')
+ylabel('f0 Shift (Semitones)', 'FontSize', 16, 'FontWeight', 'bold')
 title({'Auditory Feedback Perturbation Stimulus'; pertName}, 'FontSize', 18, 'FontWeight', 'bold')
-axis([0 4 -101 10]); box off;
+axis([0 4 -1.1 0.2]); box off;
 
-annotation('textbox',[0.60 0.25 0.40 0.1],...
+annotation('textbox',[0.62 0.20 0.40 0.1],...
            'String', {['Fall/Rise Time: ' num2str(pertTime) ' seconds'],...
-                      ['Perturbation Magnitude: ' num2str(pertMag) ' cents']},...
+                      ['Perturbation Magnitude: ' num2str(pertMag) ' semitones']},...
                     'LineStyle','none',...
                     'FontWeight','bold',...
-                    'FontSize',16,...
+                    'FontSize',14,...
                     'FontName','Arial');
 
 set(gca, 'FontSize', 14,...

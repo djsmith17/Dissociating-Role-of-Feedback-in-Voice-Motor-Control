@@ -10,7 +10,7 @@ function dfRunPooledPlotting()
 
 close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.analyses = 'LarynxPos';
+PolPlt.analyses = 'SfN2017';
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses);       % Analyzed Results Folder
@@ -20,6 +20,8 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 PolPlt.MeanTrialMicf0    = 0;
 PolPlt.MaskVVoice        = 1;
 PolPlt.AllSubjMaskvVoice = 1;
+
+fStat    = 0;
 
 ppi        = 300;
 scRes      = [2560 1440];
@@ -33,9 +35,7 @@ if exist(dirs.SavResultsFile, 'file') == 0
     return
 else
     load(dirs.SavResultsFile)
-    % Returns combDataStr; statLib
-    %         allSubjRes; statLibAll
-    %         pltNm
+    % Returns pooledRunStr, allSubjRes
 end
 
 if PolPlt.MeanTrialMicf0 == 1
@@ -48,31 +48,16 @@ if PolPlt.MeanTrialMicf0 == 1
 end
 
 if PolPlt.MaskVVoice == 1
-    numIndivi = length(pltNm.pltNameMVi);
-    
+    fLabel = 0;
+    numIndivi = length(pooledRunStr);
     for ii = 1:numIndivi
-        pltName = pltNm.pltNameMVi{ii}; % From Pooled Analysis Results File
-        drawMaskvVoiceMeanf0(combDataStr(ii,1), combDataStr(ii,2), statLib(ii,:), targPixDim, pltName, dirs.SavResultsDir)
-        pause(1.0)
+        drawMeanSubjf0Resp(pooledRunStr(ii), targPixDim, dirs.SavResultsDir, fLabel, fStat)
     end
 end
 
 if PolPlt.AllSubjMaskvVoice == 1
-    pltName = pltNm.pltNameMVm; % From Pooled Analysis Results File
-    drawMeanSubjf0Resp(allSubjRes, statLibAll, targPixDim, pltName, dirs.SavResultsDir)
-end
-
-if strcmp(PolPlt.analyses, 'LarynxPos') == 1
-    numIndivi = length(pltNm.pltNameMVi);
-    
-    for ii = 1:numIndivi
-        pltName = ['LarynxPos ' CRi(ii).curSess];
-        drawMeanSubjf0Resp_CollarPosDiff(CRi(ii), targPixDim, pltName, dirs.SavResultsDir)
-        pause(1.0)
-    end
-    
-    pltName = ['LarynxPos ' CRm.curSess];
-    drawMeanSubjf0Resp_CollarPosDiff(CRm, targPixDim, pltName, dirs.SavResultsDir)
+    fLabel = 0;
+    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat)
 end
 
 close all

@@ -34,11 +34,11 @@ GT.baseTrial = str2double(answer{4});
 dirs = dfDirs(GT.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, GT.subject, GT.run);
-dirs.SavFileDir = fullfile(dirs.RecData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
+dirs.SavFileDir = fullfile(dirs.SavData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
 
 dirs.tokenDir      = fullfile(dirs.RecFileDir, 'speechTokens');
 dirs.baseTokenFile = fullfile(dirs.tokenDir,[GT.subject GT.run 'BaseToken.wav']);
-dirs.JNDTG         = fullfile(dirs.Project, 'JND\TokenGeneration'); %Folder where all these scripts live
+dirs.JNDTG         = fullfile(dirs.Code, 'JND\TokenGeneration'); %Folder where all these scripts live
 
 if ~exist(dirs.RecFileDir, 'dir')
     mkdir(dirs.RecFileDir);

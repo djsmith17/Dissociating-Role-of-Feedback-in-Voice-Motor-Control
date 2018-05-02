@@ -27,12 +27,12 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null'; % Subject#, Pilot#, null
-run        = 'SF1';     % SF1, DS1, etc
-blLoudness = 79.34;        % (dB SPL) Baseline loudness
-gender     = 'male';    % "male" or "female"
-balloon    = '2.0E_2';  % Which pertrubation balloon?
-tightness  = 10;        % (inches of slack in bungie cord)
+subject    = 'Pilot28';    % Subject#, Pilot#, null
+run        = 'MD7';     % SF1, DS1, etc
+blLoudness = 58;     % (dB SPL) Baseline loudness
+gender     = 'female';    % "male" or "female"
+balloon    = '2.0E_2';  % Which perturbation balloon?
+tightness  = 'n/a';        % (inches of slack in bungie cord)
 
 % Dialogue box asking for what type of Auditory Feedback
 AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
@@ -71,6 +71,7 @@ expParam.targRMS      = blLoudness;
 expParam.gender       = gender;
 expParam.balloon      = balloon;
 expParam.tightness    = tightness;
+expParam.InflaVarNm   = 'N/A';
 expParam.niDev        = 'Dev2';              % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
@@ -130,9 +131,9 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.2; %Give them a moment to start speaking
+expParam.buffPause = 0.8; %Give them a moment to start speaking
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
-expParam.boundsRMS = 3;  %+/- dB
+expParam.boundsRMS = 3;   % +/- dB
 
 % This is where the fun begins
 fprintf('\nStarting Trials\n\n')
@@ -187,7 +188,7 @@ for ii = 1:expParam.numTrial
     set([H2 trigCirc],'Visible','off');
     
     % Load the Audapter saved data and save as wav Files
-    data = AudapterIO('getData');       % This will need to become a try statement again
+    data    = AudapterIO('getData'); % This will need to become a try statement again
     DAQin   = cat(3, DAQin, dataDAQ);
     rawData = cat(1, rawData, data);
        
@@ -248,7 +249,15 @@ if expParam.bVis == 1
 end
 end
 
-function presH = initLiveResult(expParam, defMon)
+function resH = initLiveResult(expParam, defMon)
+% resH = initLiveResult(expParam, defMon) creates a figure by which to
+% display recorded signal during a recording session. This is currently
+% configured for recording pressure in the perturbatron balloon.
+% 
+% expParam: Experimental paramenters of the recording
+% defMon  : Monitor definitions
+%
+% resH    : Figure handle for the generated figure. 
 
 curSess  = expParam.curSess;
 balloon  = expParam.balloon;
@@ -274,7 +283,7 @@ else
 end
 winPos = figPosition;
 
-presH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
+resH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
 
 mark = plot([1 1], [-1 5], 'k-', 'LineWidth', 2);
 axis([0 3.5 -0.5 5.0])

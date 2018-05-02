@@ -11,9 +11,9 @@ function dfRunSubjPlotting()
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'Pilot0', 'Pilot21', 'Pilot28', 'Pilot29', 'Pilot30', 'Pilot31', 'Pilot33'}; %List of multiple participants.
+sPlt.participants  = {'Pilot28'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %All runs to consider 
+sPlt.runs          = {'MD1', 'MD2', 'MD5', 'MD6'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
@@ -24,7 +24,7 @@ sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawMeanTrial_PertCont  = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
 sPlt.drawAllTrial_Pert       = 1; % All Perturbed Trials Microphone input
-sPlt.drawMeanTrial_MicHead  = 0; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawMeanTrial_MicHead   = 0; % Mean Perturbed Trials. Microphone vs Headphones
  
 for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
@@ -66,5 +66,5 @@ for ii = 1:sPlt.numPart
         end
     end
 end
-close all
+% close all
 end

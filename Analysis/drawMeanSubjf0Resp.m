@@ -1,28 +1,16 @@
-function drawMeanSubjf0Resp(allSubjRes, statLib, targPixDim, pltName, plotFolder)
+function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder, fLabel, fStat)
 
-curSess          = 'Mean Participant Response';
-numControl       = allSubjRes.numControlTrials;
-numMasked        = allSubjRes.numMaskedTrials;
-numVoiced        = allSubjRes.numVoicedTrials;
+curSess          = poolRes.curSess;
+cond             = poolRes.cond;
+numCond          = length(cond);
+numControl       = poolRes.numContTrialsFin;
+numPerturb       = poolRes.numPertTrialsFin;
 
-time             = allSubjRes.secTime;
-meanf0ContOnset  = allSubjRes.audioMf0MeanCont(:,1);
-CIf0ContOnset    = allSubjRes.audioMf0MeanCont(:,2);
-meanf0ContOffset = allSubjRes.audioMf0MeanCont(:,3);
-CIf0ContOffset   = allSubjRes.audioMf0MeanCont(:,4);
+time             = poolRes.secTime;
+contf0           = poolRes.audioMf0MeanCont;  
+pertf0           = poolRes.audioMf0MeanPert;
 
-meanf0PertOnsetM  = allSubjRes.audioMf0MeanPertM(:,1);
-CIf0PertOnsetM    = allSubjRes.audioMf0MeanPertM(:,2);
-meanf0PertOffsetM = allSubjRes.audioMf0MeanPertM(:,3);
-CIf0PertOffsetM   = allSubjRes.audioMf0MeanPertM(:,4);
-limitsM           = allSubjRes.limitsAmeanM;
-
-meanf0PertOnsetV  = allSubjRes.audioMf0MeanPertV(:,1);
-CIf0PertOnsetV    = allSubjRes.audioMf0MeanPertV(:,2);
-meanf0PertOffsetV = allSubjRes.audioMf0MeanPertV(:,3);
-CIf0PertOffsetV   = allSubjRes.audioMf0MeanPertV(:,4);
-limitsV           = allSubjRes.limitsAmeanV;
-
+statLib = poolRes.statLib;
 statSMM = round(statLib(1), 1);
 statSMV = round(statLib(2), 1);
 statRMM = round(statLib(3), 1);
@@ -33,7 +21,12 @@ statSP  = statLib(7);
 statRP  = statLib(8);
 statPP  = statLib(9);
 
-limits = checkLims(limitsM, limitsV);
+limits  = poolRes.limitsAmean;
+pltName = poolRes.pltName;
+
+legLines = [];
+legNames = {};
+
 pValueThresh = 0.05;
 
 % Plotting Variables
@@ -44,8 +37,7 @@ set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 dottedStartx = [0 0];
 dottedy      = [-500 500];
-maskColor    = 'b';
-voicColor    = 'r';
+condColors   = {'b', 'r', 'g', 'm'};
 fontN        = 'Arial';
 legAnnoFSize = 25;
 titleFSize   = 35;
@@ -58,22 +50,23 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 axes(ha(1))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-nC = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', 'k', 'transparent', 1); %Voice
-hold on
-nM = shadedErrorBar(time, meanf0PertOnsetM, CIf0PertOnsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
-hold on
-nV = shadedErrorBar(time, meanf0PertOnsetV, CIf0PertOnsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
-set(nM.mainLine, 'LineWidth', lineThick)
-set(nV.mainLine, 'LineWidth', lineThick)
+nC = shadedErrorBar(time, contf0(:,1), contf0(:,2), 'lineprops', 'k', 'transparent', 1);
 set(nC.mainLine, 'LineWidth', lineThick)
+hold on
+
+for ii = 1:numCond
+    nM = shadedErrorBar(time, pertf0{ii}(:,1), pertf0{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
+    set(nM.mainLine, 'LineWidth', lineThick)
+    hold on
+end
+
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
-        'FontName', fontN,...
+set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
@@ -81,22 +74,27 @@ set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
 axes(ha(2))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
-fC = shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', 'k', 'transparent', 1); %Voice
-hold on
-fM = shadedErrorBar(time, meanf0PertOffsetM, CIf0PertOffsetM, 'lineprops', maskColor, 'transparent', 1); %Masked
-hold on
-fV = shadedErrorBar(time, meanf0PertOffsetV, CIf0PertOffsetV, 'lineprops', voicColor, 'transparent', 1); %Voice
 
-set(fM.mainLine, 'LineWidth', lineThick)
-set(fV.mainLine, 'LineWidth', lineThick)
+fC = shadedErrorBar(time, contf0(:,3), contf0(:,4), 'lineprops', 'k', 'transparent', 1);
 set(fC.mainLine, 'LineWidth', lineThick)
+legLines = cat(2, legLines, fC.mainLine);
+legNames = cat(2, legNames, {[num2str(numControl) ' Control Trials']});
+hold on
+
+for ii = 1:numCond
+    fM = shadedErrorBar(time, pertf0{ii}(:,3), pertf0{ii}(:,4), 'lineprops', condColors(ii), 'transparent', 1);
+    set(fM.mainLine, 'LineWidth', lineThick)
+    legLines = cat(2, legLines, fM.mainLine);
+    legNames = cat(2, legNames, {[num2str(numPerturb(ii)) ' ' cond{ii} ' Trials']});
+    hold on
+end
+
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 title('Offset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
-        'FontName', fontN,...
+set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
@@ -114,23 +112,35 @@ annoPerc = ['RP (M/NM): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
 annoStim = checkSig(statSP, pValueThresh, annoStim);
 annoResp = checkSig(statRP, pValueThresh, annoResp);
 annoPerc = checkSig(statPP, pValueThresh, annoPerc);
- 
-statBox = annotation('textbox',[.30 .75 0.45 0.1],...
-                     'string', {annoStim;
-                                annoResp
-                                annoPerc},...
-                      'LineStyle','none',...
-                      'FontName', fontN,...
-                      'FontSize', legAnnoFSize,...
-                      'FontWeight','bold');
 
-legend([fC.mainLine fM.mainLine fV.mainLine],{[num2str(numControl) ' Control Trials'], [num2str(numMasked) ' Masked Trials'], [num2str(numVoiced) ' Not Masked Trials']},...
-            'Position', [0.83 0.75 0.1 0.1],...
-            'Box', 'off',...
-            'Edgecolor', [1 1 1],...
-            'FontName', fontN,...
-            'FontSize', legAnnoFSize,...
-            'FontWeight', 'bold');
+if fStat == 1
+    statBox = annotation('textbox',[.30 .75 0.45 0.1],...
+                         'string', {annoStim;
+                                    annoResp
+                                    annoPerc},...
+                          'LineStyle','none',...
+                          'FontName', fontN,...
+                          'FontSize', legAnnoFSize,...
+                          'FontWeight','bold');
+end
+
+if fLabel == 1
+    figureL = pltName(end);
+    figureMark = annotation('textbox', [0.01 0.88 0.05 0.1],...
+                            'string', figureL,...
+                            'LineStyle', 'none',...
+                            'FontName', fontN,...
+                            'FontSize', titleFSize,...
+                            'FontWeight','bold');
+end
+
+legend(legLines, legNames,...
+       'Position', [0.83 0.75 0.1 0.1],...
+       'Box', 'off',...
+       'Edgecolor', [1 1 1],...
+       'FontName', fontN,...
+       'FontSize', legAnnoFSize,...
+       'FontWeight', 'bold');
 
 plots = {'Figure'};
 for i = 1:length(plots)
@@ -139,25 +149,6 @@ for i = 1:length(plots)
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
 end
-end
-
-function limits = checkLims(limitsM, limitsV)
-
-if limitsM(3) < limitsV(3)
-    lwLimit = limitsM(3);
-else
-    lwLimit = limitsV(3);
-end
-
-if limitsM(4) > limitsV(4)
-    upLimit = limitsM(4);
-else
-    upLimit = limitsV(4);
-end
-
-limits    = limitsV;
-limits(3) = lwLimit;
-limits(4) = upLimit;
 end
 
 function anno = checkSig(stat, thresh, anno)

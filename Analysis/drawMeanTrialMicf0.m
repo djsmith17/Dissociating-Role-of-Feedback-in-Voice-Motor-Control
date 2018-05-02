@@ -51,7 +51,7 @@ pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'lineprops', '-r', 'tr
 lgdCurv = [lgdCurv pH.mainLine];
 lgdLabl = [lgdLabl, [num2str(numPT) ' Perturbed Trials']];
 hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
+plot(dottedStartx, dottedy, 'k', 'LineWidth', 4)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
 title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')

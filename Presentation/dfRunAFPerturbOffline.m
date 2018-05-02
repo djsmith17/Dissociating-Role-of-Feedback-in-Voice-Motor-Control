@@ -25,55 +25,61 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-prompt = {'Subject ID:',...
-          'Session ID:',...
-          'Baseline Loudness (dB SPL):',...
-          'Gender ("male" or "female"):',...
-          'Inflation Vars:',...
-          'Baseline Run:'};
-name = 'Subject Information';
-numlines = 1;
-defaultanswer = {'null', 'AF1', '60', 'female', 'IV1', 'BV1'};
-answer = inputdlg(prompt, name, numlines, defaultanswer);
-
-if isempty(answer)
-    return
-end
+subject    = 'PureTone200';    % Subject#, Pilot#, null
+run        = 'AF7';     % AF1, DS1, etc
+blLoudness = 79.34;     % (dB SPL) Baseline loudness
+gender     = 'female';  % "male" or "female"
+InflaVarNm = 'IV1';
+BaseRun    = 'BV1';
+collectNewData         = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
-pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
+pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
 switch pertType
     case 'Linear Standard'
         pertTypeSw = 0;
-    case 'Sinusoid Matched'
+    case 'Sigmoid Matched'
         pertTypeSw = 1;
 end
 
-collectNewData         = 1; %Boolean
+% Dialogue box asking if Practice set or Full set of trials
+recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
+switch recType
+    case 'Practice'
+        numTrials = 4;
+        perCatch  = 1.00;
+    case 'Diagnostic'
+        numTrials = 10;
+        perCatch  = 0.50;
+    case 'Full'
+        numTrials = 40;
+        perCatch  = 0.25;
+end
 
 %Experiment Configurations
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType      = 'Auditory Perturbation_Perceptual';
-expParam.subject      = answer{1};
-expParam.run          = [answer{2} 'Offline'];
+expParam.subject      = subject;
+expParam.run          = [run 'Offline'];
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = str2double(answer{3});
-expParam.gender       = answer{4};
-expParam.InflaVar     = answer{5};
+expParam.targRMS      = blLoudness;
+expParam.gender       = gender;
+expParam.balloon      = 'N/A';
+expParam.tightness    = 'N/A';
+expParam.InflaVarNm   = InflaVarNm;
 expParam.niDev        = 'Dev2';          % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen     = 4;               % Seconds
-expParam.numTrial     = 5;
+expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
-expParam.perCatch     = 1.00;
+expParam.perCatch     = perCatch;
 expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
-expParam.InflaFile    = [expParam.subject expParam.InflaVar 'DRF.mat'];
 expParam.bVis         = 1;
 expParam.bPlay        = 0;
 
-expParam.baseRun      = answer{6};
+expParam.baseRun      = BaseRun;
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
 
 %Set our dirs based on the project
@@ -90,10 +96,13 @@ if exist(dirs.RecWaveDir, 'dir') == 0
 end
 
 % Look for the Inflation Response Files
-dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVar, expParam.InflaFile);
+expParam.InflaFile    = [expParam.subject expParam.InflaVarNm 'DRF.mat'];
+dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
     fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
     return
+else
+    fprintf('Inflation Variables found!!\n')
 end
 
 % Look for the Baseline Wav Files
@@ -126,13 +135,12 @@ if collectNewData == 1
     p = getAudapterDefaultParams(expParam.gender);
 
     %Set up Parameters to control NIDAQ and Perturbatron
-    [s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLen);
-    expParam.sRateQ = s.Rate; % NIDAQ sampling rate
-    expParam.niCh   = niCh;   % Structure of Channel Names
+    expParam.sRateQ = 8000; % NIDAQ sampling rate
+    expParam.niCh   = [];   % Structure of Channel Names
 
     %Set up OST and PCF Files
-    expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
-    expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+    expParam.ostFN = fullfile(dirs.Prelim, ['AFPerturbOST' run '.ost']); check_file(expParam.ostFN);
+    expParam.pcfFN = fullfile(dirs.Prelim, ['AFPerturbPCF' run '.pcf']); check_file(expParam.pcfFN);
     
     %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [expParam, p]      = dfSetAudFB(expParam, dirs, p);
@@ -142,9 +150,10 @@ if collectNewData == 1
 
     %Select the trigger points for perturbation onset and offset and creating
     %the digital signal to be sent to the NIDAQ
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
     expParam.cuePause  = 1.0; % How long the cue period lasts
+    expParam.buffPause = 0.2; % Give them a moment to start speaking
     expParam.resPause  = 2.0; % How long the rest/VisFB lasts
     expParam.boundsRMS = 3;   % +/- dB
     
@@ -152,48 +161,62 @@ if collectNewData == 1
     load(dirs.InflaVarFile);
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
-   
-    % Load the PreRecorded Baseline Mic signal
-    [mic_frames, f0b] = OfflineLoadBaselineVoice(dirs);
+    
+    [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs);
     expParam.f0b = f0b;
-
+   
     DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
+        expParam.curTrialNum  = ii;
         expParam.curTrial     = ['Trial' num2str(ii)];
         expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
 
         %Level of f0 change based on results from Laryngeal pert Exp
-        audStimP = dfSetAudapFiles(expParam, dirs, ii, 1);
+        audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
 
         %Set the OST and PCF functions
         Audapter('ost', expParam.ostFN, 0);
         Audapter('pcf', expParam.pcfFN, 0);
         
-        %Setup which perturb file we want
-        NIDAQsig = [expParam.sigs(:,ii) nVS];
-        queueOutputData(s, NIDAQsig);
+        %Cue to begin trial
+        pause(expParam.cuePause)
+        
+        %Phonation Start
 
         fprintf('Trial %d\n', ii)
         AudapterIO('init', p);
         Audapter('reset');
+%         pause(expParam.buffPause)
+        
+        % Load the PreRecorded Baseline Mic signal
+        % Split the signal into frames
+        mic_frames = makecell(mic_reSamp, expParam.frameLen);
 
         for n = 1:length(mic_frames)
             Audapter('runFrame', mic_frames{n});
         end
 
-        [dataDAQ, time] = s.startForeground;
+        dataDAQ = [];
 
         %Save the data
-        data    = dfSaveRawData(expParam, dirs);
+        data    = AudapterIO('getData'); % This will need to become a try statement again
         DAQin   = cat(3, DAQin, dataDAQ);
         rawData = cat(1, rawData, data);
         
+        dfSaveWavRec(data, expParam, dirs);
+        
         %Play the sound, if you care to
-        if expParam.bPlay; soundsc(data.signalIn, data.expParam.sRateAnal); end
+        if expParam.bPlay; soundsc(data.signalOut, expParam.sRateAnal); end
 
-        pause(expParam.resPause)
+        pause(10)
     end
+    close all;
+    elapsed_time = toc(ET)/60;    % Elapsed Time of the experiment
+    fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
     
+    % Store all the variables and data from the session in a large structure
+    expParam.elapsedTime = elapsed_time;
+
     OA.dirs        = dirs;
     OA.expParam    = expParam;
     OA.p           = p;
@@ -211,14 +234,18 @@ close all
 
 f0b = OA.expParam.f0b;
 aFa = 1; iRf = 0;
-niAn = [];
-[auAn, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0b, aFa, iRf, niAn);
+niAn = struct;
+niAn.sRate = 8000;
+[~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0b, aFa, iRf, niAn);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+pause(2)
 drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+pause(2)
+close all
 end
 
-function [mic_frames, f0b] = OfflineLoadBaselineVoice(dirs)
+function [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
 trial = 1;
 
@@ -227,16 +254,13 @@ fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
 load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
-mic      = baseData.signalIn;
 fs       = DRF.expParam.sRateAnal;
+mic      = [baseData.signalIn; zeros(fs*0.05,1)];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
-frameLen = baseData.params.frameLen;
 
 %Resample at 48000Hz
 mic_reSamp = resample(mic, sr*downFact, fs);
-%Split the signal into frames
-mic_frames = makecell(mic_reSamp, frameLen*downFact);
 
 f0b = DRF.qRes.meanf0;
 end
