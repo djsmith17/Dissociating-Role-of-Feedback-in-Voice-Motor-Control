@@ -93,7 +93,7 @@ params.bCepsLift = 1;
 % ramp up the pitch-shift ratio from none to 100 cents in a period of 1
 % sec; finally hold the 100-cent shift until the end of the supra-threshold
 % event".
-params.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 2, 1.0595; 3, 1.0];
+params.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 1.150, 1.0595; 2.0, 1.0595; 2.15, 1.0];
 params.rmsThresh = 0.011;
 
 AudapterIO('init', params);

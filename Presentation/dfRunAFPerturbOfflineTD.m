@@ -26,12 +26,12 @@ debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'PureTone200';    % Subject#, Pilot#, null
-run        = 'AF7';     % AF1, DS1, etc
+run        = 'AF10';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
-gender     = 'female';  % "male" or "female"
+gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
@@ -121,7 +121,7 @@ end
 if collectNewData == 1
     %Paradigm Configurations
     expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
-    expParam.frameLen           = 96;  % Before downsampling
+    expParam.frameLen           = 192;  % Before downsampling
     expParam.downFact           = 3;
     expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
     expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
@@ -139,8 +139,8 @@ if collectNewData == 1
     expParam.niCh   = [];   % Structure of Channel Names
 
     %Set up OST and PCF Files
-    expParam.ostFN = fullfile(dirs.Prelim, ['AFPerturbOST' run '.ost']); check_file(expParam.ostFN);
-    expParam.pcfFN = fullfile(dirs.Prelim, ['AFPerturbPCF' run '.pcf']); check_file(expParam.pcfFN);
+    expParam.ostFN = fullfile(dirs.Prelim, ['AFPerturbOST.ost']); check_file(expParam.ostFN);
+    expParam.pcfFN = fullfile(dirs.Prelim, ['AFPerturbPCF.pcf']); check_file(expParam.pcfFN);
     
     %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [expParam, p]      = dfSetAudFB(expParam, dirs, p);
@@ -150,7 +150,7 @@ if collectNewData == 1
 
     %Select the trigger points for perturbation onset and offset and creating
     %the digital signal to be sent to the NIDAQ
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);
 
     expParam.cuePause  = 1.0; % How long the cue period lasts
     expParam.buffPause = 0.2; % Give them a moment to start speaking
@@ -172,11 +172,12 @@ if collectNewData == 1
         expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
 
         %Level of f0 change based on results from Laryngeal pert Exp
-        audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
+        audStimP = 0;
+%         audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
 
         %Set the OST and PCF functions
-        Audapter('ost', expParam.ostFN, 0);
-        Audapter('pcf', expParam.pcfFN, 0);
+%         Audapter('ost', expParam.ostFN, 0);
+%         Audapter('pcf', expParam.pcfFN, 0);
         
         %Cue to begin trial
         pause(expParam.cuePause)
