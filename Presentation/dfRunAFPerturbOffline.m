@@ -22,13 +22,13 @@ function dfRunAFPerturbOffline()
 close all;
 ET = tic;
 rng('shuffle');
-debug = 1;
+debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'PureTone200';    % Subject#, Pilot#, null
-run        = 'AF4';     % AF1, DS1, etc
+run        = 'AF7';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
-gender     = 'male';  % "male" or "female"
+gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
 collectNewData         = 1; %Boolean
@@ -77,7 +77,7 @@ expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 expParam.bVis         = 1;
-expParam.bPlay        = 1;
+expParam.bPlay        = 0;
 
 expParam.baseRun      = BaseRun;
 expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
@@ -139,8 +139,8 @@ if collectNewData == 1
     expParam.niCh   = [];   % Structure of Channel Names
 
     %Set up OST and PCF Files
-    expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
-    expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+    expParam.ostFN = fullfile(dirs.Prelim, ['AFPerturbOST' run '.ost']); check_file(expParam.ostFN);
+    expParam.pcfFN = fullfile(dirs.Prelim, ['AFPerturbPCF' run '.pcf']); check_file(expParam.pcfFN);
     
     %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [expParam, p]      = dfSetAudFB(expParam, dirs, p);
@@ -150,7 +150,7 @@ if collectNewData == 1
 
     %Select the trigger points for perturbation onset and offset and creating
     %the digital signal to be sent to the NIDAQ
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, expParam.expType, 1);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
     expParam.cuePause  = 1.0; % How long the cue period lasts
     expParam.buffPause = 0.2; % Give them a moment to start speaking
@@ -186,10 +186,10 @@ if collectNewData == 1
         fprintf('Trial %d\n', ii)
         AudapterIO('init', p);
         Audapter('reset');
-        pause(expParam.buffPause)
+%         pause(expParam.buffPause)
         
         % Load the PreRecorded Baseline Mic signal
-        %Split the signal into frames
+        % Split the signal into frames
         mic_frames = makecell(mic_reSamp, expParam.frameLen);
 
         for n = 1:length(mic_frames)
@@ -239,7 +239,10 @@ niAn.sRate = 8000;
 [~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0b, aFa, iRf, niAn);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+pause(2)
 drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+pause(2)
+close all
 end
 
 function [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs)
@@ -252,7 +255,7 @@ load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
 fs       = DRF.expParam.sRateAnal;
-mic      = [baseData.signalIn; zeros(fs*0.15,1)];
+mic      = [baseData.signalIn; zeros(fs*0.05,1)];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
 

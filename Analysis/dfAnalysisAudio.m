@@ -98,13 +98,17 @@ if AudFlag == 1
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0b);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0b);
     
-    timeInd = (An.timef0 > 0.5 & An.timef0 < 3.5);
     svF = 0;
     for ii = 1:An.numTrialSvt
-
-        mic     = An.audioMf0_norm(timeInd, ii);
+        
         expTrig = An.expTrigsf0(ii, :);
         svIdc   = An.allIdxSvt(ii);
+        
+        preSt = expTrig(1) - 0.5;
+        posSp = expTrig(2) + 1.0;
+        
+        timeInd = (An.timef0 > preSt & An.timef0 < posSp);
+        mic     = An.audioMf0_norm(timeInd, ii);
 
         % Are there any points where the value of pitch goes above 500
         % cents or below -500 cents?

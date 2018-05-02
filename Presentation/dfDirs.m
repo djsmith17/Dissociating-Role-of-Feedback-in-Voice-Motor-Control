@@ -39,12 +39,9 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
-<<<<<<< HEAD
-    case 'dhcp-wifi-8021x-155-41-87-124.bu.edu'
-        % RecData must be moved to SavData for backup and local disk space consolidation
-=======
+        
     case 'dhcp-wifi-8021x-155-41-27-125.bu.edu'
->>>>>>> master
+        % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');  % Dir to save raw Data to
         dirs.SavData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');  % Dir to open raw Data from
         

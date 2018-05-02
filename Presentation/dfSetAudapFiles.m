@@ -37,7 +37,7 @@ function audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertNam
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.pertSw    = pertSw;    % 0: -100c   1: LarMag
 audStimP.pertName  = pertName;  % 'Linear Standard', 'Sigmoid Matched'
-audStimP.tStep     = 0.001;    % seconds
+audStimP.tStep     = 0.005;    % seconds
 audStimP.fs        = 1/audStimP.tStep;
 audStimP.lenTrialT = trialLen;                                  % Trial Length (Seconds)
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.fs;            % Trial Length (Pert-Points)
@@ -255,7 +255,7 @@ fclose(fid);
 end
 
 function drawStimulus(audStimP, dirs)
-close all
+% close all
 
 time     = audStimP.time;
 stim     = audStimP.stim;
@@ -279,13 +279,13 @@ hold on
 plot(time, stim, 'LineWidth', 3)
 
 xlabel('Time (s)', 'FontSize', 16, 'FontWeight', 'bold')
-ylabel('f0 Shift (cents)', 'FontSize', 16, 'FontWeight', 'bold')
+ylabel('f0 Shift (Semitones)', 'FontSize', 16, 'FontWeight', 'bold')
 title({'Auditory Feedback Perturbation Stimulus'; pertName}, 'FontSize', 18, 'FontWeight', 'bold')
-axis([0 4 -1.1 1]); box off;
+axis([0 4 -1.1 0.2]); box off;
 
-annotation('textbox',[0.62 0.25 0.40 0.1],...
+annotation('textbox',[0.62 0.20 0.40 0.1],...
            'String', {['Fall/Rise Time: ' num2str(pertTime) ' seconds'],...
-                      ['Perturbation Magnitude: ' num2str(pertMag) ' cents']},...
+                      ['Perturbation Magnitude: ' num2str(pertMag) ' semitones']},...
                     'LineStyle','none',...
                     'FontWeight','bold',...
                     'FontSize',14,...
