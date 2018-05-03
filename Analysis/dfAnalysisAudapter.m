@@ -182,15 +182,17 @@ micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
-if strcmp(AudFB, 'Masking Noise')
-    AuMHdelay = (frameLen*12)/fs;
-else
-    AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
-    [timeSet, delaySet] = MHdelayChunked(micR, headR, fs);
-%     figure
-%     plot(timeSet, delaySet)
-%     pause; close
-end
+AuMHdelay = (frameLen*9)/fs;
+
+% if strcmp(AudFB, 'Masking Noise')
+%     AuMHdelay = (frameLen*12)/fs;
+% else
+%     AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
+%     [timeSet, delaySet] = MHdelayChunked(micR, headR, fs);
+% %     figure
+% %     plot(timeSet, delaySet)
+% %     pause; close
+% end
 AuMHdelayP = AuMHdelay*fs;
 
 % Adjust for delay between raw Audapter Mic and Audapter Headphones
@@ -240,8 +242,9 @@ end
 function [timeSet, delaySet] = MHdelayChunked(sig1, sig2, fs)
 
 numSamp = length(sig1);
-chunkL = 0.05;
-chunkP = fs*chunkL;
+chunkP = 64*15;
+% chunkL = 0.05;
+% chunkP = fs*chunkL;
 numChunk = floor(numSamp/chunkP);
 
 timeSet  = zeros(numChunk, 1);
