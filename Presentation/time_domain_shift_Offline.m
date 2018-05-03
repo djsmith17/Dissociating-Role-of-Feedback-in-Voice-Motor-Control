@@ -11,10 +11,10 @@ function time_domain_shift_Offline(isOnline, varargin)
 
 %% Input parameter sanity check and processing.
 close all
-subject    = 'Pilot24';
-run        = 'SF4';
-gender     = 'male';  % "male" or "female"
-BaseRun    = 'SF3';
+subject    = 'Pilot22';
+run        = 'BV1';
+gender     = 'female';  % "male" or "female"
+BaseRun    = 'BV1';
 
 expParam.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType      = 'Auditory Perturbation_Perceptual';
@@ -93,7 +93,7 @@ params.bCepsLift = 1;
 % ramp up the pitch-shift ratio from none to 100 cents in a period of 1
 % sec; finally hold the 100-cent shift until the end of the supra-threshold
 % event".
-params.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 1.150, 1.0595; 2.0, 1.0595; 2.15, 1.0];
+params.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 1.150, 0.9438; 2.0, 0.9438; 2.15, 1.0];
 params.rmsThresh = 0.011;
 
 AudapterIO('init', params);
@@ -101,7 +101,7 @@ AudapterIO('reset');   % Reset;
 
 if ~isOnline
     %% Offline demo: load and process input sound from wav file.
-    
+
     mic = OfflineLoadBaselineVoice(dirs, expParam);
 
     micFrame = makecell(mic, expParam.frameLen);
@@ -212,4 +212,6 @@ plot(tAxis, data.shiftedPitchHz, 'r-');
 legend({'Input', 'Output'});
 xlabel('Time (s)');
 ylabel('Pitch (Hz)');
+
+% axis([0 4 190 240])
 end

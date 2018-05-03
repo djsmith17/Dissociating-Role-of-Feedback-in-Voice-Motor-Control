@@ -22,13 +22,12 @@ function dfRunAFPerturbOfflineTD()
 close all;
 ET = tic;
 rng('shuffle');
-debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';    % Subject#, Pilot#, null
-run        = 'AF10';     % AF1, DS1, etc
+subject    = 'Pilot22';    % Subject#, Pilot#, null
+run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
-gender     = 'male';  % "male" or "female"
+gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
 collectNewData         = 1; %Boolean
@@ -128,10 +127,10 @@ if collectNewData == 1
     expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
     %Set up Audapter
-    Audapter('deviceName', expParam.audioInterfaceName);
-    Audapter('setParam', 'downFact', expParam.downFact, 0);
-    Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
-    Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
+%     Audapter('deviceName', expParam.audioInterfaceName);
+%     Audapter('setParam', 'downFact', expParam.downFact, 0);
+%     Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
+%     Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
     p = getAudapterDefaultParams(expParam.gender);
 
     %Set up Parameters to control NIDAQ and Perturbatron
@@ -139,9 +138,9 @@ if collectNewData == 1
     expParam.niCh   = [];   % Structure of Channel Names
 
     %Set up OST and PCF Files
-    expParam.ostFN = fullfile(dirs.Prelim, ['AFPerturbOST.ost']); check_file(expParam.ostFN);
-    expParam.pcfFN = fullfile(dirs.Prelim, ['AFPerturbPCF.pcf']); check_file(expParam.pcfFN);
-    
+%     expParam.ostFN = fullfile(dirs.Prelim, ['AFPerturbOST.ost']); check_file(expParam.ostFN);
+%     expParam.pcfFN = fullfile(dirs.Prelim, ['AFPerturbPCF.pcf']); check_file(expParam.pcfFN);
+%     
     %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [expParam, p]      = dfSetAudFB(expParam, dirs, p);
     
@@ -243,7 +242,7 @@ drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
 pause(2)
 drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
 pause(2)
-close all
+% close all
 end
 
 function [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs)
