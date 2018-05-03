@@ -25,13 +25,13 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'PureTone200';    % Subject#, Pilot#, null
+subject    = 'Pilot0';    % Subject#, Pilot#, null
 run        = 'AF10';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
