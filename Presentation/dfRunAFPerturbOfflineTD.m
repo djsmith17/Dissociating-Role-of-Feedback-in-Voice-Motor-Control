@@ -24,13 +24,13 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot22';    % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
+subject    = 'Pilot0';    % Subject#, Pilot#, null
+run        = 'AF12';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
-collectNewData         = 1; %Boolean
+collectNewData         = 0; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
@@ -208,6 +208,8 @@ if collectNewData == 1
         %Play the sound, if you care to
         if expParam.bPlay; soundsc(data.signalOut, expParam.sRateAnal); end
 
+%         visPSSsigs(data)
+        
         pause(10)
     end
     close all;
@@ -255,12 +257,85 @@ load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
 fs       = DRF.expParam.sRateAnal;
-mic      = [baseData.signalIn; zeros(fs*0.05,1)];
+mic      = [baseData.signalIn];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
 
 %Resample at 48000Hz
 mic_reSamp = resample(mic, sr*downFact, fs);
+mic_reSamp = mic_reSamp - mean(mic_reSamp);
 
 f0b = DRF.qRes.meanf0;
+end
+
+function visPSSsigs(data)
+
+frameDur = data.params.frameLen / data.params.sr;
+tAxis = 0 : frameDur : frameDur * (size(data.fmts ,1) - 1);
+% get the formant plot bounds
+
+figure('Position', [200, 200, 800, 400]);
+[s, f, t]    = spectrogram(data.signalIn, 64, 48, 1024, data.params.sr);
+[s2, f2, t2] = spectrogram(data.signalOut, 64, 48, 1024, data.params.sr);
+
+subplot(211);
+imagesc(t, f, 10 * log10(abs(s))); 
+axis xy;
+colormap jet;
+hold on;
+plot(tAxis, data.fmts(:, 1 : 2), 'w', 'LineWidth', 2);
+set(gca, 'YLim', [0, 4000]);
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+title('Original');
+
+subplot(212);
+imagesc(t2, f2, 10 * log10(abs(s2)));
+axis xy;
+colormap jet;
+hold on;
+plot(tAxis, data.fmts(:, 1 : 2), 'w', 'LineWidth', 2);
+plot(tAxis, data.sfmts(:, 1 : 2), 'g--', 'LineWidth', 2);
+set(gca, 'YLim', [0, 4000]);
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+title('Shifted');
+
+figure;
+hold on;
+sigTAxis1 = 0 : 1 / data.params.sr : ...
+    1 / data.params.sr * (length(data.signalIn) - 1);
+plot(sigTAxis1, data.signalIn, 'b-');
+ylabel('Input waveform');
+xlabel('Time (s)');
+
+sigTAxis2 = 0 : 1 / data.params.sr : ...
+    1 / data.params.sr * (length(data.signalOut) - 1);
+plot(sigTAxis2, data.signalOut, 'r-');
+legend({'Input', 'Output'});
+ylabel('Output waveform');
+xlabel('Time (s)');
+
+figure;
+hold on;
+plot(sigTAxis1(1 : end - 1), diff(data.signalIn), 'b-');
+ylabel('d Input waveform');
+xlabel('Time (s)');
+plot(sigTAxis2(1 : end - 1), diff(data.signalOut), 'r-');
+legend({'Input', 'Output'});
+ylabel('d Output waveform');
+xlabel('Time (s)');
+
+% When time-domain pitch shifting is activated, data.pitchHz and
+% data.shfitedPitchHz record the tracked and shifted pitch values in Hz,
+% for supra-threshold frames.
+figure;
+plot(tAxis, data.pitchHz, 'b-');
+hold on;
+plot(tAxis, data.shiftedPitchHz, 'r-');
+legend({'Input', 'Output'});
+xlabel('Time (s)');
+ylabel('Pitch (Hz)');
+
+% axis([0 4 190 240])
 end

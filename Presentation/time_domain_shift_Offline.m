@@ -10,7 +10,7 @@ function time_domain_shift_Offline(isOnline, varargin)
 %   time_domain_shift_demo('male', 1);
 
 %% Input parameter sanity check and processing.
-close all
+% close all
 subject    = 'Pilot22';
 run        = 'BV1';
 gender     = 'female';  % "male" or "female"
@@ -133,16 +133,37 @@ if toPlay
 end
 end
 
-function micproc = OfflineLoadBaselineVoice(dirs, expParam)
+function mic_reSamp = OfflineLoadBaselineVoice(dirs, expParam)
+%Making an extra function because I am extra
+trial = 1;
 
-inputWav     = dirs.SavBaseFile;
-[mic, micfs] = audioread(inputWav);
+dirs.SavBaseFile = 'W:\Experiments\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Pilot22\BV1\Pilot22BV1DRF.mat';
+%Load previously recorded voice sample to perturb
+fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
+load(dirs.SavBaseFile);
+baseData = DRF.rawData(trial);
 
-fs = expParam.sRate;
+fs       = DRF.expParam.sRateAnal;
+mic      = [baseData.signalIn];
+downFact = baseData.params.downFact;
+sr       = baseData.params.sr;
 
-mic_resamp = resample(mic, fs, micfs);
-micproc    = mic_resamp - mean(mic_resamp);
+%Resample at 48000Hz
+mic_reSamp = resample(mic, sr*downFact, fs);
+mic_reSamp = mic_reSamp - mean(mic_reSamp);
 end
+
+% function micproc = OfflineLoadBaselineVoice(dirs, expParam)
+% 
+% inputWav     = dirs.SavBaseFile;
+% % inputWav     = 'W:\Experiments\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Pilot22\BV1\wavFiles\Pilot22BV1Trial1_micIn.wav';
+% [mic, micfs] = audioread(inputWav);
+% 
+% fs = expParam.sRate;
+% 
+% mic_resamp = resample(mic, fs, micfs);
+% micproc    = mic_resamp - mean(mic_resamp);
+% end
 
 function visPSSsigs(data)
 
