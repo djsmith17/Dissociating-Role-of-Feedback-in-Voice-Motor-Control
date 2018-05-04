@@ -13,7 +13,7 @@ micf0Trials      = res.audioMf0TrialPert;
 heaf0Trials      = res.audioHf0TrialPert;
 limits           = res.limitsAudRes;
 
-plotpos = [10 100];
+plotpos = [10 10];
 plotdim = [1600 800];
 IndivTrialAudResp = figure('Color', [1 1 1]);
 set(IndivTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
