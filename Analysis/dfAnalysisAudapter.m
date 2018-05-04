@@ -172,6 +172,7 @@ fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
 numSamp   = An.numSamp;      % Number of samples for length of recording
+frameDel  = 9;
 
 % We are going to section the audio recording from 0.5s ahead of 
 % perturbation onset to 1.0s after perturbation offset.
@@ -182,8 +183,8 @@ micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
-AuMHdelay = (frameLen*9)/fs;
-
+AuMHdelay = (frameLen*frameDel)/fs;
+AuMHdelayP = AuMHdelay*fs;
 % if strcmp(AudFB, 'Masking Noise')
 %     AuMHdelay = (frameLen*12)/fs;
 % else
@@ -193,11 +194,12 @@ AuMHdelay = (frameLen*9)/fs;
 % %     plot(timeSet, delaySet)
 % %     pause; close
 % end
-AuMHdelayP = AuMHdelay*fs;
 
 % Adjust for delay between raw Audapter Mic and Audapter Headphones
 micAuAl  = micR(1:(end-AuMHdelayP));
-headAuAl = headR((AuMHdelayP+1):end); 
+headAuAl = headR((AuMHdelayP+1):end);
+
+numSampAuAl = numSamp - AuMHdelayP;
 
 % Adjust for delay between Audapter and NIDAQ
 if AuNidelayP > 0 % As long as the delay is non 0
@@ -207,6 +209,8 @@ else
     micAuNi    = micAuAl;
     headAuNi   = headAuAl;
 end
+
+numSampAuNi = numSampAuAl - AuNidelayP;
 
 % Audio points on either side of the perturbation period.
 audioSecSt = auTrigs(1) - preOn;
@@ -221,20 +225,17 @@ if pp.voiceOnsetLate
 elseif pp.chk4Break
     saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
-elseif length(micAuNi) < numSamp
-    saveT    = 0;
-    saveTmsg = 'Recording too short!!';
 else
     saveT    = 1;
     saveTmsg = 'Everything is good'; 
 end
 
 % Grab the full numSamp so they can be concatenated cleanly
-micP    = micAuNi(1:numSamp);
-headP   = headAuNi(1:numSamp);
+micP    = micAuNi(1:numSampAuNi);
+headP   = headAuNi(1:numSampAuNi);
 
-pp.saveT    = saveT;    % Save trial or no?
-pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
+pp.saveT     = saveT;    % Save trial or no?
+pp.saveTmsg  = saveTmsg; % Reason, if any the trial was thrown out
 pp.AuMHdelay = AuMHdelay;
 pp.AuNidelay = AuNidelay;
 end
