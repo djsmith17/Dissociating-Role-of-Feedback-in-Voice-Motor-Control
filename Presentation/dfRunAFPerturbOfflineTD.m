@@ -24,13 +24,13 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';    % Subject#, Pilot#, null
-run        = 'AF12';     % AF1, DS1, etc
+subject    = 'Pilot22';    % Subject#, Pilot#, null
+run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
-collectNewData         = 0; %Boolean
+collectNewData         = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
@@ -75,6 +75,7 @@ expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
+expParam.rmsThresh    = 0.011;
 expParam.bVis         = 1;
 expParam.bPlay        = 0;
 
@@ -143,6 +144,7 @@ if collectNewData == 1
 %     
     %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [expParam, p]      = dfSetAudFB(expParam, dirs, p);
+    p.rmsThresh        = expParam.rmsThresh;
     
     %Set up the order of trials (Order of perturbed, control, etc)
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
@@ -257,7 +259,9 @@ load(dirs.SavBaseFile);
 baseData = DRF.rawData(trial);
 
 fs       = DRF.expParam.sRateAnal;
-mic      = [baseData.signalIn];
+mic      = baseData.signalIn;
+micEnd   = mic(56000:end);
+mic      = [mic; micEnd];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
 
