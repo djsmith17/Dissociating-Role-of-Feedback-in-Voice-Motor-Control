@@ -51,6 +51,7 @@ auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
 auAn.trialLen     = expParam.trialLen;         % Length of recording (s)
 auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Length of recording (points)
+auAn.rmsThresh    = expParam.rmsThresh;
 
 auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; % Time Vector based on numSamp
 auAn.audioM     = []; % Mic data that has received temporal preprocessing (all recorded trials)
@@ -81,19 +82,22 @@ svC = 0; % Saved Trial Count
 for ii = 1:auAn.numTrial
     data = rawData(ii);       % Get the data from this trial
     
-    Mraw = data.signalIn;     % Microphone
-    Hraw = data.signalOut;    % Headphones
+    Mraw     = data.signalIn;     % Microphone
+    Hraw     = data.signalOut;    % Headphones
+    rms      = data.rms(:,3);     % RMS recording
+    numFrame = length(rms);
+    
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
     if isfield(niAn, 'audioM')
         MrawNi = niAn.audioM(:,ii);          % Microphone (NIDAQ) 
     else
-        MrawNi = resample(Mraw, 8000, 16000);
+        MrawNi = resample(Mraw, auAn.sRateNi, auAn.sRate);
     end
     
     % Preprocessing step identifies time-series errors in production/recording
-    [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, MrawNi, anaTrigs);
+    [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, rms, MrawNi, anaTrigs);
     
     auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual analysis
     auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual analysis
@@ -136,7 +140,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
+function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs)
 % [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 % This function performs preprocessing on the time-series recorded audio 
 % data before frequency analysis methods are applied. This identifies
@@ -167,23 +171,24 @@ function [micP, headP, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 
 micR      = double(micR);    % Convert to data type double
 headR     = double(headR);   % Convert to data type double
+rms       = double(rms);     % Convert to data type double
 AudFB     = An.AudFB;        % Auditory feedback type used
 fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
 numSamp   = An.numSamp;      % Number of samples for length of recording
+rmsThresh = An.rmsThresh;
 frameDel  = 9;
 
-% We are going to section the audio recording from 0.5s ahead of 
-% perturbation onset to 1.0s after perturbation offset.
-preOn   = 0.5*fs;
-postOff = 1.0*fs;
+voicingInd  = find(rms >= rmsThresh);
+vOdelayP    = (voicingInd(1)-1)*frameLen + 1;
+vOdelay     = vOdelayP/fs;
 
 micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
-AuMHdelay = (frameLen*frameDel)/fs;
+AuMHdelay = (frameLen*(frameDel-1))/fs;
 AuMHdelayP = AuMHdelay*fs;
 % if strcmp(AudFB, 'Masking Noise')
 %     AuMHdelay = (frameLen*12)/fs;
@@ -199,8 +204,6 @@ AuMHdelayP = AuMHdelay*fs;
 micAuAl  = micR(1:(end-AuMHdelayP));
 headAuAl = headR((AuMHdelayP+1):end);
 
-numSampAuAl = numSamp - AuMHdelayP;
-
 % Adjust for delay between Audapter and NIDAQ
 if AuNidelayP > 0 % As long as the delay is non 0
     micAuNi    = micAuAl(AuNidelayP:end);
@@ -210,14 +213,24 @@ else
     headAuNi   = headAuAl;
 end
 
-numSampAuNi = numSampAuAl - AuNidelayP;
+vOAuNi  =  vOdelayP - AuNidelayP;
 
-% Audio points on either side of the perturbation period.
-audioSecSt = auTrigs(1) - preOn;
-audioSecSp = auTrigs(2) + postOff;
+micVO  = micAuNi(vOAuNi:end);
+headVO = headAuNi(vOAuNi:end);
 
-% Find the onset of voicing
-pp = findVoiceOnset(micAuNi, fs, audioSecSt, audioSecSp);
+% We are going to section the audio recording from 0.5s ahead of 
+% perturbation onset to 1.0s after perturbation offset.
+% preOn   = 0.5*fs;
+% postOff = 1.0*fs;
+% 
+% % Audio points on either side of the perturbation period.
+% audioSecSt = auTrigs(1) - preOn;
+% audioSecSp = auTrigs(2) + postOff;
+% 
+% % Find the onset of voicing
+% pp = findVoiceOnset(micAuNi, fs, audioSecSt, audioSecSp);
+pp.voiceOnsetLate = 0;
+pp.chk4Break = 0;
 
 if pp.voiceOnsetLate
     saveT    = 0;  
@@ -231,13 +244,16 @@ else
 end
 
 % Grab the full numSamp so they can be concatenated cleanly
-micP    = micAuNi(1:numSampAuNi);
-headP   = headAuNi(1:numSampAuNi);
+minNumFrame = 1000;
+minNumSamp  = minNumFrame*frameLen;
+micP    = micVO(1:minNumSamp);
+headP   = headVO(1:minNumSamp);
 
-pp.saveT     = saveT;    % Save trial or no?
-pp.saveTmsg  = saveTmsg; % Reason, if any the trial was thrown out
-pp.AuMHdelay = AuMHdelay;
-pp.AuNidelay = AuNidelay;
+pp.saveT     = saveT;     % Save trial or no?
+pp.saveTmsg  = saveTmsg;  % Reason, if any the trial was thrown out
+pp.AuMHdelay = AuMHdelay; % Delay between Mic and Headphone
+pp.AuNidelay = AuNidelay; % Delay between Audapter and NIDAQ
+pp.vOdelay   = vOdelay;   % Voice Onset
 end
 
 function [timeSet, delaySet] = MHdelayChunked(sig1, sig2, fs)
