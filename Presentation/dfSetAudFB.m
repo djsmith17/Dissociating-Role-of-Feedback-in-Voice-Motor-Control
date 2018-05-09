@@ -33,20 +33,10 @@ elseif expParam.AudFBSw == 1
     elseif isequal(lower(gender), 'male')
         p.pitchLowerBoundHz = 80;
         p.pitchUpperBoundHz = 160;
-    end
+    end   
     
-    p.frameLen = 64;
-    p.nDelay = 7;
+    p.nDelay    = 7;
     p.bCepsLift = 1;
-    
-%     p.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 1.150, 1.0; 2.0, 1.0; 2.15, 1.0];
-    p.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 1.150, 0.9438; 2.0, 0.9438; 2.15, 1.0];
-    p.rmsThresh = 0.011;
-    
-%     p.fb          = 1;    % Microphone FB
-%     p.bPitchShift = 1;    % Pitch-shifting
-%     p.bBypassFmt  = 1;    % No Formant tracking
-%     p.dScale      = 1.00; %Headphone Scalar
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];

@@ -127,24 +127,17 @@ if collectNewData == 1
     expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
     expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
-    %Set up Audapter
-%     Audapter('deviceName', expParam.audioInterfaceName);
-%     Audapter('setParam', 'downFact', expParam.downFact, 0);
-%     Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
-%     Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
-    p = getAudapterDefaultParams(expParam.gender);
-
     %Set up Parameters to control NIDAQ and Perturbatron
     expParam.sRateQ = 8000; % NIDAQ sampling rate
     expParam.niCh   = [];   % Structure of Channel Names
-
-    %Set up OST and PCF Files
-%     expParam.ostFN = fullfile(dirs.Prelim, ['AFPerturbOST.ost']); check_file(expParam.ostFN);
-%     expParam.pcfFN = fullfile(dirs.Prelim, ['AFPerturbPCF.pcf']); check_file(expParam.pcfFN);
-%     
-    %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
-    [expParam, p]      = dfSetAudFB(expParam, dirs, p);
+    
+    %Set up Audapter
+    p = getAudapterDefaultParams(expParam.gender);
     p.rmsThresh        = expParam.rmsThresh;
+    p.frameLen         = expParam.frameLenDown;
+    
+    %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
+    [expParam, p]      = dfSetAudFB(expParam, dirs, p);    
     
     %Set up the order of trials (Order of perturbed, control, etc)
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
@@ -173,18 +166,13 @@ if collectNewData == 1
         expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
 
         %Level of f0 change based on results from Laryngeal pert Exp
-        audStimP = 0;
-%         audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
+        audStimP = dfSetAudaspFiles(expParam, dirs, ii, debug);
+        p.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 1.150, 0.9438; 2.0, 0.9438; 2.15, 1.0];            
 
-        %Set the OST and PCF functions
-%         Audapter('ost', expParam.ostFN, 0);
-%         Audapter('pcf', expParam.pcfFN, 0);
-        
         %Cue to begin trial
         pause(expParam.cuePause)
         
         %Phonation Start
-
         fprintf('Trial %d\n', ii)
         AudapterIO('init', p);
         Audapter('reset');
@@ -246,7 +234,6 @@ drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
 pause(2)
 drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
 pause(2)
-% close all
 end
 
 function [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs)
