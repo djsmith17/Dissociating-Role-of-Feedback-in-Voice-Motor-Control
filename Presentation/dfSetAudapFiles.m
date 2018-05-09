@@ -10,8 +10,8 @@ function audStimP = dfSetAudapFiles(expParam, dirs, trial, debug)
 trialType = expParam.trialType(trial);
 trigs     = expParam.trigs(trial,:,1);
 
-ost       = expParam.ostFN;
-pcf       = expParam.pcfFN;
+% ost       = expParam.ostFN;
+% pcf       = expParam.pcfFN;
 trialLen  = expParam.trialLen;
 pertName  = expParam.AudPert;
 pertSw    = expParam.AudPertSw;
@@ -21,11 +21,11 @@ InflaV = expParam.InflaV;
 
 audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertName, InflaT, InflaV);
 
-OST_tline = writeOSTportions(audStimP);
-PCF_tline = writePCFportions(audStimP);
-
-svPSRLevels(ost, OST_tline);
-svPSRLevels(pcf, PCF_tline);
+% OST_tline = writeOSTportions(audStimP);
+% PCF_tline = writePCFportions(audStimP);
+% 
+% svPSRLevels(ost, OST_tline);
+% svPSRLevels(pcf, PCF_tline);
 
 if debug
     drawStimulus(audStimP, dirs)
@@ -66,11 +66,14 @@ if pertSw == 0 %Linear Standard Stimulus
     audStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
     audStimP.rampLenP   = length(audStimP.rampT);
     
+    audStimP.pertRampT  = 0.15; %s
     if trialType == 0
         audStimP.rampMin = 0;
+        audStimP.pertMagCent  = 0;
         audStimP.ramp    = zeros(audStimP.rampLenP, 1);
     else
         audStimP.rampMin = -100; % cents            HardSet
+        audStimP.pertMagCent  = -100;
         audStimP.ramp    = linspace(0, audStimP.rampMin, audStimP.rampLenP);
     end              
 elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
@@ -87,6 +90,17 @@ elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
         audStimP.ramp     = audStimP.rampMin*sigmf(x, [1 5]);
     end                     
 end
+
+audStimP.pertMagMult  = 2^(audStimP.pertMagCent/1200);
+audStimP.pertEndDw = audStimP.StTime + audStimP.pertRampT;
+audStimP.pertEndUp = audStimP.SpTime + audStimP.pertRampT;
+
+audStimP.pertSched   = [0, 1.0;...
+                       audStimP.StTime, 1.0;...
+                       audStimP.pertEndDw, audStimP.pertMagMult;...
+                       audStimP.SpTime, audStimP.pertMagMult;...
+                       audStimP.pertEndUp, 1.0];
+                       
 
 audStimP.ramp    = round((audStimP.ramp/100), 3);
 audStimP.rampMin = round((audStimP.rampMin/100), 3);

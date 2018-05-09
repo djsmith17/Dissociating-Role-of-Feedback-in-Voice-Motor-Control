@@ -22,10 +22,11 @@ function dfRunAFPerturbOfflineTD()
 close all;
 ET = tic;
 rng('shuffle');
+debug = 1;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot22';    % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
+run        = 'AF2';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
@@ -46,7 +47,7 @@ recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full
 switch recType
     case 'Practice'
         numTrials = 4;
-        perCatch  = 1.00;
+        perCatch  = 0.5;
     case 'Diagnostic'
         numTrials = 10;
         perCatch  = 0.50;
@@ -166,8 +167,8 @@ if collectNewData == 1
         expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
 
         %Level of f0 change based on results from Laryngeal pert Exp
-        audStimP = dfSetAudaspFiles(expParam, dirs, ii, debug);
-        p.timeDomainPitchShiftSchedule = [0, 1.0; 1, 1.0; 1.150, 0.9438; 2.0, 0.9438; 2.15, 1.0];            
+        audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
+        p.timeDomainPitchShiftSchedule = audStimP.pertSched;            
 
         %Cue to begin trial
         pause(expParam.cuePause)
