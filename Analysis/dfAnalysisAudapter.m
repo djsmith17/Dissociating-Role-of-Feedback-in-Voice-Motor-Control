@@ -178,7 +178,7 @@ fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
 numSamp   = An.numSamp;      % Number of samples for length of recording
 rmsThresh = An.rmsThresh;
-frameDel  = 9;
+frameDel  = 7;
 
 voicingInd  = find(rms >= rmsThresh);
 vOdelayP    = (voicingInd(1)-1)*frameLen + 1;
