@@ -26,7 +26,7 @@ debug = 1;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot22';    % Subject#, Pilot#, null
-run        = 'AF2';     % AF1, DS1, etc
+run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
@@ -47,7 +47,7 @@ recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full
 switch recType
     case 'Practice'
         numTrials = 4;
-        perCatch  = 0.5;
+        perCatch  = 1.0;
     case 'Diagnostic'
         numTrials = 10;
         perCatch  = 0.50;
