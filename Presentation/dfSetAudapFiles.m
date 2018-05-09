@@ -27,9 +27,9 @@ audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertName, InflaT
 % svPSRLevels(ost, OST_tline);
 % svPSRLevels(pcf, PCF_tline);
 
-if debug
-    drawStimulus(audStimP, dirs)
-end
+% if debug
+%     drawStimulus(audStimP, dirs)
+% end
 end
 
 function audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertName, InflaT, InflaV)
@@ -37,7 +37,7 @@ function audStimP = organizeStimulus(trialType, trialLen, trigs, pertSw, pertNam
 audStimP.trialType = trialType; % 0: Control 1: Catch
 audStimP.pertSw    = pertSw;    % 0: -100c   1: LarMag
 audStimP.pertName  = pertName;  % 'Linear Standard', 'Sigmoid Matched'
-audStimP.tStep     = 0.005;    % seconds
+audStimP.tStep     = 0.001;    % seconds
 audStimP.fs        = 1/audStimP.tStep;
 audStimP.lenTrialT = trialLen;                                  % Trial Length (Seconds)
 audStimP.lenTrialP = audStimP.lenTrialT*audStimP.fs;            % Trial Length (Pert-Points)
@@ -57,69 +57,77 @@ audStimP.rampMin   = [];
 audStimP.ramp      = [];
 audStimP.rampRv    = [];
 
-audStimP.steadyLenP  = [];
+audStimP.steadyLenP = [];
 audStimP.steadyLenT = [];
+
+audStimP.pertSchedBegin = [0, 1.0];
+audStimP.pertSchedPre   = [audStimP.StTime, 1.0];
 
 %Define the slope for the Aud. perturbation stimulus
 if pertSw == 0 %Linear Standard Stimulus
-    audStimP.rampLenT   = 0.15; % seconds          HardSet
-    audStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
-    audStimP.rampLenP   = length(audStimP.rampT);
-    
     audStimP.pertRampT  = 0.15; %s
-    if trialType == 0
-        audStimP.rampMin = 0;
-        audStimP.pertMagCent  = 0;
-        audStimP.ramp    = zeros(audStimP.rampLenP, 1);
-    else
-        audStimP.rampMin = -100; % cents            HardSet
-        audStimP.pertMagCent  = -100;
-        audStimP.ramp    = linspace(0, audStimP.rampMin, audStimP.rampLenP);
-    end              
-elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
-    audStimP.rampLenT   = InflaT; % seconds
-    audStimP.rampT      = 0:audStimP.tStep:audStimP.rampLenT;
-    audStimP.rampLenP   = length(audStimP.rampT);
     
     if trialType == 0
-        audStimP.rampMin = 0;
-        audStimP.ramp    = zeros(audStimP.rampLenP, 1);
+        audStimP.pertMagCent = 0;
     else
-        x = linspace(0, 10, audStimP.rampLenP);
-        audStimP.rampMin  = InflaV; % cents
-        audStimP.ramp     = audStimP.rampMin*sigmf(x, [1 5]);
-    end                     
+        audStimP.pertMagCent = -100;
+    end
+    
+    audStimP.pertMagMult = 2^(audStimP.pertMagCent/1200);
+    audStimP.pertEndDw   = audStimP.StTime + audStimP.pertRampT;
+    audStimP.pertEndUp   = audStimP.SpTime + audStimP.pertRampT;
+    
+    audStimP.pertSchedStRamp = [audStimP.pertEndDw, audStimP.pertMagMult];
+    audStimP.pertSchedSteady = [audStimP.SpTime, audStimP.pertMagMult];
+    audStimP.pertSchedSpRamp = [audStimP.pertEndUp, 1.0];
+elseif pertSw == 1 %Sigmoid (Laryngeal) Matched Stimulus
+    audStimP.pertRampT   = InflaT; % seconds
+
+    if trialType == 0
+        audStimP.pertMagCent = 0;
+    else
+        audStimP.pertMagCent = InflaV;
+        
+        numSteps =  round(audStimP.pertRampT/audStimP.tStep); 
+        x = 0:audStimP.tStep:(audStimP.pertRampT*10)
+        x = linspace(0, 10, numSteps);
+        audStimP.ramp = audStimP.pertMagCent*sigmf(x, [1 5]);
+    end  
+    
+    audStimP.pertMagMult = 2^(audStimP.pertMagCent/1200);
+    audStimP.pertEndDw   = audStimP.StTime + audStimP.pertRampT;
+    audStimP.pertEndUp   = audStimP.SpTime + audStimP.pertRampT;
+    
+    audStimP.pertSchedStRamp = [audStimP.pertEndDw, audStimP.pertMagMult];
+    audStimP.pertSchedSteady = [audStimP.SpTime, audStimP.pertMagMult];
+    audStimP.pertSchedSpRamp = [audStimP.pertEndUp, 1.0]; 
 end
 
-audStimP.pertMagMult  = 2^(audStimP.pertMagCent/1200);
-audStimP.pertEndDw = audStimP.StTime + audStimP.pertRampT;
-audStimP.pertEndUp = audStimP.SpTime + audStimP.pertRampT;
-
-audStimP.pertSched   = [0, 1.0;...
-                       audStimP.StTime, 1.0;...
-                       audStimP.pertEndDw, audStimP.pertMagMult;...
-                       audStimP.SpTime, audStimP.pertMagMult;...
-                       audStimP.pertEndUp, 1.0];
+audStimP.pertSched   = [audStimP.pertSchedBegin;...
+                        audStimP.pertSchedPre;...
+                        audStimP.pertSchedStRamp;...
+                        audStimP.pertSchedSteady;...
+                        audStimP.pertSchedSpRamp];
                        
 
-audStimP.ramp    = round((audStimP.ramp/100), 3);
-audStimP.rampMin = round((audStimP.rampMin/100), 3);
-audStimP.rampRv  = fliplr(audStimP.ramp);
-
-audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLenP-1);
-audStimP.rampUPRange = audStimP.SpPoint + (0:audStimP.rampLenP-1);
-audStimP.steadySt    = audStimP.rampDNRange(end)+1;
-audStimP.steadySp    = audStimP.rampUPRange(1)-1;
-audStimP.steadyRange = audStimP.steadySt:audStimP.steadySp;
-audStimP.steadyLenP  = length(audStimP.steadyRange);
-audStimP.steadyLenT  = audStimP.steadyLenP/audStimP.fs;
-
-stim = zeros(audStimP.lenTrialP,1);
-stim(audStimP.rampDNRange) = audStimP.ramp;
-stim(audStimP.steadyRange) = audStimP.rampMin;
-stim(audStimP.rampUPRange) = audStimP.rampRv;
-
-audStimP.stim = stim;
+% audStimP.ramp    = round((audStimP.ramp/100), 3);
+% audStimP.rampMin = round((audStimP.rampMin/100), 3);
+% audStimP.rampRv  = fliplr(audStimP.ramp);
+% 
+% audStimP.rampDNRange = audStimP.StPoint + (0:audStimP.rampLenP-1);
+% audStimP.rampUPRange = audStimP.SpPoint + (0:audStimP.rampLenP-1);
+% audStimP.steadySt    = audStimP.rampDNRange(end)+1;
+% audStimP.steadySp    = audStimP.rampUPRange(1)-1;
+% audStimP.steadyRange = audStimP.steadySt:audStimP.steadySp;
+% audStimP.steadyLenP  = length(audStimP.steadyRange);
+% audStimP.steadyLenT  = audStimP.steadyLenP/audStimP.fs;
+% 
+% stim = zeros(audStimP.lenTrialP,1);
+% stim(audStimP.rampDNRange) = audStimP.ramp;
+% stim(audStimP.steadyRange) = audStimP.rampMin;
+% stim(audStimP.rampUPRange) = audStimP.rampRv;
+% 
+% audStimP.stim = stim;
 end
 
 function OST_tline = writeOSTportions(audStimP)
