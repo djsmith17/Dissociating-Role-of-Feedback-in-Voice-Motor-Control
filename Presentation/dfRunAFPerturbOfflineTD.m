@@ -22,7 +22,7 @@ function dfRunAFPerturbOfflineTD()
 close all;
 ET = tic;
 rng('shuffle');
-debug = 1;
+lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot22';    % Subject#, Pilot#, null
@@ -145,7 +145,7 @@ if collectNewData == 1
 
     %Select the trigger points for perturbation onset and offset and creating
     %the digital signal to be sent to the NIDAQ
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, lenDb);
 
     expParam.cuePause  = 1.0; % How long the cue period lasts
     expParam.buffPause = 0.2; % Give them a moment to start speaking
@@ -167,7 +167,7 @@ if collectNewData == 1
         expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
 
         %Level of f0 change based on results from Laryngeal pert Exp
-        audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
+        audStimP = dfSetAudapFiles(dirs, expParam, ii);
         p.timeDomainPitchShiftSchedule = audStimP.pertSched;            
 
         %Cue to begin trial
