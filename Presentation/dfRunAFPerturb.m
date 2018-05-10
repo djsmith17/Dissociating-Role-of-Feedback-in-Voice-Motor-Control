@@ -29,10 +29,10 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'PureTone200';    % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
+subject    = 'Pilot0';    % Subject#, Pilot#, null
+run        = 'AF2';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
-gender     = 'female';  % "male" or "female"
+gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
@@ -78,6 +78,7 @@ expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
+expParam.rmsThresh    = 0.011;
 expParam.bVis         = 0;
 
 %Set our dirs based on the project
@@ -105,27 +106,29 @@ end
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
-expParam.frameLen           = 96;     % Before downsampling
+expParam.frameLen           = 192;     % Before downsampling
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
 expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
-Audapter('deviceName', expParam.audioInterfaceName);
-Audapter('setParam', 'downFact', expParam.downFact, 0);
-Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
-Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
+% Audapter('deviceName', expParam.audioInterfaceName);
+% Audapter('setParam', 'downFact', expParam.downFact, 0);
+% Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
+% Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
 p = getAudapterDefaultParams(expParam.gender);
+p.rmsThresh        = expParam.rmsThresh;
+p.frameLen         = expParam.frameLenDown;
 
 %Set up Parameters to control NIDAQ and Perturbatron
 [s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLen);
 expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 
-%Set up OST and PCF Files
-expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
-expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+% %Set up OST and PCF Files
+% expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
+% expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
 [expParam, p]      = dfSetAudFB(expParam, dirs, p);
@@ -138,7 +141,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.2; % Give them a moment to start speaking
+expParam.buffPause = 0.8; % Give them a moment to start speaking
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;   % +/- dB
 
@@ -165,11 +168,12 @@ for ii = 1:expParam.numTrial
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from Laryngeal pert Exp
-    audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
+    audStimP = dfSetAudapFiles(dirs, expParam, ii);
+    p.timeDomainPitchShiftSchedule = audStimP.pertSched; 
     
     %Set the OST and PCF functions
-    Audapter('ost', expParam.ostFN, 0);
-    Audapter('pcf', expParam.pcfFN, 0);
+%     Audapter('ost', expParam.ostFN, 0);
+%     Audapter('pcf', expParam.pcfFN, 0);
     
     %Setup which perturb file we want
     NIDAQsig = [expParam.sigs(:,ii) nVS];
@@ -187,7 +191,7 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
-%     pause(expParam.buffPause)
+    pause(expParam.buffPause)
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
@@ -247,6 +251,24 @@ switch recType
         fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
         save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 end
+
+close all
+
+dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
+if exist(dirs.SavResultsDir, 'dir') == 0
+    mkdir(dirs.SavResultsDir)
+end
+
+f0b = 100;
+aFa = 1; iRf = 0;
+niAn = struct;
+niAn.sRate = 8000;
+[~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
+
+drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+pause(2)
+drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+pause(2)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
