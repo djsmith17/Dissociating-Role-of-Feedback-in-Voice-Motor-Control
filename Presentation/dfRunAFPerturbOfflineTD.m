@@ -25,7 +25,7 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot22';    % Subject#, Pilot#, null
+subject    = 'Pilot31';    % Subject#, Pilot#, null
 run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
@@ -177,8 +177,7 @@ if collectNewData == 1
         fprintf('Trial %d\n', ii)
         AudapterIO('init', p);
         Audapter('reset');
-%         pause(expParam.buffPause)
-        
+
         % Load the PreRecorded Baseline Mic signal
         % Split the signal into frames
         mic_frames = makecell(mic_reSamp, expParam.frameLen);
@@ -199,8 +198,6 @@ if collectNewData == 1
         %Play the sound, if you care to
         if expParam.bPlay; soundsc(data.signalOut, expParam.sRateAnal); end
 
-%         visPSSsigs(data)
-        
         pause(10)
     end
     close all;
