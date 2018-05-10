@@ -30,7 +30,7 @@ debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot0';    % Subject#, Pilot#, null
-run        = 'AF2';     % AF1, DS1, etc
+run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';

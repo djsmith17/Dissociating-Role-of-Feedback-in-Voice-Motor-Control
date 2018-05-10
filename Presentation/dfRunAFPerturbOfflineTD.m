@@ -25,10 +25,10 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot31';    % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
+subject    = 'Pilot32';    % Subject#, Pilot#, null
+run        = 'AF2';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
-gender     = 'female';  % "male" or "female"
+gender     = 'male';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
 collectNewData         = 1; %Boolean
@@ -245,7 +245,7 @@ baseData = DRF.rawData(trial);
 
 fs       = DRF.expParam.sRateAnal;
 mic      = baseData.signalIn;
-micEnd   = mic(56000:end);
+micEnd   = mic(48000:end);
 mic      = [mic; micEnd];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
