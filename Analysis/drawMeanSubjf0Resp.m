@@ -1,4 +1,10 @@
-function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder, fLabel, fStat)
+function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder, fLabel, fStat, varargin)
+
+if isempty(varargin)
+    presFlag = 0;
+else
+    presFlag = varargin{1};
+end
 
 curSess          = poolRes.curSess;
 cond             = poolRes.cond;
@@ -23,6 +29,9 @@ statPP  = statLib(9);
 
 limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
+
+sensorP     = poolRes.sensorPMean;
+pressureLim = poolRes.limitsPmean;
 
 legLines = [];
 legNames = {};
@@ -50,6 +59,17 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 axes(ha(1))
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
+
+if presFlag == 1
+    yyaxis right
+    plot(time, sensorP(:,1), '--k', 'LineWidth', 1.5)
+
+    ylabel('Pressure (psi)')
+    axis(pressureLim);
+    set(gca,'FontSize', 14,...
+            'FontWeight','bold')
+    yyaxis left
+end  
 
 nC = shadedErrorBar(time, contf0(:,1), contf0(:,2), 'lineprops', 'k', 'transparent', 1);
 set(nC.mainLine, 'LineWidth', lineThick)

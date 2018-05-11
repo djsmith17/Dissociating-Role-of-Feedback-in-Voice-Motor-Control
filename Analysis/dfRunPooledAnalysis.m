@@ -197,6 +197,7 @@ end
 
 lims = identifyLimits(polRes);
 polRes.limitsAmean = lims.audioMean;
+polRes.limitsPmean = lims.presMean;
 
 statLib         = packStatLib(polRes);
 polRes.statLib  = statLib;
@@ -247,6 +248,11 @@ statLib(9) = pPerc;     % p-value percent increase
 end
 
 function lims = identifyLimits(ss)
+
+maxPres = max(ss.sensorPMean(:,1)) + 0.5;
+minPres = min(ss.sensorPMean(:,1)) - 0.1;
+
+lims.presMean = [-0.5 1.0 minPres maxPres];
 
 mf0MeanPert = ss.audioMf0MeanPert;
 numCond = length(mf0MeanPert);
