@@ -162,6 +162,7 @@ polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0S
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 
+polRes.secTimeP            = curRes.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, curRes.sensorPSec);
 
 tT = curRes.removedTrialTracker;
