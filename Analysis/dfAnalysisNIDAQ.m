@@ -128,17 +128,24 @@ lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
 end
 
-function sensorZeroed = correctBaseline(sensor, fs)
+function sensorVolt = correctBaseline(sensor, fs)
 % sensorZeroed = correctBaseline(sensor, fs) zeromeans a set of trials 
 % against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
 % recordings (esp. the Pressure sensor)
 
 MaxPres      = 5;
-firstS       = 1:(1*fs);          % Grab the first second
-firstT       = sensor(firstS, 1); % Grab the 1st sec of 1st trial
-meanBaseLine = mean(firstT);      % Mean value of 1st sec of 1st trial
+MinPres      = 0;
+MaxVol       = 4.5;
+MinVol       = 0.444;
 
-sensorZeroed = sensor - meanBaseLine; % Subtract that mean value from all points in all trials. 
+% firstS       = 1:(1*fs);          % Grab the first second
+% firstT       = sensor(firstS, 1); % Grab the 1st sec of 1st trial
+% meanBaseLine = mean(firstT);      % Mean value of 1st sec of 1st trial
+
+m = (MaxPres - MinPres) / (MaxVol - MinVol);
+b = MinPres - m*MinVol;
+
+sensorVolt = sensor*m + b; % Subtract that mean value from all points in all trials. 
 end
 
 function sensorPP = sensorPreProcessing(sensor, sRate)
