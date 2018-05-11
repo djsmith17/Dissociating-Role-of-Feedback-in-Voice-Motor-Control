@@ -131,10 +131,12 @@ sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
 sortStr.respVar         = cell(numCond, 1);
+sortStr.sensorPSec      = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
 sortStr.respVarM         = zeros(numCond, 4);
+sortStr.sensorPMean      = [];
 
 sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
@@ -160,6 +162,8 @@ polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0S
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 
+polRes.sensorPSec          = cat(2, polRes.sensorPSec, curRes.sensorPSec);
+
 tT = curRes.removedTrialTracker;
 if ~isempty(tT)
     [tossedA, ~] = size(tT);
@@ -182,6 +186,7 @@ function polRes = meanCondTrials(pA, polRes)
 
 polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
+polRes.sensorPMean      = meanSecData(polRes.sensorPSec);
 for kk = 1:pA.numCond
     polRes.f0b(kk)              = mean(polRes.runf0b{kk});
     
