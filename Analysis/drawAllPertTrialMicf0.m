@@ -18,7 +18,7 @@ sigs             = res.audioMf0TrialPert;
 limits           = res.limitsA;
 
 timePres         = res.timeS;
-sensorP          = res.sensorP;
+sensorP          = res.sensorPsv;
 pressureLim      = res.limitsP;
 
 curSess(strfind(curSess, '_')) = ' ';
