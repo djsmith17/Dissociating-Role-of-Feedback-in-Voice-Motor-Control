@@ -18,7 +18,7 @@ close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'Pilot28'}; %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'MD7'}; %    List of multiple runs.
+AVar.runs          = {'MD1'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV2';            % Baseline Voice information
 AVar.debug         = 0;
@@ -137,6 +137,11 @@ res.limitsP         = niRes.limitsP;
 res.timeSAl       = niRes.timeSAl;
 res.sensorPAl     = niRes.sensorPAl;  
 res.limitsPAl     = niRes.limitsPAl;
+
+res.timeSec     = niRes.timeSec;
+res.sensorPSec  = niRes.sensorPSec;
+res.sensorPMean = niRes.sensorPMean;
+res.limitsPMean = niRes.limitsPMean;
 
 % Audio f0 analysis
 res.timef0        = auRes.timef0;

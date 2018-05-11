@@ -116,6 +116,9 @@ if PresFlag == 1
 
     % Section and aligning pressure signal for perturbed trials
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
+    
+    [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.time_DN, niAn.sensorP_p, niAn.pertTrig);
+    niAn.sensorPMean = meanSensorData(niAn.sensorPSec);
 end
 
 %The Audio Analysis
@@ -130,11 +133,12 @@ function sensorZeroed = correctBaseline(sensor, fs)
 % against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
 % recordings (esp. the Pressure sensor)
 
-firstS  = 1:(1*fs);          % Grab the first second
-firstT  = sensor(firstS, 1); % Grab the 1st sec of 1st trial
-meanRec = mean(firstT);      % Mean value of 1st sec of 1st trial
+MaxPres      = 5;
+firstS       = 1:(1*fs);          % Grab the first second
+firstT       = sensor(firstS, 1); % Grab the 1st sec of 1st trial
+meanBaseLine = mean(firstT);      % Mean value of 1st sec of 1st trial
 
-sensorZeroed = sensor - meanRec; % Subtract that mean value from all points in all trials. 
+sensorZeroed = sensor - meanBaseLine; % Subtract that mean value from all points in all trials. 
 end
 
 function sensorPP = sensorPreProcessing(sensor, sRate)
@@ -344,8 +348,8 @@ function [timeAl, sensorAl] = alignSensorData(sensor, fs, idx)
 % sensorAl: sectioned and aligned sensor data 
 
 [~, numTrial] = size(sensor);
-eveSt = 1.0; % time preEvent Seconds 
-eveSp = 2.5; % time posEvent Seconds
+preEve = 1.0; % time preEvent Seconds 
+posEve = 2.5; % time posEvent Seconds
 
 % At the moment only aligning by Onset. 
 % This could eventually become an input to toggle between Onset/Offset
@@ -353,19 +357,92 @@ OnsetTrigs = idx(:, 1);
 
 sensorAl = [];
 for ii = 1:numTrial
-    St = OnsetTrigs(ii) - fs*eveSt;  % Points preEvent (trigger)
-    Sp = OnsetTrigs(ii) + fs*eveSp;  % Points posEvent (trigger)
+    St = OnsetTrigs(ii) - fs*preEve;  % Points preEvent (trigger)
+    Sp = OnsetTrigs(ii) + fs*posEve;  % Points posEvent (trigger)
     
     sensorSec = sensor(St:Sp, ii); % Grab St:Sp around the trigger point for this trial
     
     sensorAl = cat(2, sensorAl, sensorSec);
 end
-
-numSampSec = length(sensorSec);
 per     = 1/fs;
 
 % Time Vector of the sectioned data
-timeAl = (0:per:(numSampSec-1)*per)';
+timeAl = (-preEve:per:posEve)';
+end
+
+function [secTime, secSigs] = sectionData(time, sigs, trigs)
+% [secTime, secSigs] = sectionData(time, sigs, trigs) sections
+% time series data around important points in time.
+% 
+% time:  Vector of time points (numSamp)
+% sigs:  Matrix of signals to be sectioned (numSamp x numTrial)
+% trigs: Onset and Offset time tiggers (numTrial x 2)
+%
+% secTime: Vector of time points corresponding to the sectioned window (numSampSec)
+% secSigs: 3D mat of sectioned sigs (numSampSec x numTrial x event)
+%          The 1st 3D layer are Onset Sections
+%          The 2nd 3D later are Offset Sections
+
+[~, numTrial] = size(sigs);
+preEve  = 0.5; posEve = 1.0;
+
+secSigs    = [];
+OnsetSecs  = [];
+OffsetSecs = [];
+if numTrial > 0
+    for ii = 1:numTrial
+        OnsetT   = trigs(ii, 1); % Onset time
+        OffsetT  = trigs(ii, 2); % Offset time
+
+        OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
+        OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
+        OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
+
+        OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
+        OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
+        OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
+
+        OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
+        OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
+
+        OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
+        OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
+    end
+    [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
+else
+    numSampSec = 301;
+end
+
+secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
+secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
+secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
+end
+
+function meanAudio = meanSensorData(secAudio)
+% Some simple statistics on the sectioned audio data. 
+% meanAudio is a vector containing the following information
+% meanAudio(1) = mean Onset pitch contour
+% meanAudio(2) = 95% CI of the mean Onset Pitch Contour
+% meanAudio(3) = mean Offset pitch contour
+% meanAudio(4) = 95% CI of the mean Offset Pitch Contour
+
+OnsetSecs  = secAudio(:,:,1);
+OffsetSecs = secAudio(:,:,2);
+[~, numTrial] = size(OnsetSecs);
+
+meanOnset  = mean(OnsetSecs, 2);  % across columns
+meanOffset = mean(OffsetSecs, 2); % across columns
+
+stdOnset   = std(OnsetSecs, 0, 2);  % across columns
+stdOffset  = std(OffsetSecs, 0, 2); % across columns
+
+SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
+SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
+
+NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+
+meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
 function lims = identifyLimits(An)
@@ -385,7 +462,10 @@ lLP = minPres - 0.2;
 lims.pressure   = [0 4 lLP uLP];
 
 %Aligned Pressure Data
-lims.pressureAl = [0 3.5 lLP uLP];
+lims.pressureAl = [-1 2.5 lLP uLP];
+
+%Mean Pressure Data
+lims.pressureMean = [-0.5 1.0 lLP uLP];
 
 %Full Individual Trials: Force Sensors
 lims.force      = [0 4 1 5];
@@ -540,6 +620,11 @@ res.limitsP    = lims.pressure;
 res.timeSAl   = niAn.timeAl;
 res.sensorPAl = niAn.sensorPAl;
 res.limitsPAl = lims.pressureAl;
+
+res.timeSec     = niAn.timeSec;
+res.sensorPSec  = niAn.sensorPSec;
+res.sensorPMean = niAn.sensorPMean;
+res.limitsPMean = lims.pressureMean;
 
 % Audio f0 analysis
 res.timef0          = niAn.timef0;
