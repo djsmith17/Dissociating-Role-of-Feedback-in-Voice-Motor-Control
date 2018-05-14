@@ -7,7 +7,7 @@ else
     refSPL = varargin{1};
 end
 
-rms     = rawData.rms(:,1);
+rms     = rawData.rms(:,3);
 rmsdB   = 20*log10(rms/refSPL);
 
 %There were -Inf in my RMSdB. not exactly sure why, but this fixes the
