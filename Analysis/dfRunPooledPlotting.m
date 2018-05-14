@@ -18,13 +18,13 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
-PolPlt.MaskVVoice        = 1;
+PolPlt.MaskVVoice        = 0;
 PolPlt.AllSubjMaskvVoice = 1;
 
 fStat    = 0;
 
-ppi        = 300;
-scRes      = [2560 1440];
+ppi        = 150;
+scRes      = [1680 1050];
 scDim      = [18.625 11.75];
 targFigDim = [15 4];
 
@@ -57,10 +57,10 @@ end
 
 if PolPlt.AllSubjMaskvVoice == 1
     fLabel = 0;
-    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, 1)
+    drawMeanSubjf0RespFutz(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, 1)
 end
 
-close all
+% close all
 end
 
 function targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim)

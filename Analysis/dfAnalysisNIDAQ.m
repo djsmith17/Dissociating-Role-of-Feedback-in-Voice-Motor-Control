@@ -117,9 +117,11 @@ if PresFlag == 1
     % Section and aligning pressure signal for perturbed trials
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     
-    [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.time_DN, niAn.sensorP_p, niAn.pertTrig);
+    [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.time_DN, niAn.sensorP_p, niAn.presTrig);
     niAn.sensorPMean = meanSensorData(niAn.sensorPSec);
 end
+
+niAn.audioMAl = niAn.audioM(niAn.idxPres(:,1):end, :);
 
 %The Audio Analysis
 niAn = dfAnalysisAudio(dirs, niAn, AudFlag, iRF);
@@ -199,8 +201,8 @@ for i = 1:numTrial
     
     idxSt = ups(1); 
     idxSp = dns(1);       
-    trigSt = round(1000*time(idxSt))/1000;
-    trigSp = round(1000*time(idxSp))/1000;
+    trigSt = round(time(idxSt), 3);
+    trigSp = round(time(idxSp), 3);
 
     trigs = cat(1, trigs, [trigSt trigSp]);
     idx   = cat(1, idx, [idxSt idxSp]);
