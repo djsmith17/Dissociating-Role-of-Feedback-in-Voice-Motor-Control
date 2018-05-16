@@ -1,14 +1,16 @@
 function rmsMean = dfCalcMeanRMS(rawData, varargin)
 %Calculates the mean RMS based on Audapter recorded microphone samples
 
+% Set a value for the baseline RMS. 
 if isempty(varargin)
-    refSPL  = 0.00002;  % 20 micropascals for air
+    rmsB  = 0.0000029719;
 else
-    refSPL = varargin{1};
+    rmsB = varargin{1};
 end
 
 rms     = rawData.rms(:,3);
-rmsdB   = 20*log10(rms/refSPL);
+rms     = rms(rms ~= 0);
+rmsdB   = 20*log10(rms/rmsB);
 
 %There were -Inf in my RMSdB. not exactly sure why, but this fixes the
 %trial 1, lack of feeedback
