@@ -29,10 +29,10 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';    % Subject#, Pilot#, null
+subject    = 'Pilot0';  % Subject#, Pilot#, null
 run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
-gender     = 'male';  % "male" or "female"
+gender     = 'male';    % "male" or "female"
 InflaVarNm = 'IV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
@@ -70,7 +70,7 @@ expParam.balloon      = 'N/A';
 expParam.tightness    = 'N/A';
 expParam.InflaVarNm   = InflaVarNm;
 expParam.niDev        = 'Dev2';                      % NIDAQ Device Name. For more information, see dfInitNIDAQ
-expParam.trialLen     = 4;                           % Seconds
+expParam.trialLen     = 5;                           % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
@@ -191,11 +191,14 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
-    pause(expParam.buffPause)
+%     pause(expParam.buffPause)
     
+    pause(expParam.trialLen)
+
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
-    [dataDAQ, ~] = s.startForeground;
+%     [dataDAQ, ~] = s.startForeground;
+    dataDAQ = [];
     
     %Phonation End
     Audapter('stop');

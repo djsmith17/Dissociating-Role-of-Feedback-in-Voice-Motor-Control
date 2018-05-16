@@ -181,7 +181,7 @@ rmsThresh = An.rmsThresh;
 frameDel  = 7;
 
 voicingInd  = find(rms >= rmsThresh);
-vOdelayP    = (voicingInd(1)-1)*frameLen + 1;
+vOdelayP    = (voicingInd(1) - frameDel)*frameLen;
 vOdelay     = vOdelayP/fs;
 
 micRds     = resample(micR, fsNI, fs);

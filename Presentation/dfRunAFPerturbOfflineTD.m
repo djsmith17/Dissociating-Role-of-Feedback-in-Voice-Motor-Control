@@ -25,10 +25,10 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot32';    % Subject#, Pilot#, null
-run        = 'AF2';     % AF1, DS1, etc
+subject    = 'Pilot22';    % Subject#, Pilot#, null
+run        = 'AF5';     % AF1, DS1, etc
 blLoudness = 79.34;     % (dB SPL) Baseline loudness
-gender     = 'male';  % "male" or "female"
+gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
 collectNewData         = 1; %Boolean

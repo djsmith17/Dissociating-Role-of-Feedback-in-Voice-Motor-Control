@@ -41,7 +41,8 @@ audStimP.pertSchedPre   = [audStimP.StTime, 1.0];
 
 %Define the slope for the Aud. perturbation stimulus
 if pertSw == 0 %Linear Standard Stimulus
-    audStimP.pertRampT  = 0.15; %s
+    audStimP.pertRampT1  = 0.11; %s
+    audStimP.pertRampT2  = 0.15; %s
     
     if trialType == 0
         audStimP.pertMagCent = 0;
@@ -50,8 +51,8 @@ if pertSw == 0 %Linear Standard Stimulus
     end
     
     audStimP.pertMagMult = 2^(audStimP.pertMagCent/1200);
-    audStimP.pertEndDw   = audStimP.StTime + audStimP.pertRampT;
-    audStimP.pertEndUp   = audStimP.SpTime + audStimP.pertRampT;
+    audStimP.pertEndDw   = audStimP.StTime + audStimP.pertRampT1;
+    audStimP.pertEndUp   = audStimP.SpTime + audStimP.pertRampT2;
     
     audStimP.pertSchedStRamp = [audStimP.pertEndDw, audStimP.pertMagMult];
     audStimP.pertSchedSpRamp = [audStimP.pertEndUp, 1.0];
