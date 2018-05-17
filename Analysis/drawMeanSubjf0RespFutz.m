@@ -1,4 +1,4 @@
-function drawMeanSubjf0Resp(poolRes, targPixDim, plotFolder, fLabel, fStat, varargin)
+function drawMeanSubjf0RespFutz(poolRes, targPixDim, plotFolder, fLabel, fStat, varargin)
 
 if isempty(varargin)
     presFlag = 0;
@@ -8,7 +8,7 @@ end
 
 curSess          = poolRes.curSess;
 cond             = poolRes.cond;
-numCond          = length(cond);
+numCond          = 1;
 numControl       = poolRes.numContTrialsFin;
 numPerturb       = poolRes.numPertTrialsFin;
 
@@ -27,7 +27,7 @@ statSP  = statLib(7);
 statRP  = statLib(8);
 statPP  = statLib(9);
 
-limits  = poolRes.limitsAmean;
+limits  = [-0.5 1 -110 50]; %poolRes.limitsAmean;
 pltName = poolRes.pltName;
 
 timeP       = poolRes.secTimeP;
@@ -65,7 +65,6 @@ if presFlag == 1
     b = limits(3) - m*limitsP(3);
     
     adjustPres = (m*sensorP(:,1)+ b);
-    adjustPresB = (m*sensorP(:,2)+ b);
     
     minPres = min(adjustPres);
     [~, maxInd] = max(adjustPres);
@@ -83,8 +82,6 @@ if presFlag == 1
     plot(timeP, adjustPres, '--m', 'LineWidth', 3)
     hold on
 
-    ylabel('Pressure (psi)')
-    axis([limitsP].*[1 1 m m]);
     set(gca,'FontSize', 14,...
             'FontWeight','bold')
 
@@ -93,14 +90,38 @@ end
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
 
-nC = shadedErrorBar(time, contf0(:,1), contf0(:,2), 'lineprops', 'k', 'transparent', 1);
-set(nC.mainLine, 'LineWidth', lineThick)
-hold on
-
 for ii = 1:numCond
     nM = shadedErrorBar(time, pertf0{ii}(:,1), pertf0{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
     set(nM.mainLine, 'LineWidth', lineThick)
     hold on
+    
+    signal = zeros(length(time), 1);
+    signal1 = signal;
+    signal2 = signal;
+    timeSts = find(time <= 0.04);
+    timeSt = timeSts(end);
+    
+    pertMag  = -100;
+    pertLen1 = .15/0.005;
+    pertLen2 = .11/0.005;
+    
+    pertChunk1 = timeSt + (1:pertLen1);
+    lenChunk1  = length(pertChunk1);
+    pertChunk2 = timeSt + (1:pertLen2);
+    lenChunk2  = length(pertChunk2);
+    
+    rampDn1 = linspace(0, pertMag, lenChunk1);
+    rampDn2 = linspace(0, pertMag, lenChunk2);
+    
+    signal1(pertChunk1) = rampDn1;
+    signal1(pertChunk1(end)+1:end) = pertMag;
+    signal2(pertChunk2) = rampDn2;
+    signal2(pertChunk2(end)+1:end) = pertMag;
+    
+%     plot(time, signal1, '.r', 'LineWidth', 6)   
+    hold on
+    plot(time, signal2, '.c', 'LineWidth', 6)
+   
 end
 
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -148,7 +169,6 @@ if presFlag == 1
     hold on
 
     ylabel('Pressure (psi)')
-    axis([limitsP].*[1 1 m m]);
     set(gca,'FontSize', 14,...
             'FontWeight','bold')
 
@@ -156,11 +176,6 @@ end
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
 
-fC = shadedErrorBar(time, contf0(:,3), contf0(:,4), 'lineprops', 'k', 'transparent', 1);
-set(fC.mainLine, 'LineWidth', lineThick)
-legLines = cat(2, legLines, fC.mainLine);
-legNames = cat(2, legNames, {[num2str(numControl) ' Control Trials']});
-hold on
 
 for ii = 1:numCond
     fM = shadedErrorBar(time, pertf0{ii}(:,3), pertf0{ii}(:,4), 'lineprops', condColors(ii), 'transparent', 1);
@@ -168,6 +183,21 @@ for ii = 1:numCond
     legLines = cat(2, legLines, fM.mainLine);
     legNames = cat(2, legNames, {[num2str(numPerturb(ii)) ' ' cond{ii} ' Trials']});
     hold on
+    
+    signal3 = signal;
+    signal4 = signal;
+    
+    rampDn3 = fliplr(rampDn1);
+    rampDn4 = fliplr(rampDn2);
+    
+    signal3(pertChunk1) = rampDn3;
+    signal3(1:timeSt) = pertMag;
+    signal4(pertChunk2) = rampDn4;
+    signal4(1:timeSt) = pertMag;
+    
+%     plot(time, signal3, '.r', 'LineWidth', 6)   
+    hold on
+    plot(time, signal4, '.c', 'LineWidth', 6)
 end
 
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -225,7 +255,7 @@ legend(legLines, legNames,...
 
 plots = {'Figure'};
 for i = 1:length(plots)
-    plTitle = [pltName '.jpg'];
+    plTitle = [pltName '110.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)

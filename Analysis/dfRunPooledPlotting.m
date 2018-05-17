@@ -22,6 +22,7 @@ PolPlt.MaskVVoice        = 1;
 PolPlt.AllSubjMaskvVoice = 1;
 
 fStat    = 0;
+fPres    = 0;
 
 ppi        = 300;
 scRes      = [2560 1440];
@@ -51,13 +52,13 @@ if PolPlt.MaskVVoice == 1
     fLabel = 0;
     numIndivi = length(pooledRunStr);
     for ii = 1:numIndivi
-        drawMeanSubjf0Resp(pooledRunStr(ii), targPixDim, dirs.SavResultsDir, fLabel, fStat)
+        drawMeanSubjf0Resp(pooledRunStr(ii), targPixDim, dirs.SavResultsDir, fLabel, fStat, fPres)
     end
 end
 
 if PolPlt.AllSubjMaskvVoice == 1
     fLabel = 0;
-    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat)
+    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, fPres)
 end
 
 close all
