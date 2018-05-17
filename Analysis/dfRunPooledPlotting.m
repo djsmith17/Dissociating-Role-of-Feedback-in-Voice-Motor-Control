@@ -10,7 +10,7 @@ function dfRunPooledPlotting()
 
 close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.analyses = 'LarynxPos';
+PolPlt.analyses = 'SfN2017';
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses);       % Analyzed Results Folder
@@ -23,8 +23,8 @@ PolPlt.AllSubjMaskvVoice = 1;
 
 fStat    = 0;
 
-ppi        = 150;
-scRes      = [1680 1050];
+ppi        = 300;
+scRes      = [2560 1440];
 scDim      = [18.625 11.75];
 targFigDim = [15 4];
 
@@ -57,10 +57,10 @@ end
 
 if PolPlt.AllSubjMaskvVoice == 1
     fLabel = 0;
-    drawMeanSubjf0RespFutz(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, 1)
+    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, 1)
 end
 
-% close all
+close all
 end
 
 function targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim)
