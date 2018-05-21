@@ -26,12 +26,12 @@ function dfRunAFPerturb()
 close all;
 ET = tic;
 rng('shuffle');
-debug = 0;
+lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot0';  % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
-blLoudness = 79.34;     % (dB SPL) Baseline loudness
+run        = 'AF2';     % AF1, DS1, etc
+blLoudness = 79.80;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 InflaVarNm = 'IV1';
 
@@ -138,7 +138,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 %Select the trigger points for perturbation onset and offset and creating
 %the digital signal to be sent to the NIDAQ
-[expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
+[expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, lenDb);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.buffPause = 0.8; % Give them a moment to start speaking
