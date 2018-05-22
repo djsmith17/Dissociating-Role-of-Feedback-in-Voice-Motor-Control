@@ -83,7 +83,7 @@ end
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
-expParam.frameLen           = 96;     % Before downsampling
+expParam.frameLen           = 192;     % Before downsampling
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact;
 expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
