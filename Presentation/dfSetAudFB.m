@@ -15,30 +15,17 @@ gender = expParam.gender;
 
 %NORMAL AUDITORY FEEDBACK OF THEIR VOICE
 if  expParam.AudFBSw == 0
-    p.fb               = 1;
-    p.bTimeDomainShift = 0;
-    p.bCepsLift        = 0;
-    p.dScale           = 1.00;
-    p.nDelay           = 7;
-    
-    if isequal(lower(gender), 'female')
-        p.pitchLowerBoundHz = 150;
-        p.pitchUpperBoundHz = 300;
-    elseif isequal(lower(gender), 'male')
-        p.pitchLowerBoundHz = 80;
-        p.pitchUpperBoundHz = 160;
-    end 
+    p.fb          = 1;  % Microphone FB
+    p.bPitchShift = 0;  % No pitch-shifting
+    p.bBypassFmt  = 1;  % No Formant tracking
+    p.dScale      = 1.00;
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];
     
 %PITCH-SHIFTED AUDITORY FEEDBACK OF THEIR VOICE
 elseif expParam.AudFBSw == 1
-    p.fb               = 1;
     p.bTimeDomainShift = 1;
-    p.bCepsLift        = 1;
-    p.dScale           = 1.00;
-    p.nDelay           = 7; 
     
     if isequal(lower(gender), 'female')
         p.pitchLowerBoundHz = 150;
@@ -46,18 +33,20 @@ elseif expParam.AudFBSw == 1
     elseif isequal(lower(gender), 'male')
         p.pitchLowerBoundHz = 80;
         p.pitchUpperBoundHz = 160;
-    end       
+    end   
+    
+    p.nDelay    = 7;
+    p.bCepsLift = 1;
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];
 
 %SPEECH-SHAPED MASKING NOISE
 elseif expParam.AudFBSw == 2    
-    p.fb               = 0;    % Audio File (Masking)
-    p.bTimeDomainShift = 0;
-    p.bCepsLift        = 0;
-    p.dScale           = 1; % Headphone Scalar
-    p.nDelay           = 7;
+    p.fb          = 0;    % Audio File (Masking)
+    p.bPitchShift = 0;
+    p.bBypassFmt  = 1;    % No Formant tracking
+    p.dScale      = 1; % Headphone Scalar
     
     %Uses Speech-Shaped Noise stored in util
     noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
