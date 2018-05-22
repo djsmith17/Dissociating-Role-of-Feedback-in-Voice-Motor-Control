@@ -25,8 +25,8 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot22';    % Subject#, Pilot#, null
-run        = 'AF0';     % AF1, DS1, etc
+subject    = 'Pilot28';    % Subject#, Pilot#, null
+run        = 'AF3';     % AF1, DS1, etc
 blLoudness = 79.80;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
@@ -98,7 +98,7 @@ end
 
 % Look for the Inflation Response Files
 expParam.InflaFile    = [expParam.subject expParam.InflaVarNm 'DRF.mat'];
-dirs.InflaVarFile = fullfile(dirs.SavData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
+dirs.InflaVarFile = fullfile(dirs.RecData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
     fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
     return
@@ -107,7 +107,7 @@ else
 end
 
 % Look for the Baseline Wav Files
-dirs.SavBaseFile = fullfile(dirs.SavData, expParam.subject, expParam.baseRun, expParam.baseFile);
+dirs.SavBaseFile = fullfile(dirs.RecData, expParam.subject, expParam.baseRun, expParam.baseFile);
 if ~exist(dirs.SavBaseFile, 'file')
     fprintf('ERROR: No voice file at %s!\n', dirs.SavBaseFile)
     return
