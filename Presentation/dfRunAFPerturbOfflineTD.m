@@ -25,12 +25,13 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot28';    % Subject#, Pilot#, null
-run        = 'AF3';     % AF1, DS1, etc
+subject    = 'Pilot0';  % Subject#, Pilot#, null
+run        = 'AF7';     % AF1, DS1, etc
 blLoudness = 79.80;     % (dB SPL) Baseline loudness
-gender     = 'female';  % "male" or "female"
+gender     = 'male';    % "male" or "female"
 InflaVarNm = 'IV1';
-BaseRun    = 'BV1';
+BaseRun    = 'BVN';
+LoadSavDataLoc = 1;
 collectNewData         = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
@@ -96,9 +97,15 @@ if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
 
+if LoadSavDataLoc == 1
+    dirs.LoadData = dirs.RecData;
+else
+    dirs.LoadData = dirs.SavData;
+end
+
 % Look for the Inflation Response Files
 expParam.InflaFile    = [expParam.subject expParam.InflaVarNm 'DRF.mat'];
-dirs.InflaVarFile = fullfile(dirs.RecData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
+dirs.InflaVarFile = fullfile(dirs.LoadData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
     fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
     return
@@ -107,7 +114,7 @@ else
 end
 
 % Look for the Baseline Wav Files
-dirs.SavBaseFile = fullfile(dirs.RecData, expParam.subject, expParam.baseRun, expParam.baseFile);
+dirs.SavBaseFile = fullfile(dirs.LoadData, expParam.subject, expParam.baseRun, expParam.baseFile);
 if ~exist(dirs.SavBaseFile, 'file')
     fprintf('ERROR: No voice file at %s!\n', dirs.SavBaseFile)
     return
