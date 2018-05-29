@@ -14,6 +14,9 @@ pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 tStep = 0.005; % seconds; hard set
 fsA   = 1/tStep;
 
+lwPitchBnd = 75;
+upPitchBnd = 300;
+
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
     error('file ''praat.exe'' not found')
@@ -35,11 +38,13 @@ for ii = 1:numTrial
     audiowrite(wavFileLoc, trialset(:,ii), fs)
     
     curTrial = ii;
-    call2 = sprintf('%s praat "execute %s %s %s %f %f', ...
+    call2 = sprintf('%s praat "execute %s %s %s %f %f %f %f', ...
                         sp_fn, ... %sendpraat.exe
                         gt_fn, ... %saved praat script ('generatef0JNDTokens)
                         wavFileLoc, ... %file location of generated wav file
                         txtFileLoc, ...
+                        lwPitchBnd, ...
+                        upPitchBnd, ...
                         curTrial, ...
                         numTrial ...
                         );
