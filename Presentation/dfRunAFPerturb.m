@@ -27,11 +27,12 @@ close all;
 ET = tic;
 rng('shuffle');
 lenDb = 1;
+rmsB       = 0.0000021689;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';  % Subject#, Pilot#, null
-run        = 'AF2';     % AF1, DS1, etc
-blLoudness = 79.80;     % (dB SPL) Baseline loudness
+subject    = 'null';  % Subject#, Pilot#, null
+run        = 'AF24';     % AF1, DS1, etc
+blLoudness = 84;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 InflaVarNm = 'IV1';
 
@@ -193,12 +194,12 @@ for ii = 1:expParam.numTrial
     Audapter('start');
 %     pause(expParam.buffPause)
     
-    pause(expParam.trialLen)
+%     pause(expParam.trialLen)
 
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
-%     [dataDAQ, ~] = s.startForeground;
-    dataDAQ = [];
+    [dataDAQ, ~] = s.startForeground;
+%     dataDAQ = [];
     
     %Phonation End
     Audapter('stop');
@@ -210,7 +211,7 @@ for ii = 1:expParam.numTrial
     rawData = cat(1, rawData, data);
     
     %Grab smooth RMS trace from 'data' structure
-    rmsMean = dfCalcMeanRMS(data);
+    rmsMean = dfCalcMeanRMS(data, rmsB);
     %Compare against baseline and updated Visual Feedback
     [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
