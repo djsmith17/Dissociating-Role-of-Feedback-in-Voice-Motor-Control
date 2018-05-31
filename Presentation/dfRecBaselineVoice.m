@@ -32,9 +32,10 @@ close all;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot0'; % Subject#, Pilot#, null
-run        = 'BV2';     % Baseline Voice (BV) or Calibrate Microphone (CM)
+run        = 'BVN2';     % Baseline Voice (BV) or Calibrate Microphone (CM)
 gender     = 'male';    % "male" or "female"
 numTrials  = 3;         % number of trials;
+rmsB       = 0.0000021689;
 
 recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
 switch recType
@@ -51,6 +52,7 @@ expParam.subject    = subject;
 expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
 expParam.gender     = gender;
+expParam.rmsB       = rmsB;
 
 if VoiceRecsw == 1 % Baseline Voice
     expParam.trialLen = 4;                      % Seconds

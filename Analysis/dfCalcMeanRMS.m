@@ -3,7 +3,7 @@ function rmsMean = dfCalcMeanRMS(rawData, varargin)
 
 % Set a value for the baseline RMS. 
 if isempty(varargin)
-    rmsB  = 0.0000029719;
+    rmsB  = 0.0000021689;
 else
     rmsB = varargin{1};
 end
