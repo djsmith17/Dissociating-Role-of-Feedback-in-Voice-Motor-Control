@@ -25,13 +25,13 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot21';  % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
+subject    = 'Pilot0';  % Subject#, Pilot#, null
+run        = 'AFAud';     % AF1, DS1, etc
 blLoudness = 79.80;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 InflaVarNm = 'IV1';
-BaseRun    = 'AF4';
-LoadSavDataLoc = 1;
+BaseRun    = 'Aud1';
+LoadSavDataLoc = 0;
 collectNewData         = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
@@ -119,7 +119,7 @@ end
 dirs.SavBaseFile = fullfile(dirs.LoadData, expParam.subject, expParam.baseRun, expParam.baseFile);
 if ~exist(dirs.SavBaseFile, 'file')
     fprintf('ERROR: No voice file at %s!\n', dirs.SavBaseFile)
-    return
+%     return
 end
 
 % Look for a place to save the data
@@ -165,7 +165,7 @@ if collectNewData == 1
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
     
-    [mic_reSamp] = OfflineLoadBaselineVoice(dirs);
+    [mic_reSamp] = OfflineLoadBaselineVoiceWav(dirs, expParam);
     expParam.f0b = 100;
    
     DAQin = []; rawData = [];
@@ -261,6 +261,17 @@ sr       = baseData.params.sr;
 %Resample at 48000Hz
 mic_reSamp = resample(mic, sr*downFact, fs);
 mic_reSamp = mic_reSamp - mean(mic_reSamp);
+end
+
+function micproc = OfflineLoadBaselineVoiceWav(dirs, expParam)
+
+inputWav     = 'W:\Experiments\Dissociating-Role-of-Feedback-in-Voice-Motor-Control\Pilot0\Aud1\wavFiles\Pilot0Aud1Trial1_micIn.wav';
+[mic, micfs] = audioread(inputWav);
+
+fs = expParam.sRate;
+
+mic_resamp = resample(mic, fs, micfs);
+micproc    = mic_resamp - mean(mic_resamp);
 end
 
 function visPSSsigs(data)
