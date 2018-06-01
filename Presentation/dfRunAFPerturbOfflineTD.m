@@ -25,12 +25,12 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';  % Subject#, Pilot#, null
-run        = 'AF7';     % AF1, DS1, etc
+subject    = 'Pilot21';  % Subject#, Pilot#, null
+run        = 'AF1';     % AF1, DS1, etc
 blLoudness = 79.80;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 InflaVarNm = 'IV1';
-BaseRun    = 'BVN';
+BaseRun    = 'AF4';
 LoadSavDataLoc = 1;
 collectNewData         = 1; %Boolean
 
@@ -107,10 +107,12 @@ end
 expParam.InflaFile    = [expParam.subject expParam.InflaVarNm 'DRF.mat'];
 dirs.InflaVarFile = fullfile(dirs.LoadData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
-    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
-    return
+    fprintf('Warning: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
+    fprintf('Will use default Inflation Vars instead\n')
+    InflaVar = [0.100 -100];
 else
     fprintf('Inflation Variables found!!\n')
+    load(dirs.InflaVarFile);
 end
 
 % Look for the Baseline Wav Files
@@ -160,12 +162,11 @@ if collectNewData == 1
     expParam.boundsRMS = 3;   % +/- dB
     
     % Gives variable of InflaVar. Analyzed from previous recording
-    load(dirs.InflaVarFile);
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
     
-    [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs);
-    expParam.f0b = f0b;
+    [mic_reSamp] = OfflineLoadBaselineVoice(dirs);
+    expParam.f0b = 100;
    
     DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
@@ -241,7 +242,7 @@ drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
 pause(2)
 end
 
-function [mic_reSamp, f0b] = OfflineLoadBaselineVoice(dirs)
+function [mic_reSamp] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
 trial = 1;
 
@@ -260,8 +261,6 @@ sr       = baseData.params.sr;
 %Resample at 48000Hz
 mic_reSamp = resample(mic, sr*downFact, fs);
 mic_reSamp = mic_reSamp - mean(mic_reSamp);
-
-f0b = DRF.qRes.meanf0;
 end
 
 function visPSSsigs(data)
