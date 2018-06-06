@@ -66,6 +66,7 @@ expParam.perCatch       = str2double(ExpPrompt{4});
 expParam.balloon        = ExpPrompt{5};
 expParam.AudFB          = 'Masking Noise';
 expParam.AudFBSw        = 2;
+expParam.sRateAnal      = 16000;
 expParam.resPause       = 3;
 expParam.trialLenLong   = expParam.numTrial*(expParam.trialLen + expParam.resPause);
 expParam.sigLong        = [];
@@ -79,8 +80,8 @@ collectNewData          = ExpPrompt{6};
 %Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 
-dirs.RecFileDir    = fullfile(dirs.RecData, expParam.subject, expParam.run);
-dirs.SavResultsDir = fullfile(dirs.RecData, expParam.subject, expParam.run); %Where to save results 
+dirs.RecFileDir    = fullfile(dirs.RecData, expParam.subject, expParam.run); % Where to save data
+dirs.SavResultsDir = fullfile(dirs.RecData, expParam.subject, expParam.run); % Where to save results
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -113,7 +114,7 @@ if strcmp(collectNewData, 'yes')
     trigTimes = squeeze(expParam.trigs(:,:,1));         % in the form [start,end], in seconds
     
     % Plot 'live' pressure values
-    %presH = initLiveResult(expParam, 2);
+    presH = initLiveResult(expParam, 2);
     
     % Pre-allocate memory for data collected
     % Experiment Data and Time vals from recording
@@ -255,9 +256,7 @@ if strcmp(collectNewData, 'yes')
         % Plot 'live' pressure values
         %pltStr = updateLiveResult(data_DAQ, expParam, pltStr);
         pause(expParam.resPause)
-
-    end
-    
+    end  
 else
     %     load(dirs.RecFileDir)
 end
@@ -302,14 +301,13 @@ winPos = figPosition;
 
 presH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
 
-mark = plot([1 1], [-1 5], 'k-', 'LineWidth', 2);
-axis([0 3.5 -0.5 5.0])
+mark = plot([1 1], [-10 50], 'k-', 'LineWidth', 2);
+axis([0 3.5 -0.5 6.0])
 box off
 set(gca,'FontSize', 12,...
-        'XTickLabel', {'-1.0' '-0.5' '0' '0.5' '1.0' '1.5' '2.0' '2.5'},...
         'FontWeight', 'bold')
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
-ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
+ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Pressure Recording, Live Result';
        curSess;
        ['Balloon: ' balloon]})
