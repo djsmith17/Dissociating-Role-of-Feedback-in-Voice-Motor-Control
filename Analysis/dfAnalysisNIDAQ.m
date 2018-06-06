@@ -135,7 +135,7 @@ function sensorPres = correctBaseline(sensor, fs)
 % against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
 % recordings (esp. the Pressure sensor)
 
-MaxPres      = 5;
+MaxPres      = 7;
 MinPres      = 0;
 MaxVol       = 4.5;
 MinVol       = 0.444;
