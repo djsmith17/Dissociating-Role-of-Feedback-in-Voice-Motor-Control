@@ -6,11 +6,18 @@ function [ard,ardCh,dataOUT,timeOUT] = dfDiagnostics_Sensors_arduino()
 % also include the pressure sensor. 
 %
 % This script calls the following (4) functions:
-% dfDirs.m
-% dfInitNIDAQ.m
-% dfMakePertSignal.m
-% dfAnalysisNIDAQ.m
-% drawDAQsignal.m
+% -dfDirs.m
+% -dfInitArduino.m
+% -dfSetTrialOrder.m
+% -dfMakePertSignal.m
+%
+% This script includes the following (2) subfunctions:
+% -initLiveResult
+% -updateLiveResult
+%
+% This script requires the following toolboxes:
+% -Arduino Support from MATLAB 
+% https://www.mathworks.com/hardware-support/arduino-matlab.html
 %
 % Dante     :   init    : 2015-2018. Created body of the code compatible with NI-card. 
 % Andres    :   v2      : added compatibility with Arduino Uno to replace NI/card 
