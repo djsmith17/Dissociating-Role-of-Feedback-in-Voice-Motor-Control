@@ -84,12 +84,7 @@ end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'NSD.mat']);
 
 if strcmp(collectNewData, 'yes')
-        
-    % WHAT ARE THIS PARAMETERS FOR? NI-card? MOTU? sound input? AFSGF 20180405
-    expParam.sRate       = 48000;                               % Audapter sampling rate
-    expParam.downFact    = 3;                                   % Downsampling factor
-    expParam.sRateAnal   = expParam.sRate/expParam.downFact;    % Audapter sampling rate for analysis matching the pressure and temp. data
-    
+
     %Set up Parameters to control NIDAQ and Perturbatron
     switch ArdOrSerial
         case 'arduino'
@@ -100,7 +95,6 @@ if strcmp(collectNewData, 'yes')
     
     expParam.sRateQ = ardCh.Rate;   % arduino dummy sampling rate (sampling rate will depend on serial communication times)
     expParam.niCh   = ardCh;        % Structure of Channel Names
-
     
     % Set up the order of trials (Order of perturbed, control, etc)
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
@@ -257,13 +251,6 @@ if strcmp(collectNewData, 'yes')
 
     end
     
-    %     % Store all the variables and data from the session in a large structure
-    %     NSD.expParam    = expParam;
-    %     NSD.dirs        = dirs;
-    %     NSD.DAQin       = DAQin;
-    %
-    %     % Save the large data structure
-    %     save(dirs.RecFileDir, 'NSD')
 else
     %     load(dirs.RecFileDir)
 end
@@ -273,19 +260,6 @@ if strcmp(ArdOrSerial,'serial'), fclose(ard); end
 
 % title('20 trials, only pressure, pertOut, pertIn, trialON')
 % legend('0.05 sec = 50 milliseconds')
-
-% f0b = 100;
-% pF  = 1;
-% iRF = 0;
-% [niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, iRF, pF);
-% 
-% niRes.numPertTrialsNi = niRes.numPertTrials;
-% 
-% % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
-% drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
-% % drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
-% % drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
- 
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
