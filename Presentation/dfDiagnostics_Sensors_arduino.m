@@ -49,7 +49,7 @@ expParam.gender         = 'N/A';
 
 % expParam.niDev         = 'Dev2';                      % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.dev            = 'ArdUno';                     % Arduino Uno Device Name. For more information, see dfInitArdUNO. % Changed AFSG 20180405
-expParam.comPort        = 'COM4'; %COM18                      % Port wehre arduino is connected. In Windows, Check 'Devices and Printers' in 'Control Panel'
+expParam.comPort        = 'COM8'; %COM18                      % Port wehre arduino is connected. In Windows, Check 'Devices and Printers' in 'Control Panel'
 expParam.ardType        = 'Uno';                        % type of Arduino. Useful if later Arduino MEGA or other is used.
 expParam.baudRate       = 115200;                       % Double check baudrate with drive properties
 expParam.trialLen       = 4;                            % Seconds
@@ -140,6 +140,7 @@ if strcmp(collectNewData, 'yes')
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Perform perturbation and data collection per trial
     nextStep = 1;
+    valvCount = 0;
     for ii = 1:expParam.numTrial
         
         expParam.curTrial = ii;
@@ -149,10 +150,11 @@ if strcmp(collectNewData, 'yes')
         % Perturb only if it is a perturbation trial
         if expParam.trialType(ii)
             
-            if mod(nextStep,2) == 0; valvON = 1; else valvON = 0; end %#ok<*SEPEX>
+            if mod(valvCount,2) == 0; valvON = 1; else valvON = 0; end %#ok<*SEPEX>
             disp(valvON)
-            
-%             % Set trial start pin to high
+            valvCount = valvCount + 1;
+
+            % Set trial start pin to high
             switch ArdOrSerial
                 % case 'arduino', writeDigitalPin(ard,ardCh.trialON,randValveVal)
                 case 'arduino', writeDigitalPin(ard,ardCh.trialON,valvON)

@@ -60,8 +60,8 @@ dataOUT.pertIn(nextStep)= readDigitalPin(ard,ardCh.pertIn);        % digital per
 timeOUT.optTrig(nextStep) = toc(trialTIC);
 dataOUT.optTrig(nextStep) = readDigitalPin(ard,ardCh.optTrig);     % digital optical trigger (screen photoDiode)
 
-% timeOUT.press(nextStep) = toc(trialTIC);
-% dataOUT.press(nextStep) = readVoltage(ard,ardCh.press);              % pressure analog
+timeOUT.press(nextStep) = toc(trialTIC);
+dataOUT.press(nextStep) = readVoltage(ard,ardCh.press);              % pressure analog
 
 nextStep = nextStep + 1;
 
