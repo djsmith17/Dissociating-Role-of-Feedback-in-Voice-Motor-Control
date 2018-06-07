@@ -1,15 +1,12 @@
 function [arAn, arRes] = dfAnalysisArduino(dirs, expParam, timeOUT, dataOUT, f0b, AudFlag, iRF, PresFlag)
-% [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
-% This function analyzes the raw audio data that was recorded by Audapter 
-% in the experiments measuring changes in f0. It first does a
-% pre-processing step where it identifies any experimental errors in
-% production, and also identifies and corrects for any lags in recording.
-% Once all the data are set up correctly and processed, they are handed off
-% to a function to do the actual analysis of the audio signals. 
+% [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, timeOUT, dataOUT, f0b, AudFlag, iRF, PresFlag)
+% This function analyzes the raw voltage data that was recorded from the Arduino
+% inside of our standalone perturbatrons. 
 % 
 % dirs:     The set of directories we are currently working in 
 % expParam: The experimental parameters of the recorded experiment
-% DAQin:    Raw NIDAQ data structure
+% timeOUT:  Raw time steps recorded for each sensor type
+% dataOUT:  Raw data recordings for each sensor inside the perturbatron
 % f0b:      Baseline fundamental frequency, recorded from baseline trials
 % AudFlag:  Flag to check if analyses of audio data should be performed
 % iRF:      Inflation Response Flag; should the inflation response be calculated
@@ -42,13 +39,12 @@ else
     arAn.balloon = 'N/A';
 end
 
-fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', arAn.subject, arAn.run, arAn.bTf0b)
+fprintf('Starting Arduino Analysis for %s, %s with f0 of %0.2f Hz\n', arAn.subject, arAn.run, arAn.bTf0b)
 
-[r, c, n]      = size(DAQin);
 arAn.sRate     = expParam.sRateQ;    % Sampling Rate of the NIDAQ
-arAn.numCh     = c;                  % Number of Channels recorded
-arAn.numSamp   = r;                  % Number of Samples recorded
-arAn.numTrial  = n;                  % Number of Trials recorded
+arAn.numCh     = 6;                  % Number of Channels recorded
+arAn.numSamp   = 100;                  % Number of Samples recorded
+arAn.numTrial  = expParam.numTrial;  % Number of Trials recorded
 arAn.trialType = expParam.trialType; % Control (0), Perturbed (1)
 arAn.expTrigs  = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
 arAn.dnSamp    = 10;
@@ -59,48 +55,27 @@ arAn.dnSamp    = 10;
 arAn.numContTrials = sum(arAn.ContTrials);
 arAn.numPertTrials = sum(arAn.PertTrials);
 
-%Unpack the NIDAQ raw data set, a 3D matrix (numSamp, numCh, numTrial)
-arAn.time     = (0:1/arAn.sRate:(arAn.numSamp-1)/arAn.sRate)';
-arAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbatron Signal (Pert)
-arAn.sensorFC = squeeze(DAQin(:,2,:)); % Force Sensor Collar (FC)
-arAn.sensorFN = squeeze(DAQin(:,3,:)); % Force Sensor Neck (FN)
-arAn.sensorP  = squeeze(DAQin(:,4,:)); % Pressure (P)
-arAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal (M)
-arAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
-arAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
+%Unpack the Arduino raw data set
+arAn.timePert = timeOUT.pertIn;
+arAn.pertSig  = dataOUT.pertIn;
+arAn.timeP    = timeOUT.press;
+arAn.sensorP  = dataOUT.press;
 
 %ZeroMean the Pressure Offset
-arAn.sensorPz = correctBaseline(arAn.sensorP, arAn.sRate);
-
-%Preprocessing some of the Force sensors
-arAn.sensorFCz = sensorPreProcessing(arAn.sensorFC, arAn.sRate);
-arAn.sensorFNz = sensorPreProcessing(arAn.sensorFN, arAn.sRate);
-
-arAn.sRateDN     = arAn.sRate/arAn.dnSamp;
-arAn.time_DN     = dnSampleSignal(arAn.time, arAn.dnSamp);    % DownSampled Time
-arAn.pertSig_DN  = dnSampleSignal(arAn.pertSig, arAn.dnSamp); % DownSampled Perturbatron Signal
-arAn.sensorP_DN  = dnSampleSignal(arAn.sensorPz, arAn.dnSamp);
-arAn.sensorFC_DN = dnSampleSignal(arAn.sensorFCz, arAn.dnSamp);
-arAn.sensorFN_DN = dnSampleSignal(arAn.sensorFNz, arAn.dnSamp);
+arAn.sensorPz = correctBaseline(arAn.sensorP);
 
 %Parse out the perturbed trials
-arAn.pertSig_p  = parseTrialTypes(arAn.pertSig_DN, arAn.pertIdx);  % Only Perturbed Trials
-arAn.sensorP_p  = parseTrialTypes(arAn.sensorP_DN, arAn.pertIdx);  % Only Perturbed Trials
-arAn.sensorFC_p = parseTrialTypes(arAn.sensorFC_DN, arAn.pertIdx); % Only Perturbed Trials
-arAn.sensorFN_p = parseTrialTypes(arAn.sensorFN_DN, arAn.pertIdx); % Only Perturbed Trials
+arAn.pertSig_p  = parseTrialTypes(arAn.pertSig, arAn.pertIdx);  % Only Perturbed Trials
+arAn.sensorP_p  = parseTrialTypes(arAn.sensorP, arAn.pertIdx);  % Only Perturbed Trials
 
 %Make a dummy set of contTrig
 arAn.contTrig = repmat([1 2.5], arAn.numContTrials, 1);
 
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
-[arAn.pertTrig, arAn.idxPert] = findPertTrigs(arAn.time_DN, arAn.pertSig_p, arAn.sRateDN);
-[arAn.presTrig, arAn.idxPres] = findPertTrigs(arAn.time_DN, arAn.sensorP_p, arAn.sRateDN);
-[arAn.fSCTrig, arAn.idxFC]    = findPertTrigs(arAn.time_DN, arAn.sensorFC_p, arAn.sRateDN);  
-[arAn.fSNTrig, arAn.idxFN]    = findPertTrigs(arAn.time_DN, arAn.sensorFN_p, arAn.sRateDN); 
+[arAn.pertTrig, arAn.idxPert] = findPertTrigs(arAn.timePert, arAn.pertSig_p, arAn.sRate);
+[arAn.presTrig, arAn.idxPres] = findPertTrigs(arAn.timeP, arAn.sensorP_p, arAn.sRate);
 
 [arAn.lagsPres, arAn.meanLagTimeP] = calcMeanLags(arAn.pertTrig, arAn.presTrig);
-[arAn.lagsFC, arAn.meanLagTimeFC]  = calcMeanLags(arAn.pertTrig, arAn.fSCTrig);
-[arAn.lagsFN, arAn.meanLagTimeFN]  = calcMeanLags(arAn.pertTrig, arAn.fSNTrig);
 
 arAn.OnOfValP   = [];
 arAn.OnOfValPm  = [];
@@ -112,12 +87,12 @@ if PresFlag == 1
     % Sensor Dynamics of the Pressure Sensor
     [arAn.OnOfValP,  arAn.OnOfValPm, ...
      arAn.riseTimeP, arAn.riseTimePm] = ...
-    analyzeSensorDynamics(arAn.time_DN, arAn.sensorP_p, arAn.sRateDN, arAn.presTrig);
+    analyzeSensorDynamics(arAn.timeP, arAn.sensorP_p, arAn.sRate, arAn.presTrig);
 
     % Section and aligning pressure signal for perturbed trials
-    [arAn.timeAl, arAn.sensorPAl] = alignSensorData(arAn.sensorP_p, arAn.sRateDN, arAn.idxPert);
+    [arAn.timeAl, arAn.sensorPAl] = alignSensorData(arAn.sensorP_p, arAn.sRate, arAn.idxPert);
     
-    [arAn.timeSec, arAn.sensorPSec] = sectionData(arAn.time_DN, arAn.sensorP_p, arAn.presTrig);
+    [arAn.timeSec, arAn.sensorPSec] = sectionData(arAn.timeP, arAn.sensorP_p, arAn.presTrig);
     arAn.sensorPMean = meanSensorData(arAn.sensorPSec);
 end
 
@@ -130,13 +105,13 @@ lims  = identifyLimits(arAn);
 arRes = packResults(arAn, lims);
 end
 
-function sensorPres = correctBaseline(sensor, fs)
+function sensorPres = correctBaseline(sensor)
 % sensorZeroed = correctBaseline(sensor, fs) zeromeans a set of trials 
 % against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
 % recordings (esp. the Pressure sensor)
 
-MaxPres      = 7;
-MinPres      = 0;
+MaxPres      = 7; %Max Pressure (psi) for this pressure sensor 
+MinPres      = 0; %Min Pressure (psi) for this pressure sensor
 MaxVol       = 4.5;
 MinVol       = 0.444;
 
