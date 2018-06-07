@@ -272,7 +272,7 @@ f0b = 100;
 iRF = 0;
 pF  = 1;
 
-[~, arRes] = dfAnalysisArduino(dirs, expParam, timeOUT, dataOUT, f0b, 0, iRF, pF);
+[~, arRes] = dfAnalysisArduino(dirs, NSD.expParam, NSD.timeOUT, NSD.dataOUT, f0b, 0, iRF, pF);
 
 drawDAQAlignedPressure(arRes, dirs.SavResultsDir, 1)
 % Close ard object port
