@@ -255,7 +255,7 @@ if strcmp(collectNewData, 'yes')
         end
         
         % Plot 'live' pressure values
-        LgdStruct = updateLiveResult(data_DAQ, expParam, LgdStruct);
+        LgdStruct = updateLiveResult(timeOUT, dataOUT, expParam, LgdStruct);
         pause(expParam.resPause)
     end
     
@@ -309,7 +309,7 @@ winPos = figPosition;
 presH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
 
 mark = plot([1 1], [-10 50], 'k-', 'LineWidth', 2);
-axis([0 3.5 -0.5 6.0])
+axis([0 4 -0.5 6.0])
 box off
 set(gca,'FontSize', 12,...
         'FontWeight', 'bold')
@@ -324,23 +324,16 @@ drawnow
 end
 
 % updateLiveResult
-function LgdStruct = updateLiveResult(daqIn, expParam, LgdStruct)
+function LgdStruct = updateLiveResult(timeOUT, dataOUT, expParam, LgdStruct)
 
-sig      = daqIn(:,4);
+time     = timeOUT.press;
+sig      = dataOUT.press;
 numTrial = expParam.numTrial;
 curTrial = expParam.curTrial;
-fs       = expParam.sRateQ;
-trigs    = expParam.trigs(:,:,2);
 trialColors = distinguishable_colors(numTrial);
 
-St = trigs(curTrial,1) - fs*1 + 1;
-Sp = trigs(curTrial,1) + fs*2.5;
-
-sigSnip = sig(St:Sp);
-time    = (0:1/fs :(length(sigSnip)-1)/fs)';
-
 tag = ['Trial ' num2str(curTrial)];
-trPrs = plot(time, sigSnip, 'LineWidth', 2, 'Color', trialColors(curTrial, :));
+trPrs = plot(time, sig, 'LineWidth', 2, 'Color', trialColors(curTrial, :));
 
 if curTrial == 1
     LgdStruct.tag = {tag};
