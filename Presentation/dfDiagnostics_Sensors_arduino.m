@@ -141,6 +141,7 @@ if strcmp(collectNewData, 'yes')
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Perform perturbation and data collection per trial
+    LgdStruct = []; % Live-Result iterable Legend properties structure
     nextStep = 1;
     valvCount = 0;
     for ii = 1:expParam.numTrial
@@ -254,11 +255,10 @@ if strcmp(collectNewData, 'yes')
         end
         
         % Plot 'live' pressure values
-        %pltStr = updateLiveResult(data_DAQ, expParam, pltStr);
+        LgdStruct = updateLiveResult(data_DAQ, expParam, LgdStruct);
         pause(expParam.resPause)
     end
     
-    NSD.ard     = ard;
     NSD.ardCh   = ardCh;
     NSD.dataOUT = dataOUT;
     NSD.timeOUT = timeOUT;
@@ -324,7 +324,7 @@ drawnow
 end
 
 % updateLiveResult
-function pltStr = updateLiveResult(daqIn, expParam, pltStr)
+function LgdStruct = updateLiveResult(daqIn, expParam, LgdStruct)
 
 sig      = daqIn(:,4);
 numTrial = expParam.numTrial;
@@ -343,14 +343,14 @@ tag = ['Trial ' num2str(curTrial)];
 trPrs = plot(time, sigSnip, 'LineWidth', 2, 'Color', trialColors(curTrial, :));
 
 if curTrial == 1
-    pltStr.tag = {tag};
-    pltStr.curve = trPrs;
+    LgdStruct.tag = {tag};
+    LgdStruct.curve = trPrs;
 else
-    pltStr.tag   = cat(1, pltStr.tag, tag);
-    pltStr.curve = cat(1, pltStr.curve, trPrs);
+    LgdStruct.tag   = cat(1, LgdStruct.tag, tag);
+    LgdStruct.curve = cat(1, LgdStruct.curve, trPrs);
 end
 
-lgd = legend(pltStr.curve, pltStr.tag);
+lgd = legend(LgdStruct.curve, LgdStruct.tag);
 set(lgd, 'box', 'off',...
          'location', 'NorthWest'); 
 end
