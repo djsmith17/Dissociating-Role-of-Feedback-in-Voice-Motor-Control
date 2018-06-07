@@ -1,4 +1,4 @@
-function [ard,ardCh,dataOUT,timeOUT] = dfDiagnostics_Sensors_arduino()
+function dfDiagnostics_Sensors_arduino()
 % dfDiagnostics_Sensors() collects data from the NIDAQ in the way that the
 % main experimental setup. A quick test of the force sensors before running 
 % the actual experiment. This makes sure that the sensors are working the way 
@@ -37,7 +37,7 @@ prompt = {'Subject ID:',...
 name = 'Subject Information';
 numlines = 1;
 %defaultanswer = {'null', 'DS1', '10', '0.5', '2.0K_4','yes'};
-defaultanswer = {'null', 'DS1', '5', '1', '2.0K_4','yes'};
+defaultanswer = {'null', 'DS1', '1', '1', '2.0K_4','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty([ExpPrompt{1},ExpPrompt{2},ExpPrompt{3},ExpPrompt{4},ExpPrompt{5},ExpPrompt{6}])
@@ -89,7 +89,7 @@ end
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'NSD.mat']);
+dirs.RecFile   = fullfile(dirs.RecFileDir, [expParam.subject expParam.run 'NSD.mat']);
 
 if strcmp(collectNewData, 'yes')
 
@@ -256,9 +256,16 @@ if strcmp(collectNewData, 'yes')
         % Plot 'live' pressure values
         %pltStr = updateLiveResult(data_DAQ, expParam, pltStr);
         pause(expParam.resPause)
-    end  
+    end
+    
+    NSD.ard     = ard;
+    NSD.ardCh   = ardCh;
+    NSD.dataOUT = dataOUT;
+    NSD.timeOUT = timeOUT;
+    
+    save(dirs.RecFile, 'NSD')
 else
-    %     load(dirs.RecFileDir)
+    load(dirs.RecFile)
 end
 
 % Close ard object port
@@ -313,6 +320,7 @@ title({'Pressure Recording, Live Result';
        ['Balloon: ' balloon]})
 
 hold on
+drawnow
 end
 
 % updateLiveResult
