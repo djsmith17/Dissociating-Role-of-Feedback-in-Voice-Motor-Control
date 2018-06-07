@@ -72,7 +72,6 @@ expParam.trialLenLong   = expParam.numTrial*(expParam.trialLen + expParam.resPau
 expParam.sigLong        = [];
 
 % Logic for recording data AFSG 20180405
-sv2F                    = 1; %Boolean
 collectNewData          = ExpPrompt{6};
 
 %expParam.project %={'NIDAQSensorDiagnostics','ArduinoUnoSensorDiagnostics'};  if expParam.dev = 'ArdUno', expParam.niDev = ''; end; if expParam.dev = 'Dev2', expParam.niDev = 'Dev2', end
@@ -259,15 +258,23 @@ if strcmp(collectNewData, 'yes')
         pause(expParam.resPause)
     end
     
-    NSD.ardCh   = ardCh;
-    NSD.dataOUT = dataOUT;
-    NSD.timeOUT = timeOUT;
+    NSD.ardCh    = ardCh;
+    NSD.expParam = expParam;
+    NSD.dataOUT  = dataOUT;
+    NSD.timeOUT  = timeOUT;
     
     save(dirs.RecFile, 'NSD')
 else
     load(dirs.RecFile)
 end
 
+f0b = 100;
+iRF = 0;
+pF  = 1;
+
+[~, arRes] = dfAnalysisArduino(dirs, expParam, timeOUT, dataOUT, f0b, 0, iRF, pF);
+
+drawDAQAlignedPressure(arRes, dirs.SavResultsDir, 1)
 % Close ard object port
 if strcmp(ArdOrSerial,'serial'), fclose(ard); end
 
