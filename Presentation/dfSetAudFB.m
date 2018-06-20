@@ -16,7 +16,7 @@ if  expParam.AudFBSw == 0
     p.fb          = 1;  % Microphone FB
     p.bPitchShift = 0;  % No pitch-shifting
     p.bBypassFmt  = 1;  % No Formant tracking
-    p.dScale      = 1.0;
+    p.dScale      = 2.24;
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];
@@ -26,7 +26,7 @@ elseif expParam.AudFBSw == 1
     p.fb          = 1;    % Microphone FB
     p.bPitchShift = 1;    % Pitch-shifting
     p.bBypassFmt  = 1;    % No Formant tracking
-    p.dScale      = 1.0; %Headphone Scalar
+    p.dScale      = 2.24; %Headphone Scalar
     
     expParam.SSNw   = [];
     expParam.SSNfs  = [];
