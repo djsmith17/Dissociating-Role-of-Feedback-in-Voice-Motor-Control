@@ -112,7 +112,14 @@ dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 end
 
 function sortStr = initSortedStruct(numCond)
+% sortStr = initSortedStruct(numCond) initializes the structure that will
+% store the pooled results for each subject, or group of subjects. It is
+% created to have different sizes, based on the number of conditions that
+% are being tested against. I think this should generalize to subconditions
+% of conditions, or two condition crossing, but I have not tested that, and
+% currently the above scripts only consider one condition to test against. 
 
+% Basic info about the session, the recordings, the subjects
 sortStr.subject = [];
 sortStr.curSess = [];
 sortStr.studyID = [];
