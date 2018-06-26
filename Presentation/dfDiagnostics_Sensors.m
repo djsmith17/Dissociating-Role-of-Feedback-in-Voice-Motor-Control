@@ -173,7 +173,7 @@ set(gca,'FontSize', 12,...
         'XTickLabel', {'-1.0' '-0.5' '0' '0.5' '1.0' '1.5' '2.0' '2.5'},...
         'FontWeight', 'bold')
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
-ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
+ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Pressure Recording, Live Result';
        curSess;
        ['Balloon: ' balloon]})
