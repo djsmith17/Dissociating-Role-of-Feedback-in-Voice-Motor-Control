@@ -16,9 +16,9 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot28'}; %    List of multiple participants.
+AVar.participants  = {'Pilot37'}; %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'MD12'}; %    List of multiple runs.
+AVar.runs          = {'MD8', 'MD9', 'MD10', 'MD11'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;

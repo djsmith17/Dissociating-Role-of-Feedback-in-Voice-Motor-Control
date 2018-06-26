@@ -27,11 +27,11 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot28';    % Subject#, Pilot#, null
-run        = 'MD12';     % SF1, DS1, etc
-blLoudness = 69.84;     % (dB SPL) Baseline loudness
-gender     = 'female';    % "male" or "female"
-balloon    = '2.0E_2';  % Which perturbation balloon?
+subject    = 'Pilot37';    % Subject#, Pilot#, null
+run        = 'MD11';     % SF1, DS1, etc
+blLoudness = 75.04;     % (dB SPL) Baseline loudness
+gender     = 'male';    % "male" or "female"
+balloon    = '2E1';  % Which perturbation balloon?
 tightness  = 'n/a';        % (inches of slack in bungie cord)
 
 % Dialogue box asking for what type of Auditory Feedback
@@ -292,7 +292,7 @@ set(gca,'FontSize', 12,...
         'XTickLabel', {'-1.0' '-0.5' '0' '0.5' '1.0' '1.5' '2.0' '2.5'},...
         'FontWeight', 'bold')
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
-ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
+ylabel('Voltage (V)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Pressure Recording, Live Result';
        curSess;
        ['Balloon: ' balloon]})
