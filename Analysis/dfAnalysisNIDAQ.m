@@ -234,11 +234,11 @@ OnOfVals  = [];
 for ii = 1:numTrial
     [endRiseInd, startFallInd] = findCrossings(sensor(:,ii), fs, 0);
 
-    onsetTime      = round(100*time(endRiseInd))/100;
-    offsetTime     = round(100*time(startFallInd))/100;
+    onsetTime      = round(time(endRiseInd), 2);
+    offsetTime     = round(time(startFallInd), 2);
     
-    onsetSensorVal  = round(100*sensor(endRiseInd, ii))/100;
-    offsetSensorVal = round(100*sensor(startFallInd, ii))/100;
+    onsetSensorVal  = round(sensor(endRiseInd, ii), 2);
+    offsetSensorVal = round(sensor(startFallInd, ii), 2);
   
     OnOfInd   = cat(1, OnOfInd, [endRiseInd, startFallInd]);
     OnOfTime  = cat(1, OnOfTime, [onsetTime offsetTime]);
