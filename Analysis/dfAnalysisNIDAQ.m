@@ -108,7 +108,16 @@ niAn.riseTimeP  = [];
 niAn.riseTimePm = [];
 niAn.timeAl     = [];
 niAn.sensorPAl  = [];
-if PresFlag == 1
+niAn.timeSec    = [];
+niAn.sensorPSec = [];
+niAn.sensorPMean = [];
+if PresFlag == 1 && niAn.numPertTrials > 0
+    %If pressure dynamics are worth looking at in these data, then we will
+    %set the flag to 1 and observe the sensor dynamics of the pressure
+    %sensor, as well as create a version of the data that are full
+    %recordings, but aligned at the pert onset, and another set that have
+    %been sectioned around the onset and offset of the perturbation period.
+    
     % Sensor Dynamics of the Pressure Sensor
     [niAn.OnOfValP,  niAn.OnOfValPm, ...
      niAn.riseTimeP, niAn.riseTimePm] = ...
@@ -118,7 +127,7 @@ if PresFlag == 1
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     
     [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.time_DN, niAn.sensorP_p, niAn.presTrig);
-    niAn.sensorPMean = meanSensorData(niAn.sensorPSec);
+    niAn.sensorPMean                = meanSensorData(niAn.sensorPSec);
 end
 
 niAn.audioMAl = niAn.audioM(niAn.idxPres(:,1):end, :);
