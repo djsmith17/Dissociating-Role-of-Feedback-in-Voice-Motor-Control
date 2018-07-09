@@ -27,8 +27,8 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot37';    % Subject#, Pilot#, null
-run        = 'MD11';     % SF1, DS1, etc
+subject    = 'null';    % Subject#, Pilot#, null
+run        = 'balls';     % SF1, DS1, etc
 blLoudness = 75.04;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 balloon    = '2E1';  % Which perturbation balloon?
@@ -183,8 +183,9 @@ for ii = 1:expParam.numTrial
     [dataDAQ, ~] = s.startForeground;
      
     %Phonation End
-    Audapter('stop');
     set([H2 trigCirc],'Visible','off');
+    pause(expParam.buffPause)
+    Audapter('stop');
     
     % Load the Audapter saved data and save as wav Files
     data    = AudapterIO('getData'); % This will need to become a try statement again
@@ -202,7 +203,7 @@ for ii = 1:expParam.numTrial
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
     set([rec fbLines], 'Visible', 'on');
     
-    LR = LR.updateLiveResult(data_DAQ, ii);
+    LR = LR.updateLiveResult(dataDAQ, ii);
     
     switch recType
         case 'Diagnostic'
