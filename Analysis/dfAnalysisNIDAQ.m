@@ -111,6 +111,8 @@ niAn.sensorPAl  = [];
 niAn.timeSec    = [];
 niAn.sensorPSec = [];
 niAn.sensorPMean = [];
+
+niAn.audioMAl = [];
 if PresFlag == 1 && niAn.numPertTrials > 0
     %If pressure dynamics are worth looking at in these data, then we will
     %set the flag to 1 and observe the sensor dynamics of the pressure
@@ -128,9 +130,9 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     
     [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.time_DN, niAn.sensorP_p, niAn.presTrig);
     niAn.sensorPMean                = meanSensorData(niAn.sensorPSec);
+    
+    niAn.audioMAl = niAn.audioM(niAn.idxPres(:,1):end, :);
 end
-
-niAn.audioMAl = niAn.audioM(niAn.idxPres(:,1):end, :);
 
 %The Audio Analysis
 niAn = dfAnalysisAudio(dirs, niAn, AudFlag, iRF);
