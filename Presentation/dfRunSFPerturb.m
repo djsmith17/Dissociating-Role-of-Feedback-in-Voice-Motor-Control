@@ -27,11 +27,11 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot28';    % Subject#, Pilot#, null
-run        = 'MD12';     % SF1, DS1, etc
-blLoudness = 69.84;     % (dB SPL) Baseline loudness
-gender     = 'female';    % "male" or "female"
-balloon    = '2.0E_2';  % Which perturbation balloon?
+subject    = 'null';    % Subject#, Pilot#, null
+run        = 'SF1';     % SF1, DS1, etc
+blLoudness = 75.04;     % (dB SPL) Baseline loudness
+gender     = 'male';    % "male" or "female"
+balloon    = '2E1';  % Which perturbation balloon?
 tightness  = 'n/a';        % (inches of slack in bungie cord)
 
 % Dialogue box asking for what type of Auditory Feedback
@@ -146,9 +146,8 @@ pause(5);                % Let them breathe a sec
 set(H3,'Visible','off'); % Turn off 'Ready?'
 
 DAQin = []; rawData = [];
-pltStr = [];
 loudResults = [];
-presH = initLiveResult(expParam, 1);
+LR = LiveSensorResult(expParam, 1);
 for ii = 1:expParam.numTrial
     expParam.curTrialNum  = ii;
     expParam.curTrial     = ['Trial' num2str(ii)];
@@ -184,8 +183,9 @@ for ii = 1:expParam.numTrial
     [dataDAQ, ~] = s.startForeground;
      
     %Phonation End
-    Audapter('stop');
     set([H2 trigCirc],'Visible','off');
+    pause(0.5)
+    Audapter('stop');
     
     % Load the Audapter saved data and save as wav Files
     data    = AudapterIO('getData'); % This will need to become a try statement again
@@ -203,7 +203,7 @@ for ii = 1:expParam.numTrial
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
     set([rec fbLines], 'Visible', 'on');
     
-    pltStr = updateLiveResult(dataDAQ, expParam, pltStr);
+    LR = LR.updateLiveResult(dataDAQ, ii);
     
     switch recType
         case 'Diagnostic'
@@ -247,88 +247,6 @@ if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
 end
-end
-
-function resH = initLiveResult(expParam, defMon)
-% resH = initLiveResult(expParam, defMon) creates a figure by which to
-% display recorded signal during a recording session. This is currently
-% configured for recording pressure in the perturbatron balloon.
-% 
-% expParam: Experimental paramenters of the recording
-% defMon  : Monitor definitions
-%
-% resH    : Figure handle for the generated figure. 
-
-curSess  = expParam.curSess;
-balloon  = expParam.balloon;
-balloon(strfind(balloon, '_')) = '';
-
-monitorSize = get(0, 'Monitor');
-numMon = size(monitorSize, 1);
-plotDim = [800 600];
-
-if numMon == 2 && defMon == 2
-    [~, mon] = max(monitorSize(:,1));
-    
-    halfW  = monitorSize(mon, 3)/2;
-    halfWD = halfW - plotDim(1)/2 + monitorSize(mon, 1) - 1;
-    
-    figPosition = [halfWD 80 plotDim];
-else
-    
-    halfW = monitorSize(1, 3)/2;
-    halfWD = halfW - plotDim(1)/2 + monitorSize(1, 1) - 1;
-    
-    figPosition = [halfWD 80 plotDim];
-end
-winPos = figPosition;
-
-resH = figure('NumberTitle', 'off', 'Color', [1 1 1], 'Position', winPos);
-
-mark = plot([1 1], [-1 5], 'k-', 'LineWidth', 2);
-axis([0 3.5 -0.5 5.0])
-box off
-set(gca,'FontSize', 12,...
-        'XTickLabel', {'-1.0' '-0.5' '0' '0.5' '1.0' '1.5' '2.0' '2.5'},...
-        'FontWeight', 'bold')
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
-ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
-title({'Pressure Recording, Live Result';
-       curSess;
-       ['Balloon: ' balloon]})
-
-hold on
-end
-
-function pltStr = updateLiveResult(daqIn, expParam, pltStr)
-
-sig      = daqIn(:,4);
-numTrial = expParam.numTrial;
-curTrial = expParam.curTrialNum;
-fs       = expParam.sRateQ;
-trigs    = expParam.trigs(:,:,2);
-trialColors = distinguishable_colors(numTrial);
-
-St = trigs(curTrial,1) - fs*1 + 1;
-Sp = trigs(curTrial,1) + fs*2.5;
-
-sigSnip = sig(St:Sp);
-time    = (0:1/fs :(length(sigSnip)-1)/fs)';
-
-tag = ['Trial ' num2str(curTrial)];
-trPrs = plot(time, sigSnip, 'LineWidth', 2, 'Color', trialColors(curTrial, :));
-
-if curTrial == 1
-    pltStr.tag = {tag};
-    pltStr.curve = trPrs;
-else
-    pltStr.tag   = cat(1, pltStr.tag, tag);
-    pltStr.curve = cat(1, pltStr.curve, trPrs);
-end
-
-lgd = legend(pltStr.curve, pltStr.tag);
-set(lgd, 'box', 'off',...
-         'location', 'NorthWest'); 
 end
 
 function visSignals(data, fs, OST_MULT, savedResdir)
