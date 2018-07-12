@@ -194,8 +194,9 @@ for ii = 1:expParam.numTrial
     [dataDAQ, ~] = s.startForeground;
     
     %Phonation End
-    Audapter('stop');
     set([H2 trigCirc],'Visible','off');
+    pause(0.5)
+    Audapter('stop');
     
     %Save the data
     data    = AudapterIO('getData'); % This will need to become a try statement again
