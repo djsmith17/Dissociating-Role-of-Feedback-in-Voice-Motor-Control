@@ -195,7 +195,7 @@ for ii = 1:expParam.numTrial
     
     %Phonation End
     set([H2 trigCirc],'Visible','off');
-    pause(expParam.buffPause)
+    pause(0.5)
     Audapter('stop');
     
     %Save the data
