@@ -44,13 +44,15 @@ switch recType
         VoiceRecsw = 1;
 end
 
-%Paradigm Configurations
+% Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
 expParam.subject    = subject; 
 expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
 expParam.gender     = gender;
+expParam.curDT      = datetime('now'); % Current Date and Time
+curDTstr            = datestr(expParam.curDT);
 
 if VoiceRecsw == 1 % Baseline Voice
     expParam.trialLen = 4;                      % Seconds
@@ -58,15 +60,19 @@ if VoiceRecsw == 1 % Baseline Voice
     expParam.AudFBSw  = 0;
     expParam.cuePause = 1.0;
     expParam.resPause = 2.0;
-else               % Audio setup test
+    
+    fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
+else               % Microphone Calibration
+    curDate = curDTstr(1:(find(curDTstr == ' ')-1));
+    expParam.subject  = 'Microphone Calibration';
+    expParam.run      = ['MC ' curDate];
+    expParam.curSess  = expParam.run; 
     expParam.trialLen = 30;                     % Seconds
     expParam.numTrial = 1;
     expParam.AudFBSw  = 0;
     expParam.cuePause = 0;
     expParam.resPause = 0;
 end
-
-fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
@@ -116,7 +122,7 @@ set(H3,'Visible','off'); % Turn off 'Ready?'
 rawData = [];
 for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
-    expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
+    expParam.curSessTrial = [expParam.curSess expParam.curTrial];
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
@@ -144,10 +150,7 @@ for ii = 1:expParam.numTrial
     data = AudapterIO('getData');       % This will need to become a try statement again
     rawData = cat(1, rawData, data);
     
-    switch recType
-        case 'Baseline Voice'
-            dfSaveWavRec(data, expParam, dirs);
-    end
+    dfSaveWavRec(data, expParam, dirs);
     
     pause(expParam.resPause)
 end
@@ -164,12 +167,9 @@ qRes     = dfAnalysisAudioQuick(DRF, 1);
 DRF.qRes = qRes;
 
 % Save the large data structure
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-switch recType
-    case 'Baseline Voice'
-        fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
-        save(dirs.RecFileDir, 'DRF')
-end
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curSess dirs.saveFileSuffix 'DRF.mat']);
+fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
+save(dirs.RecFileDir, 'DRF')
 
 fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
 fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
