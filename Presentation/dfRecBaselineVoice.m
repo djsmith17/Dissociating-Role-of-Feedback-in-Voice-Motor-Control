@@ -66,7 +66,7 @@ else               % Microphone Calibration
     curDate = curDTstr(1:(find(curDTstr == ' ')-1));
     expParam.subject  = 'Microphone Calibration';
     expParam.run      = ['MC ' curDate];
-    expParam.curSess  = expParam.run;
+    expParam.curSess  = expParam.run; 
     expParam.trialLen = 30;                     % Seconds
     expParam.numTrial = 1;
     expParam.AudFBSw  = 0;
