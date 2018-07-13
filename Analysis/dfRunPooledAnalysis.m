@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'MaskingDiagnostic'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -112,7 +112,14 @@ dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
 end
 
 function sortStr = initSortedStruct(numCond)
+% sortStr = initSortedStruct(numCond) initializes the structure that will
+% store the pooled results for each subject, or group of subjects. It is
+% created to have different sizes, based on the number of conditions that
+% are being tested against. I think this should generalize to subconditions
+% of conditions, or two condition crossing, but I have not tested that, and
+% currently the above scripts only consider one condition to test against. 
 
+% Basic info about the session, the recordings, the subjects
 sortStr.subject = [];
 sortStr.curSess = [];
 sortStr.studyID = [];
@@ -131,10 +138,12 @@ sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
 sortStr.respVar         = cell(numCond, 1);
+sortStr.sensorPSec      = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
 sortStr.respVarM         = zeros(numCond, 4);
+sortStr.sensorPMean      = [];
 
 sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
@@ -160,6 +169,9 @@ polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0S
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 
+polRes.secTimeP            = curRes.timeSec;
+polRes.sensorPSec          = cat(2, polRes.sensorPSec, curRes.sensorPSec);
+
 tT = curRes.removedTrialTracker;
 if ~isempty(tT)
     [tossedA, ~] = size(tT);
@@ -182,6 +194,7 @@ function polRes = meanCondTrials(pA, polRes)
 
 polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
+polRes.sensorPMean      = meanSecData(polRes.sensorPSec);
 for kk = 1:pA.numCond
     polRes.f0b(kk)              = mean(polRes.runf0b{kk});
     
@@ -192,6 +205,7 @@ end
 
 lims = identifyLimits(polRes);
 polRes.limitsAmean = lims.audioMean;
+polRes.limitsPmean = lims.presMean;
 
 statLib         = packStatLib(polRes);
 polRes.statLib  = statLib;
@@ -242,6 +256,11 @@ statLib(9) = pPerc;     % p-value percent increase
 end
 
 function lims = identifyLimits(ss)
+
+maxPres = max(ss.sensorPMean(:,1)) + 0.5;
+minPres = min(ss.sensorPMean(:,1)) - 0.1;
+
+lims.presMean = [-0.5 1.0 minPres maxPres];
 
 mf0MeanPert = ss.audioMf0MeanPert;
 numCond = length(mf0MeanPert);

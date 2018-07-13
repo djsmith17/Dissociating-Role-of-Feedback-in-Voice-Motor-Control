@@ -5,7 +5,7 @@ function VisFeedback_testbed
 %setPerturbVisualFB.m
 %updateVisualFeed.m
 
-curSess     = 'VisFeedbackTestBed';
+curSess     = 'VisFBTest';
 recordedRMS = (5+rand(1991,1))/1000;
 meanRMS     = mean(recordedRMS);
 numTrial = 2;

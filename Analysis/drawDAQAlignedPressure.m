@@ -30,7 +30,7 @@ trialColors = distinguishable_colors(numTrial);
 CombinedSensor = figure('Color', [1 1 1]);
 set(CombinedSensor, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-plot([1 1], [-1 5], 'k-', 'LineWidth', 2)
+plot([0 0], [-1 5], 'k-', 'LineWidth', 2)
 
 for ii = 1:numTrial
     hold on
@@ -46,7 +46,6 @@ axis(limits);
 box off
 
 set(gca,'FontSize', 12,...
-        'XTickLabel', {'-1.0' '-0.5' '0' '0.5' '1.0' '1.5' '2.0' '2.5'},...
         'FontWeight', 'bold')
 
 lgdNames = cell(numTrial, 1);
