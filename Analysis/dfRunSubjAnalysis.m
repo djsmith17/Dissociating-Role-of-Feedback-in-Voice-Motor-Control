@@ -138,10 +138,10 @@ res.timeSAl       = niRes.timeSAl;
 res.sensorPAl     = niRes.sensorPAl;  
 res.limitsPAl     = niRes.limitsPAl;
 
-res.timeSec       = niRes.timeSec;
-res.sensorPSec    = niRes.sensorPSec;
-res.sensorPMean   = niRes.sensorPMean;
-res.limitsPMean   = nires.limitsPMean;
+res.timeSec     = niRes.timeSec;
+res.sensorPSec  = niRes.sensorPSec;
+res.sensorPMean = niRes.sensorPMean;
+res.limitsPMean = nires.limitsPMean;
 
 % Audio f0 analysis
 res.timef0        = auRes.timef0;
@@ -201,13 +201,13 @@ if res.numPertTrialsFin < res.numPertTrialsNi
     end
     
     res.sensorPsv    = res.sensorP(:, presInd);
-    res.sensorPSecSv = res.sensorPSecSv(:, presInd);
+    res.sensorPSecsv = res.sensorPSec(:, presInd);
     res.lagTimePsv   = res.lagTimeP(presInd, :);
     res.riseTimePsv  = res.riseTimeP(presInd);
     res.OnOfValPsv   = res.OnOfValP(presInd, :);
 else
     res.sensorPsv    = res.sensorP;
-    res.sensorPSecSv = res.sensorPSec;
+    res.sensorPSecsv = res.sensorPSec;
     res.lagTimePsv   = res.lagTimeP;
     res.riseTimePsv  = res.riseTimeP;
     res.OnOfValPsv   = res.OnOfValP;   
