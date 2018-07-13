@@ -31,8 +31,8 @@ function dfRecBaselineVoice()
 close all;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot37';  % Subject#, Pilot#, null
-run        = 'BV1';    % Baseline Voice (BV) or Calibrate Microphone (CM)
+subject    = 'Pilot37'; % Subject#, Pilot#, null
+run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
 gender     = 'male';    % "male" or "female"
 numTrials  = 3;         % number of trials;
 
@@ -65,7 +65,7 @@ if VoiceRecsw == 1 % Baseline Voice
 else               % Microphone Calibration
     curDate = curDTstr(1:(find(curDTstr == ' ')-1));
     expParam.subject  = 'Microphone Calibration';
-    expParam.run      = ['MC ' curDate]; 
+    expParam.run      = ['MC ' curDate];
     expParam.curSess  = expParam.run;
     expParam.trialLen = 30;                     % Seconds
     expParam.numTrial = 1;
