@@ -31,8 +31,8 @@ function dfRecBaselineVoice()
 close all;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';  % Subject#, Pilot#, null
-run        = 'BVN2';    % Baseline Voice (BV) or Calibrate Microphone (CM)
+subject    = 'Pilot37';  % Subject#, Pilot#, null
+run        = 'BV1';    % Baseline Voice (BV) or Calibrate Microphone (CM)
 gender     = 'male';    % "male" or "female"
 numTrials  = 3;         % number of trials;
 
@@ -51,7 +51,7 @@ expParam.subject    = subject;
 expParam.run        = run;
 expParam.curSess    = [expParam.subject expParam.run];
 expParam.gender     = gender;
-expParam.curDT      = datetime('now');
+expParam.curDT      = datetime('now'); % Current Date and Time
 curDTstr            = datestr(expParam.curDT);
 
 if VoiceRecsw == 1 % Baseline Voice
@@ -170,7 +170,6 @@ DRF.qRes = qRes;
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curSess dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF')
-
 
 fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
 fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)

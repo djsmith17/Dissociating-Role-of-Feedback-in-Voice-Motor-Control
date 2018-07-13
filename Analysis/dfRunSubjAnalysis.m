@@ -16,15 +16,15 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot0'}; %    List of multiple participants.
+AVar.participants  = {'Pilot0', 'Pilot28', 'Pilot31', 'Pilot32', 'Pilot35', 'Pilot37'}; %    List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF0'}; %    List of multiple runs.
+AVar.runs          = {'MD8', 'MD9', 'MD10', 'MD11'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
 
 dirs               = dfDirs(AVar.project);
-dirs.LoadData      = dirs.RecData;
+dirs.LoadData      = dirs.SavData;
 
 for i = 1:AVar.numPart
     participant = AVar.participants{i};
@@ -138,6 +138,11 @@ res.timeSAl       = niRes.timeSAl;
 res.sensorPAl     = niRes.sensorPAl;  
 res.limitsPAl     = niRes.limitsPAl;
 
+res.timeSec       = niRes.timeSec;
+res.sensorPSec    = niRes.sensorPSec;
+res.sensorPMean   = niRes.sensorPMean;
+res.limitsPMean   = nires.limitsPMean;
+
 % Audio f0 analysis
 res.timef0        = auRes.timef0;
 res.f0b           = auRes.f0b;
@@ -195,12 +200,14 @@ if res.numPertTrialsFin < res.numPertTrialsNi
         end
     end
     
-    res.sensorPsv  = res.sensorP(:, presInd);
-    res.lagTimePsv = res.lagTimeP(presInd, :);
-    res.riseTimePsv= res.riseTimeP(presInd);
-    res.OnOfValPsv = res.OnOfValP(presInd, :);
+    res.sensorPsv    = res.sensorP(:, presInd);
+    res.sensorPSecSv = res.sensorPSecSv(:, presInd);
+    res.lagTimePsv   = res.lagTimeP(presInd, :);
+    res.riseTimePsv  = res.riseTimeP(presInd);
+    res.OnOfValPsv   = res.OnOfValP(presInd, :);
 else
     res.sensorPsv    = res.sensorP;
+    res.sensorPSecSv = res.sensorPSec;
     res.lagTimePsv   = res.lagTimeP;
     res.riseTimePsv  = res.riseTimeP;
     res.OnOfValPsv   = res.OnOfValP;   
