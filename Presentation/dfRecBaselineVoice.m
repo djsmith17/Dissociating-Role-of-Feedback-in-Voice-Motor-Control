@@ -46,7 +46,7 @@ dirs = dfDirs(expParam.project);
 
 recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
 switch recType
-    case 'Calibrate Microphone'
+    case 'Baseline Voice'
         expParam.subject  = subject; 
         expParam.run      = run;
         expParam.curSess  = [expParam.subject expParam.run];
@@ -58,7 +58,7 @@ switch recType
         expParam.resPause = 2.0;
 
         fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
-    case 'Baseline Voice'
+    case 'Calibrate Microphone'
         curDate = curDTstr(1:(find(curDTstr == ' ')-1));
         
         expParam.subject  = 'Microphone Calibration';
