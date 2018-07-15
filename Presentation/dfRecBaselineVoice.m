@@ -39,7 +39,6 @@ numTrials  = 3;         % number of trials;
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
 expParam.curDT      = datetime('now'); % Current Date and Time
-curDTstr            = datestr(expParam.curDT);
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
@@ -56,13 +55,13 @@ switch recType
         expParam.AudFBSw  = 0;
         expParam.cuePause = 1.0;
         expParam.resPause = 2.0;
+        
+        expParam.rmsB     = loadCalibration(dirs, expParam.curDT);
 
         fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
     case 'Calibrate Microphone'
-        curDate = curDTstr(1:(find(curDTstr == ' ')-1));
-        
         expParam.subject  = 'Microphone Calibration';
-        expParam.run      = ['MC ' curDate];
+        expParam.run      = 'MC';
         expParam.curSess  = expParam.run; 
         expParam.gender   = gender;
         expParam.trialLen = 30;                     % Seconds
@@ -188,9 +187,22 @@ numlines = 1;
 defaultanswer = {'75.00'};
 loudnessPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
-targLoud = str2num(loudnessPrompt{1});
+targLoud = str2double(loudnessPrompt{1});
 end
 
-function loadCalibration()
+function rmsB = loadCalibration(dirs, curDT)
 
+%It will always be called MC/MCDRF.mat. However, we will check the age of
+%the calibration
+MicCalibDir = fullfile(dirs.RecData, 'Microphone Calibration', 'MC', 'MCDRF.mat');
+load(MicCalibDir, 'DRF')
+
+rmsB  = DRF.expParam.rmsB;
+oldDT = DRF.expParam.curDT;
+dateCH = hours(curDT - oldDT);
+
+fprintf('Microphone Calibration is %0.1f hours old,\n', dateCH)
+if dateCH > 24
+    fprintf('You may want to retake the calibration')
+end
 end
