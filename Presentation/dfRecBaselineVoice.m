@@ -72,6 +72,8 @@ else               % Microphone Calibration
     expParam.AudFBSw  = 0;
     expParam.cuePause = 0;
     expParam.resPause = 0;
+    
+    targLoud = prompt4Calibrate(); % Ask user how low the calibration sound source was
 end
 
 % Set our dirs based on the project
@@ -156,6 +158,11 @@ for ii = 1:expParam.numTrial
 end
 close all
 
+switch recType
+    case 'Calibrate Microphone'
+        expParam.rmsB = findRMS2dBRatio(rawData, targLoud);
+end
+
 % Store all the variables and data from the session in a large structure
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
@@ -176,4 +183,15 @@ fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
 
 fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', qRes.audioRMS)
 fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n\n', qRes.meanRMS)
+end
+
+function targLoud = prompt4Calibrate()
+
+prompt = 'Source Loudness (dB (SPL HL)):';
+name = 'Source Loudness';
+numlines = 1;
+defaultanswer = {'75.00'};
+loudnessPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+targLoud = str2num(loudnessPrompt{1});
 end
