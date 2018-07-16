@@ -35,13 +35,13 @@ balloon    = '2E1';  % Which perturbation balloon?
 tightness  = 'n/a';        % (inches of slack in bungie cord)
 
 % Dialogue box asking for what type of Auditory Feedback
-AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
+AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise', ' AC Masking Noise');
 switch AudFB
-    case 'Voice Not Shifted'
+    case 'Voice Feedback'
         AudFBSw = 0;
-    case 'Voice Shifted'
-        AudFBSw = 1;
-    case 'Masking Noise'
+    case 'AC Masking Noise'
+        AudFBSw = 2;
+    case 'AC/BC Masking Noise'
         AudFBSw = 2;
 end
 
