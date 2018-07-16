@@ -29,11 +29,11 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'PureTone200';    % Subject#, Pilot#, null
+subject    = 'null';    % Subject#, Pilot#, null
 run        = 'AF1';     % AF1, DS1, etc
-blLoudness = 79.34;     % (dB SPL) Baseline loudness
 gender     = 'female';  % "male" or "female"
 InflaVarNm = 'IV1';
+baseV      = 'BV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
@@ -64,7 +64,6 @@ expParam.expType      = 'Auditory Perturbation_Perceptual';
 expParam.subject      = subject;
 expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = blLoudness;
 expParam.gender       = gender;
 expParam.balloon      = 'N/A';
 expParam.tightness    = 'N/A';
@@ -85,6 +84,7 @@ dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
+dirs.BaseFile   = fullfile(dirs.RecData, expParam.subject, baseV, [expParam.subject baseV 'DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -92,6 +92,10 @@ end
 if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
+
+[expParam.f0b,...
+ expParam.targRMS,...
+ expParam.rmsB] = loadBaselineVoice(dirs);
 
 % Look for the Inflation Response Files. Should Return InflaVar
 expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat']; % Results from the laryngeal perturbation experiment
@@ -232,6 +236,11 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
+switch recType
+    case 'Practice'
+        DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
+end
+
 % Save the large structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
@@ -289,4 +298,21 @@ switch loudResult
 end
 
 fprintf('Subject was %s\n', result)
+end
+
+function [f0b, targRMS, rmsB] = loadBaselineVoice(dirs)
+
+if exist(dirs.BaseFile, 'File')
+    load(dirs.BaseFile, 'DRF')
+    
+    f0b     = DRF.qRes.meanf0;
+    targRMS = DRF.qRes.meanRMS;
+    rmsB    = DRF.expParam.rmsB;
+else
+    fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
+    fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
+    f0b     = 100;
+    targRMS = 70.00;
+    rmsB    = 0.00002;
+end
 end
