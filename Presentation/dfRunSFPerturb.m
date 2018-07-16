@@ -29,10 +29,10 @@ rng('shuffle');
 % Main Experimental prompt: Subject/Run Information
 subject    = 'null';    % Subject#, Pilot#, null
 run        = 'SF1';     % SF1, DS1, etc
-blLoudness = 75.04;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 balloon    = '2E1';  % Which perturbation balloon?
 tightness  = 'n/a';        % (inches of slack in bungie cord)
+baseV      = 'BV1';
 
 % Dialogue box asking for what type of Auditory Feedback
 AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise', 'AC Masking Noise');
@@ -67,7 +67,6 @@ expParam.expType      = 'Somatosensory Perturbation_Perceptual';
 expParam.subject      = subject;
 expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = blLoudness;
 expParam.gender       = gender;
 expParam.balloon      = balloon;
 expParam.tightness    = tightness;
@@ -88,6 +87,7 @@ dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
+dirs.BaseFile    = fullfile(dirs.RecData, expParam.subject, baseV, [expParam.subject baseV 'DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -95,6 +95,10 @@ end
 if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
+
+[expParam.f0b,...
+ expParam.targRMS,...
+ expParam.rmsB] = loadBaselineVoice(dirs);
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
@@ -193,7 +197,7 @@ for ii = 1:expParam.numTrial
     rawData = cat(1, rawData, data);
        
     %Grab smooth RMS trace from 'data' structure
-    rmsMean = dfCalcMeanRMS(data);
+    rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
     %Compare against baseline and updated Visual Feedback
     [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
@@ -223,12 +227,15 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
+switch recType
+    case 'Practice'
+        DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
+end
+
 % Save the large data structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
-
-% qRes = dfQuickAnalysisPlot(DRF)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
@@ -282,4 +289,21 @@ switch loudResult
 end
 
 fprintf('Subject was %s\n', result)
+end
+
+function [f0b, targRMS, rmsB] = loadBaselineVoice(dirs)
+
+if exist(dirs.BaseFile, 'File')
+    load(dirs.BaseFile, 'DRF')
+    
+    f0b     = DRF.qRes.meanf0;
+    targRMS = DRF.qRes.meanRMS;
+    rmsB    = DRF.expParam.rmsB;
+else
+    fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
+    fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
+    f0b     = 100;
+    targRMS = 70.00;
+    rmsB    = 0.00002;
+end
 end

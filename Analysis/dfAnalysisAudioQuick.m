@@ -23,10 +23,10 @@ fV = setFreqAnalVar(expParam.sRateAnal, voiceInd);
 
 res.audiof0  = audiof0;
 res.trialf0  = trialf0;
-res.meanf0   = mean(trialf0);
+res.meanf0   = mean(trialf0);           % Baseline f0
 res.f0Bounds = f0Bounds;
 res.audioRMS = audioRMS;
-res.meanRMS  = mean(audioRMS);
+res.meanRMS  = mean(audioRMS);          % Baseline Voice
 res.anaTime  = round(elapsed_time, 2);
 
 if pltFlg == 1

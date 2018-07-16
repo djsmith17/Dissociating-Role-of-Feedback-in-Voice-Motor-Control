@@ -30,7 +30,7 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot37'; % Subject#, Pilot#, null
+subject    = 'null'; % Subject#, Pilot#, null
 run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
 gender     = 'male';    % "male" or "female"
 numTrials  = 3;         % number of trials;
