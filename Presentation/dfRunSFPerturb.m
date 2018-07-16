@@ -205,13 +205,7 @@ for ii = 1:expParam.numTrial
     
     LR = LR.updateLiveResult(dataDAQ, ii);
     
-    switch recType
-        case 'Diagnostic'
-            dfSaveWavRec(data, expParam, dirs);
-        case 'Full'
-            dfSaveWavRec(data, expParam, dirs);
-    end
-    
+    dfSaveWavRec(data, expParam, dirs);    
     pause(expParam.resPause)
     set([rec fbLines], 'Visible', 'off');
 end
@@ -231,14 +225,8 @@ DRF.rawData     = rawData;
 
 % Save the large data structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-switch recType
-    case 'Diagnostic'
-        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
-        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
-    case 'Full'
-        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
-        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
-end
+fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
+save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 
 % qRes = dfQuickAnalysisPlot(DRF)
 
