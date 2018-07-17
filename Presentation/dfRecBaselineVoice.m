@@ -194,12 +194,20 @@ function rmsB = loadCalibration(dirs, curDT)
 
 %It will always be called MC/MCDRF.mat. However, we will check the age of
 %the calibration
-MicCalibDir = fullfile(dirs.RecData, 'Microphone Calibration', 'MC', 'MCDRF.mat');
-load(MicCalibDir, 'DRF')
+MicCalibFile = fullfile(dirs.RecData, 'Microphone Calibration', 'MC', 'MCDRF.mat');
+if exist(MicCalibFile, 'file')
+    fprintf('Loading the Microphone Calibration File.\n')
+    load(MicCalibFile, 'DRF')
 
-rmsB  = DRF.expParam.rmsB;
-oldDT = DRF.expParam.curDT;
-dateCH = hours(curDT - oldDT);
+    rmsB  = DRF.expParam.rmsB;
+    oldDT = DRF.expParam.curDT;
+    dateCH = hours(curDT - oldDT);
+else
+    fprintf('The Microphone calibration file could not be found.\n')
+    fprintf('Using default values for rmsB.\n')
+    rmsB   = 0.00000002;
+    dateCH = 0;
+end
 
 fprintf('Microphone Calibration is %0.1f hours old,\n', dateCH)
 if dateCH > 24
