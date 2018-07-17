@@ -70,7 +70,7 @@ switch recType
         expParam.cuePause = 0;
         expParam.resPause = 0;
 
-        targLoud = prompt4Calibrate(); % Ask user how low the calibration sound source was
+        targLoud = prompt4Calibrate(); % Ask user how loud the calibration sound source was
 end
 
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
