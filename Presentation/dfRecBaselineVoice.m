@@ -152,31 +152,24 @@ for ii = 1:expParam.numTrial
 end
 close all
 
-switch recType
-    case 'Calibrate Microphone'
-        expParam.rmsB = findRMS2dBRatio(rawData, targLoud);
-end
-
 % Store all the variables and data from the session in a large structure
 DRF.dirs        = dirs;
 DRF.expParam    = expParam;
 DRF.p           = p;
 DRF.rawData     = rawData; 
 
-% Do some quick analysis
-qRes     = dfAnalysisAudioQuick(DRF, 1);
-DRF.qRes = qRes;
+switch recType
+    case 'Calibrate Microphone'
+        DRF.expParam.rmsB = findRMS2dBRatio(rawData, targLoud);
+    case 'Baseline Voice'
+        DRF.qRes = dfAnalysisAudioQuick(DRF, 1); % Do some quick analysis
+        displayBaselineResults(DRF.qRes)
+end
 
 % Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curSess dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF')
-
-fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
-fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
-
-fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', qRes.audioRMS)
-fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n\n', qRes.meanRMS)
 end
 
 function targLoud = prompt4Calibrate()
@@ -213,4 +206,12 @@ fprintf('Microphone Calibration is %0.1f hours old,\n', dateCH)
 if dateCH > 24
     fprintf('You may want to retake the calibration')
 end
+end
+
+function displayBaselineResults(qRes)
+fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
+fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
+
+fprintf('\nThe mean Amplitude of each recordings were\n %4.2f dB, %4.2f dB, and %4.2f dB\n', qRes.audioRMS)
+fprintf('\nThe mean Amplitude of all voice recordings\n is %4.2f dB\n\n', qRes.meanRMS)
 end
