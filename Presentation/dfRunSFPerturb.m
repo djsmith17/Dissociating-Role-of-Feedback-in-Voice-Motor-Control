@@ -27,10 +27,10 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';    % Subject#, Pilot#, null
-run        = 'SF1';     % SF1, DS1, etc
-gender     = 'male';    % "male" or "female"
-balloon    = '2E1';  % Which perturbation balloon?
+subject    = 'Pilot38';    % Subject#, Pilot#, null
+run        = 'SF3';     % SF1, DS1, etc
+gender     = 'female';    % "male" or "female"
+balloon    = '2E4';  % Which perturbation balloon?
 tightness  = 'n/a';        % (inches of slack in bungie cord)
 baseV      = 'BV1';
 
@@ -38,10 +38,13 @@ baseV      = 'BV1';
 AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise', 'AC Masking Noise');
 switch AudFB
     case 'Voice Feedback'
+        headCk = questdlg('Are the BC Headphones unplugged?','BC Headphones','Yes', 'Yes');
         AudFBSw = 0;
     case 'AC Masking Noise'
+        headCk = questdlg('Are the BC Headphones unplugged?','BC Headphones','Yes', 'Yes');
         AudFBSw = 2;
     case 'AC/BC Masking Noise'
+        headCk = questdlg('Are the BC Headphones plugged in and on?','BC Headphones','Yes', 'Yes');
         AudFBSw = 2;
 end
 
