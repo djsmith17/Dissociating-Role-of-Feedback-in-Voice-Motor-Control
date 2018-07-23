@@ -27,11 +27,11 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot38';    % Subject#, Pilot#, null
+subject    = 'Pilot28'; % Subject#, Pilot#, null
 run        = 'SF3';     % SF1, DS1, etc
-gender     = 'female';    % "male" or "female"
-balloon    = '2E4';  % Which perturbation balloon?
-tightness  = 'n/a';        % (inches of slack in bungie cord)
+gender     = 'female';  % "male" or "female"
+balloon    = '2E4';     % Which perturbation balloon?
+tightness  = 'n/a';     % (inches of slack in bungie cord)
 baseV      = 'BV1';
 
 % Dialogue box asking for what type of Auditory Feedback
