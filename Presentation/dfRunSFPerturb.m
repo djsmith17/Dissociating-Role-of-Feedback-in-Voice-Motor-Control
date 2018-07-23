@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot28'; % Subject#, Pilot#, null
+subject    = 'null'; % Subject#, Pilot#, null
 run        = 'SF3';     % SF1, DS1, etc
 gender     = 'female';  % "male" or "female"
 balloon    = '2E4';     % Which perturbation balloon?
@@ -232,7 +232,10 @@ DRF.rawData     = rawData;
 
 switch recType
     case 'Practice'
-        DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
+        for ii = 1:expParam.numTrial
+            dfShowPraatSpect(dirs, expParam.curSess, ['Trial' num2str(ii)])
+        end
+%         DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
 end
 
 % Save the large data structure (only if not practice trials)
