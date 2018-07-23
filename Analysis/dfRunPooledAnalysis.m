@@ -97,10 +97,10 @@ end
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
 
-fprintf('\nAcross all subjects, analyses threw away %d trials.\n', allSubjRes.tossedAll);
-fprintf('%d trials were thrown away due to late starts\n', allSubjRes.tossedLate);
-fprintf('%d trials were thrown away due to voice breaks\n', allSubjRes.tossedBreak);
-fprintf('%d trials were thrown away due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+fprintf('\nAcross all subjects, %d trials were thrown away.\n', allSubjRes.tossedAll);
+fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
+fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
+fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
