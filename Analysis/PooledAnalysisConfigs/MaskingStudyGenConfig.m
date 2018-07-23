@@ -1,9 +1,9 @@
-function MaskingDiagnosticGenConfig()
+function MaskingStudyGenConfig()
 % Run this script to generate Pooled Analysis configuration files for 
 % Masking Noise piloting
 
 project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pAnalysis     = 'MaskingDiagnostic';
+pAnalysis     = 'MaskingStudy';
 
 dirs               = dfDirs(project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pAnalysis);
@@ -16,38 +16,23 @@ end
 % Edit the parts between the lines to modify the pooled analysis variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Participants involved in analysis
-pooledParticipants = {'Pilot0';...
-                      'Pilot28';...
-                      'Pilot31';...
-                      'Pilot32';...
-                      'Pilot35';...
-                      'Pilot37'};
+pooledParticipants = {'Pilot28'};
 
 % Runs for each participant. There should be an equal number of runs for
 % each participant. Each row will be the runs to 
-pooledRuns  = {'MD8', 'MD9', 'MD10', 'MD11';...
-               'MD8', 'MD9', 'MD10', 'MD11';...
-               'MD8', 'MD9', 'MD10', 'MD11';...
-               'MD8', 'MD9', 'MD10', 'MD11';...
-               'MD8', 'MD9', 'MD10', 'MD11';...
-               'MD8', 'MD9', 'MD10', 'MD11'};
+pooledRuns  = {'SF1', 'SF2', 'SF3'};
            
 % Conditions to test against
-testingConditions = {'MD8', 'MD9', 'MD10', 'MD11'};
+testingConditions = {'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise'};
 
 % The Recording Variable to check for the condition
-condVar = 'curRes.run'; 
+condVar = 'curRes.AudFB'; 
 
 % How do you want to title the Result Plots?
-pltNameTop = 'MaskingDiagnostic';
+pltNameTop = 'MaskingStudy';
 testType   = '';
 % MaskvVoice Individual
-pltNameMVi = {[pltNameTop 'Pilot0' testType],...
-              [pltNameTop 'Pilot28' testType],...
-              [pltNameTop 'Pilot31' testType],...
-              [pltNameTop 'Pilot32' testType],...
-              [pltNameTop 'Pilot35' testType],...
-              [pltNameTop 'Pilot37' testType]};
+pltNameMVi = {[pltNameTop 'Pilot28' testType]};
 
 pltNameMVm =  [pltNameTop 'MeanSubj' testType];
 
