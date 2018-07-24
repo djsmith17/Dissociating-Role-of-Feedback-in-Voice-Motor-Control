@@ -9,6 +9,9 @@ numTrial      = 1;
 
 pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 
+lwPitchBnd = 75;
+upPitchBnd = 300;
+
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
     error('file ''praat.exe'' not found')
@@ -25,11 +28,13 @@ if ~exist(gt_fn, 'file')
 end
  
 curTrial = 1;
-call2 = sprintf('%s praat "execute %s %s %s %f %f', ...
+call2 = sprintf('%s praat "execute %s %s %s %f %f %f %f', ...
                     sp_fn, ... %sendpraat.exe
                     gt_fn, ... %saved praat script ('generatef0JNDTokens)
                     wavFileLoc, ... %file location for saved wav files
                     txtFileLoc, ...
+                    lwPitchBnd, ...
+                    upPitchBnd, ...
                     curTrial, ...
                     numTrial ...
                     );
