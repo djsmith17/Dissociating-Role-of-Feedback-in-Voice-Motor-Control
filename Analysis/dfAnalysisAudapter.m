@@ -172,7 +172,7 @@ function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs)
 micR      = double(micR);    % Convert to data type double
 headR     = double(headR);   % Convert to data type double
 rms       = double(rms);     % Convert to data type double
-AudFB     = An.AudFB;        % Auditory feedback type used
+AudFBSw   = An.AudFBSw;      % Auditory feedback type used
 fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
@@ -189,7 +189,7 @@ AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
 % AuMHdelay = (frameLen*(frameDel-1))/fs;
-if strcmp(AudFB, 'Masking Noise')
+if AudFBSw == 2
     AuMHdelay = (frameLen*(frameDel-1))/fs;
 else
     vOPlus = vOdelayP + 0.5*fs;
