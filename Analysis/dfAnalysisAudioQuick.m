@@ -11,10 +11,10 @@ expParam = DRF.expParam;
 subj     = expParam.subject;
 run      = expParam.run;
 rmsB     = expParam.rmsB;
-expParam.frameLenDown    = expParam.frameLen/expParam.downFact;
+frameLenDown    = expParam.frameLen/expParam.downFact;
 
 % Find the indices at which voicing starts
-[voiceInd] = preProcessVoice(rawData, expParam.frameLenDown);
+[voiceInd] = preProcessVoice(rawData, frameLenDown);
 
 fV = setFreqAnalVar(expParam.sRateAnal, voiceInd);
 
