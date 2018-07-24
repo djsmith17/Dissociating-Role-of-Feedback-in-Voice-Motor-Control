@@ -1,6 +1,4 @@
-function rmsB = findRMS2dBRatio(DRF, targdB)
-
-rawData = DRF.rawData;
+function rmsB = findRMS2dBRatio(rawData, targdB)
 
 rms = rawData(1).rms(:,3);
 rms = rms(rms ~= 0);
