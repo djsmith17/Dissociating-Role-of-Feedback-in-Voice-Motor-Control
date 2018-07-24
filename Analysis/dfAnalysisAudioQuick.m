@@ -10,6 +10,7 @@ rawData  = DRF.rawData;
 expParam = DRF.expParam;
 subj     = expParam.subject;
 run      = expParam.run;
+rmsB     = expParam.rmsB;
 expParam.frameLenDown    = expParam.frameLen/expParam.downFact;
 
 % Find the indices at which voicing starts
@@ -18,14 +19,14 @@ expParam.frameLenDown    = expParam.frameLen/expParam.downFact;
 fV = setFreqAnalVar(expParam.sRateAnal, voiceInd);
 
 % Some quick pitch analysis of each trial. 
-[audiof0, trialf0, f0Bounds, audioRMS, elapsed_time] = signalFrequencyAnalysis(fV, rawData);
+[audiof0, trialf0, f0Bounds, audioRMS, elapsed_time] = signalFrequencyAnalysis(fV, rawData, rmsB);
 
 res.audiof0  = audiof0;
 res.trialf0  = trialf0;
-res.meanf0   = mean(trialf0);
+res.meanf0   = mean(trialf0);           % Baseline f0
 res.f0Bounds = f0Bounds;
 res.audioRMS = audioRMS;
-res.meanRMS  = mean(audioRMS);
+res.meanRMS  = mean(audioRMS);          % Baseline Voice
 res.anaTime  = round(elapsed_time, 2);
 
 if pltFlg == 1
@@ -62,7 +63,7 @@ fV.tStepP     = fV.winP*(1-fV.pOV);
 fV.voiceInd   = voiceInd;
 end
 
-function [audiof0, trialf0, f0Bounds, audioRMS, elapsed_time] = signalFrequencyAnalysis(fV, rawData)
+function [audiof0, trialf0, f0Bounds, audioRMS, elapsed_time] = signalFrequencyAnalysis(fV, rawData, rmsB)
 ET = tic;
 [numTrial, ~] = size(rawData);
 
@@ -120,7 +121,7 @@ for j = 1:numTrial %Trial by Trial
     end
     
     %RMS Calculation
-    voiceRMS = dfCalcMeanRMS(trialData);
+    voiceRMS = dfCalcMeanRMS(trialData, rmsB);
     audioRMS = cat(1, audioRMS, voiceRMS);    
 end
 

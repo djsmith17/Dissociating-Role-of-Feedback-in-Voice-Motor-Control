@@ -1,13 +1,13 @@
 function meanf0 = dfCalcf0PraatSingle(dirs)
 %Calculation of pitch using Praat for a single saved wav file.
 
+helperFolder  = dirs.helpers;
 tokenDir      = dirs.tokenDir;
 wavFileLoc    = dirs.baseTokenFile;
 txtFileLoc    = [tokenDir, '\pitchCalc.txt'];
 numTrial      = 1;
 
-psDir         = dirs.JNDTG;                       %Praat scripting
-pbDir         = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
+pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
@@ -19,7 +19,7 @@ if ~exist(sp_fn, 'file')
     error('file ''sendpraat.exe'' not found')
 end
 
-gt_fn = fullfile(psDir, 'batchcalcf0.praat');
+gt_fn = fullfile(pbDir, 'batchcalcf0.praat');
 if ~exist(gt_fn, 'file')
     error('file ''batchcalcf0.praat'' not found')
 end
