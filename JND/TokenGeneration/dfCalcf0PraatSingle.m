@@ -7,7 +7,7 @@ wavFileLoc    = dirs.baseTokenFile;
 txtFileLoc    = [tokenDir, '\pitchCalc.txt'];
 numTrial      = 1;
 
-pbDir         = fullfile(helperFolder, 'praatBatching'); %Praat batching
+pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 
 lwPitchBnd = 75;
 upPitchBnd = 300;
