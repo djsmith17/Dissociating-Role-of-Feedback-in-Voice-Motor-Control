@@ -27,9 +27,9 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null'; % Subject#, Pilot#, null
-run        = 'SF3';     % SF1, DS1, etc
-gender     = 'female';  % "male" or "female"
+subject    = 'null';   % Subject#, Pilot#, null
+run        = prompt4RunName();
+
 balloon    = '2E4';     % Which perturbation balloon?
 tightness  = 'n/a';     % (inches of slack in bungie cord)
 baseV      = 'BV1';
@@ -70,7 +70,6 @@ expParam.expType      = 'Somatosensory Perturbation_Perceptual';
 expParam.subject      = subject;
 expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.gender       = gender;
 expParam.balloon      = balloon;
 expParam.tightness    = tightness;
 expParam.InflaVarNm   = 'N/A';
@@ -101,7 +100,8 @@ end
 
 [expParam.f0b,...
  expParam.targRMS,...
- expParam.rmsB] = loadBaselineVoice(dirs);
+ expParam.rmsB,...
+ expParam.gender] = loadBaselineVoice(dirs);
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
@@ -250,6 +250,17 @@ if expParam.bVis == 1
 end
 end
 
+function run = prompt4RunName()
+
+prompt = 'Name of Run?:';
+name   = 'Run Name';
+numlines = 1;
+defaultanswer = {'SF'};
+runPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+run = runPrompt{1};
+end
+
 function visSignals(data, fs, OST_MULT, savedResdir)
 plotpos = [200 100];
 plotdim = [1000 700];
@@ -297,7 +308,7 @@ end
 fprintf('Subject was %s\n', result)
 end
 
-function [f0b, targRMS, rmsB] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -305,11 +316,13 @@ if exist(dirs.BaseFile, 'File')
     f0b     = DRF.qRes.meanf0;
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
+    gender  = DRF.expParam.gender;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
     f0b     = 100;
     targRMS = 70.00;
     rmsB    = 0.00002;
+    gender  = 'female';
 end
 end

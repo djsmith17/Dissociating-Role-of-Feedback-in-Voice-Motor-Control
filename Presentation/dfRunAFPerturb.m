@@ -30,8 +30,7 @@ debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'null';    % Subject#, Pilot#, null
-run        = 'AF1';     % AF1, DS1, etc
-gender     = 'female';  % "male" or "female"
+run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
 
@@ -64,7 +63,6 @@ expParam.expType      = 'Auditory Perturbation_Perceptual';
 expParam.subject      = subject;
 expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.gender       = gender;
 expParam.balloon      = 'N/A';
 expParam.tightness    = 'N/A';
 expParam.InflaVarNm   = InflaVarNm;
@@ -95,7 +93,8 @@ end
 
 [expParam.f0b,...
  expParam.targRMS,...
- expParam.rmsB] = loadBaselineVoice(dirs);
+ expParam.rmsB, ...
+ expParam.gender] = loadBaselineVoice(dirs);
 
 % Look for the Inflation Response Files. Should Return InflaVar
 expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat']; % Results from the laryngeal perturbation experiment
@@ -253,6 +252,17 @@ if expParam.bVis == 1
 end
 end
 
+function run = prompt4RunName()
+
+prompt = 'Name of Run?:';
+name   = 'Run Name';
+numlines = 1;
+defaultanswer = {'AF'};
+runPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+run = runPrompt{1};
+end
+
 function visSignals(data, fs, OST_MULT, savedResdir)
 plotpos = [200 100];
 plotdim = [1000 700];
@@ -300,7 +310,7 @@ end
 fprintf('Subject was %s\n', result)
 end
 
-function [f0b, targRMS, rmsB] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -308,11 +318,13 @@ if exist(dirs.BaseFile, 'File')
     f0b     = DRF.qRes.meanf0;
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
+    gender  = DRF.expParam.gender;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
     f0b     = 100;
     targRMS = 70.00;
     rmsB    = 0.00002;
+    gender  = 'female';
 end
 end
