@@ -49,7 +49,8 @@ expParam.buffPause = 0.8; %Give them a moment to start speaking
 expParam.endPause  = 0.5;
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 
-noiseLen = calcMaskLen(expParam);
+noiseTime = calcMaskLen(expParam);
+sessionNoise = createSessionNoise(dirs, noiseTime);
 
 ET = tic;
 %Open the curtains
@@ -79,7 +80,7 @@ elapsed_time = toc(ET);   % Elapsed Time of the experiment
 fprintf('\nElapsed Time: %f (s)\n', elapsed_time)
 end
 
-function noiseLen = calcMaskLen(expParam)
+function noiseTime = calcMaskLen(expParam)
 
 numTrial = expParam.numTrial;
 
@@ -90,5 +91,38 @@ trlTime  = expParam.trialLen;
 endTime  = expParam.endPause;
 resTime  = expParam.resPause;
 
-noiseLen = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime)*numTrial;
+noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime)*numTrial + 2;
+end
+
+function sessionNoise = createSessionNoise(dirs, noiseTime)
+
+maskFile = fullfile(dirs.Prelim, 'SSN.wav');
+
+[wavFile, fs] = audioread(maskFile);
+wavLen   = length(wavFile);
+noiseLen = noiseTime*fs;
+
+rampUpIdx = 1:2*fs+1;
+rampUpL   = length(rampUpIdx);
+rampDnIdx = (noiseTime-2)*fs:noiseLen;
+rampDnL   = length(rampDnIdx);
+
+rampUp = linspace(0, 1, rampUpL);
+rampDn = linspace(1, 0, rampDnL);
+
+numRep   = noiseLen/wavLen; % Decimal Amount
+minInt   = floor(numRep);   % How many whole amounts (integer)
+noiseInt = repmat(wavFile, minInt)';
+
+remRep   = numRep - minInt; % How much remainder?
+remIdx   = round(wavLen*remRep);
+noiseRem = wavFile(1:remIdx)';
+
+fullNoise = [noiseInt noiseRem];
+
+rampFilt = ones(size(fullNoise));
+rampFilt(rampUpIdx) = rampUp;
+rampFilt(rampDnIdx) = rampDn;
+
+sessionNoise = fullNoise.*rampFilt;
 end
