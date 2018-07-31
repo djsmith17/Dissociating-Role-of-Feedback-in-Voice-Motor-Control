@@ -139,6 +139,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.buffPause = 0.8; %Give them a moment to start speaking
+expParam.endPause  = 0.5;
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;   % +/- dB
 
@@ -191,7 +192,7 @@ for ii = 1:expParam.numTrial
      
     %Phonation End
     set([H2 trigCirc],'Visible','off');
-    pause(0.5)
+    pause(expParam.endPause)
     Audapter('stop');
     
     % Load the Audapter saved data and save as wav Files
