@@ -45,12 +45,14 @@ expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.
 % Pause Periods
 expParam.readyPause = 5.0;
 expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.8; %Give them a moment to start speaking
+expParam.buffPause = 0.8; % Give them a moment to start speaking
 expParam.endPause  = 0.5;
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 
 noiseTime = calcMaskLen(expParam);
-sessionNoise = createSessionNoise(dirs, noiseTime);
+[sessionNoise, noiseFs] = createSessionNoise(dirs, noiseTime);
+
+sound(sessionNoise, noiseFs)
 
 ET = tic;
 %Open the curtains
@@ -84,17 +86,17 @@ function noiseTime = calcMaskLen(expParam)
 
 numTrial = expParam.numTrial;
 
-rdyTime = expParam.readyPause;
-cueTime = expParam.cuePause;
-buffTime = expParam.buffPause;
-trlTime  = expParam.trialLen;
-endTime  = expParam.endPause;
-resTime  = expParam.resPause;
+rdyTime  = expParam.readyPause; % Ready Message
+cueTime  = expParam.cuePause;   % Cue period
+buffTime = expParam.buffPause;  % Buffer to begin phonating
+trlTime  = expParam.trialLen;   % Phonation period
+endTime  = expParam.endPause;   % Buffer to end phonating
+resTime  = expParam.resPause;   % Rest/Feedback period
 
 noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime)*numTrial + 2;
 end
 
-function sessionNoise = createSessionNoise(dirs, noiseTime)
+function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime)
 
 maskFile = fullfile(dirs.Prelim, 'SSN.wav');
 
