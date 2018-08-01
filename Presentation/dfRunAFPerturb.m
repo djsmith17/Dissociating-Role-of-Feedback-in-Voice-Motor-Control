@@ -27,7 +27,7 @@ close all;
 ET = tic;
 rng('shuffle');
 lenDb = 1;
-rmsB       = 0.0000021689;
+expParam.rmsB       = 0.0000021689;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'null';
@@ -143,6 +143,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.buffPause = 0.8; % Give them a moment to start speaking
+expParam.endPause  = 0.5;
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;   % +/- dB
 
@@ -203,7 +204,7 @@ for ii = 1:expParam.numTrial
     
     %Phonation End
     set([H2 trigCirc],'Visible','off');
-    pause(0.5)
+    pause(expParam.endPause)
     Audapter('stop');
     
     %Save the data
@@ -212,7 +213,7 @@ for ii = 1:expParam.numTrial
     rawData = cat(1, rawData, data);
     
     %Grab smooth RMS trace from 'data' structure
-    rmsMean = dfCalcMeanRMS(data, rmsB);
+    rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
     %Compare against baseline and updated Visual Feedback
     [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
