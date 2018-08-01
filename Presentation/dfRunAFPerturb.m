@@ -249,16 +249,8 @@ DRF.rawData     = rawData;
 
 % Save the large structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-switch recType
-    case 'Diagnostic'
-        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
-        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
-    case 'Full'
-        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
-        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
-end
-
-close all
+fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
+save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 
 dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
 if exist(dirs.SavResultsDir, 'dir') == 0
