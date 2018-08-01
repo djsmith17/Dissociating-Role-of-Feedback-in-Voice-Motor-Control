@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_MN1';   % Subject#, Pilot#, null
+subject    = 'null';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
 balloon    = '2E4';     % Which perturbation balloon?
@@ -101,7 +101,8 @@ end
 [expParam.f0b,...
  expParam.targRMS,...
  expParam.rmsB,...
- expParam.gender] = loadBaselineVoice(dirs);
+ expParam.gender,...
+ expParam.age] = loadBaselineVoice(dirs);
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
@@ -309,7 +310,7 @@ end
 fprintf('Subject was %s\n', result)
 end
 
-function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender, age] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -318,6 +319,7 @@ if exist(dirs.BaseFile, 'File')
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
     gender  = DRF.expParam.gender;
+    age     = DRF.expParam.age;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
@@ -325,5 +327,6 @@ else
     targRMS = 70.00;
     rmsB    = 0.00002;
     gender  = 'female';
+    age     = 20;
 end
 end
