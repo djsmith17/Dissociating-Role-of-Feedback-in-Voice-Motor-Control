@@ -31,9 +31,7 @@ expParam.rmsB       = 0.0000021689;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'null';
-run        = 'AF24';
-blLoudness = 84;     % (dB SPL) Baseline loudness
-gender     = 'male';    % "male" or "female"
+run        = prompt4RunName();
 InflaVarNm = 'IV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
@@ -246,6 +244,11 @@ DRF.p           = p;
 DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
+
+switch recType
+    case 'Practice'
+        DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
+end
 
 % Save the large structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
