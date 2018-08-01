@@ -29,7 +29,7 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';    % Subject#, Pilot#, null
+subject    = 'null';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
@@ -245,6 +245,22 @@ end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
+
+dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
+if exist(dirs.SavResultsDir, 'dir') == 0
+    mkdir(dirs.SavResultsDir)
+end
+
+f0b = 100;
+aFa = 1; iRf = 0;
+niAn = struct;
+niAn.sRate = 8000;
+[~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
+
+drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+pause(2)
+drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+pause(2)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
