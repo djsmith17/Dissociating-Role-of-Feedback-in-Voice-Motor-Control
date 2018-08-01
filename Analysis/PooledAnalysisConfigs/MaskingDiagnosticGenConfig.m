@@ -1,6 +1,6 @@
 function MaskingDiagnosticGenConfig()
 % Run this script to generate Pooled Analysis configuration files for 
-% Larynx Pos piloting
+% Masking Noise piloting
 
 project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
 pAnalysis     = 'MaskingDiagnostic';

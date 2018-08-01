@@ -29,53 +29,49 @@ function dfRecBaselineVoice()
 % Signal-Processing Toolbox
 
 close all;
-
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot37'; % Subject#, Pilot#, null
+subject    = 'Pilot28'; % Subject#, Pilot#, null
 run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
-gender     = 'male';    % "male" or "female"
+gender     = 'female';    % "male" or "female"
 numTrials  = 3;         % number of trials;
-
-recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
-switch recType
-    case 'Calibrate Microphone'
-        VoiceRecsw = 0;
-    case 'Baseline Voice'
-        VoiceRecsw = 1;
-end
 
 % Paradigm Configurations
 expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
-expParam.subject    = subject; 
-expParam.run        = run;
-expParam.curSess    = [expParam.subject expParam.run];
-expParam.gender     = gender;
 expParam.curDT      = datetime('now'); % Current Date and Time
-curDTstr            = datestr(expParam.curDT);
-
-if VoiceRecsw == 1 % Baseline Voice
-    expParam.trialLen = 4;                      % Seconds
-    expParam.numTrial = numTrials;
-    expParam.AudFBSw  = 0;
-    expParam.cuePause = 1.0;
-    expParam.resPause = 2.0;
-    
-    fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
-else               % Microphone Calibration
-    curDate = curDTstr(1:(find(curDTstr == ' ')-1));
-    expParam.subject  = 'Microphone Calibration';
-    expParam.run      = ['MC ' curDate];
-    expParam.curSess  = expParam.run; 
-    expParam.trialLen = 30;                     % Seconds
-    expParam.numTrial = 1;
-    expParam.AudFBSw  = 0;
-    expParam.cuePause = 0;
-    expParam.resPause = 0;
-end
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
+
+recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
+switch recType
+    case 'Baseline Voice'
+        expParam.subject  = subject; 
+        expParam.run      = run;
+        expParam.curSess  = [expParam.subject expParam.run];
+        expParam.gender   = gender;
+        expParam.trialLen = 4;                      % Seconds
+        expParam.numTrial = numTrials;
+        expParam.AudFBSw  = 0;
+        expParam.cuePause = 1.0;
+        expParam.resPause = 2.0;
+        
+        expParam.rmsB     = loadCalibration(dirs, expParam.curDT);
+
+        fprintf('\nBeginning baseline voice recordings for\n%s %s\n\n', subject, run)
+    case 'Calibrate Microphone'
+        expParam.subject  = 'Microphone Calibration';
+        expParam.run      = 'MC';
+        expParam.curSess  = expParam.run; 
+        expParam.gender   = gender;
+        expParam.trialLen = 30;                     % Seconds
+        expParam.numTrial = 1;
+        expParam.AudFBSw  = 0;
+        expParam.cuePause = 0;
+        expParam.resPause = 0;
+
+        targLoud = prompt4Calibrate(); % Ask user how loud the calibration sound source was
+end
 
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
@@ -162,15 +158,57 @@ DRF.expParam    = expParam;
 DRF.p           = p;
 DRF.rawData     = rawData; 
 
-% Do some quick analysis
-qRes     = dfAnalysisAudioQuick(DRF, 1);
-DRF.qRes = qRes;
+switch recType
+    case 'Calibrate Microphone'
+        DRF.expParam.rmsB = findRMS2dBRatio(rawData, targLoud);
+    case 'Baseline Voice'
+        DRF.qRes = dfAnalysisAudioQuick(DRF, 1); % Do some quick analysis
+        displayBaselineResults(DRF.qRes)
+end
 
 % Save the large data structure
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curSess dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF')
+end
 
+function targLoud = prompt4Calibrate()
+
+prompt = 'Source Loudness (dB (SPL HL)):';
+name = 'Source Loudness';
+numlines = 1;
+defaultanswer = {'75.00'};
+loudnessPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+targLoud = str2double(loudnessPrompt{1});
+end
+
+function rmsB = loadCalibration(dirs, curDT)
+
+%It will always be called MC/MCDRF.mat. However, we will check the age of
+%the calibration
+MicCalibFile = fullfile(dirs.RecData, 'Microphone Calibration', 'MC', 'MCDRF.mat');
+if exist(MicCalibFile, 'file')
+    fprintf('Loading the Microphone Calibration File.\n')
+    load(MicCalibFile, 'DRF')
+
+    rmsB  = DRF.expParam.rmsB;
+    oldDT = DRF.expParam.curDT;
+    dateCH = hours(curDT - oldDT);
+else
+    fprintf('The Microphone calibration file could not be found.\n')
+    fprintf('Using default values for rmsB.\n')
+    rmsB   = 0.00000002;
+    dateCH = 0;
+end
+
+fprintf('Microphone Calibration is %0.1f hours old,\n', dateCH)
+if dateCH > 24
+    fprintf('You may want to retake the calibration')
+end
+end
+
+function displayBaselineResults(qRes)
 fprintf('\nThe mean f0 of each recordings were\n %4.2f Hz, %4.2f Hz, and %4.2f Hz\n', qRes.trialf0)
 fprintf('\nThe mean f0 of all voice recordings\n is %4.2f Hz\n', qRes.meanf0)
 

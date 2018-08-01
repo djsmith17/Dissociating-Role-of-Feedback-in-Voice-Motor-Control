@@ -5,9 +5,11 @@ function PertTokens = dfGeneratePT(dirs, GT, PertFreqs)
 subj      = GT.subject;
 run       = GT.run;
 numTokens = length(PertFreqs);
-tokenDir  = dirs.tokenDir;
-psDir     = dirs.JNDTG;                       %Praat scripting
-pbDir     = 'MATLAB-Toolboxes\praatBatching'; %Praat batching
+
+helperFolder = dirs.helpers;
+tokenDir     = dirs.tokenDir;
+
+pbDir     = fullfile(helperFolder, 'praatBatching'); %Praat batching
 
 tokenDir = [tokenDir, '\']; %add a slash to the mic folder
 ext = '.wav'; %extension of files
@@ -22,7 +24,7 @@ if ~exist(sp_fn, 'file')
     error('file ''sendpraat.exe'' not found')
 end
 
-gt_fn = fullfile(psDir, 'batchf0JNDTokens.praat');
+gt_fn = fullfile(pbDir, 'batchf0JNDTokens.praat');
 if ~exist(gt_fn, 'file')
     error('file ''batchf0JNDTokens.praat'' not found')
 end

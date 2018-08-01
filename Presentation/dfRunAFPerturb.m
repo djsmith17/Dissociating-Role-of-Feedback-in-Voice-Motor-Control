@@ -33,6 +33,7 @@ expParam.rmsB       = 0.0000021689;
 subject    = 'null';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
+baseV      = 'BV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
 pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
@@ -63,8 +64,6 @@ expParam.expType      = 'Auditory Perturbation_Perceptual';
 expParam.subject      = subject;
 expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = blLoudness;
-expParam.gender       = gender;
 expParam.balloon      = 'N/A';
 expParam.tightness    = 'N/A';
 expParam.InflaVarNm   = InflaVarNm;
@@ -85,6 +84,7 @@ dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
+dirs.BaseFile   = fullfile(dirs.RecData, expParam.subject, baseV, [expParam.subject baseV 'DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -92,6 +92,11 @@ end
 if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
+
+[expParam.f0b,...
+ expParam.targRMS,...
+ expParam.rmsB, ...
+ expParam.gender] = loadBaselineVoice(dirs);
 
 % Look for the Inflation Response Files. Should Return InflaVar
 expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat']; % Results from the laryngeal perturbation experiment
@@ -220,14 +225,8 @@ for ii = 1:expParam.numTrial
     set(rec, 'position', newPos);
     set(rec, 'Color', color); set(rec, 'FaceColor', color);
     set([rec fbLines], 'Visible', 'on'); 
-    
-    switch recType
-        case 'Diagnostic'
-            dfSaveWavRec(data, expParam, dirs);
-        case 'Full'
-            dfSaveWavRec(data, expParam, dirs);
-    end
-    
+
+    dfSaveWavRec(data, expParam, dirs);
     pause(expParam.resPause)
     set([rec fbLines], 'Visible', 'off');
 end
@@ -278,6 +277,17 @@ if expParam.bVis == 1
 end
 end
 
+function run = prompt4RunName()
+
+prompt = 'Name of Run?:';
+name   = 'Run Name';
+numlines = 1;
+defaultanswer = {'AF'};
+runPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+run = runPrompt{1};
+end
+
 function visSignals(data, fs, OST_MULT, savedResdir)
 plotpos = [200 100];
 plotdim = [1000 700];
@@ -323,4 +333,23 @@ switch loudResult
 end
 
 fprintf('Subject was %s\n', result)
+end
+
+function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+
+if exist(dirs.BaseFile, 'File')
+    load(dirs.BaseFile, 'DRF')
+    
+    f0b     = DRF.qRes.meanf0;
+    targRMS = DRF.qRes.meanRMS;
+    rmsB    = DRF.expParam.rmsB;
+    gender  = DRF.expParam.gender;
+else
+    fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
+    fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
+    f0b     = 100;
+    targRMS = 70.00;
+    rmsB    = 0.00002;
+    gender  = 'female';
+end
 end
