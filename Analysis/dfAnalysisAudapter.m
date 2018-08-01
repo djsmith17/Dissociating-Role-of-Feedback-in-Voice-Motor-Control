@@ -176,7 +176,7 @@ fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
 numSamp   = An.numSamp;      % Number of samples for length of recording
 rmsThresh = An.rmsThresh;
-frameDel  = 13;
+frameDel  = 7;
 
 % We are going to section the audio recording from 0.5s ahead of 
 % perturbation onset to 1.0s after perturbation offset.
