@@ -241,10 +241,7 @@ switch recType
         DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
 end
 
-dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
-if exist(dirs.SavResultsDir, 'dir') == 0
-    mkdir(dirs.SavResultsDir)
-end
+d
 
 f0b = 100;
 aFa = 1; iRf = 0;
