@@ -29,7 +29,7 @@ rng('shuffle');
 debug = 0;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';    % Subject#, Pilot#, null
+subject    = 'null';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
