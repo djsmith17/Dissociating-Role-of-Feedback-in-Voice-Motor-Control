@@ -30,8 +30,8 @@ lenDb = 1;
 rmsB       = 0.0000021689;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';  % Subject#, Pilot#, null
-run        = 'AF24';     % AF1, DS1, etc
+subject    = 'null';
+run        = 'AF24';
 blLoudness = 84;     % (dB SPL) Baseline loudness
 gender     = 'male';    % "male" or "female"
 InflaVarNm = 'IV1';
