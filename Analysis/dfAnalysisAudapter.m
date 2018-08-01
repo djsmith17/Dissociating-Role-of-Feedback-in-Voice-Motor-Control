@@ -51,6 +51,7 @@ auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
 auAn.trialLen     = expParam.trialLen;         % Length of recording (s)
 auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Length of recording (points)
+auAn.rmsThresh    = expParam.rmsThresh;
 
 auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; % Time Vector based on numSamp
 auAn.audioM     = []; % Mic data that has received temporal preprocessing (all recorded trials)
@@ -81,9 +82,9 @@ svC = 0; % Saved Trial Count
 for ii = 1:auAn.numTrial
     data = rawData(ii);       % Get the data from this trial
     
-    Mraw = data.signalIn;     % Microphone
-    Hraw = data.signalOut;    % Headphones
-    rms  = data.rms(:,3);     % RMS recording
+    Mraw     = data.signalIn;     % Microphone
+    Hraw     = data.signalOut;    % Headphones
+    rms      = data.rms(:,3);     % RMS recording
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
@@ -174,6 +175,8 @@ fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
 numSamp   = An.numSamp;      % Number of samples for length of recording
+rmsThresh = An.rmsThresh;
+frameDel  = 13;
 
 % We are going to section the audio recording from 0.5s ahead of 
 % perturbation onset to 1.0s after perturbation offset.
@@ -185,7 +188,7 @@ AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
 if AudFBSw == 2
-    AuMHdelay = (frameLen*12)/fs;
+    AuMHdelay = (frameLen*(frameDel-1))/fs;
 else
     AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
     [timeSet, delaySet] = MHdelayChunked(micR, headR, fs);
