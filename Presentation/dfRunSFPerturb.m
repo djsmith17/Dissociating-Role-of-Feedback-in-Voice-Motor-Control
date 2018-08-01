@@ -27,21 +27,24 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';    % Subject#, Pilot#, null
-run        = 'SF1';     % SF1, DS1, etc
-blLoudness = 75.04;     % (dB SPL) Baseline loudness
-gender     = 'male';    % "male" or "female"
-balloon    = '2E1';  % Which perturbation balloon?
-tightness  = 'n/a';        % (inches of slack in bungie cord)
+subject    = 'null';   % Subject#, Pilot#, null
+run        = prompt4RunName();
+
+balloon    = '2E4';     % Which perturbation balloon?
+tightness  = 'n/a';     % (inches of slack in bungie cord)
+baseV      = 'BV1';
 
 % Dialogue box asking for what type of Auditory Feedback
-AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Not Shifted', 'Voice Shifted', 'Masking Noise', 'Masking Noise');
+AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise', 'AC Masking Noise');
 switch AudFB
-    case 'Voice Not Shifted'
+    case 'Voice Feedback'
+        headCk = questdlg('Are the BC Headphones unplugged?','BC Headphones','Yes', 'Yes');
         AudFBSw = 0;
-    case 'Voice Shifted'
-        AudFBSw = 1;
-    case 'Masking Noise'
+    case 'AC Masking Noise'
+        headCk = questdlg('Are the BC Headphones unplugged?','BC Headphones','Yes', 'Yes');
+        AudFBSw = 2;
+    case 'AC/BC Masking Noise'
+        headCk = questdlg('Are the BC Headphones plugged in and on?','BC Headphones','Yes', 'Yes');
         AudFBSw = 2;
 end
 
@@ -67,8 +70,6 @@ expParam.expType      = 'Somatosensory Perturbation_Perceptual';
 expParam.subject      = subject;
 expParam.run          = run;
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = blLoudness;
-expParam.gender       = gender;
 expParam.balloon      = balloon;
 expParam.tightness    = tightness;
 expParam.InflaVarNm   = 'N/A';
@@ -88,6 +89,7 @@ dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir  = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir  = fullfile(dirs.RecFileDir, 'wavFiles');
+dirs.BaseFile    = fullfile(dirs.RecData, expParam.subject, baseV, [expParam.subject baseV 'DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -95,6 +97,11 @@ end
 if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
+
+[expParam.f0b,...
+ expParam.targRMS,...
+ expParam.rmsB,...
+ expParam.gender] = loadBaselineVoice(dirs);
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
@@ -132,6 +139,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.buffPause = 0.8; %Give them a moment to start speaking
+expParam.endPause  = 0.5;
 expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;   % +/- dB
 
@@ -184,7 +192,7 @@ for ii = 1:expParam.numTrial
      
     %Phonation End
     set([H2 trigCirc],'Visible','off');
-    pause(0.5)
+    pause(expParam.endPause)
     Audapter('stop');
     
     % Load the Audapter saved data and save as wav Files
@@ -193,7 +201,7 @@ for ii = 1:expParam.numTrial
     rawData = cat(1, rawData, data);
        
     %Grab smooth RMS trace from 'data' structure
-    rmsMean = dfCalcMeanRMS(data);
+    rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
     %Compare against baseline and updated Visual Feedback
     [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
@@ -205,13 +213,7 @@ for ii = 1:expParam.numTrial
     
     LR = LR.updateLiveResult(dataDAQ, ii);
     
-    switch recType
-        case 'Diagnostic'
-            dfSaveWavRec(data, expParam, dirs);
-        case 'Full'
-            dfSaveWavRec(data, expParam, dirs);
-    end
-    
+    dfSaveWavRec(data, expParam, dirs);    
     pause(expParam.resPause)
     set([rec fbLines], 'Visible', 'off');
 end
@@ -229,24 +231,35 @@ DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
 
-% Save the large data structure (only if not practice trials)
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 switch recType
-    case 'Diagnostic'
-        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
-        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
-    case 'Full'
-        fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
-        save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
+    case 'Practice'
+        for ii = 1:expParam.numTrial
+            dfShowPraatSpect(dirs, expParam.curSess, ['Trial' num2str(ii)])
+        end
+%         DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
 end
 
-% qRes = dfQuickAnalysisPlot(DRF)
+% Save the large data structure (only if not practice trials)
+dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
+fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
+save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
 end
+end
+
+function run = prompt4RunName()
+
+prompt = 'Name of Run?:';
+name   = 'Run Name';
+numlines = 1;
+defaultanswer = {'SF'};
+runPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+run = runPrompt{1};
 end
 
 function visSignals(data, fs, OST_MULT, savedResdir)
@@ -294,4 +307,23 @@ switch loudResult
 end
 
 fprintf('Subject was %s\n', result)
+end
+
+function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+
+if exist(dirs.BaseFile, 'File')
+    load(dirs.BaseFile, 'DRF')
+    
+    f0b     = DRF.qRes.meanf0;
+    targRMS = DRF.qRes.meanRMS;
+    rmsB    = DRF.expParam.rmsB;
+    gender  = DRF.expParam.gender;
+else
+    fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
+    fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
+    f0b     = 100;
+    targRMS = 70.00;
+    rmsB    = 0.00002;
+    gender  = 'female';
+end
 end

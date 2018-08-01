@@ -83,6 +83,7 @@ for ii = 1:auAn.numTrial
     
     Mraw = data.signalIn;     % Microphone
     Hraw = data.signalOut;    % Headphones
+    rms  = data.rms(:,3);     % RMS recording
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
@@ -93,7 +94,7 @@ for ii = 1:auAn.numTrial
     end
     
     % Preprocessing step identifies time-series errors in production/recording
-    [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, MrawNi, anaTrigs);
+    [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, rms, MrawNi, anaTrigs);
     
     auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual analysis
     auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual analysis
@@ -136,7 +137,7 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function [micP, headP, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
+function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs)
 % [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 % This function performs preprocessing on the time-series recorded audio 
 % data before frequency analysis methods are applied. This identifies
@@ -167,7 +168,8 @@ function [micP, headP, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 
 micR      = double(micR);    % Convert to data type double
 headR     = double(headR);   % Convert to data type double
-AudFB     = An.AudFB;        % Auditory feedback type used
+rms       = double(rms);     % Convert to data type double
+AudFBSw   = An.AudFBSw;      % Auditory feedback type used
 fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
@@ -182,7 +184,7 @@ micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
-if strcmp(AudFB, 'Masking Noise')
+if AudFBSw == 2
     AuMHdelay = (frameLen*12)/fs;
 else
     AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
