@@ -85,8 +85,6 @@ for ii = 1:auAn.numTrial
     Mraw     = data.signalIn;     % Microphone
     Hraw     = data.signalOut;    % Headphones
     rms      = data.rms(:,3);     % RMS recording
-    numFrame = length(rms);
-    
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     
