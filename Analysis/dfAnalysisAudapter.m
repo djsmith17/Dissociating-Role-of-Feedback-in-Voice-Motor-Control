@@ -186,7 +186,6 @@ micRds     = resample(micR, fsNI, fs);
 AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
 AuNidelayP = AuNidelay*fs;
 
-% AuMHdelay = (frameLen*(frameDel-1))/fs;
 if AudFBSw == 2
     AuMHdelay = (frameLen*(frameDel-1))/fs;
 else
