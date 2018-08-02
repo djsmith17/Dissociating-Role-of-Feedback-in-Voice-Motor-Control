@@ -16,7 +16,7 @@ end
 % Edit the parts between the lines to modify the pooled analysis variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Participants involved in analysis
-pooledParticipants = {'Pilot28'};
+pooledParticipants = {'DRF_MN2'};
 
 % Runs for each participant. There should be an equal number of runs for
 % each participant. Each row will be the runs to 
