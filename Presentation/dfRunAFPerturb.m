@@ -27,6 +27,7 @@ close all;
 ET = tic;
 rng('shuffle');
 lenDb = 1;
+boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'Pilot0';
@@ -43,10 +44,10 @@ switch pertType
         pertTypeSw = 1;
 end
 
-AlgoType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
+AlgoType = MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
 
 % Dialogue box asking if Practice set or Full set of trials
-recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
+recType = MFquestdlg(boxPos, 'Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
 switch recType
     case 'Practice'
         numTrials = 4;
@@ -78,6 +79,7 @@ expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 expParam.rmsThresh    = 0.011;
+expParam.pitchShiftAlgo = AlgoType;
 expParam.bVis         = 0;
 
 %Set our dirs based on the project
@@ -269,6 +271,18 @@ pause(2)
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
+end
+end
+
+function boxPos = setDialBoxPos(debug)
+
+monitorSize = get(0, 'Monitor');
+numMon = size(monitorSize, 1);
+
+boxPos = [0.45 0.45];
+
+if debug == 1 && numMon > 1
+    boxPos = boxPos + [1 0];
 end
 end
 
