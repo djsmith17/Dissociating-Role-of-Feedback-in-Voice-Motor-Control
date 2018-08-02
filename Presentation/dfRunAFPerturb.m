@@ -27,7 +27,6 @@ close all;
 ET = tic;
 rng('shuffle');
 lenDb = 1;
-expParam.rmsB       = 0.0000021689;
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'null';
@@ -196,14 +195,11 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
-%     pause(expParam.buffPause)
-    
-%     pause(expParam.trialLen)
+    pause(expParam.buffPause)
 
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
     [dataDAQ, ~] = s.startForeground;
-%     dataDAQ = [];
     
     %Phonation End
     set([H2 trigCirc],'Visible','off');
@@ -259,11 +255,7 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-f0b = 100;
-aFa = 1; iRf = 0;
-niAn = struct;
-niAn.sRate = 8000;
-[~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
+[~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
 pause(2)

@@ -230,11 +230,7 @@ else
 end
 close all
 
-f0b = OA.expParam.f0b;
-aFa = 1; iRf = 0;
-niAn = struct;
-niAn.sRate = 8000;
-[~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0b, aFa, iRf, niAn);
+[~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
 pause(2)

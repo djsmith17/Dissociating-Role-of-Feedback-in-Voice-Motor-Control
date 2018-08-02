@@ -1,4 +1,4 @@
-function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, varargin)
 % [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
 % This function analyzes the raw audio data that was recorded by Audapter 
 % in the experiments measuring changes in f0. It first does a
@@ -27,8 +27,31 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFla
 %
 % This function calls the following functions
 % dfAnalysisAudio.m
+% This function is called by:
+% dfRunSubjAnalysis.m
+% dfRunAFPerturb.m
+% dfRunAFPerturbOffline.m
+% dfRunAFPerturbOfflineTD.m
 %
 % Requires the Signal Processing Toolbox
+
+if isempty(varargin)
+    niAn.sRate = 8000;
+    AudFlag    = 1;
+    iRF        = 0;
+elseif length(varargin) == 1
+    niAn       = varargin{1};
+    AudFlag    = 1; 
+    iRF        = 0;
+elseif length(varagin) == 2
+    niAn       = varargin{1};
+    AudFlag    = varargin{2};
+    iRF        = 0;
+else
+    niAn       = varargin{1};
+    AudFlag    = varargin{2};
+    iRF        = varargin{3};
+end
 
 % Identify some Experimental variables
 auAn.AnaType   = 'Audapter';
@@ -41,7 +64,7 @@ auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis.mat'];
 auAn.gender    = expParam.gender;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
-auAn.bTf0b     = f0b;
+auAn.bTf0b     = expParam.f0b;
 
 fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, auAn.bTf0b)
 
