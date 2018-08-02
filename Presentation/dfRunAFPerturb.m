@@ -29,19 +29,21 @@ rng('shuffle');
 lenDb = 1;
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';
+subject    = 'Pilot0';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
-pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
+pertType = 'Linear Standard'; %questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
 switch pertType
     case 'Linear Standard'
         pertTypeSw = 0;
     case 'Sinusoid Matched'
         pertTypeSw = 1;
 end
+
+AlgoType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
 
 % Dialogue box asking if Practice set or Full set of trials
 recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
@@ -123,6 +125,7 @@ expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 p = getAudapterDefaultParams(expParam.gender);
 p.rmsThresh        = expParam.rmsThresh;
 p.frameLen         = expParam.frameLenDown;
+p.timeDomainPitchShiftAlgorithm = AlgoType;
 
 %Set up Parameters to control NIDAQ and Perturbatron
 [s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLen);
