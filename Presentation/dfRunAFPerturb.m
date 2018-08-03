@@ -26,11 +26,11 @@ function dfRunAFPerturb()
 close all;
 ET = tic;
 rng('shuffle');
-lenDb = 1;
+lenDb = 0;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';
+subject    = 'Pilot31';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
@@ -53,8 +53,8 @@ switch recType
         numTrials = 4;
         perCatch  = 1.00;
     case 'Diagnostic'
-        numTrials = 4;
-        perCatch  = 1.00;
+        numTrials = 10;
+        perCatch  = 0.5;
     case 'Full'
         numTrials = 40;
         perCatch  = 0.25;
@@ -200,7 +200,7 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
-    pause(expParam.buffPause)
+%     pause(expParam.buffPause)
 
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
