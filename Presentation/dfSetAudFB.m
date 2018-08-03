@@ -18,7 +18,7 @@ if  expParam.AudFBSw == 0
     p.fb               = 1;
     p.bTimeDomainShift = 0;
     p.bCepsLift        = 0;
-    p.dScale           = 1.00;
+    p.dScale           = 2.12;
     p.nDelay           = 7;
     
     if isequal(lower(gender), 'female')
@@ -37,7 +37,7 @@ elseif expParam.AudFBSw == 1
     p.fb               = 1;
     p.bTimeDomainShift = 1;
     p.bCepsLift        = 1;
-    p.dScale           = 1.00;
+    p.dScale           = 2.12;
     p.nDelay           = 7; 
     
     if isequal(lower(gender), 'female')
