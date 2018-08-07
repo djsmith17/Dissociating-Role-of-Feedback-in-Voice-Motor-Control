@@ -58,6 +58,7 @@ switch recType
         expParam.AudFBSw  = 0;
         expParam.cuePause = 1.0;
         expParam.resPause = 2.0;
+        expParam.headGain = 5;
         
         expParam.rmsB     = loadCalibration(dirs, expParam.curDT);
 
@@ -74,6 +75,7 @@ switch recType
         expParam.AudFBSw  = 0;
         expParam.cuePause = 0;
         expParam.resPause = 0;
+        expParam.headGain = 5;
 
         targLoud = prompt4Calibrate(); % Ask user how loud the calibration sound source was
 end
