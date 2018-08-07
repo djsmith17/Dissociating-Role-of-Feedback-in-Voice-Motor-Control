@@ -51,7 +51,7 @@ auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
 auAn.trialLen     = expParam.trialLen;         % Length of recording (s)
 auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Length of recording (points)
-auAn.rmsThresh    = expParam.rmsThresh;
+auAn.rmsThresh    = [];
 
 auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; % Time Vector based on numSamp
 auAn.audioM     = []; % Mic data that has received temporal preprocessing (all recorded trials)

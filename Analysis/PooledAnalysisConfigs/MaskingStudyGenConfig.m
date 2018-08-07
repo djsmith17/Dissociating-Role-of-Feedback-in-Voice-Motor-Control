@@ -16,11 +16,15 @@ end
 % Edit the parts between the lines to modify the pooled analysis variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Participants involved in analysis
-pooledParticipants = {'Pilot28'};
+pooledParticipants = {'DRF_MN2',...
+                      'DRF_MN3',...
+                      'DRF_MN4'};
 
 % Runs for each participant. There should be an equal number of runs for
 % each participant. Each row will be the runs to 
-pooledRuns  = {'SF1', 'SF2', 'SF3'};
+pooledRuns  = {'SF1', 'SF2', 'SF3';...
+               'SF1', 'SF2', 'SF3';...
+               'SF1', 'SF2', 'SF3'};
            
 % Conditions to test against
 testingConditions = {'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise'};
@@ -32,7 +36,9 @@ condVar = 'curRes.AudFB';
 pltNameTop = 'MaskingStudy';
 testType   = '';
 % MaskvVoice Individual
-pltNameMVi = {[pltNameTop 'Pilot28' testType]};
+pltNameMVi = {[pltNameTop 'DRF_MN2' testType],...
+              [pltNameTop 'DRF_MN3' testType],...
+              [pltNameTop 'DRF_MN4' testType]};
 
 pltNameMVm =  [pltNameTop 'MeanSubj' testType];
 

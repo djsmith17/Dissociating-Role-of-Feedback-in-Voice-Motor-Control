@@ -1836,9 +1836,9 @@
 				<DBLE name="PinkAmp" value="0"/>
 			</XSET>
 		</XSET>
-		<XSET name="CC-C5-C2-B7-64-8E-11-E8-82-6D-00-15-83-15-A3-10">
+		<XSET name="43-9E-09-67-96-7A-11-E8-81-0F-00-15-83-15-A3-10">
 			<TEXT name="ConfigName">Perturbatron_Masking Noise</TEXT>
-			<DBLE name="TimeStampV1" value="549435312.844625"/>
+			<DBLE name="TimeStampV1" value="554924050.941721"/>
 			<TEXT name="DeviceName">MOTU MicroBook II</TEXT>
 			<TEXT name="DeviceUID">MicroBook II_000D1838</TEXT>
 			<TEXT name="Platform">Win</TEXT>
@@ -1846,7 +1846,7 @@
 			<XSET name="Input">
 				<XSET name="0">
 					<XSET name="PageInput">
-						<DBLE name="Trim" value="4"/>
+						<DBLE name="Trim" value="0"/>
 						<DBLE name="Pad" value="0"/>
 						<DBLE name="PhaseInvert" value="0"/>
 						<DBLE name="StereoPair" value="0"/>
@@ -2456,8 +2456,8 @@
 				<XSET name="0">
 					<XSET name="PageOutput">
 						<DBLE name="OutputBusAssign" value="1"/>
-						<DBLE name="OutputMute" value="0.656100"/>
-						<DBLE name="OutputFader" value="0.662865"/>
+						<DBLE name="OutputMute" value="0.902500"/>
+						<DBLE name="OutputFader" value="1"/>
 					</XSET>
 					<XSET name="PageEQ">
 						<DBLE name="EQEnable" value="0"/>
@@ -4440,9 +4440,9 @@
 				<DBLE name="PinkAmp" value="0"/>
 			</XSET>
 		</XSET>
-		<XSET name="97-29-1C-88-74-C2-11-E8-A9-A6-00-15-83-15-A3-10">
+		<XSET name="1F-FE-9E-65-89-F2-11-E8-90-02-00-15-83-15-A3-10">
 			<TEXT name="ConfigName">Localizing Role of Feedback</TEXT>
-			<DBLE name="TimeStampV1" value="551216775.333145"/>
+			<DBLE name="TimeStampV1" value="553546172.138145"/>
 			<TEXT name="DeviceName">MOTU MicroBook II</TEXT>
 			<TEXT name="DeviceUID">MicroBook II_000D1838</TEXT>
 			<TEXT name="Platform">Win</TEXT>
