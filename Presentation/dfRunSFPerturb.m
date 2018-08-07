@@ -78,6 +78,7 @@ expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
+expParam.headGain     = 5;                   % Output gain above the input
 expParam.AudFB        = AudFB;
 expParam.AudFBSw      = AudFBSw;
 expParam.AudPert      = '-100 cents ramped'; % Var not used here. Just saving for balance
