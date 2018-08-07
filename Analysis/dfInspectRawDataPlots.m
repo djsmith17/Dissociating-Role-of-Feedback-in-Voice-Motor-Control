@@ -1,4 +1,4 @@
-function dfInspectRawData(participant, run)
+function dfInspectRawDataPlots(participant, run)
 
 close all
 iRD.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
