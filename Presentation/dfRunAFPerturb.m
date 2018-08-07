@@ -74,6 +74,7 @@ expParam.trialLen     = 5;                           % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
+expParam.headGain     = 5;                   % Output gain above the input
 expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
