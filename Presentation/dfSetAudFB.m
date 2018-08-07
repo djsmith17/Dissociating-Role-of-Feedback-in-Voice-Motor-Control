@@ -17,7 +17,7 @@ dB           = expParam.headGain;
 gender       = expParam.gender;
 p.bBypassFmt = 1;               % No Formant tracking
 p.dScale     = setLoudRatio(dB);% Scale of output from input
-p.nDelay     = 7;
+% p.nDelay     = 7;
 
 if isequal(lower(gender), 'female')
     p.pitchLowerBoundHz = 150;
