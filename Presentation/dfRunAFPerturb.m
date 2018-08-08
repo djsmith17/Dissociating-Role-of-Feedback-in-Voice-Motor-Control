@@ -30,7 +30,7 @@ lenDb = 0;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot31';
+subject    = 'Pilot29';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
@@ -261,12 +261,12 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-[~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData);
-
-drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
-pause(2)
-drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
-pause(2)
+% [~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData);
+% 
+% drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+% pause(2)
+% drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+% pause(2)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1

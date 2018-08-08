@@ -15,17 +15,6 @@ function [expParam, p] = dfSetAudFB(expParam, dirs, p)
   
 dB           = expParam.headGain;
 gender       = expParam.gender;
-p.bBypassFmt = 1;               % No Formant tracking
-p.dScale     = setLoudRatio(dB);% Scale of output from input
-p.nDelay     = 7;
-
-if isequal(lower(gender), 'female')
-    p.pitchLowerBoundHz = 150;
-    p.pitchUpperBoundHz = 300;
-elseif isequal(lower(gender), 'male')
-    p.pitchLowerBoundHz = 80;
-    p.pitchUpperBoundHz = 160;
-end 
 
 expParam.SSNw   = [];
 expParam.SSNfs  = [];
@@ -69,7 +58,20 @@ elseif expParam.AudFBSw == 2
 else
     disp('ERROR in dfSetAudFB: Inappropriate feedback method selected')
     return
+end
+
+% p.bBypassFmt = 1;               % No Formant tracking
+p.dScale     = setLoudRatio(dB);% Scale of output from input
+p.nDelay     = 7;
+
+if isequal(lower(gender), 'female')
+    p.pitchLowerBoundHz = 150;
+    p.pitchUpperBoundHz = 300;
+elseif isequal(lower(gender), 'male')
+    p.pitchLowerBoundHz = 80;
+    p.pitchUpperBoundHz = 160;
 end 
+
 end
 
 function dScale = setLoudRatio(dB)
