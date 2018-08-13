@@ -46,7 +46,7 @@ end
 AlgoType = MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
 
 % Dialogue box asking if Practice set or Full set of trials
-recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
+recType = MFquestdlg(boxPos, 'Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
 switch recType
     case 'Practice'
         numTrials = 4;
@@ -65,8 +65,6 @@ expParam.expType      = 'Auditory Perturbation_Perceptual';
 expParam.subject      = subject;
 expParam.run          = [run 'Offline'];
 expParam.curSess      = [expParam.subject expParam.run];
-expParam.targRMS      = blLoudness;
-expParam.gender       = gender;
 expParam.balloon      = 'N/A';
 expParam.tightness    = 'N/A';
 expParam.InflaVarNm   = InflaVarNm;
@@ -85,15 +83,12 @@ expParam.pitchShiftAlgo = AlgoType;
 expParam.bVis         = 1;
 expParam.bPlay        = 0;
 
-expParam.baseRun      = BaseRun;
-expParam.baseFile     = [expParam.subject expParam.baseRun 'DRF.mat'];
-
 %Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
-dirs.BaseFile   = fullfile(dirs.RecData, expParam.subject, baseV, [expParam.subject baseV 'DRF.mat']);
+dirs.BaseFile   = fullfile(dirs.RecData, expParam.subject, BaseRun, [expParam.subject BaseRun 'DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -107,15 +102,9 @@ end
  expParam.rmsB, ...
  expParam.gender] = loadBaselineVoice(dirs);
 
-if LoadSavDataLoc == 1
-    dirs.LoadData = dirs.RecData;
-else
-    dirs.LoadData = dirs.SavData;
-end
-
 % Look for the Inflation Response Files
-expParam.InflaFile    = [expParam.subject expParam.InflaVarNm 'DRF.mat'];
-dirs.InflaVarFile = fullfile(dirs.LoadData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
+expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat'];
+dirs.InflaVarFile  = fullfile(dirs.RecData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
     fprintf('Warning: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
     fprintf('Will use default Inflation Vars instead\n')
@@ -123,13 +112,6 @@ if ~exist(dirs.InflaVarFile, 'file')
 else
     fprintf('Inflation Variables found!!\n')
     load(dirs.InflaVarFile);
-end
-
-% Look for the Baseline Wav Files
-dirs.SavBaseFile = fullfile(dirs.LoadData, expParam.subject, expParam.baseRun, expParam.baseFile);
-if ~exist(dirs.SavBaseFile, 'file')
-    fprintf('ERROR: No voice file at %s!\n', dirs.SavBaseFile)
-%     return
 end
 
 % Look for a place to save the data
@@ -175,8 +157,7 @@ if collectNewData == 1
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
     
-    [mic_reSamp] = OfflineLoadBaselineVoiceWav(dirs, expParam);
-    expParam.f0b = 100;
+    [mic_reSamp] = OfflineLoadBaselineVoice(dirs);
    
     DAQin = []; rawData = [];
     for ii = 1:expParam.numTrial
@@ -276,8 +257,8 @@ function [mic_reSamp] = OfflineLoadBaselineVoice(dirs)
 trial = 1;
 
 %Load previously recorded voice sample to perturb
-fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.SavBaseFile)
-load(dirs.SavBaseFile);
+fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.BaseFile)
+load(dirs.BaseFile, 'DRF')
 baseData = DRF.rawData(trial);
 
 fs       = DRF.expParam.sRateAnal;
