@@ -43,13 +43,14 @@ switch pertType
         pertTypeSw = 1;
 end
 
+AlgoList = {'pp_none', 'pp_peaks', 'pp_valleys'};
 AlgoType = MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
 
 % Dialogue box asking if Practice set or Full set of trials
 recType = MFquestdlg(boxPos, 'Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
 switch recType
     case 'Practice'
-        numTrials = 4;
+        numTrials = 3;
         perCatch  = 1.0;
     case 'Diagnostic'
         numTrials = 10;
@@ -168,8 +169,9 @@ if collectNewData == 1
 
         %Level of f0 change based on results from Laryngeal pert Exp
         audStimP = dfSetAudapFiles(dirs, expParam, ii);
-        p.timeDomainPitchShiftSchedule = audStimP.pertSched;            
-
+        p.timeDomainPitchShiftSchedule  = audStimP.pertSched;
+        p.timeDomainPitchShiftAlgorithm = AlgoList{ii};
+        
         %Cue to begin trial
         pause(expParam.cuePause)
         
@@ -222,12 +224,12 @@ else
 end
 close all
 
-[~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData);
-
-drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
-pause(2)
-drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
-pause(2)
+% [~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData);
+% 
+% drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+% pause(2)
+% drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+% pause(2)
 end
 
 function boxPos = setDialBoxPos(debug)
