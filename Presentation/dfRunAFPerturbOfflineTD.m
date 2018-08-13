@@ -23,25 +23,27 @@ close all;
 ET = tic;
 rng('shuffle');
 lenDb = 1;
+boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';  % Subject#, Pilot#, null
-run        = 'AFAud';     % AF1, DS1, etc
-blLoudness = 79.80;     % (dB SPL) Baseline loudness
-gender     = 'male';    % "male" or "female"
+subject    = 'Pilot0';
+run        = prompt4RunName();
 InflaVarNm = 'IV1';
-BaseRun    = 'Aud1';
+BaseRun    = 'BV1';
+
 LoadSavDataLoc = 0;
-collectNewData         = 1; %Boolean
+collectNewData = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
-pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
+pertType = 'Linear Standard'; %questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sigmoid Matched', 'Sigmoid Matched');
 switch pertType
     case 'Linear Standard'
         pertTypeSw = 0;
     case 'Sigmoid Matched'
         pertTypeSw = 1;
 end
+
+AlgoType = MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
 
 % Dialogue box asking if Practice set or Full set of trials
 recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
@@ -73,11 +75,13 @@ expParam.trialLen     = 4;               % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
+expParam.headGain     = 5;                   % Output gain above the input
 expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
 expParam.rmsThresh    = 0.011;
+expParam.pitchShiftAlgo = AlgoType;
 expParam.bVis         = 1;
 expParam.bPlay        = 0;
 
@@ -89,6 +93,7 @@ dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
+dirs.BaseFile   = fullfile(dirs.RecData, expParam.subject, baseV, [expParam.subject baseV 'DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -96,6 +101,11 @@ end
 if exist(dirs.RecWaveDir, 'dir') == 0
     mkdir(dirs.RecWaveDir)
 end
+
+[expParam.f0b,...
+ expParam.targRMS,...
+ expParam.rmsB, ...
+ expParam.gender] = loadBaselineVoice(dirs);
 
 if LoadSavDataLoc == 1
     dirs.LoadData = dirs.RecData;
@@ -238,6 +248,29 @@ drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
 pause(2)
 end
 
+function boxPos = setDialBoxPos(debug)
+
+monitorSize = get(0, 'Monitor');
+numMon = size(monitorSize, 1);
+
+boxPos = [0.45 0.45];
+
+if debug == 1 && numMon > 1
+    boxPos = boxPos + [1 0];
+end
+end
+
+function run = prompt4RunName()
+
+prompt = 'Name of Run?:';
+name   = 'Run Name';
+numlines = 1;
+defaultanswer = {'AF'};
+runPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+run = runPrompt{1};
+end
+
 function [mic_reSamp] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
 trial = 1;
@@ -340,4 +373,23 @@ xlabel('Time (s)');
 ylabel('Pitch (Hz)');
 
 % axis([0 4 190 240])
+end
+
+function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+
+if exist(dirs.BaseFile, 'File')
+    load(dirs.BaseFile, 'DRF')
+    
+    f0b     = DRF.qRes.meanf0;
+    targRMS = DRF.qRes.meanRMS;
+    rmsB    = DRF.expParam.rmsB;
+    gender  = DRF.expParam.gender;
+else
+    fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
+    fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
+    f0b     = 100;
+    targRMS = 70.00;
+    rmsB    = 0.00002;
+    gender  = 'female';
+end
 end
