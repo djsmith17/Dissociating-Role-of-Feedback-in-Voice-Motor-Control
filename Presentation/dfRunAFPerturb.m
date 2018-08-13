@@ -70,7 +70,7 @@ expParam.balloon      = 'N/A';
 expParam.tightness    = 'N/A';
 expParam.InflaVarNm   = InflaVarNm;
 expParam.niDev        = 'Dev2';                      % NIDAQ Device Name. For more information, see dfInitNIDAQ
-expParam.trialLen     = 5;                           % Seconds
+expParam.trialLen     = 4;                           % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
@@ -106,10 +106,12 @@ end
 expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat']; % Results from the laryngeal perturbation experiment
 dirs.InflaVarFile  = fullfile(dirs.SavData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
-    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
-    return
+    fprintf('Warning: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
+    fprintf('Will use default Inflation Vars instead\n')
+    InflaVar = [0.100 -100];
 else
     fprintf('Inflation Variables found!!\n')
+    load(dirs.InflaVarFile);
 end
 
 %Paradigm Configurations
@@ -156,7 +158,6 @@ expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;   % +/- dB
 
 % Load the InflaVar Variables. Analyzed from previous recording
-load(dirs.InflaVarFile);
 expParam.InflaT   = InflaVar(1);
 expParam.InflaV   = InflaVar(2);
 
