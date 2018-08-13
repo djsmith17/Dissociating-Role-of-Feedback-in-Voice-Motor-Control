@@ -137,6 +137,7 @@ if collectNewData == 1
     p = getAudapterDefaultParams(expParam.gender);
     p.rmsThresh        = expParam.rmsThresh;
     p.frameLen         = expParam.frameLenDown;
+    p.timeDomainPitchShiftAlgorithm = AlgoType;
     
     %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [expParam, p]      = dfSetAudFB(expParam, dirs, p);    
