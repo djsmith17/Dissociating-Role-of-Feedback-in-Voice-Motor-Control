@@ -26,7 +26,7 @@ lenDb = 1;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0';
+subject    = 'Pilot21';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';

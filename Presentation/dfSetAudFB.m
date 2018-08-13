@@ -13,7 +13,9 @@ function [expParam, p] = dfSetAudFB(expParam, dirs, p)
 %
 % This function has a subfunction below named: setLoudRatio
   
+default = 0;
 dB           = expParam.headGain;
+f0           = round(expParam.f0b);
 gender       = expParam.gender;
 
 expParam.SSNw   = [];
@@ -64,13 +66,18 @@ end
 p.dScale     = setLoudRatio(dB);% Scale of output from input
 p.nDelay     = 7;
 
-if isequal(lower(gender), 'female')
-    p.pitchLowerBoundHz = 150;
-    p.pitchUpperBoundHz = 300;
-elseif isequal(lower(gender), 'male')
-    p.pitchLowerBoundHz = 80;
-    p.pitchUpperBoundHz = 160;
-end 
+if default == 1
+    if isequal(lower(gender), 'female')
+        p.pitchLowerBoundHz = 150;
+        p.pitchUpperBoundHz = 300;
+    elseif isequal(lower(gender), 'male')
+        p.pitchLowerBoundHz = 80;
+        p.pitchUpperBoundHz = 160;
+    end 
+else
+    p.pitchLowerBoundHz = f0 - 20;
+    p.pitchUpperBoundHz = f0 + 20;
+end
 
 end
 

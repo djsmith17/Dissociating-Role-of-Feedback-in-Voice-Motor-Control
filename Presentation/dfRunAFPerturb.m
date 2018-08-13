@@ -26,11 +26,11 @@ function dfRunAFPerturb()
 close all;
 ET = tic;
 rng('shuffle');
-lenDb = 0;
+lenDb = 1;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot29';
+subject    = 'Pilot0';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
