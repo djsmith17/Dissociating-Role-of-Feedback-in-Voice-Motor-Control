@@ -320,7 +320,7 @@ pp.voiceOnsetInd = pp.threshIdx(1);
 % Check the voice onset time against when we want to start analyzing data
 pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
 
-% Check the whole The rest of the signal base the first index...are there any dead zones??
+% Check the rest of the signal following the first index...are there any dead zones??
 pp.fallOffLog = pp.env(pp.voiceOnsetInd:audioSp) < pp.thresh*pp.maxPeak;
 pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than break tolerance
 end
