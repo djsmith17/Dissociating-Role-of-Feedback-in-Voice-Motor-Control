@@ -1,13 +1,17 @@
-function [bTRS, fs] = dfGenerateBT(dirs, baseTrial, varargin)
-%Extract and create a baseline token for use in a JND experiment. Token is
-%created from existing voice data (previous experiments; BV1)
+function [BT, fs] = dfGenerateBT(dirs, baseTrial, varargin)
+% dfGenerateBT loads a baseline voice recording and creates a baseline 
+% voice token to be used by a JND experiment.
 %
-%INPUTS:
-%dirs:      Struc containing where the baseline voice is located and where
-%           we should save the baseline token.
-%baseTrial: Trial number from the baseline recordings to use.
-%varargin:  Currently checks if we want to do an automatice sectioning of
-%           the baseline voice recording or if we want it to be manual. 
+% INPUTS:
+% dirs:      Struc containing where the baseline voice is located and where
+%            we should save the baseline token.
+% baseTrial: Trial number from the baseline recordings to use.
+% varargin:  Flag to turn on/off automated baseline voice file sectioning.
+%            1(default) is automated. 0 is manual.
+%
+% OUTPUTS:
+% BT:        Baseline token signal
+% fs:        Sampling rate of baseline token signal
 
 if isempty(varargin)
     auto = 1;
@@ -15,55 +19,52 @@ else
     auto = varargin{1};
 end
 
-try
-    SavFileDir    = dirs.SavFileDir;
-    baseTokenFile = dirs.baseTokenFile;
-catch me
-    disp('Check your DIR')
-    return
+baseTokenFile = dirs.baseTokenFile; % Where to save the .wav file
+
+if ~exist(dirs.BaseFile, 'file')
+    error('ERROR: No baseline voice file at the designated location!')
+else
+    load(dirs.BaseFile) % Returns a structure called 'DRF'
 end
     
-load(SavFileDir);
-thisData  = DRF.rawData(baseTrial);
-fsRec     = DRF.expParam.sRateAnal;
-fs        = 44100;               % HARDSET, but probs ok. 
-sample    = thisData.signalIn;   % Grab the microphone channel.
-  
+BVData  = DRF.rawData(baseTrial); % Grab a specific trial
+baseRec = BVData.signalIn;        % Grab the microphone channel.
+fsRec   = DRF.expParam.sRateAnal; % Rate it was recorded at
+recLen  = length(baseRec);        % points
+recDur  = recLen/fsRec;           % seconds
+time    = linspace(0, recDur, recLen); % used for manual plotting
+
+fs          = 44100;             % HARDSET, but probs ok. 
 tokenL      = .5;                % Duration of speech token
 tokenLP     = tokenL*fsRec;
-riseTime    = .05;
-fallTime    = .05;
-riseTimeP   = riseTime*fsRec;
-fallTimeP   = fallTime*fsRec;
+riseTime    = .05;               % seconds
+fallTime    = .05;               % seconds
+riseTimeP   = riseTime*fsRec;    % points
+fallTimeP   = fallTime*fsRec;    % points
 riseQperiod = (4*riseTime)^-1;
 fallQperiod = (4*fallTime)^-1;
-sampLen     = length(sample);
-recDuration = sampLen/fsRec;
-time        = linspace(0, recDuration, sampLen);
 
 window = ones(1, tokenLP);
 window(1:riseTimeP) = sin(2*pi*riseQperiod*linspace(0, riseTime, riseTimeP)).^2;
 window(tokenLP-fallTimeP + 1:tokenLP) = cos(2*pi*fallQperiod*linspace(0, fallTime, fallTimeP)).^2;
 
-if auto == 1
+if auto == 1 % Automatic sectioning
     stT = 2.0;
     ix1 = fsRec*stT;
     ix2 = ix1 + tokenLP - 1;
-else
+else         % Manual sectioning
     figure
-    plot(time, sample, 'b'); ylim([-1 1])
+    plot(time, baseRec, 'b'); ylim([-1 1])
     
-    [x, y] = ginput(1);
-    ix1 = round(x(1)*fsRec); %Choose a single point on the line with roughly .5s following it
+    [x, ~] = ginput(1);
+    ix1 = round(x(1)*fsRec); % Choose a single point with roughly .5s following it
     ix2 = ix1 + tokenLP - 1;
+    close all
 end
 
-bT  = sample(ix1:ix2); %baseline Token
-bTW = bT.*window';     %windowed
+BTraw = baseRec(ix1:ix2);         % raw baseline token (BT)
+BTw   = BTraw.*window';           % windowed 
+BT    = resample(BTw, fs, fsRec); % resampled at 44.1kHz
 
-%resample to 44.1kHz for simplification
-bTRS = resample(bTW, fs, fsRec); %resampled
-
-%See line 71 of GAP-Pitch....
-audiowrite(baseTokenFile, bTRS, fs)
+audiowrite(baseTokenFile, BT, fs) % saved to tokens folder 
 end
