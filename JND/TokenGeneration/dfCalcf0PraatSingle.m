@@ -2,7 +2,7 @@ function meanf0 = dfCalcf0PraatSingle(dirs)
 %Calculation of pitch using Praat for a single saved wav file.
 
 helperFolder  = dirs.helpers;
-tokenDir      = dirs.tokenDir;
+tokenDir      = dirs.TokenDir;
 wavFileLoc    = dirs.baseTokenFile;
 txtFileLoc    = [tokenDir, '\pitchCalc.txt'];
 numTrial      = 1;

@@ -368,7 +368,7 @@ end
 end
 
 function [trialType, correct] = accuLogic(inst, conVar, response)
-% accuLogic(UD, conVar, response) determines if the response by the
+% accuLogic(inst, conVar, response) determines if the response by the
 % participant was correct or incorrect. It has outputs for two instructions
 % types: Whether the subject was asked to respond for the token that was 
 % the 'same' as 'X', or if they were asked to respond for the token that 

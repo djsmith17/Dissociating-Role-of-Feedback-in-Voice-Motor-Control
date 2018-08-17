@@ -11,10 +11,12 @@ subj          = GT.subject;
 run           = GT.run;
 allCentShifts = GT.allCentShifts;
 pertFreqs     = GT.PertFreqs;
-numTokens     = length(allCentShifts);
+numTokens     = GT.numPertToken;
+tokenLenP     = GT.tokenLenP;
 
 helperFolder  = dirs.helpers;
-tokenDir      = dirs.tokenDir;
+tokenDir      = dirs.TokenDir;
+baseFile      = dirs.BaseFile;
 
 pbDir    = fullfile(helperFolder, 'praatBatching'); % Where to find Praat batching
 
@@ -36,7 +38,7 @@ if ~exist(gt_fn, 'file')
     error('file ''batchf0JNDTokens.praat'' not found')
 end
  
-PertTokens = [];
+PertTokens = zeros(numTokens, tokenLenP);
 for ii = 1:numTokens
     targetPert = pertFreqs(ii);
     if allCentShifts(ii) < 0
@@ -48,8 +50,8 @@ for ii = 1:numTokens
 
     %Build DOS calls to control praat
     call2 = sprintf('%s praat "execute %s %s %s %s %f %f %f"', ...
-                    sp_fn, ... %sendpraat.exe
-                    gt_fn, ... %saved praat script (generatef0JNDTokens)
+                    sp_fn, ...      % sendpraat.exe
+                    gt_fn, ...      % batchf0JNDTokens.praat
                     tokenDir, ...   % file location for saved wav files
                     ext, ...        % file extension
                     targetPertName, ...
@@ -68,7 +70,7 @@ for ii = 1:numTokens
         end
     end
     
-    [thisToken, ~] = audioread(fullfile(tokenDir, [targetPertName '.wav']));
-    PertTokens = cat(1, PertTokens, thisToken');
+    [thisToken, ~]    = audioread(fullfile(tokenDir, [targetPertName '.wav']));
+    PertTokens(ii, :) = thisToken;
 end
 end

@@ -1,23 +1,26 @@
-function [BT, fs] = dfGenerateBT(dirs, baseTrial, varargin)
+function BT = dfGenerateBT(dirs, GT, varargin)
 % dfGenerateBT loads a baseline voice recording and creates a baseline 
 % voice token to be used by a JND experiment.
 %
 % INPUTS:
 % dirs:      Struc containing where the baseline voice is located and where
 %            we should save the baseline token.
-% baseTrial: Trial number from the baseline recordings to use.
+% GT:        Structure of variables related to generating speech tokens.
 % varargin:  Flag to turn on/off automated baseline voice file sectioning.
 %            1(default) is automated. 0 is manual.
 %
 % OUTPUTS:
 % BT:        Baseline token signal
-% fs:        Sampling rate of baseline token signal
 
 if isempty(varargin)
     auto = 1;
 else
     auto = varargin{1};
 end
+
+baseTrial = GT.baseTrial; % Trial number from the baseline recordings to use.
+tokenL    = GT.tokenLen;  % The target token length
+fs        = GT.fs;        % The sampling rate we want the tokens played at.
 
 baseTokenFile = dirs.baseTokenFile; % Where to save the .wav file
 
@@ -34,9 +37,7 @@ recLen  = length(baseRec);        % points
 recDur  = recLen/fsRec;           % seconds
 time    = linspace(0, recDur, recLen); % used for manual plotting
 
-fs          = 44100;             % HARDSET, but probs ok. 
-tokenL      = .5;                % Duration of speech token
-tokenLP     = tokenL*fsRec;
+tokenLP     = tokenL*fsRec;      % points at rate of recording, not audio play rate. 
 riseTime    = .05;               % seconds
 fallTime    = .05;               % seconds
 riseTimeP   = riseTime*fsRec;    % points
