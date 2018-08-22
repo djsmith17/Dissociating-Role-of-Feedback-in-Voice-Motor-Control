@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_MN4';   % Subject#, Pilot#, null
+subject    = 'DRF_MN19';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
 balloon    = '2E4';     % Which perturbation balloon?
@@ -245,6 +245,8 @@ end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
+
+dfInspectRawData(dirs.RecFileDir)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
