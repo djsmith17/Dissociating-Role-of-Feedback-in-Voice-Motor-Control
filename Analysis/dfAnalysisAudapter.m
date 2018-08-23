@@ -39,6 +39,7 @@ auAn.curSess   = expParam.curSess;
 auAn.f0Type    = 'Praat';
 auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis.mat'];
 auAn.gender    = expParam.gender;
+auAn.age       = expParam.age;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = f0b;
@@ -458,10 +459,13 @@ function res = packResults(auAn, lims)
 % methods/names may.
 
 % Information about the experiment/subject
-res.expType = auAn.expType;
 res.subject = auAn.subject;
 res.run     = auAn.run;
 res.curSess = auAn.curSess;
+res.gender  = auAn.gender;
+res.age     = auAn.age;
+
+res.expType = auAn.expType;
 res.AudFB   = auAn.AudFB;
 
 res.f0Type = auAn.f0Type;

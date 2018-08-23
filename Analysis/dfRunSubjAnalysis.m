@@ -24,7 +24,9 @@ AVar.participants  = {'DRF_MN6',...
                       'DRF_MN13',...
                       'DRF_MN14',...
                       'DRF_MN15',...
-                      'DRF_MN16'}; %    List of multiple participants.
+                      'DRF_MN16',...
+                      'DRF_MN18',...
+                      'DRF_MN19'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
 AVar.runs          = {'SF1', 'SF2', 'SF3'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
@@ -113,10 +115,13 @@ end
 
 function res = combineRes(niRes, auRes)
 
-res.expType = auRes.expType;
 res.subject = auRes.subject;
 res.run     = auRes.run;
 res.curSess = auRes.curSess;
+res.gender  = auRes.gender;
+res.age     = auRes.age;
+
+res.expType = auRes.expType;
 res.AudFB   = auRes.AudFB;
 
 res.f0Type  = auRes.f0Type;

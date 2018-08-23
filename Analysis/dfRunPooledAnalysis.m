@@ -32,13 +32,14 @@ end
 pA.participants  = cF.participants; % List of multiple participants.
 pA.numPart       = length(pA.participants);
 pA.runs          = cF.runs;         % All runs to consider 
-[~, pA.numRuns]  = size(pA.runs);
+pA.numRuns       = length(pA.runs);
 pA.cond          = cF.cond;         % Conditions to test against
 pA.numCond       = length(pA.cond); 
 pA.condVar       = cF.condVar;      % Variable to test the condition
+pA.testExt       = cF.testExt;
 
-pA.pltNameMVi    = cF.pltNameMVi;
-pA.pltNameMVm    = cF.pltNameMVm;
+pA.pltNameMVi    = cell(pA.numPart, 1);
+pA.pltNameMVm    = [pA.pAnalysis 'MeanSubj' pA.testExt];
 
 % Load all saved results and order into a large data structure
 allDataStr = []; % (numPart x numRuns)
@@ -46,6 +47,7 @@ for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Loading Runs for %s\n', participant)
     
+    pA.pltNameMVi{ii} = [pA.pAnalysis participant pA.testExt];
     subjRes  = [];
     for jj = 1:pA.numRuns
         run              = pA.runs{ii, jj};
@@ -76,6 +78,7 @@ for ii = 1:pA.numPart
     
     sortStruc         = initSortedStruct(pA.numCond);
     sortStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+    
     sortStruc.curSess = sortStruc.subject;
     sortStruc.cond    = pA.cond;
  
@@ -83,6 +86,8 @@ for ii = 1:pA.numPart
         curRes = allDataStr(ii, jj);
 
         sortStruc.studyID = curRes.subject; % Study ID
+        sortStruc.gender  = curRes.gender;
+        sortStruc.age     = curRes.age;
         
         sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
         allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
@@ -121,6 +126,8 @@ function sortStr = initSortedStruct(numCond)
 
 % Basic info about the session, the recordings, the subjects
 sortStr.subject = [];
+sortStr.gender  = [];
+sortStr.age     = [];
 sortStr.curSess = [];
 sortStr.studyID = [];
 sortStr.runs    = cell(numCond, 1);
