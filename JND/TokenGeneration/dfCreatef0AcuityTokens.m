@@ -50,7 +50,7 @@ if ~exist(dirs.TokenDir, 'dir')
 end
 
 % Where to find the baseline recordings
-dirs.BaseFile    = fullfile(dirs.SavData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
+dirs.BaseFile    = fullfile(dirs.RecData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
 
 GT.xMax = 200;  %max difference between speaker's f0 and f0 of stimulus in headphones
 GT.xMin = 1;    %min difference between speaker's f0 and f0 of stimulus in headphones

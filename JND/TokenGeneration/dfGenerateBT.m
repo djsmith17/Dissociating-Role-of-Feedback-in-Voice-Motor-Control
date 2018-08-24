@@ -27,6 +27,7 @@ baseTokenFile = dirs.baseTokenFile; % Where to save the .wav file
 if ~exist(dirs.BaseFile, 'file')
     error('ERROR: No baseline voice file at the designated location!')
 else
+    fprintf('Loading Baseline recording from...\n%s\n\n', dirs.BaseFile)
     load(dirs.BaseFile) % Returns a structure called 'DRF'
 end
     
