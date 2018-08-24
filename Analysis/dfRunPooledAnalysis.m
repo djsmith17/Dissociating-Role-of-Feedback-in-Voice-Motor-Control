@@ -50,7 +50,7 @@ for ii = 1:pA.numPart
     pA.pltNameMVi{ii} = [pA.pAnalysis participant pA.testExt];
     subjRes  = [];
     for jj = 1:pA.numRuns
-        run              = pA.runs{ii, jj};
+        run              = pA.runs{jj};
         dirs.SavFileDir  = fullfile(dirs.Results, participant, run);                      % Where results are saved
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
@@ -96,7 +96,10 @@ for ii = 1:pA.numPart
     sortStruc = meanCondTrials(pA, sortStruc);
     sortStruc.pltName = pA.pltNameMVi{ii};
     
-    pooledRunStr(ii)   = sortStruc;        
+    pooledRunStr(ii)   = sortStruc;
+    
+    allSubjRes.gender{ii} = sortStruc.gender;
+    allSubjRes.age(ii)    = sortStruc.age;
 end
 
 allSubjRes = meanCondTrials(pA, allSubjRes);
@@ -106,6 +109,10 @@ fprintf('\nAcross all subjects, %d trials were thrown away.\n', allSubjRes.tosse
 fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
 fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
 fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+
+[mAge, rAge, gRatio] = demoStats(allSubjRes);
+fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f (Mean: %.1f)\n', rAge(1), rAge(2), mAge)
+fprintf('This data set includes %d males, and %d females\n\n', gRatio(1), gRatio(2))
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
@@ -260,6 +267,22 @@ statLib(6) = condM2(4); % Condition 2 %
 statLib(7) = pStim;     % p-value stimulus
 statLib(8) = pResp;     % p-value response
 statLib(9) = pPerc;     % p-value percent increase 
+end
+
+function [meanAge, rangeAge, genderRatio] = demoStats(allSubjRes)
+
+ages    = allSubjRes.age;
+genders = allSubjRes.gender;
+
+meanAge = round(mean(ages), 1);
+minAge  = round(min(ages), 1);
+maxAge  = round(max(ages), 1);
+rangeAge = [minAge maxAge];
+
+numMales = sum(strcmp(genders, 'male'));
+numFemales = sum(strcmp(genders, 'female'));
+
+genderRatio = [numMales numFemales];
 end
 
 function lims = identifyLimits(ss)
