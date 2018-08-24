@@ -7,14 +7,22 @@ function dfRunf0AcuityJND_AXB()
 %the pitch of the first token, or the pitch of the last token. Left and
 %Right arrow keys are used as input, and there is visual presentation of
 %the task. The task adaptively changes to find a threshold at which
-%participants can discriminate between two pitches. The core version of the
+%participants can discriminate between two pitches. Hitting the Esc key 
+%after a token presentation will exit the script. The core version of the
 %script was received from Ayoub Daliri.
 %
-%The Voice Token Data file will load a structure that is called GT
+% The Voice Token Data file will load a structure that is named GT
 %
-%This script makes use of the following outside functions:
-%-dfAdaptiveUpdateJNDAXB.m
-%-GetKey_Ayoub.m
+% This script is dependent on the following external functions:
+% -dfDirs
+% -dfAdaptiveUpdateJNDAXB.m
+% -GetKey_Ayoub.m
+%
+% This script has the following subfunctions:
+% -JNDVisualPresentation
+% -JNDMessage
+% -pseudoRandomTrialOrder
+% -accuLogic
 
 close all;
 ET = tic;
@@ -27,7 +35,7 @@ prompt = {'Subject ID:',...
           'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','fAX1', 'GT1', 'Diff', 'female'};
+defaultanswer = {'null', 'fAX1', 'GT1', 'Diff', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -39,15 +47,15 @@ switch num_trials
     case 'Practice'
         totalTrials = 20;
     case 'Full'
-        totalTrials = 100; %max number of trials if max trials/reversals not reached
+        totalTrials = 100; % Max number of trials if # reversals not reached
 end
 
-UD.project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-UD.subject = answer{1};
-UD.run     = answer{2};
+UD.project   = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
+UD.subject   = answer{1};
+UD.run       = answer{2};
 UD.tokenFile = answer{3};
-UD.inst    = answer{4};
-UD.gender  = answer{5};
+UD.inst      = answer{4};
+UD.gender    = answer{5};
 
 dirs = dfDirs(UD.project);
 % Folder paths to save data files
@@ -59,16 +67,17 @@ if ~exist(dirs.RecFileDir, 'dir')
 end
 
 if ~exist(dirs.TokenFile, 'file')
-    disp('ERROR: No tokens at this location!')
+    disp('ERROR: No tokens at this location! Please try another')
     return
+else
+    load(dirs.TokenFile); % Returns a struct 'GT'.
 end
 
 %Token Generation Output;
-load(dirs.TokenFile); %Should return struct GT. This should become a try statement
 UD.baseRec    = GT.baseRec;
 UD.baseTrial  = GT.baseTrial;
 UD.subjf0     = GT.subjf0;
-UD.pertFreqs  = GT.pertFreqs;
+UD.PertFreqs  = GT.PertFreqs;
 UD.fs         = GT.fs;
 UD.BaseToken  = GT.BaseToken;
 UD.PertTokens = GT.PertTokens;
@@ -77,7 +86,7 @@ UD.PertTokens = GT.PertTokens;
 UD.totalTrials = totalTrials;
 UD.up = 1;    % Number of consecutive responses before an increase
 UD.down = 2;  % Number of consecutive responses before a decrease
-stepSize = 4; %This is something to tune; in cents
+stepSize = 4; % This is something to tune; in cents
 UD.stepSizeUp = stepSize; %Levitt (1971) 2/1 rule for 71% in MacMillian Chapter 11 with step per Garcia-Perez (1998); Was: Size of step up ; stepSize/ .5488 ensures 80.35 % correct; see Garcia-Perez 1998
 UD.stepSizeDown = stepSize; % Size of step down
 UD.BIGstep      = 10;
@@ -96,50 +105,50 @@ UD.stop = 0;
 UD.u = 0;
 UD.d = 0;
 UD.direction = [];
-UD.reversal = 0;
-UD.xCurrent = UD.startValue;
+UD.reversal  = 0;
+UD.xCurrent  = UD.startValue;
 UD.x = UD.startValue;
 UD.xStaircase = [];
 UD.catchResponse = [];
 UD.allTrialPerts = [];
 UD.allTrialTypes = [];
-waitForKeyPress = 3 ; % in seconds
-UD.ISI = .5; %Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
-UD.measuredDelay = 0.0; %Measured delay of instruments to be incoportated for accurate ISI and token length
+waitForKeyPress  = 3;   % Seconds
+UD.ISI           = 0.5; % Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
+UD.measuredDelay = 0.0; % Measured delay of instruments to be incoportated for accurate ISI and token length
 
 fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, UD.subjf0)
 %%%%%Visual Presentation
-[h2, h3, h4] = JNDVisualPresentation;
+[ctrMsg, leftArw, righArw] = JNDVisualPresentation;
 pause(5);
 
 tr = 0;
 countSD = [0 0];
 while (UD.stop == 0) && tr < UD.totalTrials
     tr = tr + 1;
-    %Present the word
-    set(h2,'String','+')
+    % Present the word
+    set(ctrMsg, 'String', '+')
     drawnow;
        
-    PertDist = UD.xCurrent; %cents
+    PertDist  = UD.xCurrent; %cents
     hPertDist = PertDist/2;
     
     [trialInd, countSD] = pseudoRandomTrialOrder(4, countSD);
-    if trialInd == 1       %Matches A
+    if trialInd == 1       % A and X Match, B is different
         pertA  = hPertDist;
         pertX  = hPertDist;
         pertB  = -hPertDist;        
         conVar = 1;
-    elseif trialInd == 3   %Matches A
+    elseif trialInd == 3   % A and X Match, B is different
         pertA  = -hPertDist;
         pertX  = -hPertDist;
         pertB  = hPertDist;
         conVar = 1;
-    elseif trialInd == 2   %Matches B
+    elseif trialInd == 2   % B and X Match, A is different
         pertA  = hPertDist;
         pertX  = -hPertDist;
         pertB  = -hPertDist;        
         conVar = 0;
-    elseif trialInd == 4   %Matches B
+    elseif trialInd == 4   % B and X Match, A is different
         pertA  = -hPertDist;
         pertX  = hPertDist;
         pertB  = hPertDist;
@@ -164,9 +173,8 @@ while (UD.stop == 0) && tr < UD.totalTrials
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Present the YES/NO question
-    set(h2, 'String', 'PITCH', 'FontSize', 80)
-    set(h3, 'Visible','on');
-    set(h4, 'Visible','on');
+    set(ctrMsg, 'String', 'PITCH', 'FontSize', 80)
+    set([leftArw righArw], 'Visible','on');
     drawnow
     keyCorrect = 1;
     while keyCorrect
@@ -175,7 +183,7 @@ while (UD.stop == 0) && tr < UD.totalTrials
         [bb, ReactionTime(tr)] = GetKey_Ayoub(1, waitForKeyPress);
         
         % wait until a correct key is pressed
-        if (bb ~= 28) & (bb ~= 29)
+        if (bb ~= 28) & (bb ~= 29) & (bb ~= 27)
             keyCorrect = 1;
         end
         if isempty(bb)
@@ -186,22 +194,24 @@ while (UD.stop == 0) && tr < UD.totalTrials
             response = 1;
         elseif bb == 29        %29 is "LAST"  | Right ARROW KEY;
             response = 0;
+        elseif bb == 27        %27 is ESC     | Quit for now and save;
+            response = 0;
+            UD.stop = 1; 
         end      
     end
     JNDMessage(tr, trialPerts, PertDist, conVar, response, 2);  
     
-    set(h2, 'String','','FontSize',120)
-    set(h3, 'Visible','off');
-    set(h4, 'Visible','off');
+    set(ctrMsg, 'String', '', 'FontSize',120)
+    set([leftArw righArw], 'Visible','off');
     drawnow 
     
-    [trialType, correct] = accuLogic(UD, conVar, response);
+    [trialType, correct] = accuLogic(UD.inst, conVar, response);
      
     UD = dfAdaptiveUpdateJNDAXB(UD, response, correct);
     UD.catchResponse(tr,1) = correct;
     UD.allTrialPerts = cat(1, UD.allTrialPerts, trialPerts);
     UD.allTrialTypes = cat(1, UD.allTrialTypes, trialType);
-    pause(1) %this is between two trials   
+    pause(1) %Inter-Trial time  
 end
 close all;
 elapsed_time = toc(ET)/60;
@@ -211,87 +221,119 @@ UD.reactionTime = ones(size(ReactionTime))*10000;
 UD.elapsedTime  = elapsed_time;
 
 UD.performedTrials = length(UD.catchResponse);
-UD.JNDTrials = length(UD.reversal);
-UD.catchTrials = sum(~isnan(UD.catchResponse));
-UD.reversals = max(UD.reversal);
-UD.catchCorrect = sum(UD.catchResponse);
-UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
+UD.JNDTrials       = length(UD.reversal);
+UD.catchTrials     = sum(~isnan(UD.catchResponse));
+UD.reversals       = max(UD.reversal);
+UD.catchCorrect    = sum(UD.catchResponse);
+UD.catchAccuracy   = 100*(UD.catchCorrect/UD.catchTrials);
 
 expFiles = fullfile(dirs.RecFileDir, [UD.subject UD.run 'DRF.mat']);
 switch num_trials
     case 'Practice'
         return
     case 'Full'
-        save(expFiles, 'UD'); %Only save if it was a full set of trials
+        fprintf('Saving JND recording\n')
+        save(expFiles, 'UD'); % Only save if it was a full set of trials
 end
 end
 
-function [h2, h3, h4] = JNDVisualPresentation
+function [ctrMsg, leftArw, righArw] = JNDVisualPresentation
+% JNDVisualPresentation generates a figure on the computer monitor to 
+% provide trial information. Some of these positions are a little hard 
+% baked. In future versions, I will make them modular to the screen size.
+%
+% If there are two monitors, this will scale the window to the size of the
+% second screen. If there is only one monitor, it will create a small
+% window, with the thought that it makes things easier for testing on a
+% single-screen computer.
+
 monitorSize = get(0,'Monitor');
-if size(monitorSize, 1) == 1
-    figPosition = [1 200 monitorSize(3) monitorSize(4)-200];
-elseif size(monitorSize, 1) == 2
-    figPosition = [monitorSize(2,1) monitorSize(2,2) monitorSize(1,3) monitorSize(2,4)];
+numMon = size(monitorSize, 1);
+
+if numMon == 1
+    W = monitorSize(3);
+    H = monitorSize(4);
+    W2 = W/2;
+    H2 = H/2;
+    XPos = W2;
+    YPos = 50;
+    
+    figPosition = [XPos YPos W2 H2];
+elseif numMon == 2
+    [~, mon] = max(monitorSize(:,1));
+    
+    figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(1,3) monitorSize(1,4)];
 end
+figDim.winPos = figPosition;
 
-figure1 = figure('Color',[0 0 0],'Menubar','none','Position', figPosition);
+% Ready Annotation Dim
+figDim.rdAnoD = [700 300];
+figDim.rdAnoW = round(figDim.rdAnoD(1)/figDim.winPos(3), 2); 
+figDim.rdAnoH = round(figDim.rdAnoD(2)/figDim.winPos(4), 2);
+figDim.rdAnoX = 0.5 - figDim.rdAnoW/2;
+figDim.rdAnoY = 0.5 - figDim.rdAnoH/2;
+figDim.rdAnoPos = [figDim.rdAnoX figDim.rdAnoY figDim.rdAnoW figDim.rdAnoH];
 
-h2 = annotation(figure1,'textbox',...
-    [0.38 0.46 0.2 0.2],...
-    'Color',[1 1 1],...
-    'String','READY',...
-    'LineStyle','none',...
-    'HorizontalAlignment','center',...
-    'VerticalAlignment','middle',...
-    'FontSize',130,...
-    'FontName','Arial',...
-    'FitBoxToText','off',...
-    'EdgeColor','none',...
-    'BackgroundColor',[0 0 0],...
-    'Visible','on');
+figure1 = figure('Color', [0 0 0], 'Position', figDim.winPos, 'MenuBar', 'none');
 
-h3 = annotation(figure1,'textbox',...
-    [0.025 0.15 0.45 0.3],...
-    'String',{'< FIRST'},...
-    'HorizontalAlignment','center',...
-    'VerticalAlignment','middle',...
-    'FontSize',60,...
-    'FontName','Arial',...
-    'LineStyle','none',...
-    'BackgroundColor',[1 1 1],...
-    'Color',[0 0 0],...
-    'Visible','off');
+ctrMsg = annotation(figure1, 'textbox', figDim.rdAnoPos,...
+                             'Color', [1 1 1],...
+                             'String', 'READY',...
+                             'LineStyle', 'none',...
+                             'HorizontalAlignment', 'center',...
+                             'VerticalAlignment', 'middle',...
+                             'FontSize', 130,...
+                             'FontName', 'Arial',...
+                             'FitBoxToText', 'off',...
+                             'EdgeColor', 'none',...
+                             'BackgroundColor', [0 0 0],...
+                             'Visible','on');
 
-h4 = annotation(figure1,'textbox',...
-    [0.52 0.15 0.45 0.3],...
-    'String',{'LAST >'},... 
-    'HorizontalAlignment','center',...
-    'VerticalAlignment','middle',...
-    'FontSize',60,...
-    'FontName','Arial',...
-    'LineStyle','none',...
-    'BackgroundColor',[1 1 1],...
-    'Color',[0 0 0],...
-    'Visible','off');
+leftArw = annotation(figure1, 'textbox', [0.025 0.15 0.45 0.3],...
+                              'Color', [0 0 0],...
+                              'String', {'< FIRST'},...
+                              'HorizontalAlignment', 'center',...
+                              'VerticalAlignment', 'middle',...
+                              'FontSize', 60,...
+                              'FontName', 'Arial',...
+                              'LineStyle', 'none',...
+                              'BackgroundColor', [1 1 1],...
+                              'Visible','off');
+
+righArw = annotation(figure1, 'textbox', [0.52 0.15 0.45 0.3],...
+                              'Color',[0 0 0],...
+                              'String', {'LAST >'},... 
+                              'HorizontalAlignment', 'center',...
+                              'VerticalAlignment', 'middle',...
+                              'FontSize', 60,...
+                              'FontName', 'Arial',...
+                              'LineStyle', 'none',...
+                              'BackgroundColor', [1 1 1],...
+                              'Visible','off');
 
 drawnow;
 end
 
 function JNDMessage(tr, PertVals, PertDist, conVar, response, state)
+% JNDMessage() provides output to the researcher about the current trial
+% taking place, and the participant's live response. It is useful to have 
+% this information while testing JND to confirm that the logic of the
+% staircase adaptive JND is working correctly. Accuracy, and reversals are
+% not currently tracked here, but can be derived implictely by observation.
 
-if state == 1
+if state == 1 % Token Presentation
     msg = ['Trial ' num2str(tr) ' at ' num2str(PertDist) ' (' num2str(PertVals(1)) ', ' num2str(PertVals(2)) ', ' num2str(PertVals(3)) '): '];
     
-    if conVar == 1
+    if conVar == 1 % A and X Match, B is different
         msg = [msg 'Is Last, Answered '];
-    else
+    else           % B and X Match, A is different
         msg = [msg 'Is First, Answered '];
     end
-else
+else          % Subject's Response
     if response == 1
-        msg = 'First\n';
+        msg = 'First\n'; % Answered First
     else
-        msg = 'Last\n';
+        msg = 'Last\n';  % Answered Last
     end
 end
 
@@ -299,7 +341,10 @@ fprintf(msg)
 end
 
 function [trialInd, countSD] = pseudoRandomTrialOrder(nTrialTypes, countSD)
-maxCount = 3;
+% pseudoRandomTrialOrder(nTrialTypes, countSD) ensures that there are no
+% more than the max number of trials of a type in row (e.g. AAA or BBB)
+
+maxCount = 3; % Currently hard set to 3 in a row
 
 tempVar = randperm(nTrialTypes);
 trialInd = tempVar(1);
@@ -322,9 +367,29 @@ elseif trialInd == 2 || trialInd == 4 % B Trials
 end
 end
 
-function [trialType, correct] = accuLogic(UD, conVar, response)
+function [trialType, correct] = accuLogic(inst, conVar, response)
+% accuLogic(inst, conVar, response) determines if the response by the
+% participant was correct or incorrect. It has outputs for two instructions
+% types: Whether the subject was asked to respond for the token that was 
+% the 'same' as 'X', or if they were asked to respond for the token that 
+% was 'different' than 'X'. If we finalize an instruction, this function
+% can be made much simplier.
+%
+% INPUTS:
+% inst:     Instruction. Either 'Same' or 'Diff'
+% conVar:   Condition. 1 = A and X Match, B is different. 
+%                      0 = B and X Match, A is different.
+% response: Subject response. 1 = 'First'.
+%                             0 = 'Last'.
+%
+% OUTPUTS:
+% trialType: Result of trial condition and correctness. This is used in
+%            conjunction with the other output variable 'correct' to better
+%            describe which trials were correct/incorrect to observe any 
+%            bias. 
+% correct:   correct (1) or incorrect (0)
 
-if strcmp(UD.inst, 'Same')
+if strcmp(inst, 'Same')
     if conVar == 1
         if response == 1 
             trialType = 1; %Correct AX

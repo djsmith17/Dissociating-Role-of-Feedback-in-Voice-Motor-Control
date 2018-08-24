@@ -30,10 +30,10 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_MN4'; % Subject#, Pilot#, null
+subject    = 'DRF_MN19'; % Subject#, Pilot#, null
 run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
-gender     = 'female';    % "male" or "female"
-DOB        = datetime(1998, 4, 30); % Year, Month, Day
+gender     = 'male';    % "male" or "female"
+DOB        = datetime(1990, 4, 6); % Year, Month, Day
 numTrials  = 3;         % number of trials;
 
 % Paradigm Configurations
@@ -58,6 +58,7 @@ switch recType
         expParam.AudFBSw  = 0;
         expParam.cuePause = 1.0;
         expParam.resPause = 2.0;
+        expParam.headGain = 5;
         
         expParam.rmsB     = loadCalibration(dirs, expParam.curDT);
 
@@ -74,6 +75,7 @@ switch recType
         expParam.AudFBSw  = 0;
         expParam.cuePause = 0;
         expParam.resPause = 0;
+        expParam.headGain = 5;
 
         targLoud = prompt4Calibrate(); % Ask user how loud the calibration sound source was
 end
@@ -175,6 +177,8 @@ end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.curSess dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded baseline data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF')
+
+dfInspectRawData(dirs.RecFileDir)
 end
 
 function targLoud = prompt4Calibrate()

@@ -1,11 +1,26 @@
 function dfAnalysisJND()
+% dfAnalysisJND() loads a f0 JND data set (fAX#DRF.mat) and analyzed the raw
+% data into interpretable results. After the results have been computed and
+% organized, they are immediately plotted. Multiple JND results can be
+% analyzed and plotted at the same time. By following the saved file
+% structure of fAX1, fAX2,... etc, you can select the run numbers to
+% analyze and view the run results next to each other in the plots.
+%
+% This function calls the following external functions
+% -dfDirs
+% -dfAnalyzeThresholdJND
+% -drawJNDResults
+%
+% This script has the following subfunctions:
+% -setCatchAcc
+% -setDirection
 
 prompt = {'Subject ID:',...
           'Run Type:',...
           'Runs to Analyze:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null','fAX', '1, 2, 3, 4', '3', 'Same', 'female'};
+defaultanswer = {'null', 'fAX', '1, 2, 3, 4'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -13,7 +28,7 @@ if isempty(answer)
 end
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participant  = answer{1}; %List of multiple participants.
+JNDa.participant  = answer{1};
 JNDa.runType      = answer{2};
 JNDa.runs2Analyze = str2double(answer{3});
 numRuns           = length(JNDa.runs2Analyze);
@@ -25,8 +40,8 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-allRunData = [];
-allmeanJND = [];
+allRunData  = [];
+allmeanJND  = [];
 allCatchAcc = [];
 for ii = JNDa.runs2Analyze 
     JNDa.run         = [JNDa.runType num2str(ii)];
@@ -44,8 +59,8 @@ for ii = JNDa.runs2Analyze
     else
         UD.tN = {'First'; 'Last'}; 
     end    
-    allRunData = cat(1, allRunData, UD);
-    allmeanJND = cat(1, allmeanJND, meanJND);
+    allRunData  = cat(1, allRunData, UD);
+    allmeanJND  = cat(1, allmeanJND, meanJND);
     allCatchAcc = cat(1, allCatchAcc, lastSetAccu);
 end
 
@@ -53,17 +68,23 @@ drawJNDResults(JNDa, dirs, numRuns, allRunData, allmeanJND, allCatchAcc)
 end
 
 function UD = setCatchAcc(UD)
+% setCatchAcc() calculates the stats on performed catch trials, only if the
+% JND task had catch trials. Not all versions do.
+
 if ~isfield(UD, 'catchTrials')
     UD.performedTrials = length(UD.catchResponse);
-    UD.JNDTrials = length(UD.reversal);
-    UD.catchTrials = length(UD.catchResponse) - length(UD.reversal);
-    UD.reversals = max(UD.reversal);
-    UD.catchCorrect = sum(UD.catchResponse == 0);
-    UD.catchAccuracy = 100*(UD.catchCorrect/UD.catchTrials);
+    UD.JNDTrials       = length(UD.reversal);
+    UD.catchTrials     = length(UD.catchResponse) - length(UD.reversal);
+    UD.reversals       = max(UD.reversal);
+    UD.catchCorrect    = sum(UD.catchResponse == 0);
+    UD.catchAccuracy   = 100*(UD.catchCorrect/UD.catchTrials);
 end
 end
 
 function UD = setDirection(UD, JNDa, ii)
+% setDirection is a function I made because I goofed in recording some
+% pilot data. You can ignore this otherwise. 
+
 if ~isfield(UD, 'JNDDirection')
     if strcmp(JNDa.participant, 'Pilot9')
         if ii == 1 || ii == 3

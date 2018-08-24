@@ -127,7 +127,7 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     % Section and aligning pressure signal for perturbed trials
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     
-    [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.time_DN, niAn.sensorP_p, niAn.presTrig);
+    [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     niAn.sensorPMean                = meanSensorData(niAn.sensorPSec);   
 end
 
@@ -387,7 +387,7 @@ per     = 1/fs;
 timeAl = (-preEve:per:posEve)';
 end
 
-function [secTime, secSigs] = sectionData(time, sigs, trigs)
+function [secTime, secSigs] = sectionData(sigs, fs, trigs)
 % [secTime, secSigs] = sectionData(time, sigs, trigs) sections
 % time series data around important points in time.
 % 
@@ -401,23 +401,24 @@ function [secTime, secSigs] = sectionData(time, sigs, trigs)
 %          The 2nd 3D later are Offset Sections
 
 [~, numTrial] = size(sigs);
-preEve  = 0.5; posEve = 1.0;
+preEveT  = 0.5; posEveT = 1.0;
+preEve = preEveT*fs; posEve = posEveT*fs;
 
 secSigs    = [];
 OnsetSecs  = [];
 OffsetSecs = [];
 if numTrial > 0
     for ii = 1:numTrial
-        OnsetT   = trigs(ii, 1); % Onset time
-        OffsetT  = trigs(ii, 2); % Offset time
+        Onset   = trigs(ii, 1); % Onset point
+        Offset  = trigs(ii, 2); % Offset point
 
-        OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
-        OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
-        OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
+        OnsetPre  = Onset - preEve;   % PreOnset point
+        OnsetPos  = Onset + posEve;   % PostOnset point
+        OnsetSpan = OnsetPre:OnsetPos; % Indices corresponding to Onset period
 
-        OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
-        OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
-        OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
+        OffsetPre  = Offset - preEve;   % PreOnset point
+        OffsetPos  = Offset + posEve;   % PostOnset point
+        OffsetSpan = OffsetPre:OffsetPos; % Indices corresponding to Onset period
 
         OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
         OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
@@ -427,7 +428,7 @@ if numTrial > 0
     end
     [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
 else
-    numSampSec = 301;
+    numSampSec = 1200;
 end
 
 secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals

@@ -16,15 +16,21 @@ end
 % Edit the parts between the lines to modify the pooled analysis variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Participants involved in analysis
-pooledParticipants = {'DRF_MN2',...
-                      'DRF_MN3',...
-                      'DRF_MN4'};
+pooledParticipants = {'DRF_MN6',...
+                      'DRF_MN7',...
+                      'DRF_MN9',...
+                      'DRF_MN10',...
+                      'DRF_MN12',...
+                      'DRF_MN13',...
+                      'DRF_MN14',...
+                      'DRF_MN15',...
+                      'DRF_MN16',...
+                      'DRF_MN18',...
+                      'DRF_MN19'};
 
 % Runs for each participant. There should be an equal number of runs for
 % each participant. Each row will be the runs to 
-pooledRuns  = {'SF1', 'SF2', 'SF3';...
-               'SF1', 'SF2', 'SF3';...
-               'SF1', 'SF2', 'SF3'};
+pooledRuns  = {'SF1', 'SF2', 'SF3'};
            
 % Conditions to test against
 testingConditions = {'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise'};
@@ -33,33 +39,15 @@ testingConditions = {'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise'
 condVar = 'curRes.AudFB'; 
 
 % How do you want to title the Result Plots?
-pltNameTop = 'MaskingStudy';
-testType   = '';
-% MaskvVoice Individual
-pltNameMVi = {[pltNameTop 'DRF_MN2' testType],...
-              [pltNameTop 'DRF_MN3' testType],...
-              [pltNameTop 'DRF_MN4' testType]};
-
-pltNameMVm =  [pltNameTop 'MeanSubj' testType];
+testExt    = '';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-numPart = length(pooledParticipants);
-
-[p, ~] = size(pooledRuns);
-
-if p ~= numPart
-    fprintf('Please double check your Pooled Config File\n')
-    fprintf('Number of rows in pooledRuns does not match number of participants\n')
-    return
-end
 
 cF.participants = pooledParticipants;
 cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 cF.condVar      = condVar;
-cF.pltNameMVi   = pltNameMVi;
-cF.pltNameMVm   = pltNameMVm;
+cF.testExt      = testExt;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)
