@@ -32,13 +32,14 @@ end
 pA.participants  = cF.participants; % List of multiple participants.
 pA.numPart       = length(pA.participants);
 pA.runs          = cF.runs;         % All runs to consider 
-[~, pA.numRuns]  = size(pA.runs);
+pA.numRuns       = length(pA.runs);
 pA.cond          = cF.cond;         % Conditions to test against
 pA.numCond       = length(pA.cond); 
 pA.condVar       = cF.condVar;      % Variable to test the condition
+pA.testExt       = cF.testExt;
 
-pA.pltNameMVi    = cF.pltNameMVi;
-pA.pltNameMVm    = cF.pltNameMVm;
+pA.pltNameMVi    = cell(pA.numPart, 1);
+pA.pltNameMVm    = [pA.pAnalysis 'MeanSubj' pA.testExt];
 
 % Load all saved results and order into a large data structure
 allDataStr = []; % (numPart x numRuns)
@@ -46,9 +47,10 @@ for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Loading Runs for %s\n', participant)
     
+    pA.pltNameMVi{ii} = [pA.pAnalysis participant pA.testExt];
     subjRes  = [];
     for jj = 1:pA.numRuns
-        run              = pA.runs{ii, jj};
+        run              = pA.runs{jj};
         dirs.SavFileDir  = fullfile(dirs.Results, participant, run);                      % Where results are saved
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
@@ -76,6 +78,7 @@ for ii = 1:pA.numPart
     
     sortStruc         = initSortedStruct(pA.numCond);
     sortStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+    
     sortStruc.curSess = sortStruc.subject;
     sortStruc.cond    = pA.cond;
  
@@ -83,6 +86,8 @@ for ii = 1:pA.numPart
         curRes = allDataStr(ii, jj);
 
         sortStruc.studyID = curRes.subject; % Study ID
+        sortStruc.gender  = curRes.gender;
+        sortStruc.age     = curRes.age;
         
         sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
         allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
@@ -91,7 +96,10 @@ for ii = 1:pA.numPart
     sortStruc = meanCondTrials(pA, sortStruc);
     sortStruc.pltName = pA.pltNameMVi{ii};
     
-    pooledRunStr(ii)   = sortStruc;        
+    pooledRunStr(ii)   = sortStruc;
+    
+    allSubjRes.gender{ii} = sortStruc.gender;
+    allSubjRes.age(ii)    = sortStruc.age;
 end
 
 allSubjRes = meanCondTrials(pA, allSubjRes);
@@ -101,6 +109,10 @@ fprintf('\nAcross all subjects, %d trials were thrown away.\n', allSubjRes.tosse
 fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
 fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
 fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+
+[mAge, rAge, gRatio] = demoStats(allSubjRes);
+fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f (Mean: %.1f)\n', rAge(1), rAge(2), mAge)
+fprintf('This data set includes %d males, and %d females\n\n', gRatio(1), gRatio(2))
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
@@ -121,6 +133,8 @@ function sortStr = initSortedStruct(numCond)
 
 % Basic info about the session, the recordings, the subjects
 sortStr.subject = [];
+sortStr.gender  = [];
+sortStr.age     = [];
 sortStr.curSess = [];
 sortStr.studyID = [];
 sortStr.runs    = cell(numCond, 1);
@@ -253,6 +267,22 @@ statLib(6) = condM2(4); % Condition 2 %
 statLib(7) = pStim;     % p-value stimulus
 statLib(8) = pResp;     % p-value response
 statLib(9) = pPerc;     % p-value percent increase 
+end
+
+function [meanAge, rangeAge, genderRatio] = demoStats(allSubjRes)
+
+ages    = allSubjRes.age;
+genders = allSubjRes.gender;
+
+meanAge = round(mean(ages), 1);
+minAge  = round(min(ages), 1);
+maxAge  = round(max(ages), 1);
+rangeAge = [minAge maxAge];
+
+numMales = sum(strcmp(genders, 'male'));
+numFemales = sum(strcmp(genders, 'female'));
+
+genderRatio = [numMales numFemales];
 end
 
 function lims = identifyLimits(ss)

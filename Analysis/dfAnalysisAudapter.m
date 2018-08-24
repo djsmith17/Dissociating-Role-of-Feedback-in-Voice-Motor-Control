@@ -39,6 +39,7 @@ auAn.curSess   = expParam.curSess;
 auAn.f0Type    = 'Praat';
 auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis.mat'];
 auAn.gender    = expParam.gender;
+auAn.age       = expParam.age;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = f0b;
@@ -51,7 +52,7 @@ auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
 auAn.frameLenDown = expParam.frameLen/expParam.downFact;
 auAn.trialLen     = expParam.trialLen;         % Length of recording (s)
 auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Length of recording (points)
-auAn.rmsThresh    = expParam.rmsThresh;
+auAn.rmsThresh    = [];
 
 auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; % Time Vector based on numSamp
 auAn.audioM     = []; % Mic data that has received temporal preprocessing (all recorded trials)
@@ -320,7 +321,7 @@ pp.voiceOnsetInd = pp.threshIdx(1);
 % Check the voice onset time against when we want to start analyzing data
 pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
 
-% Check the whole The rest of the signal base the first index...are there any dead zones??
+% Check the rest of the signal following the first index...are there any dead zones??
 pp.fallOffLog = pp.env(pp.voiceOnsetInd:audioSp) < pp.thresh*pp.maxPeak;
 pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than break tolerance
 end
@@ -458,10 +459,13 @@ function res = packResults(auAn, lims)
 % methods/names may.
 
 % Information about the experiment/subject
-res.expType = auAn.expType;
 res.subject = auAn.subject;
 res.run     = auAn.run;
 res.curSess = auAn.curSess;
+res.gender  = auAn.gender;
+res.age     = auAn.age;
+
+res.expType = auAn.expType;
 res.AudFB   = auAn.AudFB;
 
 res.f0Type = auAn.f0Type;

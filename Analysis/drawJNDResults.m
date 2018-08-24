@@ -1,4 +1,9 @@
 function drawJNDResults(JNDa, dirs, numRuns, allRunData, allMeanJND, allCatchAcc)
+% drawJNDResults() displays the results from a single subject's JND runs.
+%
+% This function calls the following helper functions
+% -tight_subplot
+% -export_fig
 
 saveResultsDir = dirs.SavResultsDir;
 
@@ -7,10 +12,10 @@ plotdim = [1600 750];
 xyFS    = 12;
 titleFS = 12;
 
-tColors = [[0 0 1]; %Correct Different
-           [1 0 0]; %Incorrect Different
-           [0.5 0.5 1]; %Correct Same
-           [1 0.5 0.5]];%Incorrect Same
+tColors = [[0 0 1];      % Correct Different
+           [1 0 0];      % Incorrect Different
+           [0.5 0.5 1];  % Correct Same
+           [1 0.5 0.5]]; % Incorrect Same
 
 annoPos = [.38 .79;
            .87 .79;
@@ -22,7 +27,7 @@ aH = [0 0 0 0 0];
 AllJND = figure('Color', [1 1 1]);
 set(AllJND, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-ha = tight_subplot(2,2,[0.15 0.06],[0.1 0.1],[0.05 0.03]);
+ha = tight_subplot(2, 2, [0.15 0.06], [0.1 0.1], [0.05 0.03]);
 
 for ii = 1:numRuns
     UD = allRunData(ii);
@@ -32,7 +37,7 @@ for ii = 1:numRuns
     triNote   = [num2str(UD.performedTrials) '/' num2str(UD.totalTrials) ' Trials, '];
     timNote   = [num2str(round(10*UD.elapsedTime)/10) ' min, '];
     
-    if isfield(UD,'inst')
+    if isfield(UD, 'inst')
        timNote   = [timNote 'Instru: ' UD.inst];
     end
     
@@ -62,9 +67,10 @@ for ii = 1:numRuns
                     'FontSize',8,...
                     'FontName','Arial');
     
-    set(gca, 'LineWidth',2, 'FontSize',12,...
-              'FontName','Arial',...
-              'FontWeight','bold')
+    set(gca, 'LineWidth', 2,...
+             'FontSize', 12,...
+             'FontName', 'Arial',...
+             'FontWeight', 'bold')
     
     if ~isempty(cD)
        aH(1) = cD;

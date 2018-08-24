@@ -14,7 +14,7 @@ expParam.project    = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType    = 'Somatosensory Perturbation_Perceptual';
 expParam.gender     = 'male';
 expParam.trialLen   = 4;  % Seconds
-expParam.numTrial   = 1;
+expParam.numTrial   = 40;
 expParam.AudFBSw    = 2;    % Masking Noise
 
 % Set our dirs based on the project
@@ -114,7 +114,7 @@ rampDn = linspace(1, 0, rampDnL);
 
 numRep   = noiseLen/wavLen; % Decimal Amount
 minInt   = floor(numRep);   % How many whole amounts (integer)
-noiseInt = repmat(wavFile, minInt)';
+noiseInt = repmat(wavFile', [1, minInt]);
 
 remRep   = numRep - minInt; % How much remainder?
 remIdx   = round(wavLen*remRep);

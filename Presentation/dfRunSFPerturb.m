@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';   % Subject#, Pilot#, null
+subject    = 'DRF_MN19';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
 balloon    = '2E4';     % Which perturbation balloon?
@@ -78,6 +78,7 @@ expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
+expParam.headGain     = 5;                   % Output gain above the input
 expParam.AudFB        = AudFB;
 expParam.AudFBSw      = AudFBSw;
 expParam.AudPert      = '-100 cents ramped'; % Var not used here. Just saving for balance
@@ -101,7 +102,8 @@ end
 [expParam.f0b,...
  expParam.targRMS,...
  expParam.rmsB,...
- expParam.gender] = loadBaselineVoice(dirs);
+ expParam.gender,...
+ expParam.age] = loadBaselineVoice(dirs);
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
@@ -244,6 +246,8 @@ dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.
 fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
 
+dfInspectRawData(dirs.RecFileDir)
+
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
@@ -309,7 +313,7 @@ end
 fprintf('Subject was %s\n', result)
 end
 
-function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender, age] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -318,6 +322,7 @@ if exist(dirs.BaseFile, 'File')
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
     gender  = DRF.expParam.gender;
+    age     = DRF.expParam.age;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
@@ -325,5 +330,6 @@ else
     targRMS = 70.00;
     rmsB    = 0.00002;
     gender  = 'female';
+    age     = 20;
 end
 end
