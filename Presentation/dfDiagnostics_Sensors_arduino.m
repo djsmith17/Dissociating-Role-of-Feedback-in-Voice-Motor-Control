@@ -107,7 +107,7 @@ if strcmp(collectNewData, 'yes')
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
     
     % Select the trigger points for perturbation onset and offset and creating
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);  
+    [expParam.sigs, expParam.trigs, expParam.vSigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);  
     
     % Convert perturbation/output signal into time start and time end for using Arduino
     trigTimes = squeeze(expParam.trigs(:,:,1));         % in the form [start,end], in seconds
