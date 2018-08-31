@@ -137,7 +137,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 % Select the trigger points for perturbation onset and offset and creating
 % the digital signal to be sent to the NIDAQ
-[expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
+[expParam.sigs, expParam.trigs, expParam.vSigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.buffPause = 0.8; %Give them a moment to start speaking
@@ -171,7 +171,7 @@ for ii = 1:expParam.numTrial
     Audapter('pcf', expParam.pcfFN, 0);
     
     %Setup which perturb file we want
-    NIDAQsig = [expParam.sigs(:,ii) nVS];
+    NIDAQsig = [expParam.sigs(:,ii) expParam.vSigs(:,ii)];
     queueOutputData(s, NIDAQsig);
     
     %Cue to begin trial

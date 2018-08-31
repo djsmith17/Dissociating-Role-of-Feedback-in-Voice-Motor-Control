@@ -26,7 +26,7 @@ s = daq.createSession('ni');
 s.Rate = 8000;
 s.DurationInSeconds = trialLen;
 addAnalogOutputChannel(s, dev, 0, 'Voltage'); %Output signal to the Perturbatron
-addAnalogOutputChannel(s, dev, 1, 'Voltage'); %Output voltage to power the Force Sensor
+addAnalogOutputChannel(s, dev, 1, 'Voltage'); %Output signal to air source valve
 
 addAnalogInputChannel(s, dev, 0, 'Voltage'); %Input signal from NIDAQ Perturbatron Signal
 addAnalogInputChannel(s, dev, 1, 'Voltage'); %Input signal from Force Sensor 1: Collar
@@ -39,7 +39,7 @@ addAnalogInputChannel(s, dev, 6, 'Voltage'); %Input signal from Optical Triggerb
 %Document which channels are which. Manual hardset at the moment. When more
 %versions are needed, this will be converted to a switch case. 
 niCh.ao0 = 'Perturbatron';
-niCh.ao1 = 'Negative Voltage Source';
+niCh.ao1 = 'Valve Switch';
 niCh.ai0 = 'Perturbatron';
 niCh.ai1 = 'Force Sensor: Collar';
 niCh.ai2 = 'Force Sensor: Neck';

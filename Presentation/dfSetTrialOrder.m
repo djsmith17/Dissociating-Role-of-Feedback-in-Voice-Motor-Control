@@ -23,30 +23,40 @@ options = setSize - 3; %Excluding first and last pos in the set and pos 2.
 
 trialType = [];
 numSets = numTrial*per;
-if round(numSets) ~= numSets
-    disp('ERROR in dfSetTrialOrder: Give me a whole number of sets')
-    return
-elseif per == 0
-    disp('No trials will be perturbed!')
-    trialType = zeros(1, numTrial);
-elseif per == 1
-    disp('All trials will be perturbed!')
-    trialType = ones(1, numTrial);
-elseif per == 0.5
-    disp('Half of all trials will be pertrubed in a semi-random permutation')
-    trialType = zeros(1, numTrial);
-    trialType(1:numTrial/2) = 1;
-    trialType = trialType(randperm(numTrial));
-elseif per < 1.0 && per > 0.5
-    disp('ERROR in dfSetTrialOrder: This only supports percents of 100%, 50%, or lower than 50%')
-    return
-else
-    for ii = 1:numSets
-        set = zeros(1, setSize);
-        place = round(options*rand) + 2; %Always want to at least start at pos 2    
-        set(place) = 1;
+% if round(numSets) ~= numSets
+%     disp('ERROR in dfSetTrialOrder: Give me a whole number of sets')
+%     return
+% elseif per == 0
+%     disp('No trials will be perturbed!')
+%     trialType = zeros(1, numTrial);
+% elseif per == 1
+%     disp('All trials will be perturbed!')
+%     trialType = ones(1, numTrial);
+% elseif per == 0.5
+%     disp('Half of all trials will be pertrubed in a semi-random permutation')
+%     trialType = zeros(1, numTrial);
+%     trialType(1:numTrial/2) = 1;
+%     trialType = trialType(randperm(numTrial));
+% elseif per < 1.0 && per > 0.5
+%     disp('ERROR in dfSetTrialOrder: This only supports percents of 100%, 50%, or lower than 50%')
+%     return
+% else
+%     for ii = 1:numSets
+%         set = zeros(1, setSize);
+%         place = round(options*rand) + 2; %Always want to at least start at pos 2    
+%         set(place) = 1;
+% 
+%         trialType = cat(2, trialType, set);
+%     end
+% end  
 
-        trialType = cat(2, trialType, set);
-    end
-end  
+trialScen = [0 1 2];
+numScen   = length(trialScen);
+numSet    = floor(numTrial/numScen);
+if numSet == 0
+    error('Please input a number of trials greater than 3')
+else
+    trialScenRep = repmat(trialScen, [1 numSet+1]);
+    trialType = trialScenRep(1:numTrial);
+end
 end
