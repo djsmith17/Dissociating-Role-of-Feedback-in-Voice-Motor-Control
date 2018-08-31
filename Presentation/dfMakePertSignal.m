@@ -31,8 +31,10 @@ minLen = 1.0; maxLen = 1.5; %Hardset (1.0-1.5 seconds)
 
 trialLenP = trialLen*sRateQ; %Convert from seconds -> points for stimulus
 
-valveBuffTime = 0.01; % seconds
-valveBuffP    = valveBuffTime*sRateQ;
+valveBuffOnT = 0.1; % seconds
+valveBuffOnP = valveBuffOnT*sRateQ;
+valveBuffOfT = 0.5; % seconds
+valveBuffOfP = valveBuffOfT*sRateQ;
 
 sigs     = zeros(trialLenP, numTrial);
 trigs    = zeros(numTrial,2,3);
@@ -53,7 +55,7 @@ for i = 1:numTrial
     Sp_p   = St_p + pLen_p;                       % Stop TIme Points
     span   = St_p:Sp_p;                           % Start to Stop Span
     
-    vSpan  = (St_p-valveBuffP):(Sp_p+valveBuffP); % Perturbation time with buffer for valve ON/OFF
+    vSpan  = (St_p-valveBuffOnP):(Sp_p+valveBuffOfP); % Perturbation time with buffer for valve ON/OFF
 
     sig  = zeros(trialLenP,1);
     if trialType(i) ~= 0 % Only do this for perturbed trials
