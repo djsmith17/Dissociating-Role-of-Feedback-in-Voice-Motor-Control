@@ -16,6 +16,7 @@ classdef LiveSensorResult
            if nargin > 0
                
                curSess  = expParam.curSess;
+               curSess(strfind(curSess, '_')) = ' ';
                numTrial = expParam.numTrial;
                fs       = expParam.sRateQ;
                trigs    = expParam.trigs(:,:,2);

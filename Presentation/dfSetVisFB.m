@@ -18,6 +18,7 @@ function [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFB(curSess, ta
 % LoudRec: Bar annotation representing the amount of loudness the
 %          participant had on the last trial
 % visTrig: The trigger annotation that is used to trigger the triggerbox
+curSess(strfind(curSess, '_')) = ' ';
 
 monitorSize = get(0, 'Monitor');
 numMon = size(monitorSize, 1);
