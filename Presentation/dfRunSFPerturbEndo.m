@@ -23,15 +23,16 @@ function dfRunSFPerturbEndo()
 % Signal-Processing Toolbox
 
 close all;
-ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
 subject    = 'DRF_EN0';   % Subject#, Pilot#, null
-run        = prompt4RunName();
+run        = 'SFL1';
 
 balloon    = '2E4';     % Which perturbation balloon?
 baseV      = 'BVEndo';
+FBNames = {'Voice Feedback'; 'AC Masking Noise'};
+FBTypes = [0 2];
 
 expParam = dfInitExpParam();
 
@@ -70,9 +71,6 @@ end
 expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 
-% Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
-[expParam, p]      = dfSetAudFB(expParam, dirs, p);
-
 % Set up the order of trials (Order of perturbed, control, etc)
 expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
@@ -90,16 +88,20 @@ fprintf('\nStarting Trials\n\n')
 pause(expParam.rdyPause);  % Let them breathe a sec
 set(H3, 'Visible', 'off'); % Turn off 'Ready?'
 
-DAQin = []; rawData = [];
-loudResults = [];  audStimP = [];
 LR = LiveSensorResult(expParam, 1);
 for ii = 1:expParam.numTrial
+    ET = tic;
+    
+    % Do some Setup
     expParam.curTrialNum  = ii;
     expParam.curTrial     = ['Trial' num2str(ii)];
-    expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
+    expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];    
     
-    % Used later in audio version
-    audStimP = [];
+    expParam.AudFB   = FBNames(mod(ii,2)+ 1); % Alternating trials
+    expParam.AudFBSw = FBTypes(mod(ii,2)+ 1); % Alternating trials
+    
+    % Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
+    [expParam, p]      = dfSetAudFB(expParam, dirs, p);    
         
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
@@ -108,6 +110,11 @@ for ii = 1:expParam.numTrial
     %Setup which perturb file we want
     NIDAQsig = [expParam.sigs(:,ii) nVS];
     queueOutputData(s, NIDAQsig);
+    
+    %Pause and get ready to give them the next trial
+    DAQin       = []; rawData  = [];
+    loudResults = []; audStimP = [];
+    pause()
     
     %Cue to begin trial
     set(H1,'Visible','on');
@@ -123,11 +130,11 @@ for ii = 1:expParam.numTrial
     Audapter('start');
     pause(expParam.buffPause)
     
-    %Play out the Analog Perturbatron Signal. This will hold script for as
-    %long as vector lasts. In this case, 4.0 seconds. 
+    % Play out the Analog Perturbatron Signal. This will hold script for as
+    % long as vector lasts. In this case, 4.0 seconds. 
     [dataDAQ, ~] = s.startForeground;
      
-    %Phonation End
+    % Phonation End
     set([H2 trigCirc],'Visible','off');
     pause(expParam.endPause)
     Audapter('stop');
@@ -135,11 +142,11 @@ for ii = 1:expParam.numTrial
     % Load the Audapter saved data and save as wav Files
     data    = AudapterIO('getData'); % This will need to become a try statement again
     DAQin   = cat(3, DAQin, dataDAQ);
-    rawData = cat(1, rawData, data);
+    rawData = cat(1, rawData, data);    
        
-    %Grab smooth RMS trace from 'data' structure
+    % Grab smooth RMS trace from 'data' structure
     rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
-    %Compare against baseline and updated Visual Feedback
+    % Compare against baseline and updated Visual Feedback
     [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
     dispLoudnessResult(loudResult)
@@ -153,25 +160,25 @@ for ii = 1:expParam.numTrial
     dfSaveWavRec(data, expParam, dirs);    
     pause(expParam.resPause)
     set([rec fbLines], 'Visible', 'off');
+    
+    elapsed_time = toc(ET)/60;   % Elapsed Time of the trial
+    
+    % Store all the variables and data from the session in a large structure
+    expParam.elapsedTime = elapsed_time;
+    expParam.loudResults = loudResults;
+    DRF.dirs        = dirs;
+    DRF.expParam    = expParam;
+    DRF.p           = p;
+    DRF.audStimP    = audStimP;
+    DRF.DAQin       = DAQin;
+    DRF.rawData     = rawData;     
+    
+    % Save the large data structure (only if not practice trials)
+    dirs.RecFile = fullfile(dirs.RecFileDir, [expParam.subject expParam.run expParam.curTrial dirs.saveFileSuffix 'DRF.mat']);
+    fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFile)
+    save(dirs.RecFile, 'DRF');    
 end
 close all;
-elapsed_time = toc(ET)/60;   % Elapsed Time of the experiment
-fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
-
-% Store all the variables and data from the session in a large structure
-expParam.elapsedTime = elapsed_time;
-expParam.loudResults = loudResults;
-DRF.dirs        = dirs;
-DRF.expParam    = expParam;
-DRF.p           = p;
-DRF.audStimP    = audStimP;
-DRF.DAQin       = DAQin;
-DRF.rawData     = rawData; 
-
-% Save the large data structure (only if not practice trials)
-dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
-fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
-save(dirs.RecFileDir, 'DRF');
 end
 
 function run = prompt4RunName()

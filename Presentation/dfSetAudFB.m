@@ -67,8 +67,7 @@ elseif expParam.AudFBSw == 2
     expParam.SSNw   = w;
     expParam.SSNfs  = fs;
 else
-    disp('ERROR in dfSetAudFB: Inappropriate feedback method selected')
-    return
+    error('ERROR in dfSetAudFB: Inappropriate feedback method selected')
 end 
 end
 
