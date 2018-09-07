@@ -16,9 +16,9 @@ boundsRMS = 3; %+/- dB
 close all
 [msrStr, annoStr] = dfSetVisFB(curSess, targRMS, boundsRMS);
 
-pertParadigm(msrStr, annoStr, meanRMS)
+% pertParadigm(msrStr, annoStr, meanRMS)
 % triggerTest(annoStr, numTrial)
-% endoParadigm(annoStr, numTrial)
+endoParadigm(annoStr, numTrial)
 
 close all
 end

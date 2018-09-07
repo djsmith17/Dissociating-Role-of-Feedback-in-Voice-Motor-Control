@@ -35,7 +35,7 @@ if numMon == 1
 elseif numMon == 2
     [~, mon] = max(monitorSize(:,1));
     
-    figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(1,3) monitorSize(1,4)];
+    figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(mon,3) monitorSize(mon,4)];
 end
 msrStr.winPos = figPosition;
 
