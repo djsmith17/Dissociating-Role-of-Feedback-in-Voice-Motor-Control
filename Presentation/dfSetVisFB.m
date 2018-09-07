@@ -1,4 +1,4 @@
-function [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFB(curSess, targRMS, bounds)
+function [msrStr, annoStr] = dfSetVisFB(curSess, targRMS, bounds)
 % [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFb(targRMS,  bounds) 
 % creates a figure, which becomes the means for trial progression
 % for the SFPeturb or AFPerturb experiment.
@@ -37,88 +37,104 @@ elseif numMon == 2
     
     figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(1,3) monitorSize(1,4)];
 end
-anMsr.winPos = figPosition;
+msrStr.winPos = figPosition;
 
 % Ready Annotation Dim
-anMsr.rdAnoD = [700 300];
-anMsr.rdAnoW = round(anMsr.rdAnoD(1)/anMsr.winPos(3), 2); 
-anMsr.rdAnoH = round(anMsr.rdAnoD(2)/anMsr.winPos(4), 2);
-anMsr.rdAnoX = 0.5 - anMsr.rdAnoW/2;
-anMsr.rdAnoY = 0.5 - anMsr.rdAnoH/2;
-anMsr.rdAnoPos = [anMsr.rdAnoX anMsr.rdAnoY anMsr.rdAnoW anMsr.rdAnoH];
+msrStr.rdAnoD = [700 300];
+msrStr.rdAnoW = round(msrStr.rdAnoD(1)/msrStr.winPos(3), 2); 
+msrStr.rdAnoH = round(msrStr.rdAnoD(2)/msrStr.winPos(4), 2);
+msrStr.rdAnoX = 0.5 - msrStr.rdAnoW/2;
+msrStr.rdAnoY = 0.5 - msrStr.rdAnoH/2;
+msrStr.rdAnoPos = [msrStr.rdAnoX msrStr.rdAnoY msrStr.rdAnoW msrStr.rdAnoH];
 
 % Cue Annotation Dim
-anMsr.cuAnoD = [250 150];
-anMsr.cuAnoW = round(anMsr.cuAnoD(1)/anMsr.winPos(3), 2); 
-anMsr.cuAnoH = round(anMsr.cuAnoD(2)/anMsr.winPos(4), 2);
-anMsr.cuAnoX = 0.5 - anMsr.cuAnoW/2;
-anMsr.cuAnoY = 0.5 - anMsr.cuAnoH/2;
-anMsr.cuAnoPos = [anMsr.cuAnoX anMsr.cuAnoY anMsr.cuAnoW anMsr.cuAnoH];
+msrStr.cuAnoD = [250 150];
+msrStr.cuAnoW = round(msrStr.cuAnoD(1)/msrStr.winPos(3), 2); 
+msrStr.cuAnoH = round(msrStr.cuAnoD(2)/msrStr.winPos(4), 2);
+msrStr.cuAnoX = 0.5 - msrStr.cuAnoW/2;
+msrStr.cuAnoY = 0.5 - msrStr.cuAnoH/2;
+msrStr.cuAnoPos = [msrStr.cuAnoX msrStr.cuAnoY msrStr.cuAnoW msrStr.cuAnoH];
 
 % EEE Annotation Dim
-anMsr.eeAnoD = [370 170];
-anMsr.eeAnoW = round(anMsr.eeAnoD(1)/anMsr.winPos(3), 2); 
-anMsr.eeAnoH = round(anMsr.eeAnoD(2)/anMsr.winPos(4), 2);
-anMsr.eeAnoX = 0.5 - anMsr.eeAnoW/2;
-anMsr.eeAnoY = 0.5 - anMsr.eeAnoH/2;
-anMsr.eeAnoPos = [anMsr.eeAnoX anMsr.eeAnoY anMsr.eeAnoW anMsr.eeAnoH];
+msrStr.eeAnoD = [370 170];
+msrStr.eeAnoW = round(msrStr.eeAnoD(1)/msrStr.winPos(3), 2); 
+msrStr.eeAnoH = round(msrStr.eeAnoD(2)/msrStr.winPos(4), 2);
+msrStr.eeAnoX = 0.5 - msrStr.eeAnoW/2;
+msrStr.eeAnoY = 0.5 - msrStr.eeAnoH/2;
+msrStr.eeAnoPos = [msrStr.eeAnoX msrStr.eeAnoY msrStr.eeAnoW msrStr.eeAnoH];
 
 %Assuming that perfect RMS lies at 50% of the screen, and the acceptable
 %upper and lower bound are set at 45% and 55% of the screen, the edge of
 %the screen will correspond to these variables accordingly. This will shift
 %with differences in participants varying RMS values
-anMsr.targRMS   = targRMS;              % Ideally this is between 60-80 dB
-anMsr.hRMSrange = bounds*10;            % half the possible range of RMS, where each 5% mark represents 'bounds' dB
-anMsr.vTopAmp   = anMsr.targRMS + anMsr.hRMSrange; %dB 
-anMsr.vBotAmp   = anMsr.targRMS - anMsr.hRMSrange; %dB 
+msrStr.targRMS   = targRMS;              % Ideally this is between 60-80 dB
+msrStr.hRMSrange = bounds*10;            % half the possible range of RMS, where each 5% mark represents 'bounds' dB
+msrStr.vTopAmp   = msrStr.targRMS + msrStr.hRMSrange; %dB 
+msrStr.vBotAmp   = msrStr.targRMS - msrStr.hRMSrange; %dB 
 
 %Starts with some measurements
-anMsr.bMar      = 0.05; %Bottom Margin
-anMsr.minH      = 0.4;  %From the margin. This will need to change
-anMsr.maxH      = 0.5;  %From the margin. This will need to change
-anMsr.drawMinH  = anMsr.bMar + anMsr.minH; %45%
-anMsr.drawMaxH  = anMsr.bMar + anMsr.maxH; %55% Goal value is 50%
+msrStr.bMar      = 0.05; %Bottom Margin
+msrStr.minH      = 0.4;  %From the margin. This will need to change
+msrStr.maxH      = 0.5;  %From the margin. This will need to change
+msrStr.drawMinH  = msrStr.bMar + msrStr.minH; %45%
+msrStr.drawMaxH  = msrStr.bMar + msrStr.maxH; %55% Goal value is 50%
 
-anMsr.lMar      = 0.15; %Left Margin
-anMsr.lineWidth = 0.1;  %Arbitrary-Looks good at the moment
-anMsr.drawMinW  = anMsr.lMar + anMsr.lineWidth;
+msrStr.lMar      = 0.15; %Left Margin
+msrStr.lineWidth = 0.1;  %Arbitrary-Looks good at the moment
+msrStr.drawMinW  = msrStr.lMar + msrStr.lineWidth;
 
 % Feedback Rectangle dim measurements 
-anMsr.recWidth  = 0.05; % Arbitrary-Looks good at the moment
-anMsr.recHeight = 0.05; % Start at this default
-anMsr.recXSt    = anMsr.lMar + (anMsr.lineWidth/2 - anMsr.recWidth/2);
-anMsr.recYSt    = anMsr.bMar; % Start at the margin
+msrStr.recWidth  = 0.05; % Arbitrary-Looks good at the moment
+msrStr.recHeight = 0.05; % Start at this default
+msrStr.recXSt    = msrStr.lMar + (msrStr.lineWidth/2 - msrStr.recWidth/2);
+msrStr.recYSt    = msrStr.bMar; % Start at the margin
 
 % Feedback Rectangle: Position and Size
-anMsr.recPos = [anMsr.recXSt anMsr.recYSt anMsr.recWidth anMsr.recHeight];
+msrStr.recPos = [msrStr.recXSt msrStr.recYSt msrStr.recWidth msrStr.recHeight];
 
 % Feedback RMS Bounds Dim
-anMsr.minLx = [anMsr.lMar anMsr.drawMinW];     %First X and Last X
-anMsr.minLy = [anMsr.drawMinH anMsr.drawMinH]; %First Y and Last Y
-anMsr.maxLx = [anMsr.lMar anMsr.drawMinW];     %First X and Last X
-anMsr.maxLy = [anMsr.drawMaxH anMsr.drawMaxH]; %First Y and Last Y
+msrStr.minLx = [msrStr.lMar msrStr.drawMinW];     %First X and Last X
+msrStr.minLy = [msrStr.drawMinH msrStr.drawMinH]; %First Y and Last Y
+msrStr.maxLx = [msrStr.lMar msrStr.drawMinW];     %First X and Last X
+msrStr.maxLy = [msrStr.drawMaxH msrStr.drawMaxH]; %First Y and Last Y
 
 % Trigger dim measurements
-anMsr.r        = 60;                                % Trigger side L (pixels)
-anMsr.visTrigX = 0;                                 % Trigger X Pos
-anMsr.visTrigY = 0.02;                              % Trigger Y Pos
-anMsr.visTrigW = round(anMsr.r/anMsr.winPos(3), 2); % Trigger X Len
-anMsr.visTrigH = round(anMsr.r/anMsr.winPos(4), 2); % Trigger Y Len
-anMsr.visTrigPos = [anMsr.visTrigX anMsr.visTrigY anMsr.visTrigW anMsr.visTrigH];
+msrStr.r        = 60;                                % Trigger side L (pixels)
+msrStr.visTrigX = 0;                                 % Trigger X Pos
+msrStr.visTrigY = 0.02;                              % Trigger Y Pos
+msrStr.visTrigW = round(msrStr.r/msrStr.winPos(3), 2); % Trigger X Len
+msrStr.visTrigH = round(msrStr.r/msrStr.winPos(4), 2); % Trigger Y Len
+msrStr.visTrigPos = [msrStr.visTrigX msrStr.visTrigY msrStr.visTrigW msrStr.visTrigH];
 
 % Current Subject Note Dim
-anMsr.subjND = [220 25];
-anMsr.subjNX = anMsr.visTrigX;
-anMsr.subjNY = anMsr.visTrigY + anMsr.visTrigH;
-anMsr.subjNW = round(anMsr.subjND(1)/anMsr.winPos(3), 2); 
-anMsr.subjNH = round(anMsr.subjND(2)/anMsr.winPos(4), 2); 
-anMsr.subjNPos = [anMsr.subjNX anMsr.subjNY anMsr.subjNW anMsr.subjNH];
+msrStr.subjND = [220 25];
+msrStr.subjNX = msrStr.visTrigX;
+msrStr.subjNY = msrStr.visTrigY + msrStr.visTrigH;
+msrStr.subjNW = round(msrStr.subjND(1)/msrStr.winPos(3), 2); 
+msrStr.subjNH = round(msrStr.subjND(2)/msrStr.winPos(4), 2); 
+msrStr.subjNPos = [msrStr.subjNX msrStr.subjNY msrStr.subjNW msrStr.subjNH];
+
+% Upcoming Trial 
+msrStr.trialD = [400 150];
+msrStr.trialW = round(msrStr.trialD(1)/msrStr.winPos(3), 2);
+msrStr.trialH = round(msrStr.trialD(2)/msrStr.winPos(4), 2);
+msrStr.trialX = 0.5 - msrStr.trialW/2;
+msrStr.trialY = 0.8 - msrStr.trialH/2;
+msrStr.trialPos = [msrStr.trialX msrStr.trialY msrStr.trialW msrStr.trialH];
+
+% Upcoming Auditory Feedback 
+msrStr.FBCueD = [600 150];
+msrStr.FBCueW = round(msrStr.FBCueD(1)/msrStr.winPos(3), 2);
+msrStr.FBCueH = round(msrStr.FBCueD(2)/msrStr.winPos(4), 2);
+msrStr.FBCueX = 0.5 - msrStr.FBCueW/2;
+msrStr.FBCueY = msrStr.trialY - msrStr.FBCueH;
+msrStr.FBCuePos = [msrStr.FBCueX msrStr.FBCueY msrStr.FBCueW msrStr.FBCueH];
 
 %%%%%%
-VBFig = figure('NumberTitle', 'off', 'Color', [0 0 0], 'Position', anMsr.winPos, 'MenuBar', 'none');
+VBFig = figure('NumberTitle', 'off', 'Color', [0 0 0], 'Position', msrStr.winPos, 'MenuBar', 'none');
 
 %Plus Sign
-H1 = annotation(VBFig,'textbox', anMsr.cuAnoPos,...
+annoStr.plus = annotation(VBFig,'textbox', msrStr.cuAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'+'},...
                         'LineStyle','none',...
@@ -133,7 +149,7 @@ H1 = annotation(VBFig,'textbox', anMsr.cuAnoPos,...
                         'Visible','off');
 
 %EEE Directions
-H2 = annotation(VBFig,'textbox', anMsr.eeAnoPos,...
+annoStr.EEE = annotation(VBFig,'textbox', msrStr.eeAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'eee'},...
                         'LineStyle','none',...
@@ -148,7 +164,7 @@ H2 = annotation(VBFig,'textbox', anMsr.eeAnoPos,...
                         'visible','off');
 
 %Ready Note                    
-H3 = annotation(VBFig,'textbox', anMsr.rdAnoPos,...
+annoStr.Ready = annotation(VBFig,'textbox', msrStr.rdAnoPos,...
                         'Color',[1 1 1],...
                         'String',{'READY'},...
                         'LineStyle','none',...
@@ -162,33 +178,36 @@ H3 = annotation(VBFig,'textbox', anMsr.rdAnoPos,...
                         'Visible','on');
 
 %Trigger for the triggerbox                    
-visTrig = annotation(VBFig, 'rectangle', anMsr.visTrigPos,...
+annoStr.visTrig = annotation(VBFig, 'rectangle', msrStr.visTrigPos,...
                               'Color',[1 1 1],...
                               'FaceColor', [1 1 1],...
                               'visible', 'off');
 
 % Visual feedback bar                    
-LoudRec = annotation(VBFig, 'rectangle', anMsr.recPos,...
+annoStr.LoudRec = annotation(VBFig, 'rectangle', msrStr.recPos,...
                               'Color',[0 1 0],...
                               'LineStyle','none',...
                               'FaceColor',[0 1 0],...
                               'visible','off');
 
 % Lower limit of acceptable RMS                     
-LoudminLine = annotation(VBFig, 'line', anMsr.minLx, anMsr.minLy,...
+LoudminLine = annotation(VBFig, 'line', msrStr.minLx, msrStr.minLy,...
                                   'Color',[1 1 1],...
                                   'LineStyle', '--',...
                                   'LineWidth', 1, ...
                                   'visible','off');
 
 % Upper limit of acceptable RMS                              
-LoudmaxLine = annotation(VBFig, 'line', anMsr.maxLx, anMsr.maxLy,...
+LoudmaxLine = annotation(VBFig, 'line', msrStr.maxLx, msrStr.maxLy,...
                                   'Color',[1 1 1],...
                                   'LineStyle', '--',...
                                   'LineWidth', 1, ...
                                   'visible','off');
+% Combine the limit handles
+annoStr.fbLines = [LoudminLine LoudmaxLine]; 
+                              
 % Subject Note
-curSessNote = annotation(VBFig,'textbox', anMsr.subjNPos,...
+annoStr.curSessNote = annotation(VBFig,'textbox', msrStr.subjNPos,...
                                 'Color',[1 1 1],...
                                 'String', curSess,...
                                 'FitBoxToText','on',...
@@ -200,6 +219,32 @@ curSessNote = annotation(VBFig,'textbox', anMsr.subjNPos,...
                                 'EdgeColor','none',...
                                 'BackgroundColor',[0 0 0],...
                                 'Visible','on');
-                             
-fbLines = [LoudminLine LoudmaxLine];   
+                               
+% Trial Title
+annoStr.trialT = annotation(VBFig, 'textbox', msrStr.trialPos,...
+                           'Color', [1 1 1],...
+                           'String', 'Trial 1',...
+                           'FitBoxToText','on',...
+                           'LineStyle','none',...
+                           'VerticalAlignment','bottom',...
+                           'HorizontalAlignment','center',...
+                           'FontSize', 130,...
+                           'FontName','Arial',...
+                           'EdgeColor','none',...
+                           'BackgroundColor',[0 0 0],...
+                           'Visible','off');
+                       
+% Feedback Cue
+annoStr.FBCue = annotation(VBFig, 'textbox', msrStr.FBCuePos,...
+                           'Color', [1 1 1],...
+                           'String', 'Trial 10',...
+                           'FitBoxToText','on',...
+                           'LineStyle','none',...
+                           'VerticalAlignment','bottom',...
+                           'HorizontalAlignment','center',...
+                           'FontSize', 100,...
+                           'FontName','Arial',...
+                           'EdgeColor','none',...
+                           'BackgroundColor',[0 0 0],...
+                           'Visible','off');
 end
