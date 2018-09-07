@@ -87,7 +87,7 @@ fprintf('\nStarting Trials\n\n')
 
 % Open the curtains
 set(annoStr.curSessNote, 'Visible', 'off')
-set(annoStr.Ready, 'Visible', 'off'); % Turn off 'Ready?'
+set(annoStr.Ready, 'Visible', 'off');     % Turn off 'Ready?'
 
 LR = LiveSensorResult(expParam, 1);
 for ii = 1:expParam.numTrial
