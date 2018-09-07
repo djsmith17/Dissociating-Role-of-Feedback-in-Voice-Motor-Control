@@ -33,6 +33,7 @@ balloon    = '2E4';     % Which perturbation balloon?
 baseV      = 'BVEndo';
 FBNames = {'Voice Feedback'; 'AC Masking Noise'};
 FBTypes = [0 2];
+FBInstr = {'Your Own Voice'; 'Loud White Noise'};
 
 expParam = dfInitExpParam();
 
@@ -40,7 +41,7 @@ expParam.subject   = subject;
 expParam.run       = run;
 expParam.curSess   = [expParam.subject expParam.run];
 expParam.balloon   = balloon;
-expParam.numTrial  = 2; 
+expParam.numTrial  = 4; 
 expParam.perCatch  = 1; % 100% of Trials
 
 % Set our dirs based on the project
@@ -82,11 +83,11 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 fprintf('\nStarting Trials\n\n')
 
 % Dim the lights (Set the visual Feedback)
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[msrStr, annoStr] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 % Open the curtains
-pause(expParam.rdyPause);  % Let them breathe a sec
-set(H3, 'Visible', 'off'); % Turn off 'Ready?'
+set(annoStr.curSessNote, 'Visible', 'off')
+set(annoStr.Ready, 'Visible', 'off'); % Turn off 'Ready?'
 
 LR = LiveSensorResult(expParam, 1);
 for ii = 1:expParam.numTrial
@@ -99,6 +100,7 @@ for ii = 1:expParam.numTrial
     
     expParam.AudFB   = FBNames(mod(ii,2)+ 1); % Alternating trials
     expParam.AudFBSw = FBTypes(mod(ii,2)+ 1); % Alternating trials
+    instrFB          = FBInstr(mod(ii,2)+ 1); % Alternating trials
     
     % Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [expParam, p]      = dfSetAudFB(expParam, dirs, p);    
@@ -114,15 +116,21 @@ for ii = 1:expParam.numTrial
     %Pause and get ready to give them the next trial
     DAQin       = []; rawData  = [];
     loudResults = []; audStimP = [];
+    
+    set(annoStr.trialT, 'String', ['Trial ' num2str(ii) '/' num2str(expParam.numTrial)]);
+    set(annoStr.FBCue, 'String', instrFB);
+    set([annoStr.trialT annoStr.FBCue], 'Visible', 'on');
     pause()
+    set([annoStr.trialT annoStr.FBCue], 'Visible', 'off');
+    pause(2.0)
     
     %Cue to begin trial
-    set(H1,'Visible','on');
+    set(annoStr.plus,'Visible','on');
     pause(expParam.cuePause)
     
     %Phonation Start
-    set(H1,'Visible','off');
-    set([H2 trigCirc],'Visible','on');
+    set(annoStr.plus,'Visible','off');
+    set(annoStr.EEE,'Visible','on');
     
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
@@ -135,7 +143,7 @@ for ii = 1:expParam.numTrial
     [dataDAQ, ~] = s.startForeground;
      
     % Phonation End
-    set([H2 trigCirc],'Visible','off');
+    set(annoStr.EEE,'Visible','off');
     pause(expParam.endPause)
     Audapter('stop');
     
@@ -147,22 +155,20 @@ for ii = 1:expParam.numTrial
     % Grab smooth RMS trace from 'data' structure
     rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
     % Compare against baseline and updated Visual Feedback
-    [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
+    [color, newPos, loudResult] = dfUpdateVisFB(msrStr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
     dispLoudnessResult(loudResult)
 
-    set(rec, 'position', newPos);
-    set(rec, 'Color', color); set(rec, 'FaceColor', color);
-    set([rec fbLines], 'Visible', 'on');
-    
-    LR = LR.updateLiveResult(dataDAQ, ii);
-    
-    dfSaveWavRec(data, expParam, dirs);    
+    set(annoStr.LoudRec, 'position', newPos);
+    set(annoStr.LoudRec, 'Color', color, 'FaceColor', color);
+    set([annoStr.LoudRec annoStr.fbLines], 'Visible', 'on');   
     pause(expParam.resPause)
-    set([rec fbLines], 'Visible', 'off');
+    set([annoStr.LoudRec annoStr.fbLines], 'Visible', 'off');
     
-    elapsed_time = toc(ET)/60;   % Elapsed Time of the trial
+    LR = LR.updateLiveResult(dataDAQ, ii);    
+    dfSaveWavRec(data, expParam, dirs); 
     
+    elapsed_time = toc(ET)/60;   % Elapsed Time of the trial    
     % Store all the variables and data from the session in a large structure
     expParam.elapsedTime = elapsed_time;
     expParam.loudResults = loudResults;
@@ -179,17 +185,6 @@ for ii = 1:expParam.numTrial
     save(dirs.RecFile, 'DRF');    
 end
 close all;
-end
-
-function run = prompt4RunName()
-
-prompt = 'Name of Run?:';
-name   = 'Run Name';
-numlines = 1;
-defaultanswer = {'SF'};
-runPrompt = inputdlg(prompt, name, numlines, defaultanswer);
-
-run = runPrompt{1};
 end
 
 function dispLoudnessResult(loudResult)

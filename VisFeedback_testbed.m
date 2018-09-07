@@ -40,7 +40,7 @@ set([annoStr.EEE annoStr.visTrig], 'Visible','off');
 [color, newPos] = dfUpdateVisFB(msrStr, meanRMS);
 
 set(annoStr.LoudRec, 'position', newPos);
-set(annoStr.LoudRec, 'Color', color); set(annoStr.LoudRec, 'FaceColor', color);
+set(annoStr.LoudRec, 'Color', color, 'FaceColor', color);
 
 set([annoStr.LoudRec, annoStr.fbLines], 'Visible','on'); 
 pause(2.0)
