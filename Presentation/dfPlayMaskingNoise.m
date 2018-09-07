@@ -16,7 +16,7 @@ expParam = dfInitExpParam();
 
 expParam.curSess = 'Masking Noise Test';
 
-expParam.numTrial   = 2;
+expParam.numTrial   = 10;
 expParam.AudFB      = 'AC Masking Noise';
 expParam.AudFBSw    = 2; % Masking Noise
 
@@ -33,7 +33,7 @@ dirs = dfDirs(expParam.project);
 fprintf('\nStarting Trials\n\n')
 
 % Dim the lights (Set the visual Feedback)
-[msrStr, annoStr] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[msrStr, annoStr] = dfSetVisFB(1, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 noiseTime = calcMaskLen(expParam);
 [sessionNoise, noiseFs] = createSessionNoise(dirs, noiseTime);
@@ -108,7 +108,7 @@ maskFile = fullfile(dirs.Prelim, 'SSN.wav');
 
 [wavFile, fs] = audioread(maskFile);
 wavLen   = length(wavFile);
-noiseLen = noiseTime*fs;
+noiseLen = round(noiseTime*fs);
 
 rampUpSp = round(2*fs) + 1;
 rampDnSt = round((noiseTime-2)*fs);

@@ -1,4 +1,4 @@
-function [msrStr, annoStr] = dfSetVisFB(curSess, targRMS, bounds)
+function [msrStr, annoStr] = dfSetVisFB(defMon, curSess, targRMS, bounds)
 % [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFb(targRMS,  bounds) 
 % creates a figure, which becomes the means for trial progression
 % for the SFPeturb or AFPerturb experiment.
@@ -23,19 +23,19 @@ curSess(strfind(curSess, '_')) = ' ';
 monitorSize = get(0, 'Monitor');
 numMon = size(monitorSize, 1);
 
-if numMon == 1
-    W = monitorSize(3);
-    H = monitorSize(4);
+if numMon == 2 && defMon == 2
+    [~, mon] = max(monitorSize(:,1));
+    
+    figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(mon,3) monitorSize(mon,4)]; 
+else
+    W = monitorSize(1, 3);
+    H = monitorSize(1, 4);
     W2 = W/2;
     H2 = H/2;
     XPos = W2;
     YPos = 50;
     
     figPosition = [XPos YPos W2 H2];
-elseif numMon == 2
-    [~, mon] = max(monitorSize(:,1));
-    
-    figPosition = [monitorSize(mon,1) monitorSize(mon,2) monitorSize(mon,3) monitorSize(mon,4)];
 end
 msrStr.winPos = figPosition;
 
