@@ -30,8 +30,8 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_MN19'; % Subject#, Pilot#, null
-run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
+subject    = 'DRF_EN0'; % Subject#, Pilot#, null
+run        = 'BVEndo';
 gender     = 'male';    % "male" or "female"
 DOB        = datetime(1990, 4, 6); % Year, Month, Day
 numTrials  = 3;         % number of trials;
@@ -56,9 +56,11 @@ switch recType
         expParam.trialLen = 4;                      % Seconds
         expParam.numTrial = numTrials;
         expParam.AudFBSw  = 0;
+        expParam.rdyPause = 5;
         expParam.cuePause = 1.0;
         expParam.resPause = 2.0;
         expParam.headGain = 5;
+        defMon = 2;
         
         expParam.rmsB     = loadCalibration(dirs, expParam.curDT);
 
@@ -73,9 +75,11 @@ switch recType
         expParam.trialLen = 30;                     % Seconds
         expParam.numTrial = 1;
         expParam.AudFBSw  = 0;
+        expParam.rdyPause = 2;
         expParam.cuePause = 0;
         expParam.resPause = 0;
-        expParam.headGain = 5;
+        expParam.headGain = 5;        
+        defMon = 1;
 
         targLoud = prompt4Calibrate(); % Ask user how loud the calibration sound source was
 end
@@ -110,17 +114,17 @@ expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 % Set up Auditory Feedback (Voice Not Shifted)
-[expParam, p]      = dfSetAudFB(expParam, dirs, p);
+[p, ~, ~] = dfSetAudFB(expParam, dirs, p);
 
 expParam.boundsRMS = 3;
 expParam.targRMS   = 70;
 
 % Dim the lights (Set the visual Feedback)
-[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[~, annoStr] = dfSetVisFB(defMon, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
-pause(5);                % Let them breathe a sec
-set(H3,'Visible','off'); % Turn off 'Ready?'
+pause(expParam.rdyPause); % Let them breathe a sec
+set(annoStr.Ready,'Visible','off');  % Turn off 'Ready?'
 
 rawData = [];
 for ii = 1:expParam.numTrial
@@ -132,12 +136,12 @@ for ii = 1:expParam.numTrial
     Audapter('pcf', expParam.pcfFN, 0);
     
     %Cue to begin trial
-    set(H1,'Visible','on');
+    set(annoStr.plus, 'Visible','on');
     pause(expParam.cuePause)
     
     %Phonation Start
-    set(H1,'Visible','off');
-    set([H2 trigCirc],'Visible','on'); % Turn on the 'eee' and trigMark
+    set(annoStr.plus, 'Visible','off');
+    set([annoStr.EEE annoStr.visTrig],'Visible','on'); % Turn on the 'eee' and visTrig
     
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
@@ -147,7 +151,7 @@ for ii = 1:expParam.numTrial
     pause(expParam.trialLen);
     
     Audapter('stop');
-    set([H2 trigCirc],'Visible','off'); % Turn off the 'eee' and trigMark
+    set([annoStr.EEE annoStr.visTrig],'Visible','off'); % Turn off the 'eee' and visTrig
     
     % Load the Audapter saved data and save some as wav Files
     data = AudapterIO('getData');       % This will need to become a try statement again
@@ -156,6 +160,14 @@ for ii = 1:expParam.numTrial
     dfSaveWavRec(data, expParam, dirs);
     
     pause(expParam.resPause)
+    
+    switch recType
+        case 'Calibrate Microphone'
+            rerun = questdlg('Rerun calibration step?', 'Rerun?', 'Yes', 'No', 'No');
+            switch rerun
+                case 'Yes'
+            end
+    end  
 end
 close all
 

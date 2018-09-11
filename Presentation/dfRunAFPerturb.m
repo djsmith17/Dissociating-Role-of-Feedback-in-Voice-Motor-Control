@@ -132,7 +132,7 @@ expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.
 expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
-[expParam, p]      = dfSetAudFB(expParam, dirs, p);
+[p, SSNw, SSNfs]  = dfSetAudFB(expParam, dirs, p);
 
 %Set up the order of trials (Order of perturbed, control, etc)
 expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
@@ -141,6 +141,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 %the digital signal to be sent to the NIDAQ
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
+expParam.rdyPause  = 5.0; % How long to show them 'Ready'
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.buffPause = 0.8; % Give them a moment to start speaking
 expParam.endPause  = 0.5;
@@ -156,10 +157,15 @@ expParam.InflaV   = InflaVar(2);
 fprintf('\nStarting Trials\n\n')
 
 %Dim the lights (Set the visual Feedback)
-[msrStr, annoStr] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[msrStr, annoStr] = dfSetVisFB(2, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+
+% Only play masking noise for this condition
+if expParam.AudFBSw == 2
+    sound(SSNw, SSNfs)
+end
 
 %Open the curtains
-pause(5);                % Let them breathe a sec
+pause(expParam.rdyPause);            % Let them breathe a sec
 set(annoStr.Ready, 'Visible','off'); % Turn off 'Ready?'
 
 DAQin = []; rawData = [];
