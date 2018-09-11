@@ -31,9 +31,9 @@ run        = 'SFL1';
 
 balloon    = '2E4';     % Which perturbation balloon?
 baseV      = 'BVEndo';
-FBNames = {'Voice Feedback'; 'AC Masking Noise'};
-FBTypes = [0 2];
-FBInstr = {'Your Own Voice'; 'Loud White Noise'};
+FBNames    = {'Voice Feedback'; 'AC Masking Noise'};
+FBTypes    = [0 2];
+FBInstr    = {'Your Own Voice'; 'Loud White Noise'};
 
 expParam = dfInitExpParam();
 

@@ -27,7 +27,7 @@ dirs = dfDirs(expParam.project);
 [expParam, p] = dfInitAudapater(dirs, expParam);
 
 % Set up Auditory Feedback (Masking Noise)
-[expParam, p] = dfSetAudFB(expParam, dirs, p);
+[p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p);
 
 % This is where the fun begins
 fprintf('\nStarting Trials\n\n')
@@ -35,17 +35,16 @@ fprintf('\nStarting Trials\n\n')
 % Dim the lights (Set the visual Feedback)
 [msrStr, annoStr] = dfSetVisFB(1, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
-noiseTime = calcMaskLen(expParam);
-[sessionNoise, noiseFs] = createSessionNoise(dirs, noiseTime);
-
-sound(sessionNoise, noiseFs)
+% Only play masking noise for this condition
+if expParam.AudFBSw == 2
+    sound(SSNw, SSNfs)
+end
 
 ET = tic;
 % Open the curtains
 pause(expParam.rdyPause); % Let them breathe a sec
 set(annoStr.Ready, 'Visible','off'); % Turn off 'Ready?'
 for ii = 1:expParam.numTrial
-
     
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
@@ -86,54 +85,4 @@ close all
 
 elapsed_time = toc(ET);   % Elapsed Time of the experiment
 fprintf('\nElapsed Time: %f (s)\n', elapsed_time)
-end
-
-function noiseTime = calcMaskLen(expParam)
-
-numTrial = expParam.numTrial;
-
-rdyTime  = expParam.rdyPause;  % Ready Message
-cueTime  = expParam.cuePause;  % Cue period
-buffTime = expParam.buffPause; % Buffer to begin phonating
-trlTime  = expParam.trialLen;  % Phonation period
-endTime  = expParam.endPause;  % Buffer to end phonating
-resTime  = expParam.resPause;  % Rest/Feedback period
-
-noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime)*numTrial + 2;
-end
-
-function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime)
-
-maskFile = fullfile(dirs.Prelim, 'SSN.wav');
-
-[wavFile, fs] = audioread(maskFile);
-wavLen   = length(wavFile);
-noiseLen = round(noiseTime*fs);
-
-rampUpSp = round(2*fs) + 1;
-rampDnSt = round((noiseTime-2)*fs);
-
-rampUpIdx = 1:rampUpSp;
-rampUpL   = length(rampUpIdx);
-rampDnIdx = rampDnSt:noiseLen;
-rampDnL   = length(rampDnIdx);
-
-rampUp = linspace(0, 1, rampUpL);
-rampDn = linspace(1, 0, rampDnL);
-
-numRep   = noiseLen/wavLen; % How many repetitions of the .wav file (decimal)
-minInt   = floor(numRep);   % Min number of whole repeitions (integer)
-noiseInt = repmat(wavFile', [1, minInt]);
-
-remRep   = numRep - minInt; % How many decimal amounts left?
-remIdx   = round(wavLen*remRep);
-noiseRem = wavFile(1:remIdx)';
-
-fullNoise = [noiseInt noiseRem];
-
-rampFilt = ones(size(fullNoise));
-rampFilt(rampUpIdx) = rampUp;
-rampFilt(rampDnIdx) = rampDn;
-
-sessionNoise = fullNoise.*rampFilt;
 end
