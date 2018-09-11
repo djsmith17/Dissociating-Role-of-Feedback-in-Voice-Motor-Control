@@ -42,7 +42,10 @@ expParam.run       = run;
 expParam.curSess   = [expParam.subject expParam.run];
 expParam.balloon   = balloon;
 expParam.numTrial  = 4; 
-expParam.perCatch  = 1; % 100% of Trials
+expParam.perCatch   = 1; % 100% of Trials
+expParam.numMaskRep = 1;
+
+expParam.rdyPause   = 2;
 
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
@@ -83,11 +86,10 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 fprintf('\nStarting Trials\n\n')
 
 % Dim the lights (Set the visual Feedback)
-[msrStr, annoStr] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[msrStr, annoStr] = dfSetVisFB(2, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 % Open the curtains
-set(annoStr.curSessNote, 'Visible', 'off')
-set(annoStr.Ready, 'Visible', 'off');     % Turn off 'Ready?'
+set([annoStr.curSessNote, annoStr.Ready], 'Visible', 'off') % Turn off 'Ready?' 
 
 LR = LiveSensorResult(expParam, 1);
 for ii = 1:expParam.numTrial
@@ -103,7 +105,7 @@ for ii = 1:expParam.numTrial
     instrFB          = FBInstr(mod(ii,2)+ 1); % Alternating trials
     
     % Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
-    [expParam, p]      = dfSetAudFB(expParam, dirs, p);    
+    [p, SSNw, SSNfs]      = dfSetAudFB(expParam, dirs, p);    
         
     %Set the OST and PCF functions
     Audapter('ost', expParam.ostFN, 0);
@@ -122,7 +124,12 @@ for ii = 1:expParam.numTrial
     set([annoStr.trialT annoStr.FBCue], 'Visible', 'on');
     pause()
     set([annoStr.trialT annoStr.FBCue], 'Visible', 'off');
-    pause(2.0)
+    
+    % Only play masking noise for this condition
+    if expParam.AudFBSw == 2
+        sound(SSNw, SSNfs)
+    end
+    pause(expParam.rdyPause)
     
     %Cue to begin trial
     set(annoStr.plus,'Visible','on');

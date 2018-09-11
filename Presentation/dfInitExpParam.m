@@ -41,6 +41,7 @@ expParam.trialLen     = []; % Seconds
 expParam.numTrial     = []; % Number of trials
 expParam.curTrial     = [];
 expParam.perCatch     = []; % Percentage of catch or 'perturbed' trials
+expParam.numMaskRep   = [];
 
 % Auditory Feedback Settings
 expParam.headGain     = []; % Output gain above the input
