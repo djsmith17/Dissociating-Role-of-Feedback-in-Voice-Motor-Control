@@ -33,6 +33,9 @@ classdef LiveSensorResult
                obj.defMon      = defMon;
                obj.trialColors = distinguishable_colors(numTrial);
                
+               obj.tag   = {};
+               obj.curve = [];
+               
                [obj.resH, obj.resA] = initFigure(obj);
            end       
        end
@@ -91,15 +94,11 @@ classdef LiveSensorResult
            sigSnip = sig(St:Sp);
            time    = (0:1/obj.fs :(length(sigSnip)-1)/obj.fs)';
            trialNmList = ['Trial ' num2str(curTrial)];
+           
            trPrs = plot(obj.resA, time, sigSnip, 'LineWidth', 2, 'Color', obj.trialColors(curTrial, :));
 
-           if curTrial == 1
-               obj.tag = {trialNmList};
-               obj.curve = trPrs;
-           else
-               obj.tag   = cat(1, obj.tag, trialNmList);
-               obj.curve = cat(1, obj.curve, trPrs);
-           end
+           obj.tag   = cat(1, obj.tag, trialNmList);
+           obj.curve = cat(1, obj.curve, trPrs);
 
            lgd = legend(obj.resA, obj.curve, obj.tag);
            set(lgd, 'box', 'off',...
