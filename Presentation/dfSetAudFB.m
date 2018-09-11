@@ -11,7 +11,11 @@ function [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p)
 % PITCH-SHIFTED AUDITORY FEEDBACK OF THEIR VOICE
 % SPEECH-SHAPED MASKING NOISE
 %
-% This function has a subfunction below named: setLoudRatio
+% This function has the following subfunctions 
+% -setLoudRatio
+% -audapterGeneratedNoise
+% -calcMaskLen
+% -createSessionNoise
   
 dB           = expParam.headGain;
 gender       = expParam.gender;
@@ -52,7 +56,7 @@ elseif expParam.AudFBSw == 2
     noiseTime = calcMaskLen(expParam);
     
     % Generate a full length masking noise signal for the length we need
-    [w, fs] = createSessionNoise(dirs, noiseTime);
+    [w, fs] = createSessionNoise(dirs, noiseTime, 2);
     
 %     [w, fs] = audapterGeneratedNoise(dirs, p);
 
@@ -104,9 +108,9 @@ resTime  = expParam.resPause;  % Rest/Feedback period
 noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime)*numMaskRep + 2;
 end
 
-function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime)
+function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime, gain)
 
-maskFile = fullfile(dirs.Prelim, 'SSN.wav');
+maskFile = fullfile(dirs.Prelim, 'SSN_trimmed.wav');
 
 [wavFile, fs] = audioread(maskFile);
 wavLen   = length(wavFile);
@@ -133,9 +137,13 @@ noiseRem = wavFile(1:remIdx)';
 
 fullNoise = [noiseInt noiseRem];
 
+dScale = setLoudRatio(gain);
+
+fullNoiseRmp = fullNoise*dScale;
+
 rampFilt = ones(size(fullNoise));
 rampFilt(rampUpIdx) = rampUp;
 rampFilt(rampDnIdx) = rampDn;
 
-sessionNoise = fullNoise.*rampFilt;
+sessionNoise = fullNoiseRmp.*rampFilt;
 end
