@@ -28,6 +28,7 @@ rng('shuffle');
 % Main Experimental prompt: Subject/Run Information
 subject    = 'DRF_EN0';   % Subject#, Pilot#, null
 run        = 'SFL1';
+jitt       = 1;
 
 balloon    = '2E4';     % Which perturbation balloon?
 baseV      = 'BVEndo';
@@ -100,9 +101,10 @@ for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];    
     
-    expParam.AudFB   = FBNames(mod(ii,2)+ 1); % Alternating trials
-    expParam.AudFBSw = FBTypes(mod(ii,2)+ 1); % Alternating trials
-    instrFB          = FBInstr(mod(ii,2)+ 1); % Alternating trials
+    curStimType      = mod(ii+jitt,2) + 1;
+    expParam.AudFB   = FBNames(curStimType); % Alternating trials
+    expParam.AudFBSw = FBTypes(curStimType); % Alternating trials
+    instrFB          = FBInstr(curStimType); % Alternating trials
     
     % Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
     [p, SSNw, SSNfs]      = dfSetAudFB(expParam, dirs, p);    
