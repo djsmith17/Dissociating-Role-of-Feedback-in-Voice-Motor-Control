@@ -86,6 +86,13 @@ expParam.AudPert      = '-100 cents ramped'; % Var not used here. Just saving fo
 expParam.AudPertSw    = 1;                   % Var not used here. Just saving for balance
 expParam.bVis         = 0;
 
+expParam.rdyPause  = 5.0; % How long to show them 'Ready'
+expParam.cuePause  = 1.0; % How long the cue period lasts
+expParam.buffPause = 0.8; %Give them a moment to start speaking
+expParam.endPause  = 0.5;
+expParam.resPause  = 2.0; % How long the rest/VisFB lasts
+expParam.boundsRMS = 3;   % +/- dB
+
 %Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 % Folder paths to save data files
@@ -139,13 +146,6 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 % Select the trigger points for perturbation onset and offset and creating
 % the digital signal to be sent to the NIDAQ
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
-
-expParam.rdyPause  = 5.0; % How long to show them 'Ready'
-expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.8; %Give them a moment to start speaking
-expParam.endPause  = 0.5;
-expParam.resPause  = 2.0; % How long the rest/VisFB lasts
-expParam.boundsRMS = 3;   % +/- dB
 
 % This is where the fun begins
 fprintf('\nStarting Trials\n\n')
