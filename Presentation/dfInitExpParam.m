@@ -19,7 +19,8 @@ expParam.balloon      = [];
 expParam.tightness    = [];
 expParam.InflaVarNm   = [];
 expParam.elapsedTime  = [];
-expParam.loudResults  = []; 
+expParam.loudResults  = [];
+expParam.rmsThresh    = [];
 
 % NIDAQ Info
 expParam.niDev        = []; % NIDAQ Device Name. For more information, see dfInitNIDAQ
@@ -74,6 +75,7 @@ expParam.targRMS = 70;
 
 expParam.balloon   = 'N/A';
 expParam.tightness = 'N/A';
+expParam.rmsThresh = 0.011;
 
 expParam.niDev   = 'Dev2';
 
