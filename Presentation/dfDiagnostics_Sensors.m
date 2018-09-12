@@ -21,7 +21,7 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'DS1', '3', '1', '2.0K_4','yes'};
+defaultanswer = {'null', 'DS1', '4', '1', '2.0K_4','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(ExpPrompt)
@@ -116,15 +116,15 @@ else
     load(dirs.RecFileDir)
 end
 
-f0b = 100;
-pF  = 1;
-iRF = 0;
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, iRF, pF);
-
-niRes.numPertTrialsNi = niRes.numPertTrials;
-
-% drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
-drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
+% f0b = 100;
+% pF  = 1;
+% iRF = 0;
+% [niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, iRF, pF);
+% 
+% niRes.numPertTrialsNi = niRes.numPertTrials;
+% 
+% % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
+% drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
 % drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
 % drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
 end

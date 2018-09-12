@@ -50,7 +50,7 @@ numSets = numTrial*per;
 %     end
 % end  
 
-trialScen = [0 1 2];
+trialScen = [2 2 2 2];
 numScen   = length(trialScen);
 numSet    = floor(numTrial/numScen);
 if numSet == 0
