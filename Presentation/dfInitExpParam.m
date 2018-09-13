@@ -4,6 +4,7 @@ function expParam = dfInitExpParam()
 expParam.project      = [];
 expParam.expType      = [];
 expParam.curSess      = [];
+expParam.curDT        = [];
 expParam.rmsB         = [];
 
 % The Subject
@@ -67,6 +68,7 @@ function expParam = setDefaultExpParam(expParam)
 
 expParam.project = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 expParam.expType = 'Somatosensory Perturbation_Perceptual';
+expParam.curDT   = datetime('now');              % Current Date and Time
 
 expParam.gender  = 'female';
 expParam.age     = 20;

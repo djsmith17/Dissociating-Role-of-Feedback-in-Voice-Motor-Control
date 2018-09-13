@@ -30,7 +30,7 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_EN0'; % Subject#, Pilot#, null
+subject    = 'TestoBesto'; % Subject#, Pilot#, null
 run        = 'BVEndo';
 gender     = 'male';    % "male" or "female"
 DOB        = datetime(1990, 4, 6); % Year, Month, Day
@@ -225,8 +225,9 @@ end
 
 fprintf('Microphone Calibration is %0.1f hours old,\n', dateCH)
 if dateCH > 24
-    fprintf('You may want to retake the calibration')
+    fprintf('You may want to retake the calibration\n')
 end
+fprintf('\n')
 end
 
 function displayBaselineResults(qRes)
