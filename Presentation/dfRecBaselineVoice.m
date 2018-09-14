@@ -30,10 +30,10 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'TestoBesto'; % Subject#, Pilot#, null
-run        = 'BVEndo';
+subject    = 'Pilot0'; % Subject#, Pilot#, null
+run        = 'BV_High';
 gender     = 'male';    % "male" or "female"
-DOB        = datetime(1990, 4, 6); % Year, Month, Day
+DOB        = datetime(1990, 4, 9); % Year, Month, Day
 numTrials  = 3;         % number of trials;
 
 % Paradigm Configurations
@@ -44,7 +44,8 @@ expParam.curDT      = datetime('now'); % Current Date and Time
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 
-recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
+boxPos  = dfSetDialBoxPos(2);
+recType = MFquestdlg(boxPos, 'Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
 switch recType
     case 'Baseline Voice'
         expParam.subject  = subject; 
@@ -72,7 +73,7 @@ switch recType
         expParam.gender   = gender;
         expParam.DOB      = DOB;
         expParam.age      = years(expParam.curDT - expParam.DOB);
-        expParam.trialLen = 30;                     % Seconds
+        expParam.trialLen = 34;                     % Seconds
         expParam.numTrial = 1;
         expParam.AudFBSw  = 0;
         expParam.rdyPause = 2;
@@ -81,7 +82,11 @@ switch recType
         expParam.headGain = 5;        
         defMon = 1;
 
-        targLoud = prompt4Calibrate(); % Ask user how loud the calibration sound source was
+        expParam.targLoud   = prompt4Calibrate(); % Ask user how loud the calibration sound source was
+        expParam.measAmpInc = [];
+    case ''
+        fprintf('\nExperiment Exited\n')
+        return
 end
 
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
@@ -127,7 +132,9 @@ pause(expParam.rdyPause); % Let them breathe a sec
 set(annoStr.Ready,'Visible','off');  % Turn off 'Ready?'
 
 rawData = [];
-for ii = 1:expParam.numTrial
+contTrials = 1; ii = 1;
+while contTrials ~= 0
+    
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.curSess expParam.curTrial];
     
@@ -163,9 +170,21 @@ for ii = 1:expParam.numTrial
     
     switch recType
         case 'Calibrate Microphone'
-            rerun = questdlg('Rerun calibration step?', 'Rerun?', 'Yes', 'No', 'No');
+            rerun = MFquestdlg(boxPos, 'Rerun calibration step?', 'Rerun?', 'Yes', 'No', 'No');
             switch rerun
                 case 'Yes'
+                    rawData = [];
+                case 'No'
+                    contTrials = 0;
+                    
+                    expParam.measAmpInc = prompt4AmplifiedHead();
+                    fprintf('The input microphone signal was measured at %0.2f dB\n', expParam.targLoud)
+                    fprintf('The output headphone signal was measured at %0.2f dB\n', expParam.measAmpInc)
+            end
+        case 'Baseline Voice'
+            ii = ii + 1;
+            if ii > expParam.numTrial
+                contTrials = 0;
             end
     end  
 end
@@ -179,7 +198,7 @@ DRF.rawData     = rawData;
 
 switch recType
     case 'Calibrate Microphone'
-        DRF.expParam.rmsB = findRMS2dBRatio(rawData, targLoud);
+        DRF.expParam.rmsB = findRMS2dBRatio(rawData, expParam.targLoud);
     case 'Baseline Voice'
         DRF.qRes = dfAnalysisAudioQuick(DRF, 1); % Do some quick analysis
         displayBaselineResults(DRF.qRes)
@@ -202,6 +221,17 @@ defaultanswer = {'75.00'};
 loudnessPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 targLoud = str2double(loudnessPrompt{1});
+end
+
+function measAmp = prompt4AmplifiedHead()
+
+prompt = 'Measured Insert Earphone Loudness (dB (SPL HL)):';
+name = 'Earphone Loudness';
+numlines = 1;
+defaultanswer = {'80.00'};
+loudnessPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+measAmp = str2double(loudnessPrompt{1});
 end
 
 function rmsB = loadCalibration(dirs, curDT)
