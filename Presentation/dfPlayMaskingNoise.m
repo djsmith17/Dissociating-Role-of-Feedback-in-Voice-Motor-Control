@@ -16,7 +16,7 @@ expParam = dfInitExpParam();
 
 expParam.curSess = 'Masking Noise Test';
 
-expParam.numTrial   = 1;
+expParam.numTrial   = 4;
 expParam.numMaskRep = expParam.numTrial;
 expParam.AudFB      = 'AC Masking Noise';
 expParam.AudFBSw    = 2; % Masking Noise
