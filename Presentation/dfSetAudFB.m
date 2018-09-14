@@ -56,7 +56,7 @@ elseif expParam.AudFBSw == 2
     noiseTime = calcMaskLen(expParam);
     
     % Generate a full length masking noise signal for the length we need
-    [w, fs] = createSessionNoise(dirs, noiseTime, 2);
+    [w, fs] = createSessionNoise(dirs, noiseTime);
     
 %     [w, fs] = audapterGeneratedNoise(dirs, p);
 
@@ -108,9 +108,9 @@ resTime  = expParam.resPause;  % Rest/Feedback period
 noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime)*numMaskRep + 2;
 end
 
-function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime, gain)
+function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime)
 
-maskFile = fullfile(dirs.Prelim, 'SSN_trimmed.wav');
+maskFile = fullfile(dirs.Prelim, 'SSN_ampChunk.wav');
 
 [wavFile, fs] = audioread(maskFile);
 wavLen   = length(wavFile);
@@ -137,13 +137,9 @@ noiseRem = wavFile(1:remIdx)';
 
 fullNoise = [noiseInt noiseRem];
 
-dScale = setLoudRatio(gain);
-
-fullNoiseRmp = fullNoise*dScale;
-
 rampFilt = ones(size(fullNoise));
 rampFilt(rampUpIdx) = rampUp;
 rampFilt(rampDnIdx) = rampDn;
 
-sessionNoise = fullNoiseRmp.*rampFilt;
+sessionNoise = fullNoise.*rampFilt;
 end
