@@ -21,10 +21,10 @@ enA.vidFrameR = rawVObj.FrameRate;
 
 rawVStr = struct('cdata', zeros(enA.vidHeight, enA.vidWidth, 3, 'uint8'), 'colormap', []);
 
-enA.nFrames = 1;
+enA.nFrames = 0;
 while hasFrame(rawVObj)
-    rawVStr(enA.nFrames).cdata = readFrame(rawVObj);
     enA.nFrames = enA.nFrames+1;
+    rawVStr(enA.nFrames).cdata = readFrame(rawVObj);
 end
 
 playRawVideo(rawVObj, rawVStr)
