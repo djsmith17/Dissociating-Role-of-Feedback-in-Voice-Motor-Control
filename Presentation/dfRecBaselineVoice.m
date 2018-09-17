@@ -30,10 +30,10 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0'; % Subject#, Pilot#, null
+subject    = 'DRF_ENP4'; % Subject#, Pilot#, null
 run        = 'BV1';
-gender     = 'male';    % "male" or "female"
-DOB        = datetime(1990, 4, 9); % Year, Month, Day
+gender     = 'female';    % "male" or "female"
+DOB        = datetime(1994, 9, 26); % Year, Month, Day
 numTrials  = 3;         % number of trials;
 
 % Paradigm Configurations
@@ -44,7 +44,7 @@ expParam.curDT      = datetime('now'); % Current Date and Time
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 
-boxPos  = dfSetDialBoxPos(2);
+boxPos  = dfSetDialBoxPos(1);
 recType = MFquestdlg(boxPos, 'Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
 switch recType
     case 'Baseline Voice'
