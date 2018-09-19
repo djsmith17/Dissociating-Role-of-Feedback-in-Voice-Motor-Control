@@ -1,4 +1,4 @@
-function dfParseRawVideo()
+function dfParseRawVideoScript()
 
 close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
