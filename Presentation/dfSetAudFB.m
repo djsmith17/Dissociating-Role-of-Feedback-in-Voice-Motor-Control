@@ -105,7 +105,7 @@ trlTime  = expParam.trialLen;  % Phonation period
 endTime  = expParam.endPause;  % Buffer to end phonating
 resTime  = expParam.resPause;  % Rest/Feedback period
 
-noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime)*numMaskRep + 2;
+noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime + 0.3)*numMaskRep;
 end
 
 function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime)
