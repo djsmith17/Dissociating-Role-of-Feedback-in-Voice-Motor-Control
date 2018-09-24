@@ -45,11 +45,11 @@ end
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 [r, c, n]      = size(DAQin);
-niAn.sRate     = expParam.sRateQ;    % Sampling Rate of the NIDAQ
-niAn.numCh     = c;                  % Number of Channels recorded
-niAn.numSamp   = r;                  % Number of Samples recorded
-niAn.numTrial  = n;                  % Number of Trials recorded
-niAn.trialType = expParam.trialType; % Control (0), Perturbed (1)
+niAn.sRate     = expParam.sRateQ;       % Sampling Rate of the NIDAQ
+niAn.numCh     = c;                     % Number of Channels recorded
+niAn.numSamp   = r;                     % Number of Samples recorded
+niAn.numTrial  = n;                     % Number of Trials recorded
+niAn.trialType = expParam.trialType;    % Control (0), Perturbed (1)
 niAn.expTrigs  = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
 niAn.dnSamp    = 10;
 
