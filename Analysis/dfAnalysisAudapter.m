@@ -139,6 +139,54 @@ lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
 end
 
+function auAn = setAudapterAnalysisParams()
+
+auAn.AnaType   = 'Audapter';% Analysis of data recorded with Audapter
+auAn.expType   = [];        % Somatosensory vs Auditory
+auAn.subject   = [];        % Participant name
+auAn.run       = [];        % Run name
+auAn.curSess   = [];        % Combination of Participant name and Run name
+auAn.f0Type    = 'Praat';   % Which algorithm for-pitch tracking
+auAn.f0AnaFile = [];        % Where we will save the f0 trace analyzed data
+auAn.gender    = [];        % Participant gender
+auAn.age       = [];        % Participant age
+auAn.f0b       = [];        % Participant f0 from baseline recording
+auAn.AudFB     = [];        % Form of Auditory Feedback used in experimental run
+auAn.AudFBSw   = [];        % Auditory Feedback settings used in experimental run
+
+auAn.sRate     = []; % Sampling Rate of Audapter (down-sampled)
+auAn.sRateNi   = []; % Sampling Rate of NIDAQ
+auAn.frameLen  = []; % Frame Length of Audapter recording (down-sampled)
+auAn.trialLen  = []; % Length of recording (s)
+auAn.numSamp   = []; % Length of recording (points)
+auAn.rmsThresh = []; % rms level for voicing
+
+auAn.time     = [];
+auAn.audioM   = [];
+auAn.audioH   = [];
+auAn.numTrial = [];
+auAn.expTrigs = [];
+auAn.anaTrigs = [];
+auAn.removedTrialTracker = {};
+
+auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
+auAn.audioHSvt     = []; % Headphone recordings for the trials saved for further analyses
+auAn.numTrialSvt   = []; % Number of trials saved for further analyses
+auAn.allIdxSvt     = []; % Vector of indicies of all recorded trials saved for further analyses.
+auAn.trialTypeSvt  = []; % Key for identifying Control (0) & Perturbed (1) trials
+auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for further analyses
+auAn.allAuMHDelays = []; % Vector of the delays between the Audapter microphone and Headphone recordings
+auAn.allAuNiDelays = []; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+
+auAn.numPertTrialSvt = []; % Number of perturbed trials saved for further analyses
+auAn.pertIdxSvt      = []; % Vector of indicies of perturbed SAVED trials (Referencing allIdxSvt)
+auAn.pertTrigSvt     = []; % Trigger Onset and Offset (Time) for perturbed SAVED trials
+auAn.numContTrialSvt = []; % Number of control trials saved for further analyses
+auAn.contIdxSvt      = []; % Vector of indicies of control SAVED trials (Referencing allIdxSvt)
+auAn.contTrigSvt     = []; % Trigger Onset and Offset (Time) for control SAVED trials
+
+end
+
 function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs)
 % [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 % This function performs preprocessing on the time-series recorded audio 
