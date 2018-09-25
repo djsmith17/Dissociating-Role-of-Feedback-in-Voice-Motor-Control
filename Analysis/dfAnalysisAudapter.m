@@ -31,53 +31,33 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFla
 % Requires the Signal Processing Toolbox
 
 % Identify some Experimental variables
-auAn.AnaType   = 'Audapter';
+auAn = setAudapterAnalysisParams();
+
 auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
 auAn.run       = expParam.run;
 auAn.curSess   = expParam.curSess;
-auAn.f0Type    = 'Praat';
-auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis.mat'];
 auAn.gender    = expParam.gender;
+auAn.f0AnaFile = [auAn.subject auAn.run 'f0Analysis.mat'];
 auAn.age       = expParam.age;
+auAn.f0b       = expParam.f0b;
 auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
-auAn.bTf0b     = f0b;
 
-fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, auAn.bTf0b)
+fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, auAn.f0b)
 
 % Idenitfy some Recording Variables
-auAn.sRate        = expParam.sRateAnal;        % Sampling Rate of Audapter (down-sampled)
-auAn.sRateNi      = niAn.sRate;                % Sampling Rate of the NIDAQ
-auAn.frameLenDown = expParam.frameLen/expParam.downFact;
-auAn.trialLen     = expParam.trialLen;         % Length of recording (s)
-auAn.numSamp      = auAn.sRate*auAn.trialLen;  % Length of recording (points)
-auAn.rmsThresh    = [];
+auAn.sRate    = expParam.sRateAnal;
+auAn.sRateNi  = niAn.sRate;
+auAn.frameLen = expParam.frameLenDown;
+auAn.trialLen = expParam.trialLen;
+auAn.numSamp  = auAn.sRate*auAn.trialLen;
 
-auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; % Time Vector based on numSamp
-auAn.audioM     = []; % Mic data that has received temporal preprocessing (all recorded trials)
-auAn.audioH     = []; % Head data that has received temporal preprocessing (all recorded trials)
-auAn.numTrial   = expParam.numTrial;         % Number of trials recorded
-auAn.trialType  = expParam.trialType;        % Key for identifying Control (0) & Perturbed (1) trials
-auAn.expTrigs   = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
-auAn.anaTrigs   = expParam.trigs(:,:,3); % Trigger Onset and Offset (Points; Audadapter) 
-auAn.removedTrialTracker = {}; % List of Trials that were thrown out during Analysis
-
-auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
-auAn.audioHSvt     = []; % Headphone recordings for the trials saved for further analyses
-auAn.numTrialSvt   = []; % Number of trials saved for further analyses
-auAn.allIdxSvt     = []; % Vector of indicies of all recorded trials saved for further analyses.
-auAn.trialTypeSvt  = []; % Key for identifying Control (0) & Perturbed (1) trials
-auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for further analyses
-auAn.allAuMHDelays = []; % Vector of the delays between the Audapter microphone and Headphone recordings
-auAn.allAuNiDelays = []; % Vector of the delays between the NIDAQ and Audapter microphone recordings
-
-auAn.numPertTrialSvt = []; % Number of perturbed trials saved for further analyses
-auAn.pertIdxSvt      = []; % Vector of indicies of perturbed SAVED trials (Referencing allIdxSvt)
-auAn.pertTrigSvt     = []; % Trigger Onset and Offset (Time) for perturbed SAVED trials
-auAn.numContTrialSvt = []; % Number of control trials saved for further analyses
-auAn.contIdxSvt      = []; % Vector of indicies of control SAVED trials (Referencing allIdxSvt)
-auAn.contTrigSvt     = []; % Trigger Onset and Offset (Time) for control SAVED trials
+auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; 
+auAn.numTrial   = expParam.numTrial;         
+auAn.trialType  = expParam.trialType;        
+auAn.expTrigs   = expParam.trigs(:,:,1);
+auAn.anaTrigs   = expParam.trigs(:,:,3);
 
 svC = 0; % Saved Trial Count
 for ii = 1:auAn.numTrial
@@ -161,13 +141,14 @@ auAn.trialLen  = []; % Length of recording (s)
 auAn.numSamp   = []; % Length of recording (points)
 auAn.rmsThresh = []; % rms level for voicing
 
-auAn.time     = [];
-auAn.audioM   = [];
-auAn.audioH   = [];
-auAn.numTrial = [];
-auAn.expTrigs = [];
-auAn.anaTrigs = [];
-auAn.removedTrialTracker = {};
+auAn.time      = []; % Time Vector based on numSamp
+auAn.audioM    = []; % Mic data that has received temporal preprocessing (all recorded trials)
+auAn.audioH    = []; % Head data that has received temporal preprocessing (all recorded trials)
+auAn.numTrial  = []; % Number of trials recorded
+auAn.trialType = []; % Key for identifying Control (0) & Perturbed (1) trials
+auAn.expTrigs  = []; % Trigger Onset and Offset (Time) (all recorded trials)
+auAn.anaTrigs  = []; % Trigger Onset and Offset (Points; Audadapter) 
+auAn.removedTrialTracker = {}; % List of Trials that were thrown out during Analysis
 
 auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
 auAn.audioHSvt     = []; % Headphone recordings for the trials saved for further analyses
@@ -184,7 +165,6 @@ auAn.pertTrigSvt     = []; % Trigger Onset and Offset (Time) for perturbed SAVED
 auAn.numContTrialSvt = []; % Number of control trials saved for further analyses
 auAn.contIdxSvt      = []; % Vector of indicies of control SAVED trials (Referencing allIdxSvt)
 auAn.contTrigSvt     = []; % Trigger Onset and Offset (Time) for control SAVED trials
-
 end
 
 function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs)
@@ -222,7 +202,7 @@ rms       = double(rms);     % Convert to data type double
 AudFBSw   = An.AudFBSw;      % Auditory feedback type used
 fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
-frameLen  = An.frameLenDown; % Frame rate of recording (After downsampling)
+frameLen  = An.frameLen;     % Frame rate of recording (After downsampling)
 numSamp   = An.numSamp;      % Number of samples for length of recording
 rmsThresh = An.rmsThresh;
 frameDel  = 7;
