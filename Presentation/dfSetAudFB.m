@@ -1,4 +1,4 @@
-function [expParam, p] = dfSetAudFB(expParam, dirs, p)
+function [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p)
 % [expParam, p] = dfSetAudFB(expParam, dirs, p) sets the type of Auditory 
 % feedback to be used in experiments investigating voice motor control 
 % using Audapter. 
@@ -13,13 +13,13 @@ function [expParam, p] = dfSetAudFB(expParam, dirs, p)
 %
 % This function has a subfunction below named: setLoudRatio
   
-default = 0;
+default = 1;
 dB           = expParam.headGain;
 f0           = round(expParam.f0b);
 gender       = expParam.gender;
 
-expParam.SSNw   = [];
-expParam.SSNfs  = [];
+SSNw   = [];
+SSNfs  = [];
 
 %NORMAL AUDITORY FEEDBACK OF THEIR VOICE
 if  expParam.AudFBSw == 0
@@ -55,8 +55,8 @@ elseif expParam.AudFBSw == 2
     end
     Audapter('setParam', 'datapb', w, 1);
     
-    expParam.SSNw   = w;
-    expParam.SSNfs  = fs;
+    SSNw   = w;
+    SSNfs  = fs;
 else
     disp('ERROR in dfSetAudFB: Inappropriate feedback method selected')
     return
