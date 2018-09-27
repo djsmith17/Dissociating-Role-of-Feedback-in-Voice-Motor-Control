@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';   % Subject#, Pilot#, null
+subject    = 'DRF_MN21';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
 balloon    = '2E4';     % Which perturbation balloon?
@@ -78,12 +78,20 @@ expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
 expParam.perCatch     = perCatch;
+expParam.numMaskRep   = numTrials;
 expParam.headGain     = 5;                   % Output gain above the input
 expParam.AudFB        = AudFB;
 expParam.AudFBSw      = AudFBSw;
 expParam.AudPert      = '-100 cents ramped'; % Var not used here. Just saving for balance
 expParam.AudPertSw    = 1;                   % Var not used here. Just saving for balance
 expParam.bVis         = 0;
+
+expParam.rdyPause  = 5.0; % How long to show them 'Ready'
+expParam.cuePause  = 1.0; % How long the cue period lasts
+expParam.buffPause = 0.8; %Give them a moment to start speaking
+expParam.endPause  = 0.5;
+expParam.resPause  = 2.0; % How long the rest/VisFB lasts
+expParam.boundsRMS = 3;   % +/- dB
 
 %Set our dirs based on the project
 dirs = dfDirs(expParam.project);
@@ -102,7 +110,8 @@ end
 [expParam.f0b,...
  expParam.targRMS,...
  expParam.rmsB,...
- expParam.gender] = loadBaselineVoice(dirs);
+ expParam.gender,...
+ expParam.age] = loadBaselineVoice(dirs);
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
@@ -129,7 +138,7 @@ expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
-[expParam, p]      = dfSetAudFB(expParam, dirs, p);
+[p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p);
 
 % Set up the order of trials (Order of perturbed, control, etc)
 expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
@@ -138,21 +147,20 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 % the digital signal to be sent to the NIDAQ
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
 
-expParam.cuePause  = 1.0; % How long the cue period lasts
-expParam.buffPause = 0.8; %Give them a moment to start speaking
-expParam.endPause  = 0.5;
-expParam.resPause  = 2.0; % How long the rest/VisFB lasts
-expParam.boundsRMS = 3;   % +/- dB
-
 % This is where the fun begins
 fprintf('\nStarting Trials\n\n')
 
 % Dim the lights (Set the visual Feedback)
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[msrStr, annoStr] = dfSetVisFB(2, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
-%Open the curtains
-pause(5);                % Let them breathe a sec
-set(H3,'Visible','off'); % Turn off 'Ready?'
+% Only play masking noise for this condition
+if expParam.AudFBSw == 2
+    sound(SSNw, SSNfs)
+end
+
+% Open the curtains
+pause(expParam.rdyPause);            % Let them breathe a sec
+set(annoStr.Ready, 'Visible','off'); % Turn off 'Ready?'
 
 DAQin = []; rawData = [];
 loudResults = [];
@@ -174,12 +182,12 @@ for ii = 1:expParam.numTrial
     queueOutputData(s, NIDAQsig);
     
     %Cue to begin trial
-    set(H1,'Visible','on');
+    set(annoStr.plus, 'Visible','on');
     pause(expParam.cuePause)
     
     %Phonation Start
-    set(H1,'Visible','off');
-    set([H2 trigCirc],'Visible','on');
+    set(annoStr.plus, 'Visible','off');
+    set([annoStr.EEE annoStr.visTrig],'Visible','on');
     
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
@@ -192,7 +200,7 @@ for ii = 1:expParam.numTrial
     [dataDAQ, ~] = s.startForeground;
      
     %Phonation End
-    set([H2 trigCirc],'Visible','off');
+    set([annoStr.EEE annoStr.visTrig],'Visible','off');
     pause(expParam.endPause)
     Audapter('stop');
     
@@ -204,19 +212,19 @@ for ii = 1:expParam.numTrial
     %Grab smooth RMS trace from 'data' structure
     rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
     %Compare against baseline and updated Visual Feedback
-    [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
+    [color, newPos, loudResult] = dfUpdateVisFB(msrStr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
     dispLoudnessResult(loudResult)
 
-    set(rec, 'position', newPos);
-    set(rec, 'Color', color); set(rec, 'FaceColor', color);
-    set([rec fbLines], 'Visible', 'on');
+    set(annoStr.LoudRec, 'position', newPos);
+    set(annoStr.LoudRec, 'Color', color, 'FaceColor', color);
+    set([annoStr.LoudRec annoStr.fbLines], 'Visible', 'on');
     
     LR = LR.updateLiveResult(dataDAQ, ii);
     
     dfSaveWavRec(data, expParam, dirs);    
     pause(expParam.resPause)
-    set([rec fbLines], 'Visible', 'off');
+    set([annoStr.LoudRec annoStr.fbLines], 'Visible', 'off');
 end
 close all;
 elapsed_time = toc(ET)/60;   % Elapsed Time of the experiment
@@ -244,6 +252,8 @@ end
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
 fprintf('\nSaving recorded data at:\n%s\n\n', dirs.RecFileDir)
 save(dirs.RecFileDir, 'DRF'); %Only save if it was a full set of trials
+
+dfInspectRawData(dirs.RecFileDir)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
@@ -310,7 +320,7 @@ end
 fprintf('Subject was %s\n', result)
 end
 
-function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender, age] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -319,6 +329,7 @@ if exist(dirs.BaseFile, 'File')
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
     gender  = DRF.expParam.gender;
+    age     = DRF.expParam.age;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
@@ -326,5 +337,6 @@ else
     targRMS = 70.00;
     rmsB    = 0.00002;
     gender  = 'female';
+    age     = 20;
 end
 end

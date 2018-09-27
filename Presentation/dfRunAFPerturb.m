@@ -142,7 +142,7 @@ expParam.niCh   = niCh;   % Structure of Channel Names
 % expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
-[expParam, p]      = dfSetAudFB(expParam, dirs, p);
+[p, SSNw, SSNfs]  = dfSetAudFB(expParam, dirs, p);
 
 %Set up the order of trials (Order of perturbed, control, etc)
 expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
@@ -151,6 +151,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 %the digital signal to be sent to the NIDAQ
 [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, lenDb);
 
+expParam.rdyPause  = 5.0; % How long to show them 'Ready'
 expParam.cuePause  = 1.0; % How long the cue period lasts
 expParam.buffPause = 0.8; % Give them a moment to start speaking
 expParam.endPause  = 0.5;
@@ -165,11 +166,16 @@ expParam.InflaV   = InflaVar(2);
 fprintf('\nStarting Trials\n\n')
 
 %Dim the lights (Set the visual Feedback)
-[anMsr, H1, H2, H3, fbLines, rec, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[msrStr, annoStr] = dfSetVisFB(2, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+
+% Only play masking noise for this condition
+if expParam.AudFBSw == 2
+    sound(SSNw, SSNfs)
+end
 
 %Open the curtains
-pause(5);                % Let them breathe a sec
-set(H3,'Visible','off'); % Turn off 'Ready?'
+pause(expParam.rdyPause);            % Let them breathe a sec
+set(annoStr.Ready, 'Visible','off'); % Turn off 'Ready?'
 
 DAQin = []; rawData = [];
 loudResults = [];
@@ -191,12 +197,12 @@ for ii = 1:expParam.numTrial
     queueOutputData(s, NIDAQsig);
     
     %Cue to begin trial
-    set(H1,'Visible','on');
+    set(annoStr.plus, 'Visible','on');
     pause(expParam.cuePause)
     
     %Phonation Start
-    set(H1,'Visible','off');
-    set([H2 trigCirc],'Visible','on');
+    set(annoStr.plus, 'Visible','off');
+    set([annoStr.EEE annoStr.visTrig],'Visible','on');
    
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
@@ -209,7 +215,7 @@ for ii = 1:expParam.numTrial
     [dataDAQ, ~] = s.startForeground;
     
     %Phonation End
-    set([H2 trigCirc],'Visible','off');
+    set([annoStr.EEE annoStr.visTrig],'Visible','off');
     pause(expParam.endPause)
     Audapter('stop');
     
@@ -221,17 +227,17 @@ for ii = 1:expParam.numTrial
     %Grab smooth RMS trace from 'data' structure
     rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
     %Compare against baseline and updated Visual Feedback
-    [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean);
+    [color, newPos, loudResult] = dfUpdateVisFB(msrStr, rmsMean);
     loudResults = cat(1, loudResults, loudResult);
     dispLoudnessResult(loudResult)
     
-    set(rec, 'position', newPos);
-    set(rec, 'Color', color); set(rec, 'FaceColor', color);
-    set([rec fbLines], 'Visible', 'on'); 
+    set(annoStr.LoudRec, 'position', newPos);
+    set(annoStr.LoudRec, 'Color', color, 'FaceColor', color);
+    set([annoStr.LoudRec annoStr.fbLines], 'Visible', 'on'); 
 
     dfSaveWavRec(data, expParam, dirs);
     pause(expParam.resPause)
-    set([rec fbLines], 'Visible', 'off');
+    set([annoStr.LoudRec annoStr.fbLines], 'Visible', 'off');
 end
 close all;
 elapsed_time = toc(ET)/60;    % Elapsed Time of the experiment

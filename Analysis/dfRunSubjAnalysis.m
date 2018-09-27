@@ -16,15 +16,15 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'Pilot28'}; %    List of multiple participants.
+AVar.participants  = {'DRF_MN13'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF1'}; %    List of multiple runs.
+AVar.runs          = {'SF2'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
 
 dirs               = dfDirs(AVar.project);
-dirs.LoadData      = dirs.RecData;
+dirs.LoadData      = dirs.SavData;
 
 for i = 1:AVar.numPart
     participant = AVar.participants{i};
@@ -105,10 +105,13 @@ end
 
 function res = combineRes(niRes, auRes)
 
-res.expType = auRes.expType;
 res.subject = auRes.subject;
 res.run     = auRes.run;
 res.curSess = auRes.curSess;
+res.gender  = auRes.gender;
+res.age     = auRes.age;
+
+res.expType = auRes.expType;
 res.AudFB   = auRes.AudFB;
 
 res.f0Type  = auRes.f0Type;
