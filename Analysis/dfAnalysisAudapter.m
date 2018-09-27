@@ -72,7 +72,7 @@ for ii = 1:auAn.numTrial
     if isfield(niAn, 'audioM')
         MrawNi = niAn.audioM(:,ii);          % Microphone (NIDAQ) 
     else
-        MrawNi = resample(Mraw, 8000, 16000);
+        MrawNi = resample(Mraw, 8000, auAn.sRate);
     end
     
     % Preprocessing step identifies time-series errors in production/recording
@@ -207,25 +207,20 @@ numSamp   = An.numSamp;      % Number of samples for length of recording
 rmsThresh = An.rmsThresh;
 frameDel  = 7;
 
-% We are going to section the audio recording from 0.5s ahead of 
-% perturbation onset to 1.0s after perturbation offset.
-preOn   = 0.5*fs;
-postOff = 1.0*fs;
+% Find the delay between NIDAQ recording and Audapter recording
+micRds     = resample(micR, fsNI, fs);           % Downsample the Audapter recording
+AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
+AuNidelayP = AuNidelay*fs;                       % Convert to points
 
-micRds     = resample(micR, fsNI, fs);
-AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Expect NIDAQ leads Audapter
-AuNidelayP = AuNidelay*fs;
-
-if AudFBSw == 2
+% Find the delay between Audapter Headphone and Microphone
+if AudFBSw == 2 % No Headphone Out
     AuMHdelay = (frameLen*(frameDel-1))/fs;
 else
     AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
-    [timeSet, delaySet] = MHdelayChunked(micR, headR, fs);
-%     figure
-%     plot(timeSet, delaySet)
-%     pause; close
+%     [timeSet, delaySet] = MHdelayChunked(micR, headR, fs);
+%     figure; plot(timeSet, delaySet);
 end
-AuMHdelayP = AuMHdelay*fs;
+AuMHdelayP = AuMHdelay*fs; % Convert to points
 
 % Adjust for delay between raw Audapter Mic and Audapter Headphones
 micAuAl  = micR(1:(end-AuMHdelayP));
@@ -233,19 +228,23 @@ headAuAl = headR((AuMHdelayP+1):end);
 
 % Adjust for delay between Audapter and NIDAQ
 if AuNidelayP > 0 % As long as the delay is non 0
-    micAuNi    = micAuAl(AuNidelayP:end);
-    headAuNi   = headAuAl(AuNidelayP:end);
+    micAuNi  = micAuAl(AuNidelayP:end);
+    headAuNi = headAuAl(AuNidelayP:end);
 else
-    micAuNi    = micAuAl;
-    headAuNi   = headAuAl;
+    micAuNi  = micAuAl;
+    headAuNi = headAuAl;
 end
 
+% Aim to section audio at 0.5s pre-onset to 1.0s post-offset.
+preOn   = 0.5*fs;
+postOff = 1.0*fs;
+
 % Audio points on either side of the perturbation period.
-audioSecSt = auTrigs(1) - preOn;
-audioSecSp = auTrigs(2) + postOff;
+analysisSec(1) = auTrigs(1) - preOn;   % Where to start the Analysis period
+analysisSec(2) = auTrigs(2) + postOff; % Where to end the Analysis period
 
 % Find the onset of voicing
-pp = findVoiceOnset(micAuNi, fs, audioSecSt, audioSecSp);
+pp = identifyVoiceCharacter(micAuNi, fs, analysisSec);
 
 if pp.voiceOnsetLate
     saveT    = 0;  
@@ -309,7 +308,7 @@ timeLag      = maxLag/fs;
 timeLag      = -timeLag;
 end
 
-function pp = findVoiceOnset(audio, fs, audioSt, audioSp)
+function pp = identifyVoiceCharacter(audio, fs, analysisSec)
 % pp = findVoiceOnset(audio, fs, audioSt, audioSecSp) identifies
 % onset of voice by the envelope of a microphone recording (audio).
 % Based on a specific point (audioSt), this script identifies if the 
@@ -321,36 +320,39 @@ function pp = findVoiceOnset(audio, fs, audioSt, audioSp)
 % detection methods, and boolean values for whether the participant started
 % late (pp.voiceOnsetLate) or if they had a voice break (pp.chk4Break)
 
-pp.thresh   = 0.3; % Threshold of Decimal amount of full peak height
-pp.breakTol = 0.1; % Voice Break Tolerance; Time (s)
-pp.envCutOf = 40;  % Cutoff frequency for enveloping the audio
-pp.fs       = fs;
-pp.audio    = audio;
-pp.audioSt  = audioSt;
-pp.audioSp  = audioSp;
-pp.lenSig   = length(audio);
-pp.t        = 0:1/fs:(pp.lenSig-1)/fs; % Not used, but useful if debugging
+pp.audio       = audio;
+pp.fs          = fs;
+pp.analysisSec = analysisSec;
+pp.analysisPer = pp.analysisSec(1):pp.analysisSec(2);
+
+pp.trialLen   = length(pp.audio);
+pp.trialTime  = pp.trialLen/pp.fs;
+pp.t          = linspace(0, pp.trialTime, pp.trialLen);
+
+pp.envCutOff = 40;  % Cutoff frequency for enveloping the audio
+pp.thresh    = 0.3; % Threshold of Decimal amount of full peak height
+pp.breakTol  = 0.1; % Voice Break Tolerance; Time (s)
 
 % 4th order low-pass butter filter settings
-[B,A] = butter(4, pp.envCutOf/(fs/2));
+[B, A] = butter(4, pp.envCutOff/(pp.fs/2));
 
 % Envelope the signal by low-pass filtering (change in amplitude/time ~RMS)
-pp.env  = filter(B,A,abs(audio));  
+pp.env = filter(B, A, abs(pp.audio));  
 
 % Largest peak in the envelope theoretically occurs during voicing
-pp.maxPeak = max(pp.env); 
+pp.maxPeak = max(pp.env);
 
 % Find values that are within threshold of max 'voicing' value
-pp.threshIdx     = find(pp.env > pp.thresh*pp.maxPeak); 
+pp.threshIdx = find(pp.env > pp.thresh*pp.maxPeak); 
 
 % First index of the theoretical useable signal (Voice onset)
 pp.voiceOnsetInd = pp.threshIdx(1);
 
 % Check the voice onset time against when we want to start analyzing data
-pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
+pp.voiceOnsetLate = pp.analysisSec(1) < pp.voiceOnsetInd;
 
-% Check the rest of the signal following the first index...are there any dead zones??
-pp.fallOffLog = pp.env(pp.voiceOnsetInd:audioSp) < pp.thresh*pp.maxPeak;
+% Check the rest of the signal following the first analysis index...are there any dead zones??
+pp.fallOffLog = pp.env(pp.analysisPer) < pp.thresh*pp.maxPeak;
 pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than break tolerance
 end
 
@@ -522,7 +524,7 @@ res.contTrigSvt     = auAn.contTrigSvt;     % Trigger Onset and Offset (Time) fo
 
 % Audio f0 analysis
 res.timef0        = auAn.timef0;
-res.f0b           = auAn.f0b;
+res.f0b           = auAn.trialf0M;
 
 res.svf0Idx      = auAn.svf0Idx;
 res.expTrigsf0Sv = auAn.expTrigsf0Sv;

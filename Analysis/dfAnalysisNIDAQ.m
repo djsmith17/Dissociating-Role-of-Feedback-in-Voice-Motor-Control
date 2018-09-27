@@ -646,7 +646,7 @@ res.limitsPMean = lims.pressureMean;
 
 % Audio f0 analysis
 res.timef0          = niAn.timef0;
-res.f0b             = niAn.f0b;
+res.f0b             = niAn.trialf0M;
 
 res.numContTrialsPP = niAn.numContTrialsPP;
 res.numPertTrialsPP = niAn.numPertTrialsPP;
