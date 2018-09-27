@@ -10,12 +10,14 @@ classdef LiveSensorResult
        tag
        curve
        resH
+       resA
    end
    methods
        function obj = LiveSensorResult(expParam, defMon)
            if nargin > 0
                
                curSess  = expParam.curSess;
+               curSess(strfind(curSess, '_')) = ' ';
                numTrial = expParam.numTrial;
                fs       = expParam.sRateQ;
                trigs    = expParam.trigs(:,:,2);
@@ -31,16 +33,20 @@ classdef LiveSensorResult
                obj.defMon      = defMon;
                obj.trialColors = distinguishable_colors(numTrial);
                
-               obj.resH    = initFigure(obj);
+               obj.tag   = {};
+               obj.curve = [];
+               
+               [obj.resH, obj.resA] = initFigure(obj);
            end       
        end
-       function resH = initFigure(obj)
+       function [resH, resA] = initFigure(obj)
            % resH = initFigure(obj) creates a figure by which to display 
            % recorded signal during a experimental session. This is 
            % currently configured to display the pressure in the 
            % perturbatron balloon.
            %
-           % resH    : Figure handle for the generated figure. 
+           % resH    : Figure handle for the generated figure.
+           % resA    : Axes handle for the generated plots
            monitorSize = get(0, 'Monitor');
            numMon = size(monitorSize, 1);
            if numMon == 2 && obj.defMon == 2
@@ -60,7 +66,8 @@ classdef LiveSensorResult
            winPos = figPosition;
            
            resH = figure('Name', 'Pressure Live Result', 'Color', [1 1 1], 'Position', winPos);
-           mark = plot([1 1], [-1 5], 'k-', 'LineWidth', 2);
+           resA = axes();
+           plot(resA, [1 1], [-1 5], 'k-', 'LineWidth', 2);
            axis([0 3.5 -0.5 5.0])
            box off
            set(gca,'FontSize', 12,...
@@ -78,6 +85,7 @@ classdef LiveSensorResult
                       'FontName','Arial');
            hold on
        end
+       
        function obj = updateLiveResult(obj, daqIn, curTrial)
            sig      = daqIn(:,4);
 
@@ -86,17 +94,13 @@ classdef LiveSensorResult
            sigSnip = sig(St:Sp);
            time    = (0:1/obj.fs :(length(sigSnip)-1)/obj.fs)';
            trialNmList = ['Trial ' num2str(curTrial)];
-           trPrs = plot(time, sigSnip, 'LineWidth', 2, 'Color', obj.trialColors(curTrial, :));
+           
+           trPrs = plot(obj.resA, time, sigSnip, 'LineWidth', 2, 'Color', obj.trialColors(curTrial, :));
 
-           if curTrial == 1
-               obj.tag = {trialNmList};
-               obj.curve = trPrs;
-           else
-               obj.tag   = cat(1, obj.tag, trialNmList);
-               obj.curve = cat(1, obj.curve, trPrs);
-           end
+           obj.tag   = cat(1, obj.tag, trialNmList);
+           obj.curve = cat(1, obj.curve, trPrs);
 
-           lgd = legend(obj.curve, obj.tag);
+           lgd = legend(obj.resA, obj.curve, obj.tag);
            set(lgd, 'box', 'off',...
                     'location', 'NorthWest'); 
        end

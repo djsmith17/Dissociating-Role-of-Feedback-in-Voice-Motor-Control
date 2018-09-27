@@ -30,10 +30,10 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_MN19'; % Subject#, Pilot#, null
-run        = 'BV1';     % Baseline Voice (BV) or Calibrate Microphone (CM)
-gender     = 'male';    % "male" or "female"
-DOB        = datetime(1990, 4, 6); % Year, Month, Day
+subject    = 'DRF_MN21'; % Subject#, Pilot#, null
+run        = 'BV1';
+gender     = 'female';    % "male" or "female"
+DOB        = datetime(1994, 9, 26); % Year, Month, Day
 numTrials  = 3;         % number of trials;
 
 % Paradigm Configurations
@@ -44,7 +44,8 @@ expParam.curDT      = datetime('now'); % Current Date and Time
 % Set our dirs based on the project
 dirs = dfDirs(expParam.project);
 
-recType = questdlg('Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
+boxPos  = dfSetDialBoxPos(1);
+recType = MFquestdlg(boxPos, 'Calibrate Mic or Baseline Voice?', 'Recording Type', 'Calibrate Microphone', 'Baseline Voice', 'Baseline Voice');
 switch recType
     case 'Baseline Voice'
         expParam.subject  = subject; 
@@ -56,9 +57,11 @@ switch recType
         expParam.trialLen = 4;                      % Seconds
         expParam.numTrial = numTrials;
         expParam.AudFBSw  = 0;
+        expParam.rdyPause = 5;
         expParam.cuePause = 1.0;
         expParam.resPause = 2.0;
         expParam.headGain = 5;
+        defMon = 2;
         
         expParam.rmsB     = loadCalibration(dirs, expParam.curDT);
 
@@ -70,14 +73,20 @@ switch recType
         expParam.gender   = gender;
         expParam.DOB      = DOB;
         expParam.age      = years(expParam.curDT - expParam.DOB);
-        expParam.trialLen = 30;                     % Seconds
+        expParam.trialLen = 34;                     % Seconds
         expParam.numTrial = 1;
         expParam.AudFBSw  = 0;
+        expParam.rdyPause = 2;
         expParam.cuePause = 0;
         expParam.resPause = 0;
-        expParam.headGain = 5;
+        expParam.headGain = 5;        
+        defMon = 1;
 
-        targLoud = prompt4Calibrate(); % Ask user how loud the calibration sound source was
+        expParam.targLoud   = prompt4Calibrate(); % Ask user how loud the calibration sound source was
+        expParam.measAmpInc = [];
+    case ''
+        fprintf('\nExperiment Exited\n')
+        return
 end
 
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
@@ -110,20 +119,22 @@ expParam.ostFN = fullfile(dirs.Prelim, 'SFPerturbOST.ost'); check_file(expParam.
 expParam.pcfFN = fullfile(dirs.Prelim, 'SFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 % Set up Auditory Feedback (Voice Not Shifted)
-[expParam, p]      = dfSetAudFB(expParam, dirs, p);
+[p, ~, ~] = dfSetAudFB(expParam, dirs, p);
 
 expParam.boundsRMS = 3;
 expParam.targRMS   = 70;
 
 % Dim the lights (Set the visual Feedback)
-[~, H1, H2, H3, ~, ~, trigCirc] = dfSetVisFB(expParam.curSess, expParam.targRMS, expParam.boundsRMS);
+[~, annoStr] = dfSetVisFB(defMon, expParam.curSess, expParam.targRMS, expParam.boundsRMS);
 
 %Open the curtains
-pause(5);                % Let them breathe a sec
-set(H3,'Visible','off'); % Turn off 'Ready?'
+pause(expParam.rdyPause); % Let them breathe a sec
+set(annoStr.Ready,'Visible','off');  % Turn off 'Ready?'
 
 rawData = [];
-for ii = 1:expParam.numTrial
+contTrials = 1; ii = 1;
+while contTrials ~= 0
+    
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.curSess expParam.curTrial];
     
@@ -132,12 +143,12 @@ for ii = 1:expParam.numTrial
     Audapter('pcf', expParam.pcfFN, 0);
     
     %Cue to begin trial
-    set(H1,'Visible','on');
+    set(annoStr.plus, 'Visible','on');
     pause(expParam.cuePause)
     
     %Phonation Start
-    set(H1,'Visible','off');
-    set([H2 trigCirc],'Visible','on'); % Turn on the 'eee' and trigMark
+    set(annoStr.plus, 'Visible','off');
+    set([annoStr.EEE annoStr.visTrig],'Visible','on'); % Turn on the 'eee' and visTrig
     
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
@@ -147,7 +158,7 @@ for ii = 1:expParam.numTrial
     pause(expParam.trialLen);
     
     Audapter('stop');
-    set([H2 trigCirc],'Visible','off'); % Turn off the 'eee' and trigMark
+    set([annoStr.EEE annoStr.visTrig],'Visible','off'); % Turn off the 'eee' and visTrig
     
     % Load the Audapter saved data and save some as wav Files
     data = AudapterIO('getData');       % This will need to become a try statement again
@@ -156,6 +167,26 @@ for ii = 1:expParam.numTrial
     dfSaveWavRec(data, expParam, dirs);
     
     pause(expParam.resPause)
+    
+    switch recType
+        case 'Calibrate Microphone'
+            rerun = MFquestdlg(boxPos, 'Rerun calibration step?', 'Rerun?', 'Yes', 'No', 'No');
+            switch rerun
+                case 'Yes'
+                    rawData = [];
+                case 'No'
+                    contTrials = 0;
+                    
+                    expParam.measAmpInc = prompt4AmplifiedHead();
+                    fprintf('The input microphone signal was measured at %0.2f dB\n', expParam.targLoud)
+                    fprintf('The output headphone signal was measured at %0.2f dB\n', expParam.measAmpInc)
+            end
+        case 'Baseline Voice'
+            ii = ii + 1;
+            if ii > expParam.numTrial
+                contTrials = 0;
+            end
+    end  
 end
 close all
 
@@ -167,7 +198,7 @@ DRF.rawData     = rawData;
 
 switch recType
     case 'Calibrate Microphone'
-        DRF.expParam.rmsB = findRMS2dBRatio(rawData, targLoud);
+        DRF.expParam.rmsB = findRMS2dBRatio(rawData, expParam.targLoud);
     case 'Baseline Voice'
         DRF.qRes = dfAnalysisAudioQuick(DRF, 1); % Do some quick analysis
         displayBaselineResults(DRF.qRes)
@@ -192,6 +223,17 @@ loudnessPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 targLoud = str2double(loudnessPrompt{1});
 end
 
+function measAmp = prompt4AmplifiedHead()
+
+prompt = 'Measured Insert Earphone Loudness (dB (SPL HL)):';
+name = 'Earphone Loudness';
+numlines = 1;
+defaultanswer = {'80.00'};
+loudnessPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+measAmp = str2double(loudnessPrompt{1});
+end
+
 function rmsB = loadCalibration(dirs, curDT)
 
 %It will always be called MC/MCDRF.mat. However, we will check the age of
@@ -213,8 +255,9 @@ end
 
 fprintf('Microphone Calibration is %0.1f hours old,\n', dateCH)
 if dateCH > 24
-    fprintf('You may want to retake the calibration')
+    fprintf('You may want to retake the calibration\n')
 end
+fprintf('\n')
 end
 
 function displayBaselineResults(qRes)

@@ -67,8 +67,8 @@ if AudFlag == 1
     % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.bTf0b, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, An.bTf0b, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.f0b, anaFlag);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, An.f0b, anaFlag);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -90,13 +90,13 @@ if AudFlag == 1
     [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0S, An.expTrigsf0);
    
     % Find the value of f0 during the perPert period for each trial
-    prePert       = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
-    An.trialf0b   = mean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
-    An.f0b        = mean(An.trialf0b);                      % Mean trial baseline f0
+    prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
+    An.trialf0   = mean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
+    An.trialf0M  = mean(An.trialf0);                      % Mean trial baseline f0
     
     % Normalize f0 traces by individual f0b and convert to cents
-    An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0b);
-    An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0b);
+    An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
+    An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
     
     svF = 0;
     for ii = 1:An.numTrialSvt
@@ -118,7 +118,7 @@ if AudFlag == 1
             if An.trialTypeSvt(ii) == 0
                 type = 'Cont';
             else
-                type = 'Pert';      
+                type = 'Pert';
             end       
             fprintf('Threw away %s Trial %d (%s), due to Miscalculated Pitch Trace\n', An.curSess, svIdc, type)
 
@@ -188,8 +188,8 @@ An.secTime        = [];
 An.audioMf0SecAll = [];
 An.audioHf0SecAll = [];
 
-An.trialf0b       = []; %Per Trial calculated f0
-An.f0b            = []; %Average trial f0
+An.trialf0        = []; %Per-Trial f0 from the period pre-perturbation
+An.trialf0M       = []; %Mean-Trial f0 from the period per-perturbation
 An.audioMf0_norm  = []; %Normalized mic data
 An.audioHf0_norm  = []; %Normalized head data
 
@@ -249,7 +249,7 @@ fV.roundFact = fV.sRate/fV.tStepP;
 fV.winHalf   = fV.win/2;
 end
 
-function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, bTf0b, flag)
+function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, f0b, flag)
 ET = tic;
 [~, numTrial] = size(audio);
 
@@ -263,7 +263,7 @@ if flag == 1
     fV.roundFact = fV.sRate/fV.tStepP;
     fV.winHalf   = 1.0*fV.win;
     
-    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, bTf0b);
+    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, f0b);
 else
     audiof0 = [];
     for j = 1:numTrial %Trial by Trial             
@@ -324,16 +324,16 @@ for ii = 1:numTrial
 end
 end
 
-function audio_norm = normf0(audio, f0b)
-% audio_norm = normf0(audio, f0b) takes a matrix of audio signals (audio) 
+function audio_norm = normf0(audio, trialf0)
+% audio_norm = normf0(audio, trialf0) takes a matrix of audio signals (audio) 
 % of size numSamp x numTrial and normalizes each trial by the f0 caluclated 
-% for that trial which are stored in the vector f0b (numTrial x 1)
+% for that trial which are stored in the vector trialf0 (numTrial x 1)
 
 [~, numTrial] = size(audio);
 
 audio_norm = [];
 for ii = 1:numTrial
-    audio_trial = 1200*log2(audio(:,ii)./f0b(ii));
+    audio_trial = 1200*log2(audio(:,ii)./trialf0(ii));
     audio_norm  = cat(2, audio_norm, audio_trial);
 end
 end
