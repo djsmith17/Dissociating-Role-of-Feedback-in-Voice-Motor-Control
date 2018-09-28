@@ -113,16 +113,21 @@ niAn.sensorPSec = [];
 niAn.sensorPMean = [];
 
 if PresFlag == 1 && niAn.numPertTrials > 0
-    %If pressure dynamics are worth looking at in these data, then we will
-    %set the flag to 1 and observe the sensor dynamics of the pressure
-    %sensor, as well as create a version of the data that are full
-    %recordings, but aligned at the pert onset, and another set that have
-    %been sectioned around the onset and offset of the perturbation period.
+    % Set PresFlag = 1 if pressure dynamics are worth looking investigating
+    % Observe dynamics of the pressure sensor and save pert-onset aligned
+    % recordings. Also saving a set of data set that is sectioned around 
+    % the onset and offset of the perturbation period.
     
-    % Sensor Dynamics of the Pressure Sensor
-    [niAn.OnOfValP,  niAn.OnOfValPm, ...
-     niAn.riseTimeP, niAn.riseTimePm] = ...
+    % Pressure Sensor Dynamics
+    [niAn.OnOfValP, niAn.riseTimeP] = ...
     analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
+    
+    niAn.OnOfValPm    = mean(niAn.OnOfValP);
+    niAn.OnOfValPstd  = std(niAn.OnOfValP);
+    niAn.riseTimePm   = mean(niAn.riseTimeP);
+    niAn.riseTimePstd = std(niAn.riseTimeP);
+    
+%     diff(niAn.OnOfValP)
 
     % Section and aligning pressure signal for perturbed trials
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
@@ -231,7 +236,7 @@ CIM = 1.96*SEM;
 lagMeans = [lagsMean, CIM];
 end
 
-function [OnOfVals, OnOfValsMean, riseTime, riseTimeMean] = analyzeSensorDynamics(time, sensor, fs, sensTrig)
+function [OnOfVals, riseTimes] = analyzeSensorDynamics(time, sensor, fs, sensTrig)
 %Analyzing the dynamics of the sensor during onset and offset of the
 %stimulus signal.
 [~, numTrial] = size(sensor);
@@ -253,9 +258,7 @@ for ii = 1:numTrial
     OnOfVals  = cat(1, OnOfVals, [onsetSensorVal offsetSensorVal]);
 end
 
-OnOfValsMean = mean(OnOfVals, 1);
-riseTime     = OnOfTime(:,1) - sensTrig(:,1);
-riseTimeMean = mean(riseTime);
+riseTimes = OnOfTime(:,1) - sensTrig(:,1);
 end
 
 function [endRiseInd, startFallInd] = findCrossings(sensor, fs, toggle)
@@ -331,7 +334,7 @@ if toggle == 0 % Automatic selection
 %     plot([endRiseInd endRiseInd], [-100 100], 'b')
 %     hold on
 %     plot([startFallInd startFallInd], [-100 100], 'r')
-%     axis([0 3200 -0.05 4])
+%     axis([0 3200 -0.05 5])
 
 else % Manual selection
     PresFig = figure;
