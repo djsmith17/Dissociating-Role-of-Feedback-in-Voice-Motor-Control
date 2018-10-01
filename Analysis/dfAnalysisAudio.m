@@ -25,6 +25,7 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % -An.f0Type
 % -An.f0AnaFile
 % -An.bTf0b
+% -An.gender
 % -An.sRate
 % -An.audioMSvt
 % -An.audioHSvt
@@ -51,7 +52,7 @@ if AudFlag == 1
    
     % Set some frequency analysis variables
     An.numSamp = length(An.audioMSvt);
-    fV = setFreqAnalVar(An.sRate, An.numSamp);
+    fV = setFreqAnalVar(An.sRate, An.numSamp, An.f0b, An.gender);
     
     % File where to save/find pitch contour analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
@@ -67,8 +68,8 @@ if AudFlag == 1
     % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.f0b, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, An.f0b, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, anaFlag);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, anaFlag);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -228,9 +229,13 @@ An.respVarSD      = [];
 An.InflaStimVar   = [];
 end
 
-function fV = setFreqAnalVar(sRate, numSamp)
+function fV = setFreqAnalVar(sRate, numSamp, f0b, gender)
 
 %Identify a few analysis varaibles
+fV.f0b        = f0b;
+fV.gender     = gender;
+fV.f0Bounds   = identifyf0Bounds(f0b, gender);
+
 fV.sRate      = sRate;
 fV.numSamp    = numSamp;
 fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; %Time vector for full mic
@@ -249,7 +254,7 @@ fV.roundFact = fV.sRate/fV.tStepP;
 fV.winHalf   = fV.win/2;
 end
 
-function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, f0b, flag)
+function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, flag)
 ET = tic;
 [~, numTrial] = size(audio);
 
@@ -263,7 +268,7 @@ if flag == 1
     fV.roundFact = fV.sRate/fV.tStepP;
     fV.winHalf   = 1.0*fV.win;
     
-    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, f0b);
+    [timef0, audiof0, ~] = dfCalcf0Praat(dirs, audio, fs, fV.f0Bounds);
 else
     audiof0 = [];
     for j = 1:numTrial %Trial by Trial             
@@ -295,6 +300,29 @@ expTrigsR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
 % fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+end
+
+function bounds = identifyf0Bounds(f0b, gender)
+% Based on Literature search
+
+defaultMale   = [75 300];
+defaultFemale = [150 500];
+
+switch gender
+    case 'male'
+        if (f0b/2) < defaultMale(1) % Especially low-pitch Male
+            bounds = [25 180];
+        else
+            bounds = defaultMale;
+        end
+        
+    case 'female'
+        if (f0b*2) > defaultFemale(2) % Especially high-pitch Female
+            bounds = [280 600];
+        else
+            bounds = defaultFemale;
+        end
+end
 end
 
 function f0Win = simpleAutoCorr(voice, fV)
