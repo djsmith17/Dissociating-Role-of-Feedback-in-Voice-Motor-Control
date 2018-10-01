@@ -306,7 +306,7 @@ function bounds = identifyf0Bounds(f0b, gender)
 % Based on Literature search
 
 defaultMale   = [75 300];
-defaultFemale = [150 500];
+defaultFemale = [100 500];
 
 switch gender
     case 'male'
@@ -318,7 +318,7 @@ switch gender
         
     case 'female'
         if (f0b*2) > defaultFemale(2) % Especially high-pitch Female
-            bounds = [250 600];
+            bounds = [200 600];
         else
             bounds = defaultFemale;
         end
