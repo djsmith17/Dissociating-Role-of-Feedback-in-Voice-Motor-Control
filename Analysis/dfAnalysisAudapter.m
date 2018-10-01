@@ -68,6 +68,8 @@ for ii = 1:auAn.numTrial
     rms      = data.rms(:,3);     % RMS recording
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
+    typeIdx  = auAn.trialType(ii);
+    type     = auAn.types{typeIdx + 1};
     
     if isfield(niAn, 'audioM')
         MrawNi = niAn.audioM(:,ii);          % Microphone (NIDAQ) 
@@ -78,19 +80,20 @@ for ii = 1:auAn.numTrial
     % Preprocessing step identifies time-series errors in production/recording
     [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, rms, MrawNi, anaTrigs);
     
-    auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual analysis
-    auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual analysis
+    auAn.audioM{ii} = mic;  % Save all trials, regardless of eventual analysis
+    auAn.audioH{ii} = head; % Save all trials, regardless of eventual analysis
 
     if preProSt.saveT == 0     % Don't save the trial :(
-        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
+        fprintf('%s Trial %d (%s) not saved. %s\n', auAn.curSess, ii, type, preProSt.saveTmsg)
         removedTrial = {['Trial ' num2str(ii)], preProSt.saveTmsg};
         auAn.removedTrialTracker = cat(1, auAn.removedTrialTracker, removedTrial);
+        
     elseif preProSt.saveT == 1 % Save the Trial
         svC = svC + 1; % Iterate Saved Trial Count
         
         auAn.allIdxSvt   = cat(1, auAn.allIdxSvt, ii); % Save the experimental index
         auAn.expTrigsSvt = cat(1, auAn.expTrigsSvt, expTrigs); % Save the triggers from this index
-        if auAn.trialType(ii) == 0
+        if typeIdx == 0
             auAn.contIdxSvt  = cat(1, auAn.contIdxSvt, svC); %
             auAn.contTrigSvt = cat(1, auAn.contTrigSvt, expTrigs); %
         else
@@ -146,6 +149,7 @@ auAn.audioM    = []; % Mic data that has received temporal preprocessing (all re
 auAn.audioH    = []; % Head data that has received temporal preprocessing (all recorded trials)
 auAn.numTrial  = []; % Number of trials recorded
 auAn.trialType = []; % Key for identifying Control (0) & Perturbed (1) trials
+auAn.types     = {'Control', 'Perturbed'};
 auAn.expTrigs  = []; % Trigger Onset and Offset (Time) (all recorded trials)
 auAn.anaTrigs  = []; % Trigger Onset and Offset (Points; Audadapter) 
 auAn.removedTrialTracker = {}; % List of Trials that were thrown out during Analysis
@@ -207,10 +211,19 @@ rmsThresh = An.rmsThresh;
 frameDel  = 7;
 
 pp.rawMic      = micR;
+pp.rms         = rms;
 pp.fs          = fs;
+pp.frameLen    = frameLen;
 pp.trialLen    = length(pp.rawMic);
 pp.trialTime   = pp.trialLen/pp.fs;
 pp.t           = linspace(0, pp.trialTime, pp.trialLen);
+pp.auTrigs     = auTrigs; 
+
+pp.micRNi      = micRNi;
+pp.fsNI        = An.sRateNi;
+pp.trialLenNi  = length(micRNi);
+pp.trialTimeNi = pp.trialLenNi/pp.fsNI;
+pp.tNi         = linspace(0, pp.trialTimeNi, pp.trialLenNi);
 
 pp.envCutOff = 40;  % Cutoff frequency for enveloping the audio
 pp.thresh    = 0.3; % Threshold of Decimal amount of full peak height
@@ -230,15 +243,22 @@ pp.threshIdx = find(pp.env > pp.thresh*pp.maxPeak);
 
 % First index of the theoretical useable signal (Voice onset)
 pp.voiceOnsetInd = pp.threshIdx(1);
+pp.voiceOnsetT   = pp.t(pp.voiceOnsetInd);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+pp.preVOnsetTime   = 0.05; %50ms before voice onset
 pp.VOnsetFrame     = floor(pp.voiceOnsetInd/frameLen);
-pp.preVOnsetTime   = 0.05;
 pp.preVOnsetFrames = floor(pp.preVOnsetTime*fs/frameLen);
 
-pp.preVOnsetRMS = mean(rms((-pp.preVOnsetFrames:0)+pp.VOnsetFrame));
+pp.preVoiceRange = (-pp.preVOnsetFrames:0)+pp.VOnsetFrame;
+if sum(pp.preVoiceRange <= 0) > 0
+    pp.preVOnsetRMS = 0;
+else
+    pp.preVOnsetRMS = mean(pp.rms(pp.preVoiceRange));
+end
 
 % Find the delay between NIDAQ recording and Audapter recording
-micRds     = resample(micR, fsNI, fs);           % Downsample the Audapter recording
+micRds        = resample(micR, fsNI, fs);           % Downsample the Audapter recording
 pp.AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
 pp.AuNidelayP = pp.AuNidelay*fs;                       % Convert to points
 
@@ -248,13 +268,13 @@ if AudFBSw == 2 % No Headphone Out
 else
     pp.AuMHdelay = xCorrTimeLag(micR, headR, fs);   % Expect Mic leads Head
 end
-pp.AuMHdelayP = pp.AuMHdelay*fs; % Convert to points
+pp.AuMHdelayP = pp.AuMHdelay*pp.fs; % Convert to points
 
 % Align the Microphone and Headphones
 micAuAl  = micR(1:(end-pp.AuMHdelayP));
 headAuAl = headR((pp.AuMHdelayP+1):end); 
 
-auTrigsAuNi          = auTrigs - pp.AuNidelayP;
+auTrigsAuNi          = auTrigs + pp.AuNidelayP;
 
 % Aim to section audio at 0.5s pre-onset to 1.0s post-offset.
 preOn   = 0.5*fs;
@@ -263,14 +283,15 @@ postOff = 1.0*fs;
 % Audio points on either side of the perturbation period.
 pp.analysisSec(1) = auTrigsAuNi(1) - preOn;   % Where to start the Analysis period
 pp.analysisSec(2) = auTrigsAuNi(2) + postOff; % Where to end the Analysis period
+pp.analysisPoints = pp.analysisSec(1):pp.analysisSec(2);
 pp.analysisFrames = round(pp.analysisSec(1)/frameLen):round(pp.analysisSec(2)/frameLen);
 
 % Check the voice onset time against when we want to start analyzing data
-pp.voiceOnsetLate = pp.analysisSec(1) < pp.voiceOnsetIndAuNi;
+pp.voiceOnsetLate = pp.analysisSec(1) < pp.voiceOnsetInd;
 
 % Check the rest of the signal following the first analysis index...are there any dead zones??
-pp.fallOffLog = rms(pp.analysisFrames) < pp.preVOnsetRMS;
-pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than break tolerance
+pp.fallOffLog = pp.rms(pp.analysisFrames) < pp.preVOnsetRMS;
+pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs/frameLen; % Last longer than break tolerance
 
 if pp.voiceOnsetLate
     saveT    = 0;  
@@ -278,17 +299,14 @@ if pp.voiceOnsetLate
 elseif pp.chk4Break
     saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
-elseif length(micAuNi) < numSamp
-    saveT    = 0;
-    saveTmsg = 'Recording too short!!';
 else
     saveT    = 1;
     saveTmsg = 'Everything is good'; 
 end
 
 % Grab the full numSamp so they can be concatenated cleanly
-micP    = micAuNi(1:numSamp);
-headP   = headAuNi(1:numSamp);
+micP    = micAuAl(pp.analysisPoints);
+headP   = headAuAl(pp.analysisPoints);
 
 pp.saveT    = saveT;    % Save trial or no?
 pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
@@ -314,6 +332,37 @@ for ii = 1:numChunk
     timeSet(ii)  = timeChunk;
     delaySet(ii) = delay*1000;
 end
+end
+
+function drawPreProcessDiagnostic(pp)
+
+plotPos = [1800 10];
+plotDim = [1200 900];
+
+ppDiag = figure('Color', [1 1 1]);
+set(ppDiag, 'Position', [plotPos plotDim],'PaperPositionMode','auto')
+
+ha = tight_subplot(2,1,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
+
+axes(ha(1))
+plot(pp.t, pp.rawMic)
+hold on
+plot(pp.t, pp.env, 'y')
+hold on
+plot([pp.voiceOnsetT pp.voiceOnsetT ], [-0.2 0.2])
+hold on
+plot([pp.t(pp.auTrigs(1)) pp.t(pp.auTrigs(1))], [-0.2 0.2], 'k--')
+hold on
+plot([pp.t(pp.auTrigs(2)) pp.t(pp.auTrigs(2))], [-0.2 0.2], 'k--')
+box off
+axis([0 6 -0.25 0.25])
+
+axes(ha(2))
+plot(pp.tNi, pp.micRNi)
+title(num2str(pp.AuNidelay))
+axis([0 4 -0.25 0.25])
+box off
+
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
