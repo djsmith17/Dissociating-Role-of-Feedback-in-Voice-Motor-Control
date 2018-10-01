@@ -311,14 +311,14 @@ defaultFemale = [150 500];
 switch gender
     case 'male'
         if (f0b/2) < defaultMale(1) % Especially low-pitch Male
-            bounds = [25 180];
+            bounds = [25 250];
         else
             bounds = defaultMale;
         end
         
     case 'female'
         if (f0b*2) > defaultFemale(2) % Especially high-pitch Female
-            bounds = [280 600];
+            bounds = [250 600];
         else
             bounds = defaultFemale;
         end
