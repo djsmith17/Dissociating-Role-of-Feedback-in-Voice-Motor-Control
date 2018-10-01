@@ -90,14 +90,6 @@ for i = 1:AVar.numPart
             % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')
-            
-            if iRF == 1
-               InflaVar = res.InflaStimVar;
-               
-               % Save Inflation Response results for this recording session
-               fprintf('Saving Inflation Response Results for %s %s\n', participant, run)
-               save(dirs.InflaVarFile, 'InflaVar');                
-            end
         end
     end
 end
