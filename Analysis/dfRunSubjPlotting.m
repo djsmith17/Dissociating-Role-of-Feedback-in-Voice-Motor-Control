@@ -11,9 +11,9 @@ function dfRunSubjPlotting()
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'DRF_MN13'}; %List of multiple participants.
+sPlt.participants  = {'DRF_MN6'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'SF2'}; %All runs to consider 
+sPlt.runs          = {'SF3'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 
