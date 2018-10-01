@@ -65,7 +65,7 @@ for ii = 1:auAn.numTrial
     
     Mraw     = data.signalIn;     % Microphone
     Hraw     = data.signalOut;    % Headphones
-    rms      = data.rms(:,3);     % RMS recording
+    rms      = data.rms(:,1);     % RMS recording
     expTrigs = auAn.expTrigs(ii,:);
     anaTrigs = auAn.anaTrigs(ii,:);
     typeIdx  = auAn.trialType(ii);
@@ -80,8 +80,8 @@ for ii = 1:auAn.numTrial
     % Preprocessing step identifies time-series errors in production/recording
     [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, rms, MrawNi, anaTrigs);
     
-    auAn.audioM{ii} = mic;  % Save all trials, regardless of eventual analysis
-    auAn.audioH{ii} = head; % Save all trials, regardless of eventual analysis
+    auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual analysis
+    auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual analysis
 
     if preProSt.saveT == 0     % Don't save the trial :(
         fprintf('%s Trial %d (%s) not saved. %s\n', auAn.curSess, ii, type, preProSt.saveTmsg)
@@ -217,13 +217,15 @@ pp.frameLen    = frameLen;
 pp.trialLen    = length(pp.rawMic);
 pp.trialTime   = pp.trialLen/pp.fs;
 pp.t           = linspace(0, pp.trialTime, pp.trialLen);
-pp.auTrigs     = auTrigs; 
+pp.auTrigs     = auTrigs;
 
 pp.micRNi      = micRNi;
 pp.fsNI        = An.sRateNi;
 pp.trialLenNi  = length(micRNi);
 pp.trialTimeNi = pp.trialLenNi/pp.fsNI;
 pp.tNi         = linspace(0, pp.trialTimeNi, pp.trialLenNi);
+
+pp.numSamp     = pp.trialTimeNi*pp.fs;
 
 pp.envCutOff = 40;  % Cutoff frequency for enveloping the audio
 pp.thresh    = 0.3; % Threshold of Decimal amount of full peak height
@@ -270,11 +272,7 @@ else
 end
 pp.AuMHdelayP = pp.AuMHdelay*pp.fs; % Convert to points
 
-% Align the Microphone and Headphones
-micAuAl  = micR(1:(end-pp.AuMHdelayP));
-headAuAl = headR((pp.AuMHdelayP+1):end); 
-
-auTrigsAuNi          = auTrigs + pp.AuNidelayP;
+auTrigsAuNi = auTrigs + pp.AuNidelayP;
 
 % Aim to section audio at 0.5s pre-onset to 1.0s post-offset.
 preOn   = 0.5*fs;
@@ -304,9 +302,22 @@ else
     saveTmsg = 'Everything is good'; 
 end
 
+% Align the Microphone and Headphones
+micAuAl  = micR(1:(end-pp.AuMHdelayP));
+headAuAl = headR((pp.AuMHdelayP+1):end); 
+
+% Adjust for delay between Audapter and NIDAQ
+if pp.AuNidelayP > 0 % As long as the delay is non 0
+    micAuNi  = micAuAl(pp.AuNidelayP:end);
+    headAuNi = headAuAl(pp.AuNidelayP:end);
+else
+    micAuNi  = micAuAl;
+    headAuNi = headAuAl;
+end 
+
 % Grab the full numSamp so they can be concatenated cleanly
-micP    = micAuAl(pp.analysisPoints);
-headP   = headAuAl(pp.analysisPoints);
+micP    = micAuNi(1:pp.numSamp);
+headP   = headAuNi(1:pp.numSamp);
 
 pp.saveT    = saveT;    % Save trial or no?
 pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
