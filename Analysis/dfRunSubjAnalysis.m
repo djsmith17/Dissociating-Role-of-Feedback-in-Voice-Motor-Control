@@ -27,7 +27,7 @@ AVar.participants  = {'DRF_MN6',...
                       'DRF_MN16',...
                       'DRF_MN18',...
                       'DRF_MN19',...
-                      'DRF_MN21'};;    % List of multiple participants.
+                      'DRF_MN21'};   % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
 AVar.runs          = {'SF1', 'SF2', 'SF3'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
@@ -101,14 +101,6 @@ for i = 1:AVar.numPart
             % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')
-            
-            if iRF == 1
-               InflaVar = res.InflaStimVar;
-               
-               % Save Inflation Response results for this recording session
-               fprintf('Saving Inflation Response Results for %s %s\n', participant, run)
-               save(dirs.InflaVarFile, 'InflaVar');                
-            end
         end
     end
 end
