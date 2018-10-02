@@ -69,8 +69,12 @@ end
 
 allSubjRes         = initSortedStruct(pA.numCond);
 allSubjRes.subject = 'Mean Participant Response';
-allSubjRes.curSess = allSubjRes.subject; 
-allSubjRes.cond    = pA.cond;  
+allSubjRes.curSess = allSubjRes.subject;
+allSubjRes.cond    = pA.cond;
+
+tossTrialTracker = []; %structure of keeping of which trials and when
+tossTrialTracker.curSess = {};
+tossTrialTracker.tossedTrials = {};
 
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
@@ -89,8 +93,12 @@ for ii = 1:pA.numPart
         sortStruc.gender  = curRes.gender;
         sortStruc.age     = curRes.age;
         
-        sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
-        allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
+        [tossT, tDetails] = identifyTossedTrials(curRes);
+        tossTrialTracker.curSess      = cat(1, tossTrialTracker.curSess, curRes.curSess);
+        tossTrialTracker.tossedTrials = cat(1, tossTrialTracker.tossedTrials, {tDetails});
+        
+        sortStruc  = combineCondTrials(pA, curRes, sortStruc, tossT);       
+        allSubjRes = combineCondTrials(pA, curRes, allSubjRes, tossT);
     end
         
     sortStruc = meanCondTrials(pA, sortStruc);
@@ -110,6 +118,12 @@ fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
 fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
 fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
 
+tossedTable = table(tossTrialTracker.curSess, tossTrialTracker.tossedTrials, 'VariableNames', {'CurSess', 'TossedTrials'});
+uitable('Data', tossedTable{:,:},...
+                'Units', 'Normalized',... 
+                'Position', [0, 0, 1, 1]);
+            
+
 [mAge, rAge, gRatio] = demoStats(allSubjRes);
 fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f (Mean: %.1f)\n', rAge(1), rAge(2), mAge)
 fprintf('This data set includes %d males, and %d females\n\n', gRatio(1), gRatio(2))
@@ -119,8 +133,8 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 
-dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
-% xlswrite(dirs.excelFile, statLib, 1)
+dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.xlsx']);
+writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
 end
 
 function sortStr = initSortedStruct(numCond)
@@ -165,7 +179,7 @@ sortStr.tossedBreak      = 0;
 sortStr.tossedMisCalc    = 0;
 end
 
-function polRes = combineCondTrials(pA, curRes, polRes)
+function polRes = combineCondTrials(pA, curRes, polRes, tossT)
 
 whichCondAr = strcmp(pA.cond, eval(pA.condVar));
 wC          = find(whichCondAr == 1);            % Which Condition?
@@ -186,22 +200,50 @@ polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 polRes.secTimeP            = curRes.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, curRes.sensorPSec);
 
-tT = curRes.removedTrialTracker;
-if ~isempty(tT)
-    [tossedA, ~] = size(tT);
-    tossedL = sum(strcmp(tT(:,2), 'Participant started too late!!'));
-    tossedB = sum(strcmp(tT(:,2), 'Participant had a voice break!!'));
-    tossedC = sum(strcmp(tT(:,2), 'Miscalculated pitch Trace'));
-else
-    tossedA = 0;
-    tossedL = 0;
-    tossedB = 0;
-    tossedC = 0;
+polRes.tossedAll     = polRes.tossedAll + tossT.A;     % All
+polRes.tossedLate    = polRes.tossedLate + tossT.L;    % Late Start
+polRes.tossedBreak   = polRes.tossedBreak + tossT.B;   % Voice Break
+polRes.tossedMisCalc = polRes.tossedMisCalc + tossT.C; % f0 Miscalc
 end
-polRes.tossedAll     = polRes.tossedAll + tossedA;
-polRes.tossedLate    = polRes.tossedLate + tossedL;
-polRes.tossedBreak   = polRes.tossedBreak + tossedB;
-polRes.tossedMisCalc = polRes.tossedMisCalc + tossedC;
+
+function [tossT, tDetails] = identifyTossedTrials(curRes)
+
+tT = curRes.removedTrialTracker;
+tDetails = [];
+if ~isempty(tT)
+    [tossAll, ~] = size(tT);
+    
+    tossLate  = strcmp(tT(:,2), 'Participant started too late!!');
+    tossBreak = strcmp(tT(:,2), 'Participant had a voice break!!');
+    tossCalc  = strcmp(tT(:,2), 'Miscalculated pitch Trace');
+
+    tossT.A = sum(tossAll); 
+    tossT.L = sum(tossLate);
+    tossT.B = sum(tossBreak);
+    tossT.C = sum(tossCalc);
+    
+    tDetails = writeTossedDetails(tT, tossLate, 'LS', tDetails);
+    tDetails = writeTossedDetails(tT, tossBreak, 'VB', tDetails);
+    tDetails = writeTossedDetails(tT, tossCalc, 'MC', tDetails);    
+else
+    tossT.A = 0;
+    tossT.L = 0;
+    tossT.B = 0;
+    tossT.C = 0;
+    tDetails = '';
+end
+
+end
+
+function tDetails = writeTossedDetails(tT, logicToss, note, tDetails)
+    
+numTrials = sum(logicToss);
+curTrials = tT(logicToss);
+for i = 1:numTrials
+    curTrial = curTrials{i};
+    spc = find(curTrial == ' ');
+    tDetails = cat(2, tDetails, [curTrial(spc+1:end) '(' note ') ']);
+end
 end
 
 function polRes = meanCondTrials(pA, polRes)
