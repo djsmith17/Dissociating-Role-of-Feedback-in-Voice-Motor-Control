@@ -59,6 +59,10 @@ auAn.trialType  = expParam.trialType;
 auAn.expTrigs   = expParam.trigs(:,:,1);
 auAn.anaTrigs   = expParam.trigs(:,:,3);
 
+if isfield(DRF, 'incTrialInfo')
+    auAn.incTrialInfo = DRF.incTrialInfo;
+end
+
 svC = 0; % Saved Trial Count
 for ii = 1:auAn.numTrial
     data = rawData(ii);       % Get the data from this trial
@@ -152,7 +156,8 @@ auAn.trialType = []; % Key for identifying Control (0) & Perturbed (1) trials
 auAn.types     = {'Control', 'Perturbed'};
 auAn.expTrigs  = []; % Trigger Onset and Offset (Time) (all recorded trials)
 auAn.anaTrigs  = []; % Trigger Onset and Offset (Points; Audadapter) 
-auAn.removedTrialTracker = {}; % List of Trials that were thrown out during Analysis
+auAn.removedTrialTracker = {}; % List of Trials that were automatically thrown out during Analysis
+auAn.incTrialInfo = []; % Record of manual trial removal
 
 auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
 auAn.audioHSvt     = []; % Headphone recordings for the trials saved for further analyses
@@ -590,6 +595,7 @@ res.numTrial      = auAn.numTrial;    % Total trials recorded
 res.audioM        = auAn.audioM;      % Raw microphone recording (no lag correction)
 res.audioH        = auAn.audioH;      % Raw headphone recording  (no lag correction)
 res.removedTrialTracker = auAn.removedTrialTracker;
+res.incTrialInfo = auAn.incTrialInfo;
 
 % Post temporal processing data
 res.numTrialSvt   = auAn.numTrialSvt;   % Number of trials saved (post temporal processing)
