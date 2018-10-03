@@ -63,6 +63,10 @@ if isfield(expParam, 'incTrialInfo')
     auAn.incTrialInfo = DRF.incTrialInfo;
 end
 
+if isfield(expParam, 'NonSeqAudFB')
+    auAn.NonSeqAudFB = expParam.NonSeqAudFB;
+end
+
 svC = 0; % Saved Trial Count
 for ii = 1:auAn.numTrial
     data = rawData(ii);       % Get the data from this trial
@@ -140,6 +144,7 @@ auAn.age       = [];        % Participant age
 auAn.f0b       = [];        % Participant f0 from baseline recording
 auAn.AudFB     = [];        % Form of Auditory Feedback used in experimental run
 auAn.AudFBSw   = [];        % Auditory Feedback settings used in experimental run
+auAn.NonSeqAudFB = [];      % If different AudFB was presented from trial-to-trial, track it here. 
 
 auAn.sRate     = []; % Sampling Rate of Audapter (down-sampled)
 auAn.sRateNi   = []; % Sampling Rate of NIDAQ
@@ -586,6 +591,7 @@ res.age     = auAn.age;
 
 res.expType = auAn.expType;
 res.AudFB   = auAn.AudFB;
+res.NonSeqAudFB = auAn.NonSeqAudFB;
 
 res.f0Type = auAn.f0Type;
 res.etMH   = auAn.etMH;
