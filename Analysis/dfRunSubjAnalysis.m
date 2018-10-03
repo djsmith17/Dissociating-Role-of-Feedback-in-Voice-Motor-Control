@@ -48,16 +48,10 @@ for i = 1:AVar.numPart
         % Define where to load raw data and save analyzed results
         dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);  % Where to find data
         dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                % Where to save results
-        dirs.InflaVarDir   = fullfile(dirs.LoadData, participant, 'IV1');                             % Where to save results
-
+        
         % Make sure there is a place to save results
         if exist(dirs.SavResultsDir, 'dir') == 0
             mkdir(dirs.SavResultsDir)
-        end
-        
-        % Make sure there is a place to save results
-        if exist(dirs.InflaVarDir, 'dir') == 0
-            mkdir(dirs.InflaVarDir)
         end
         
         % Look for the recording sessoin raw data for this participant, then load it
@@ -72,9 +66,9 @@ for i = 1:AVar.numPart
         
         % Identify the type of experiment and decide what types of analyzes
         % we need. pF: Pressure Flag; iRF: Inflation Response Flag
-        AVar.expType = DRF.expParam.expType;
-        [pF, iRF] = checkDRFExpType(AVar.expType);
-        aFn = 0; aFa = 1; %Audio Analysis Flag        
+        
+        [DRF, pF, iRF] = preAnalysisCheck(AVar.expType);
+        aFn = 0; aFa = 1; %Audio Analysis Flag
         
         % Analysis on the NIDAQ raw data
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
@@ -85,7 +79,6 @@ for i = 1:AVar.numPart
         res = combineRes(niRes, auRes);
         
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
-        dirs.InflaVarFile   = fullfile(dirs.InflaVarDir, [participant 'IV1' 'DRF.mat']);
         if AVar.debug == 0
             % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
@@ -209,14 +202,16 @@ else
 end
 end
 
-function [pF, iRF] = checkDRFExpType(expType)
-% checkDRFExpType(expType) returns flags for different analyses to be 
+function [DRF, pF, iRF] = preAnalysisCheck(DRF)
+% preAnalysisCheck(DRF) returns flags for different analyses to be 
 % performed. expType will be the name of the experiment, and will likely be
 % either 'Somatosensory Perturbation_Perceptual' or 'Auditory
 % Perturbation_Perceptual. 
 %
 % This returns answers for pF (Pressure Flag) and iRF (Inflation Response
 % Flag)
+
+expType = DRF.expParam.expType;
 
 if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
     % Laryngeal perturbations. AKA, we want to analyze the pressure, and 
@@ -227,5 +222,9 @@ else
     % No laryngeal perturbations
     pF  = 0;      %Pressure Analysis Flag
     iRF = 0;      %Inflation Response Flag
+end
+
+if ~isfield(DRF.expParam, 'age')
+    DRF.expParam.age = NaN;
 end
 end
