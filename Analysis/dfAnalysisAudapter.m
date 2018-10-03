@@ -59,7 +59,7 @@ auAn.trialType  = expParam.trialType;
 auAn.expTrigs   = expParam.trigs(:,:,1);
 auAn.anaTrigs   = expParam.trigs(:,:,3);
 
-if isfield(DRF, 'incTrialInfo')
+if isfield(expParam, 'incTrialInfo')
     auAn.incTrialInfo = DRF.incTrialInfo;
 end
 
