@@ -26,7 +26,7 @@ close all;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_ENP3';   % Subject#, Pilot#, null
+subject    = 'null';   % Subject#, Pilot#, null
 run        = 'SFL1';
 jitt       = 1;           % 0 Starts with Masking Noise, 1 Starts with Voice
 
@@ -102,7 +102,7 @@ for ii = 1:expParam.numTrial
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];    
     
     curStimType      = mod(ii+jitt,2) + 1;
-    expParam.AudFB   = FBNames(curStimType); % Alternating trials
+    expParam.AudFB   = FBNames{curStimType}; % Alternating trials
     expParam.AudFBSw = FBTypes(curStimType); % Alternating trials
     instrFB          = FBInstr(curStimType); % Alternating trials
     
