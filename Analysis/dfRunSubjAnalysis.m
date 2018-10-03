@@ -16,9 +16,16 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF_MN6'};    % List of multiple participants.
+AVar.participants  = {'Pilot29';...
+                      'Pilot30';...
+                      'Pilot31';...
+                      'Pilot32';...
+                      'Pilot33';...
+                      'Pilot21';...
+                      'Pilot28';...
+                      'Pilot0'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF3'}; %    List of multiple runs.
+AVar.runs          = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
@@ -67,7 +74,7 @@ for i = 1:AVar.numPart
         % Identify the type of experiment and decide what types of analyzes
         % we need. pF: Pressure Flag; iRF: Inflation Response Flag
         
-        [DRF, pF, iRF] = preAnalysisCheck(AVar.expType);
+        [DRF, pF, iRF] = preAnalysisCheck(DRF, f0b);
         aFn = 0; aFa = 1; %Audio Analysis Flag
         
         % Analysis on the NIDAQ raw data
@@ -202,7 +209,7 @@ else
 end
 end
 
-function [DRF, pF, iRF] = preAnalysisCheck(DRF)
+function [DRF, pF, iRF] = preAnalysisCheck(DRF, f0b)
 % preAnalysisCheck(DRF) returns flags for different analyses to be 
 % performed. expType will be the name of the experiment, and will likely be
 % either 'Somatosensory Perturbation_Perceptual' or 'Auditory
@@ -226,5 +233,9 @@ end
 
 if ~isfield(DRF.expParam, 'age')
     DRF.expParam.age = NaN;
+end
+
+if ~isfield(DRF.expParam, 'f0b')
+    DRF.expParam.f0b = f0b;
 end
 end
