@@ -16,7 +16,7 @@ function dfRunSubjAnalysisEndo()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF_ENP3'};    % List of multiple participants.
+AVar.participants  = {'DRF_ENP4'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
 AVar.run           = 'SFL1';
 AVar.trials        = 10;
@@ -56,6 +56,7 @@ for i = 1:AVar.numPart
     ssVF  = createSortingStruct();
     ssMN  = createSortingStruct();
     ssAll = createSortingStruct();
+    ssAll.SeqAudFB = {}; ssAll.SeqAudFBSw = [];
     for j = 1:AVar.trials
         dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'Trial' num2str(j) 'DRF.mat']);  % Where to find data        
         
@@ -74,12 +75,14 @@ for i = 1:AVar.numPart
         else        
             [DRFMN, ssMN] = ammendSortingStruc(DRF, ssMN, j);
         end
-        [DRFAll, ssAll] = ammendSortingStruc(DRF, ssAll, j);        
+        [DRFAll, ssAll] = ammendSortingStruc(DRF, ssAll, j);
+        ssAll.SeqAudFB   = cat(1, ssAll.SeqAudFB, DRF.expParam.AudFB);
+        ssAll.SeqAudFBSw = cat(1, ssAll.SeqAudFBSw, DRF.expParam.AudFBSw);
     end
     
     for ii = 1:3
         ext = AVar.cond{ii};
-        ss = eval(['ss' ext]);
+        ss  = eval(['ss' ext]);
         DRF = eval(['DRF' ext]);
         
         DRF.expParam.curSess   = [DRF.expParam.curSess ext];
@@ -87,7 +90,11 @@ for i = 1:AVar.numPart
         DRF.expParam.trialType = ss.trialType;
         DRF.expParam.sigs      = ss.sigs;
         DRF.expParam.trigs     = ss.trigs;
-        DRF.expParam.NonSeqAudFB = ss.NonSeqAudFB;
+        
+        if strcmp(ext, 'All')
+            DRF.expParam.SeqAudFB   = ss.SeqAudFB;
+            DRF.expParam.SeqAudFBSw = ss.SeqAudFBSw;
+        end            
         
         DRF.rawData = ss.rawData;
         DRF.DAQin   = ss.DAQin;
@@ -126,7 +133,7 @@ res.age     = auRes.age;
 
 res.expType = auRes.expType;
 res.AudFB   = auRes.AudFB;
-res.NonSeqAudFB = auRes.NonSeqAudFB;
+res.SeqAudFB = auRes.SeqAudFB;
 
 res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
@@ -270,7 +277,6 @@ ss.sigs      = [];
 ss.trigs     = [];
 ss.rawData   = [];
 ss.DAQin     = [];
-ss.NonSeqAudFB = {};
 end
 
 function [DRFe, ss] = ammendSortingStruc(DRF, ss, j)
@@ -285,5 +291,4 @@ ss.sigs      = cat(2, ss.sigs, DRF.expParam.sigs(:,j));
 ss.trigs     = cat(1, ss.trigs, DRF.expParam.trigs(j, :, :));
 ss.rawData   = cat(1, ss.rawData, DRF.rawData);
 ss.DAQin     = cat(3, ss.DAQin, DRF.DAQin);
-ss.NonSeqAudFB = cat(1, ss.NonSeqAudFB, DRF.expParam.AudFB);
 end
