@@ -11,12 +11,12 @@ function dfRunSubjPlotting()
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'DRF_ENP3'}; %List of multiple participants.
+sPlt.participants  = {'DRF_ENP4'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
 sPlt.runs          = {'SFL1'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
-ext                = 'VF';
+ext                = 'All';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                      = 1;
