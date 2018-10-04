@@ -408,8 +408,8 @@ function [secTime, secSigs] = sectionData(sigs, fs, trigs)
 %          The 2nd 3D later are Offset Sections
 
 [~, numTrial] = size(sigs);
-preEveT  = 0.5; posEveT = 1.0;
-preEve = preEveT*fs; posEve = posEveT*fs;
+preEveT = 0.5; posEveT = 1.0;
+preEve  = preEveT*fs; posEve = posEveT*fs;
 
 secSigs    = [];
 OnsetSecs  = [];
@@ -438,7 +438,7 @@ else
     numSampSec = 1200;
 end
 
-secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
+secTime = linspace(-preEveT, posEveT, numSampSec); % time vector correspnding to the sectioned signals
 secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
 secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
 end
