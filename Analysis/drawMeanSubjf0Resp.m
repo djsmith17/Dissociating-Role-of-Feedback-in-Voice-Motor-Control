@@ -16,16 +16,16 @@ time             = poolRes.secTime;
 contf0           = poolRes.audioMf0MeanCont;  
 pertf0           = poolRes.audioMf0MeanPert;
 
-statLib = poolRes.statLib;
-statSMM = round(statLib(1), 1);
-statSMV = round(statLib(2), 1);
-statRMM = round(statLib(3), 1);
-statRMV = round(statLib(4), 1);
-statRPM = round(statLib(5));
-statRPV = round(statLib(6));
-statSP  = statLib(7);
-statRP  = statLib(8);
-statPP  = statLib(9);
+statLib = poolRes.statLib;      % Stats Library
+statSMM = round(statLib(1), 1); % Mean Stimulus Magnitude (Masked)
+statSMV = round(statLib(2), 1); % Mean Stimulus Magnitude (Voice)
+statRMM = round(statLib(3), 1); % Mean Response Magnitude (Masked)
+statRMV = round(statLib(4), 1); % Mean Response Magnitude (Voice)
+statRPM = round(statLib(5));    % Mean Response Percentage (Masked)
+statRPV = round(statLib(6));    % Mean Response Percentage (Voice)
+statSP  = statLib(7);           % p-value of Stimulus Magnitude t-test
+statRP  = statLib(8);           % p-value of Response Magnitude t-test
+statPP  = statLib(9);           % p-value of Response Percentage t-test
 
 limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
@@ -64,12 +64,12 @@ if presFlag == 1
     m = (limits(4) - limits(3))/(limitsP(4) - limitsP(3));
     b = limits(3) - m*limitsP(3);
     
-    adjustPres = (m*sensorP(:,1)+ b);
+    adjustPres  = (m*sensorP(:,1)+ b);
     adjustPresB = (m*sensorP(:,2)+ b);
     
-    minPres = min(adjustPres);
+    minPres     = min(adjustPres);
     [~, maxInd] = max(adjustPres);
-    [minInds] = find(adjustPres > 0.98*minPres);
+    [minInds]   = find(adjustPres > 0.98*minPres);
     minInd = minInds(1);
     StTime = timeP(minInd);
     SpTime = timeP(maxInd);
