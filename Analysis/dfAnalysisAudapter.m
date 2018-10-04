@@ -60,7 +60,7 @@ auAn.expTrigs   = expParam.trigs(:,:,1);
 auAn.anaTrigs   = expParam.trigs(:,:,3);
 
 if isfield(expParam, 'incTrialInfo')
-    auAn.incTrialInfo = DRF.incTrialInfo;
+    auAn.incTrialInfo = expParam.incTrialInfo;
 end
 
 if isfield(expParam, 'SeqAudFB')
