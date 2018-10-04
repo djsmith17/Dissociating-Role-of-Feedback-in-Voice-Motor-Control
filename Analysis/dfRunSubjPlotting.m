@@ -11,7 +11,7 @@ function dfRunSubjPlotting()
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'DRF_ENP4'}; %List of multiple participants.
+sPlt.participants  = {'DRF_ENP3'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
 sPlt.runs          = {'SFL1'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
@@ -46,28 +46,28 @@ for ii = 1:sPlt.numPart
         end        
         
         if sPlt.drawDAQAll == 1
-            drawDAQAll(res, dirs.SavResultsDir, sv2File)
+            drawDAQAll(res, dirs.PlotResultsDir, sv2File)
         end
         
         if sPlt.drawDAQPresMic == 1
-            drawDAQPresMic(res, dirs.SavResultsDir)
+            drawDAQPresMic(res, dirs.PlotResultsDir)
         end
         
         if sPlt.drawDAQAlignedPressure == 1
-            drawDAQAlignedPressure(res, dirs.SavResultsDir, sv2File)
+            drawDAQAlignedPressure(res, dirs.PlotResultsDir, sv2File)
         end
         
         if sPlt.drawMeanTrial_PertCont == 1
-            drawMeanTrialMicf0(res, dirs.SavResultsDir, presFlag)
+            drawMeanTrialMicf0(res, dirs.PlotResultsDir, presFlag)
         end
         
         if sPlt.drawAllTrial_Pert == 1
-            drawAllPertTrialMicf0(res, dirs.SavResultsDir, presFlag)
+            drawAllPertTrialMicf0(res, dirs.PlotResultsDir, presFlag)
         end            
         
         if sPlt.drawMeanTrial_MicHead == 1
-            drawAudRespIndivTrial(res, dirs.SavResultsDir)
-            drawAudRespMeanTrial(res, dirs.SavResultsDir)
+            drawAudRespIndivTrial(res, dirs.PlotResultsDir)
+            drawAudRespMeanTrial(res, dirs.PlotResultsDir)
         end
     end
 end
