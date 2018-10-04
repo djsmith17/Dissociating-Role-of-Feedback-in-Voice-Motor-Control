@@ -103,9 +103,11 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.OnOfValP   = [];
-niAn.OnOfValPm  = [];
+niAn.OnOfValPm  = []; niAn.OnOfValPSE  = []; 
 niAn.riseTimeP  = [];
-niAn.riseTimePm = [];
+niAn.riseTimePm = []; niAn.riseTimePSE = [];
+niAn.pTrialLossP = [];
+niAn.pTrialLossPm = []; niAn.pTrialLossPSE = [];
 niAn.timeAl     = [];
 niAn.sensorPAl  = [];
 niAn.timeSec    = [];
@@ -123,11 +125,13 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
     
     niAn.OnOfValPm    = mean(niAn.OnOfValP);
-    niAn.OnOfValPstd  = std(niAn.OnOfValP);
+    niAn.OnOfValPSE   = (std(niAn.OnOfValP))/sqrt(niAn.numTrial);
     niAn.riseTimePm   = mean(niAn.riseTimeP);
-    niAn.riseTimePstd = std(niAn.riseTimeP);
+    niAn.riseTimePSE  = (std(niAn.riseTimeP))/sqrt(niAn.numTrial);
     
-%     diff(niAn.OnOfValP)
+    niAn.pTrialLossP   = diff(niAn.OnOfValP(:,1));
+    niAn.pTrialLossPm  = mean(niAn.pTrialLossP);
+    niAn.pTrialLossPSE = (std(niAn.pTrialLossP))/sqrt(niAn.numTrial-1);
 
     % Section and aligning pressure signal for perturbed trials
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
@@ -230,10 +234,10 @@ lags = sensorTrig - pertTrig;
 lagsMean = mean(lags, 1);
 lagsSTD  = std(lags, 0, 1);
 
-SEM = lagsSTD/sqrt(length(lags)); 
-CIM = 1.96*SEM;
+SEM = lagsSTD/sqrt(length(lags)); % Standard Error
+CIM = 1.96*SEM;                   % 95% Confidence Interval
 
-lagMeans = [lagsMean, CIM];
+lagMeans = [lagsMean; SEM]; %OnsetMean OffsetMean; OnsetSEM, OffsetSEM
 end
 
 function [OnOfVals, riseTimes] = analyzeSensorDynamics(time, sensor, fs, sensTrig)
@@ -633,8 +637,13 @@ res.lagTimeP   = niAn.lagsPres;
 res.lagTimePm  = niAn.meanLagTimeP;
 res.riseTimeP  = niAn.riseTimeP;
 res.riseTimePm = niAn.riseTimePm;
+res.riseTimePSE = niAn.riseTimePSE;
 res.OnOfValP   = niAn.OnOfValP;
 res.OnOfValPm  = niAn.OnOfValPm;
+res.OnOfValPSE = niAn.OnOfValPSE;
+res.pTrialLossP = niAn.pTrialLossP;
+res.pTrialLossPm = niAn.pTrialLossPm; 
+res.pTrialLossPSE = niAn.pTrialLossPSE;
 res.limitsP    = lims.pressure;
 
 % Sectioned and Aligned Pressure recordings 
