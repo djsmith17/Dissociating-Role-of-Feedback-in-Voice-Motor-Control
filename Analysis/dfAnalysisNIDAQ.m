@@ -136,7 +136,7 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     % Section and aligning pressure signal for perturbed trials
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     
-    [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
+    [niAn.secTimeP, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     niAn.sensorPMean                = meanSensorData(niAn.sensorPSec);   
 end
 
@@ -651,7 +651,7 @@ res.timeSAl   = niAn.timeAl;
 res.sensorPAl = niAn.sensorPAl;
 res.limitsPAl = lims.pressureAl;
 
-res.timeSec     = niAn.timeSec;
+res.secTimeP    = niAn.secTimeP;
 res.sensorPSec  = niAn.sensorPSec;
 res.sensorPMean = niAn.sensorPMean;
 res.limitsPMean = lims.pressureMean;

@@ -16,9 +16,9 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF_MN10'};    % List of multiple participants.
+AVar.participants  = {'Pilot29'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF2'}; %    List of multiple runs.
+AVar.runs          = {'DS1'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
@@ -127,7 +127,7 @@ res.timeSAl       = niRes.timeSAl;
 res.sensorPAl     = niRes.sensorPAl;  
 res.limitsPAl     = niRes.limitsPAl;
 
-res.timeSec     = niRes.timeSec;
+res.secTimeP    = niRes.secTimeP;
 res.sensorPSec  = niRes.sensorPSec;
 res.sensorPMean = niRes.sensorPMean;
 res.limitsPMean = niRes.limitsPMean;

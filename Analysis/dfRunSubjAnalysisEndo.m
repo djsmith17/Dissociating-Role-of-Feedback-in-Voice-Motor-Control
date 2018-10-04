@@ -163,7 +163,7 @@ res.timeSAl       = niRes.timeSAl;
 res.sensorPAl     = niRes.sensorPAl;  
 res.limitsPAl     = niRes.limitsPAl;
 
-res.timeSec     = niRes.timeSec;
+res.secTimeP    = niRes.secTimeP;
 res.sensorPSec  = niRes.sensorPSec;
 res.sensorPMean = niRes.sensorPMean;
 res.limitsPMean = niRes.limitsPMean;
