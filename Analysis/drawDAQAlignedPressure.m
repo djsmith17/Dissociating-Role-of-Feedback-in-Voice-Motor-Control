@@ -18,8 +18,8 @@ RiseTimeM  = 1000*res.riseTimePm;
 RiseTimeSE = round(1000*res.riseTimePSE,1);
 RiseNote = ['Mean Rise Time: ' num2str(RiseTimeM) ' ms ± ' num2str(RiseTimeSE) ' ms'];
 
-PresLossM  = round(res.pTrialLossPm, 2);
-PresLossSE = round(res.pTrialLossPSE, 2);
+PresLossM  = round(res.pTrialLossPm, 3);
+PresLossSE = round(res.pTrialLossPSE, 3);
 PresLossNote = ['Mean Pressure Loss: ' num2str(PresLossM) ' psi ± ' num2str(PresLossSE) ' psi'];
 
 if isfield(res, 'balloon')
@@ -63,7 +63,7 @@ pltlgd = legend(h, lgdNames);
 set(pltlgd, 'box', 'off',...
             'location', 'NorthWest'); 
 
-t = annotation('textbox',[0.67 0.76 0.45 0.1],...
+t = annotation('textbox',[0.65 0.76 0.45 0.1],...
                'string', {LagNote;...
                           RiseNote;...
                           PresLossNote;...
