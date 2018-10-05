@@ -259,9 +259,15 @@ for kk = 1:pA.numCond
     polRes.respVarM(kk, :)      = mean(polRes.respVar{kk}, 1);
 end
 
+% Identify Limits of the newly meaned data
 lims = identifyLimits(polRes);
 polRes.limitsAmean = lims.audioMean;
 polRes.limitsPmean = lims.presMean;
+
+% Scale Pressure traces against the f0 traces
+[sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
+polRes.sensorPAdjust = sensorPAdjust;
+polRes.InflDeflT     = InflDeflT;
 
 statLib         = packStatLib(polRes);
 polRes.statLib  = statLib;
@@ -286,6 +292,105 @@ NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
 NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
 meanData   = [meanOnset NCIOnset meanOffset NCIOffset];
+end
+
+function lims = identifyLimits(ss)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% f0 Traces Limits
+mf0MeanPert = ss.audioMf0MeanPert;
+numCond     = length(mf0MeanPert);
+
+setupBoundSec = zeros(numCond, 1);
+setlwBoundSec = zeros(numCond, 1);
+for ii = 1:numCond
+    audioMean = mf0MeanPert{ii};    
+
+    [~, Imax] = max(audioMean(:,1)); %Max Pert Onset
+    upBoundOn = round(audioMean(Imax,1) + audioMean(Imax,2) + 10);
+    [~, Imin] = min(audioMean(:,1)); %Min Pert Onset
+    lwBoundOn = round(audioMean(Imin,1) - audioMean(Imin,2) - 10);
+
+    [~, Imax] = max(audioMean(:,3)); %Max Pert Offset
+    upBoundOf = round(audioMean(Imax,3) + audioMean(Imax,4) + 10);
+    [~, Imin] = min(audioMean(:,3)); %Min Pert Offset
+    lwBoundOf = round(audioMean(Imin,3) - audioMean(Imin,4) - 10);
+
+    if upBoundOn > upBoundOf
+        upBoundSec = upBoundOn;
+    else
+        upBoundSec = upBoundOf;
+    end
+
+    if lwBoundOn < lwBoundOf
+        lwBoundSec = lwBoundOn;
+    else
+        lwBoundSec = lwBoundOf;
+    end
+    
+    setupBoundSec(ii) = upBoundSec;
+    setlwBoundSec(ii) = lwBoundSec;  
+end
+
+maxUpBound = max(setupBoundSec); % Max f0 Bound
+minLwBound = min(setlwBoundSec); % Min f0 Bound 
+
+lims.audioMean = [-0.5 1.0 minLwBound maxUpBound];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pressure Traces Limits
+maxPres = max(ss.sensorPMean(:,1)) + 0.5;
+minPres = min(ss.sensorPMean(:,1)) - 0.1;
+
+lims.presMean = [-0.5 1.0 minPres maxPres];
+end
+
+function [adjustPres, InflDeflT] = adjustPressureVals(ss)
+
+time        = ss.secTimeP;
+presOnsetM  = ss.sensorPMean(:,1);
+presOnsetE  = ss.sensorPMean(:,2);
+presOffsetM = ss.sensorPMean(:,3);
+presOffsetE = ss.sensorPMean(:,4);
+
+limsA    = ss.limitsAmean;
+limsAMin = limsA(3); limsAMax = limsA(4);
+limsP    = ss.limitsPmean;
+limsPMin = limsP(3); limsPMax = limsP(4);
+
+% Scale pressure values against the 
+m = (limsAMax - limsAMin)/(limsPMax - limsPMin);
+b = limsAMin - m*limsPMin;
+
+adjPresOnsetM  = (m*presOnsetM + b);
+adjPresOnsetE  = (m*presOnsetE + b);
+adjPresOffsetM = (m*presOffsetM + b);
+adjPresOffsetE = (m*presOffsetE + b);
+
+adjPresOnsetMin = min(adjPresOnsetM);
+[~, maxInd]     = max(adjPresOnsetM);
+[minInds]       = find(adjPresOnsetM > 0.98*adjPresOnsetMin);
+minInd          = minInds(1);
+
+StInflTime = time(minInd);
+SpInflTime = time(maxInd);
+
+adjPresOffsetMax = max(adjPresOffsetM);
+[maxInds] = find(adjPresOffsetM < 0.95*adjPresOffsetMax);
+maxInd    = maxInds(1);
+
+adjPresOffsetMin = min(adjPresOffsetM);
+[minInds] = find(adjPresOffsetM > 0.98*adjPresOffsetMin & adjPresOffsetM < 0.97*adjPresOffsetMin);
+minInd    = minInds(1);  
+
+fD = 20*[diff(adjPresOffsetM); 0];
+mfD = mean(fD(1:200));
+bumpsSt = find(fD < 50*mfD);    
+bumpsSp = find(fD < 10*mfD); 
+
+StDeflTime = time(bumpsSt(1));
+SpDeflTime = time(bumpsSp(end));
+
+adjustPres = [adjPresOnsetM, adjPresOnsetE, adjPresOffsetM, adjPresOffsetE];
+InflDeflT  = [StInflTime SpInflTime StDeflTime SpDeflTime];
 end
 
 function statLib = packStatLib(ss)
@@ -325,51 +430,4 @@ numMales = sum(strcmp(genders, 'male'));
 numFemales = sum(strcmp(genders, 'female'));
 
 genderRatio = [numMales numFemales];
-end
-
-function lims = identifyLimits(ss)
-
-maxPres = max(ss.sensorPMean(:,1)) + 0.5;
-minPres = min(ss.sensorPMean(:,1)) - 0.1;
-
-lims.presMean = [-0.5 1.0 minPres maxPres];
-
-mf0MeanPert = ss.audioMf0MeanPert;
-numCond = length(mf0MeanPert);
-
-setupBoundSec = zeros(numCond, 1);
-setlwBoundSec = zeros(numCond, 1);
-for ii = 1:numCond
-    audioMean = mf0MeanPert{ii};    
-
-    [~, Imax] = max(audioMean(:,1)); %Max Pert Onset
-    upBoundOn = round(audioMean(Imax,1) + audioMean(Imax,2) + 10);
-    [~, Imin] = min(audioMean(:,1)); %Min Pert Onset
-    lwBoundOn = round(audioMean(Imin,1) - audioMean(Imin,2) - 10);
-
-    [~, Imax] = max(audioMean(:,3)); %Max Pert Offset
-    upBoundOf = round(audioMean(Imax,3) + audioMean(Imax,4) + 10);
-    [~, Imin] = min(audioMean(:,3)); %Min Pert Offset
-    lwBoundOf = round(audioMean(Imin,3) - audioMean(Imin,4) - 10);
-
-    if upBoundOn > upBoundOf
-        upBoundSec = upBoundOn;
-    else
-        upBoundSec = upBoundOf;
-    end
-
-    if lwBoundOn < lwBoundOf
-        lwBoundSec = lwBoundOn;
-    else
-        lwBoundSec = lwBoundOf;
-    end
-    
-    setupBoundSec(ii) = upBoundSec;
-    setlwBoundSec(ii) = lwBoundSec;  
-end
-
-maxUpBound = max(setupBoundSec);
-minLwBound = min(setlwBoundSec);
-
-lims.audioMean = [-0.5 1.0 minLwBound maxUpBound];
 end
