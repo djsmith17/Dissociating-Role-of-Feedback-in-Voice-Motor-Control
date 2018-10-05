@@ -41,6 +41,8 @@ pA.testExt       = cF.testExt;
 pA.pltNameMVi    = cell(pA.numPart, 1);
 pA.pltNameMVm    = [pA.pAnalysis 'MeanSubj' pA.testExt];
 
+pA.applyManualEx = 1;
+
 % Load all saved results and order into a large data structure
 allDataStr = []; % (numPart x numRuns)
 for ii = 1:pA.numPart
@@ -93,7 +95,7 @@ for ii = 1:pA.numPart
         
         [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker);
         
-        if ~isempty(autoMiss)
+        if ~isempty(autoMiss) && pA.applyManualEx == 1
             curRes = adjustCurRes(curRes, autoMiss);
         end
         
@@ -117,7 +119,8 @@ fprintf('\nAcross all subjects, %d trials were excluded Automatically:\n', allSu
 fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
 fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
 fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
-fprintf('An additional %d trials were excluded Manually\n', allSubjRes.tossedManuAdd);
+fprintf('An additional %d trials were excluded Manually, of the %d trials Manually selected\n', allSubjRes.tossedAutoMiss, allSubjRes.tossedManual);
+fprintf('Automatic trial exclusion methods accounted for %s%% of trials selected Manually\n', allSubjRes.autoSuccessPerc)
 
 tossedTable = table(tossTrialTracker.curSess,... 
                     tossTrialTracker.tossedTrials,...
@@ -185,7 +188,8 @@ sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
 sortStr.tossedBreak      = 0;
 sortStr.tossedMisCalc    = 0;
-sortStr.tossedManuAdd    = 0;
+sortStr.tossedManual     = 0;
+sortStr.tossedAutoMiss   = 0;
 end
 
 function [tossTrialTracker, tVN] = initTossedTrialTracker()
@@ -222,11 +226,12 @@ polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 polRes.secTimeP            = curRes.secTimeP;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, curRes.sensorPSec);
 
-polRes.tossedAll     = polRes.tossedAll + tossT.A;     % All
+polRes.tossedAll     = polRes.tossedAll + tossT.A;     % Total Automatic Excluded Trials
 polRes.tossedLate    = polRes.tossedLate + tossT.L;    % Late Start
 polRes.tossedBreak   = polRes.tossedBreak + tossT.B;   % Voice Break
 polRes.tossedMisCalc = polRes.tossedMisCalc + tossT.C; % f0 Miscalc
-polRes.tossedManuAdd = polRes.tossedManuAdd + tossT.M; % Additional manually removed trials.
+polRes.tossedManual  = polRes.tossedManual + tossT.M;  % Total Manual Excluded Trials
+polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
 end
 
 function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
@@ -236,8 +241,10 @@ function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(cu
 [mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(curRes.incTrialInfo);
 
 [autoMiss, perCaught] = compareTossedTrials(aTossTrials, mTossTrials);
+numManual = length(mTossTrials);
 numMissed = length(autoMiss);
-tossCounts.M = numMissed;
+tossCounts.M  = numManual;
+tossCounts.aM = numMissed;
 
 tossTrialTracker.curSess      = cat(1, tossTrialTracker.curSess, curRes.curSess);
 tossTrialTracker.tossedTrials = cat(1, tossTrialTracker.tossedTrials, {aTossDetails});
@@ -367,6 +374,14 @@ polRes.limitsPmean = lims.presMean;
 [sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
 polRes.sensorPAdjust = sensorPAdjust;
 polRes.InflDeflT     = InflDeflT;
+
+% Identify success of automatic trial exclusion methods
+if polRes.tossedManual > 0
+    perc = round(100*(1-(polRes.tossedAutoMiss/polRes.tossedManual)));
+    polRes.autoSuccessPerc = num2str(perc);
+else
+    polRes.autoSuccessPerc = 'N/A';
+end
 
 statLib         = packStatLib(polRes);
 polRes.statLib  = statLib;
