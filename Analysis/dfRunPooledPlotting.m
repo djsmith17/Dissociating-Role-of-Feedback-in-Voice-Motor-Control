@@ -10,7 +10,7 @@ function dfRunPooledPlotting()
 
 close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.analyses = 'LarynxPos';
+PolPlt.analyses = 'MaskingStudy';
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses);       % Analyzed Results Folder
@@ -22,7 +22,7 @@ PolPlt.MaskVVoice        = 1;
 PolPlt.AllSubjMaskvVoice = 1;
 
 fStat    = 0;
-fPres    = 1;
+fPres    = 0;
 
 ppi        = 300;
 scRes      = [2560 1440];

@@ -41,8 +41,6 @@ pA.testExt       = cF.testExt;
 pA.pltNameMVi    = cell(pA.numPart, 1);
 pA.pltNameMVm    = [pA.pAnalysis 'MeanSubj' pA.testExt];
 
-pA.applyManualEx = 1;
-
 % Load all saved results and order into a large data structure
 allDataStr = []; % (numPart x numRuns)
 for ii = 1:pA.numPart
@@ -95,7 +93,7 @@ for ii = 1:pA.numPart
         
         [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker);
         
-        if ~isempty(autoMiss) && pA.applyManualEx == 1
+        if ~isempty(autoMiss)
             curRes = adjustCurRes(curRes, autoMiss);
         end
         
