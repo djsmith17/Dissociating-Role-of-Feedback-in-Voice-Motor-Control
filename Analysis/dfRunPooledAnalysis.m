@@ -312,17 +312,16 @@ if ~isempty(incTrialInfo)
 end
 end
 
-function [autoMiss, perCaught] = compareTossedTrials(aTossTrials, mTossTrials)
+function [autoMiss, perCaughtStr] = compareTossedTrials(aTossTrials, mTossTrials)
 
-numA = length(aTossTrials);
 numM = length(mTossTrials);
-
 if numM == 0
-    perCaught = 'N/A';
+    perCaughtStr = 'N/A';
 else
-    autoCorrect = intersect(numA, numM);
-    numCorrect  = length(autoCorrect);
-    perCaught   = [num2str(100*(numCorrect/numM)) '%'];
+    autoCorrect  = intersect(aTossTrials, mTossTrials);
+    numCorrect   = length(autoCorrect);
+    perCaught    = round(100*(numCorrect/numM));
+    perCaughtStr = [num2str(perCaught) '%'];
 end
 
 autoMiss = setdiff(mTossTrials, aTossTrials);
