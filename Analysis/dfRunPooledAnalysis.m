@@ -72,9 +72,7 @@ allSubjRes.subject = 'Mean Participant Response';
 allSubjRes.curSess = allSubjRes.subject;
 allSubjRes.cond    = pA.cond;
 
-tossTrialTracker = []; %structure of keeping of which trials and when
-tossTrialTracker.curSess = {};
-tossTrialTracker.tossedTrials = {};
+[tossTrialTracker, tVN] = initTossedTrialTracker();
 
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
@@ -93,12 +91,14 @@ for ii = 1:pA.numPart
         sortStruc.gender  = curRes.gender;
         sortStruc.age     = curRes.age;
         
-        [tossT, tDetails] = identifyTossedTrials(curRes);
-        tossTrialTracker.curSess      = cat(1, tossTrialTracker.curSess, curRes.curSess);
-        tossTrialTracker.tossedTrials = cat(1, tossTrialTracker.tossedTrials, {tDetails});
+        [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker);
         
-        sortStruc  = combineCondTrials(pA, curRes, sortStruc, tossT);       
-        allSubjRes = combineCondTrials(pA, curRes, allSubjRes, tossT);
+        if ~isempty(autoMiss)
+            curRes = adjustCurRes(curRes, autoMiss);
+        end
+        
+        sortStruc  = combineCondTrials(pA, curRes, sortStruc, tossCounts);       
+        allSubjRes = combineCondTrials(pA, curRes, allSubjRes, tossCounts);
     end
         
     sortStruc = meanCondTrials(pA, sortStruc);
@@ -113,15 +113,23 @@ end
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
 
-fprintf('\nAcross all subjects, %d trials were thrown away.\n', allSubjRes.tossedAll);
+fprintf('\nAcross all subjects, %d trials were excluded Automatically:\n', allSubjRes.tossedAll);
 fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
 fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
 fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+fprintf('An additional %d trials were excluded Manually\n', allSubjRes.tossedManuAdd);
 
-tossedTable = table(tossTrialTracker.curSess, tossTrialTracker.tossedTrials, 'VariableNames', {'CurSess', 'TossedTrials'});
+tossedTable = table(tossTrialTracker.curSess,... 
+                    tossTrialTracker.tossedTrials,...
+                    tossTrialTracker.manuallyExcl,...
+                    tossTrialTracker.autoMiss,...
+                    tossTrialTracker.perCaught,...
+                    'VariableNames', tVN);
+                
 uitable('Data', tossedTable{:,:},...
-                'Units', 'Normalized',... 
-                'Position', [0, 0, 1, 1]);
+        'ColumnName', tossedTable.Properties.VariableNames,...
+        'Units', 'Normalized',...
+        'Position', [0, 0, 1, 1]);
             
 
 [mAge, rAge, gRatio] = demoStats(allSubjRes);
@@ -177,6 +185,20 @@ sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
 sortStr.tossedBreak      = 0;
 sortStr.tossedMisCalc    = 0;
+sortStr.tossedManuAdd    = 0;
+end
+
+function [tossTrialTracker, tVN] = initTossedTrialTracker()
+
+tossTrialTracker              = []; %structure of keeping of which trials and when
+tossTrialTracker.curSess      = {};
+tossTrialTracker.tossedTrials = {};
+tossTrialTracker.manuallyExcl = {};
+tossTrialTracker.autoMiss     = {};
+tossTrialTracker.perCaught    = {};
+
+% Tossed Trials Table Variable Names
+tVN = {'CurSess', 'AutoExcluded', 'ManuallyExcluded', 'MissedByAuto', 'PercentCaught'};
 end
 
 function polRes = combineCondTrials(pA, curRes, polRes, tossT)
@@ -204,12 +226,30 @@ polRes.tossedAll     = polRes.tossedAll + tossT.A;     % All
 polRes.tossedLate    = polRes.tossedLate + tossT.L;    % Late Start
 polRes.tossedBreak   = polRes.tossedBreak + tossT.B;   % Voice Break
 polRes.tossedMisCalc = polRes.tossedMisCalc + tossT.C; % f0 Miscalc
+polRes.tossedManuAdd = polRes.tossedManuAdd + tossT.M; % Additional manually removed trials.
 end
 
-function [tossT, tDetails] = identifyTossedTrials(curRes)
+function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
+
+[tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes);
+
+[mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(curRes.incTrialInfo);
+
+[autoMiss, perCaught] = compareTossedTrials(aTossTrials, mTossTrials);
+numMissed = length(autoMiss);
+tossCounts.M = numMissed;
+
+tossTrialTracker.curSess      = cat(1, tossTrialTracker.curSess, curRes.curSess);
+tossTrialTracker.tossedTrials = cat(1, tossTrialTracker.tossedTrials, {aTossDetails});
+tossTrialTracker.manuallyExcl = cat(1, tossTrialTracker.manuallyExcl, {mTossDetails});
+tossTrialTracker.autoMiss     = cat(1, tossTrialTracker.autoMiss, {num2str(autoMiss)});
+tossTrialTracker.perCaught    = cat(1, tossTrialTracker.perCaught, {perCaught}); 
+end
+
+function [tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes)
 
 tT = curRes.removedTrialTracker;
-tDetails = [];
+aTossDetails = [];
 if ~isempty(tT)
     [tossAll, ~] = size(tT);
     
@@ -217,33 +257,93 @@ if ~isempty(tT)
     tossBreak = strcmp(tT(:,2), 'Participant had a voice break!!');
     tossCalc  = strcmp(tT(:,2), 'Miscalculated pitch Trace');
 
-    tossT.A = sum(tossAll); 
-    tossT.L = sum(tossLate);
-    tossT.B = sum(tossBreak);
-    tossT.C = sum(tossCalc);
+    tossCounts.A = sum(tossAll); 
+    tossCounts.L = sum(tossLate);
+    tossCounts.B = sum(tossBreak);
+    tossCounts.C = sum(tossCalc);
     
-    tDetails = writeTossedDetails(tT, tossLate, 'LS', tDetails);
-    tDetails = writeTossedDetails(tT, tossBreak, 'VB', tDetails);
-    tDetails = writeTossedDetails(tT, tossCalc, 'MC', tDetails);    
+    [aTossDetails, LSTrialNums] = writeTossedDetails(tT, tossLate, 'LS', aTossDetails);
+    [aTossDetails, VBTrialNums] = writeTossedDetails(tT, tossBreak, 'VB', aTossDetails);
+    [aTossDetails, MCTrialNums] = writeTossedDetails(tT, tossCalc, 'MC', aTossDetails);
+    aTossTrials  = [LSTrialNums VBTrialNums MCTrialNums];
 else
-    tossT.A = 0;
-    tossT.L = 0;
-    tossT.B = 0;
-    tossT.C = 0;
-    tDetails = '';
+    tossCounts.A = 0;
+    tossCounts.L = 0;
+    tossCounts.B = 0;
+    tossCounts.C = 0;
+    aTossDetails = '';
+    aTossTrials  = [];
 end
 
 end
 
-function tDetails = writeTossedDetails(tT, logicToss, note, tDetails)
+function [tDetails, trialNums] = writeTossedDetails(tT, logicToss, note, tDetails)
     
 numTrials = sum(logicToss);
 curTrials = tT(logicToss);
+
+trialNums = [];
 for i = 1:numTrials
     curTrial = curTrials{i};
     spc = find(curTrial == ' ');
-    tDetails = cat(2, tDetails, [curTrial(spc+1:end) '(' note ') ']);
+    curTrialNum = curTrial(spc+1:end);
+    
+    tDetails  = cat(2, tDetails, [curTrialNum '(' note ') ']);
+    trialNums = cat(2, trialNums, str2double(curTrialNum));
 end
+end
+
+function [mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(incTrialInfo)
+
+mTossTrials  = [];
+mTossDetails = [];
+
+if ~isempty(incTrialInfo)
+    excludedTrials     = find([incTrialInfo.include] == 0);
+    excludedTrialNotes = [incTrialInfo(excludedTrials).trialNote];
+    numExcludedTrials  = length(excludedTrials);
+
+    for ii = 1:numExcludedTrials
+        curExcTrial = excludedTrials(ii);
+
+        mTossTrials  = cat(2, mTossTrials, curExcTrial);
+        mTossDetails = cat(2, mTossDetails, [num2str(curExcTrial) ' (' excludedTrialNotes{ii} ') ']);
+    end
+end
+end
+
+function [autoMiss, perCaught] = compareTossedTrials(aTossTrials, mTossTrials)
+
+numA = length(aTossTrials);
+numM = length(mTossTrials);
+
+if numM == 0
+    perCaught = 'N/A';
+else
+    autoCorrect = intersect(numA, numM);
+    numCorrect  = length(autoCorrect);
+    perCaught   = [num2str(100*(numCorrect/numM)) '%'];
+end
+
+autoMiss = setdiff(mTossTrials, aTossTrials);
+end
+
+function curRes = adjustCurRes(curRes, autoMiss)
+
+acceptedContTrials = curRes.contIdxFin;
+[~, contKeepIdx] = setdiff(acceptedContTrials, autoMiss);
+numCont2Keep = length(contKeepIdx);
+
+acceptedPertTrials = curRes.pertIdxFin;
+[~, pertKeepIdx] = setdiff(acceptedPertTrials, autoMiss);
+numPert2Keep = length(pertKeepIdx);
+
+curRes.numContTrialsFin = numCont2Keep;
+curRes.numPertTrialsFin = numPert2Keep;
+
+curRes.audioMf0SecCont = curRes.audioMf0SecCont(:, contKeepIdx, :);
+curRes.audioMf0SecPert = curRes.audioMf0SecPert(:, pertKeepIdx, :);
+curRes.sensorPSec      = curRes.sensorPSec(:, pertKeepIdx, :);
 end
 
 function polRes = meanCondTrials(pA, polRes)
