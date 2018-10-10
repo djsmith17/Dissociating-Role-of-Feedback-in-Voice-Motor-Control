@@ -142,6 +142,9 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
+writetable(allSubjRes.statTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
+
 dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.xlsx']);
 writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
 end
@@ -175,12 +178,13 @@ sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
 sortStr.respVar         = cell(numCond, 1);
+
+sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
 sortStr.respVarM         = zeros(numCond, 4);
-sortStr.respVarResult    = [];
 sortStr.sensorPMean      = [];
 
 sortStr.tossedAll        = 0;
@@ -190,9 +194,10 @@ sortStr.tossedMisCalc    = 0;
 sortStr.tossedManual     = 0;
 sortStr.tossedAutoMiss   = 0;
 
-sortStr.obvAge    = [];
-sortStr.obvGender = [];
-sortStr.obvAudFB  = [];
+sortStr.obvAge           = [];
+sortStr.obvGender        = [];
+sortStr.obvAudFB         = [];
+sortStr.respVarResult    = [];
 end
 
 function [tossTrialTracker, tVN] = initTossedTrialTracker()
@@ -235,6 +240,19 @@ polRes.tossedBreak    = polRes.tossedBreak + tossT.B;     % Voice Break
 polRes.tossedMisCalc  = polRes.tossedMisCalc + tossT.C;   % f0 Miscalc
 polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Excluded Trials
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
+
+[respVar, ~, ~]      = InflationResponse(curRes.secTime, curRes.audioMf0SecPert);
+
+ages = repmat(curRes.age, curRes.numPertTrialsFin, 1);
+genders = cell(1, curRes.numPertTrialsFin);
+[genders{:}] = deal(curRes.gender);
+AudFBs = cell(1, curRes.numPertTrialsFin);
+[AudFBs{:}] = deal(curRes.AudFB);
+
+polRes.obvAge          = cat(1, polRes.obvAge, ages);
+polRes.obvGender       = cat(1, polRes.obvGender, genders');
+polRes.obvAudFB        = cat(1, polRes.obvAudFB, AudFBs');
+polRes.respVarResult   = cat(1, polRes.respVarResult, respVar);
 end
 
 function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
@@ -366,19 +384,6 @@ for kk = 1:pA.numCond
     
     polRes.numPertTrialsFin(kk) = sum(polRes.allPertTrials{kk});
     polRes.audioMf0MeanPert{kk} = meanSecData(polRes.audioMf0SecPert{kk});
-    [respVar, respVarM, ~]      = InflationResponse(polRes.secTime, polRes.audioMf0SecPert{kk});
-    
-    ages = repmat(polRes.age', polRes.numPertTrialsFin(kk), 1);
-    genders = cell(1, polRes.numPertTrialsFin(kk));
-    [genders{:}] = deal(polRes.gender);
-    AudFBs = cell(1, polRes.numPertTrialsFin(kk));
-    [AudFBs{:}] = deal(polRes.AudFB{kk});
-    
-    polRes.obvAge               = cat(1, polRes.obvAge, ages);
-    polRes.obvGender            = cat(1, polRes.obvGender, genders');
-    polRes.obvAudFB             = cat(1, polRes.obvAudFB, AudFBs');
-    polRes.respVarResult        = cat(1, polRes.respVarResult, respVar);
-    polRes.respVarM(kk, :)      = respVarM;
 end
 
 % Identify Limits of the newly meaned data
@@ -399,8 +404,8 @@ else
     polRes.autoSuccessPerc = 'N/A';
 end
 
-statLib         = packStatLib(polRes);
-polRes.statLib  = statLib;
+statTable        = packStatTable(polRes);
+polRes.statTable = statTable;
 end
 
 function meanData = meanSecData(secData)
@@ -623,6 +628,12 @@ statLib(6) = condM2(4); % Condition 2 %
 statLib(7) = pStim;     % p-value stimulus
 statLib(8) = pResp;     % p-value response
 statLib(9) = pPerc;     % p-value percent increase 
+end
+
+function statTable = packStatTable(ss)
+
+varNames = {'Age', 'Gender', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
+statTable = table(ss.obvAge, ss.obvGender, ss.obvAudFB, ss.respVarResult(:,2), ss.respVarResult(:,3), ss.respVarResult(:,4), 'VariableNames', varNames);
 end
 
 function [meanAge, rangeAge, genderRatio] = demoStats(allSubjRes)
