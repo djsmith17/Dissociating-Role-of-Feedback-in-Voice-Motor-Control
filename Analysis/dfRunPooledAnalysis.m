@@ -131,7 +131,8 @@ uitable('Data', tossedTable{:,:},...
         'ColumnName', tossedTable.Properties.VariableNames,...
         'Units', 'Normalized',...
         'Position', [0, 0, 1, 1]);
-            
+    
+allSubjStatTable = displayStats(allSubjRes);    
 
 [mAge, rAge, gRatio] = demoStats(allSubjRes);
 fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f (Mean: %.1f)\n', rAge(1), rAge(2), mAge)
@@ -143,7 +144,7 @@ fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
-writetable(allSubjRes.statTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
+writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
 
 dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.xlsx']);
 writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
@@ -177,14 +178,12 @@ sortStr.numPertTrialsFin = zeros(numCond, 1);
 sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
-sortStr.respVar         = cell(numCond, 1);
 
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
-sortStr.respVarM         = zeros(numCond, 4);
 sortStr.sensorPMean      = [];
 
 sortStr.tossedAll        = 0;
@@ -194,10 +193,14 @@ sortStr.tossedMisCalc    = 0;
 sortStr.tossedManual     = 0;
 sortStr.tossedAutoMiss   = 0;
 
+sortStr.respVar          = cell(numCond, 1);
+sortStr.respVarM         = cell(numCond, 1);
+
+sortStr.obvSubj          = [];
 sortStr.obvAge           = [];
 sortStr.obvGender        = [];
 sortStr.obvAudFB         = [];
-sortStr.respVarResult    = [];
+sortStr.obvRespVar       = [];
 end
 
 function [tossTrialTracker, tVN] = initTossedTrialTracker()
@@ -242,17 +245,21 @@ polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Exclude
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
 
 [respVar, ~, ~]      = InflationResponse(curRes.secTime, curRes.audioMf0SecPert);
+polRes.respVar{wC}   = respVar;
 
 ages = repmat(curRes.age, curRes.numPertTrialsFin, 1);
+subjs = cell(1, curRes.numPertTrialsFin);
+[subjs{:}] = deal(curRes.subject);
 genders = cell(1, curRes.numPertTrialsFin);
 [genders{:}] = deal(curRes.gender);
 AudFBs = cell(1, curRes.numPertTrialsFin);
 [AudFBs{:}] = deal(curRes.AudFB);
 
+polRes.obvSubj         = cat(1, polRes.obvSubj, subjs');
 polRes.obvAge          = cat(1, polRes.obvAge, ages);
 polRes.obvGender       = cat(1, polRes.obvGender, genders');
 polRes.obvAudFB        = cat(1, polRes.obvAudFB, AudFBs');
-polRes.respVarResult   = cat(1, polRes.respVarResult, respVar);
+polRes.obvRespVar      = cat(1, polRes.obvRespVar, respVar);
 end
 
 function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
@@ -379,11 +386,12 @@ polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
 polRes.sensorPMean      = meanSecData(polRes.sensorPSec);
 
-for kk = 1:pA.numCond
-    polRes.f0b(kk)              = mean(polRes.runf0b{kk});
+for wC = 1:pA.numCond
+    polRes.f0b(wC)              = mean(polRes.runf0b{wC});
     
-    polRes.numPertTrialsFin(kk) = sum(polRes.allPertTrials{kk});
-    polRes.audioMf0MeanPert{kk} = meanSecData(polRes.audioMf0SecPert{kk});
+    polRes.numPertTrialsFin(wC) = sum(polRes.allPertTrials{wC});
+    polRes.audioMf0MeanPert{wC} = meanSecData(polRes.audioMf0SecPert{wC});
+    polRes.respVarM{wC}         = mean(polRes.respVar{wC}, 1);
 end
 
 % Identify Limits of the newly meaned data
@@ -632,8 +640,8 @@ end
 
 function statTable = packStatTable(ss)
 
-varNames = {'Age', 'Gender', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
-statTable = table(ss.obvAge, ss.obvGender, ss.obvAudFB, ss.respVarResult(:,2), ss.respVarResult(:,3), ss.respVarResult(:,4), 'VariableNames', varNames);
+varNames = {'SubjID', 'Age', 'Gender', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
+statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
 end
 
 function [meanAge, rangeAge, genderRatio] = demoStats(allSubjRes)
@@ -650,4 +658,32 @@ numMales = sum(strcmp(genders, 'male'));
 numFemales = sum(strcmp(genders, 'female'));
 
 genderRatio = [numMales numFemales];
+end
+
+function allSubjStatTable = displayStats(allSubjRes)
+
+allSubjStatTable = allSubjRes.statTable;
+allSM = allSubjStatTable.StimMag;
+allRM = allSubjStatTable.RespMag;
+allRP = allSubjStatTable.RespPer;
+aSRM = fitrm(allSubjStatTable, 'StimMag-RespPer~AudFB');
+        
+normDist = figure('Color', [1 1 1]);
+subplot(1,3,1)
+histogram(allSM)
+title('Stimulus Magnitude')
+box off
+
+subplot(1,3,2)
+histogram(allRM)
+title('Response Magnitude')
+box off
+
+subplot(1,3,3)
+histogram(allRP)
+title('Response Percentage')
+box off
+
+
+
 end
