@@ -196,10 +196,10 @@ sortStr.tossedAutoMiss   = 0;
 sortStr.respVar          = cell(numCond, 1);
 sortStr.respVarM         = cell(numCond, 1);
 
-sortStr.obvSubj          = [];
+sortStr.obvSubj          = {};
 sortStr.obvAge           = [];
-sortStr.obvGender        = [];
-sortStr.obvAudFB         = [];
+sortStr.obvGender        = {};
+sortStr.obvAudFB         = {};
 sortStr.obvRespVar       = [];
 end
 
@@ -244,22 +244,15 @@ polRes.tossedMisCalc  = polRes.tossedMisCalc + tossT.C;   % f0 Miscalc
 polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Excluded Trials
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
 
-[respVar, ~, ~]      = InflationResponse(curRes.secTime, curRes.audioMf0SecPert);
-polRes.respVar{wC}   = respVar;
+[respVar, respVarM, ~] = InflationResponse(curRes.secTime, curRes.audioMf0SecPert);
+polRes.respVar{wC}     = respVar;
+polRes.respVarM{wC}    = respVarM;
 
-ages = repmat(curRes.age, curRes.numPertTrialsFin, 1);
-subjs = cell(1, curRes.numPertTrialsFin);
-[subjs{:}] = deal(curRes.subject);
-genders = cell(1, curRes.numPertTrialsFin);
-[genders{:}] = deal(curRes.gender);
-AudFBs = cell(1, curRes.numPertTrialsFin);
-[AudFBs{:}] = deal(curRes.AudFB);
-
-polRes.obvSubj         = cat(1, polRes.obvSubj, subjs');
-polRes.obvAge          = cat(1, polRes.obvAge, ages);
-polRes.obvGender       = cat(1, polRes.obvGender, genders');
-polRes.obvAudFB        = cat(1, polRes.obvAudFB, AudFBs');
-polRes.obvRespVar      = cat(1, polRes.obvRespVar, respVar);
+polRes.obvSubj         = cat(1, polRes.obvSubj, curRes.subject);
+polRes.obvAge          = cat(1, polRes.obvAge, curRes.age);
+polRes.obvGender       = cat(1, polRes.obvGender, curRes.gender);
+polRes.obvAudFB        = cat(1, polRes.obvAudFB, curRes.AudFB);
+polRes.obvRespVar      = cat(1, polRes.obvRespVar, respVarM);
 end
 
 function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
