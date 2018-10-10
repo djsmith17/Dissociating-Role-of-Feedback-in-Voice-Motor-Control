@@ -671,7 +671,7 @@ allMeasure = [];
 for i = 1:nMeas
     allMeasure = cat(2, allMeasure, eval(['allSubjStatTable.' meas{i}]));
 end
-allMeasureM = mean(allMeasure, 1);
+allMeasureM   = mean(allMeasure, 1);
 allMeasureSTD = std(allMeasure, 0, 1);
 allMeasureSE  = allMeasureSTD/sqrt(n);
 
@@ -683,28 +683,27 @@ normDist = figure('Color', [1 1 1]);
 plotpos = [10 10]; plotdim = [1300 600];
 set(normDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-ha = tight_subplot(1, 3,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
+ha = tight_subplot(1, nMeas,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
 
-mu      = '\mu';
-sigmaSq = '\sigma^{2}';
+mu    = '\mu';
+sigma = '\sigma';
 
-allMeasureMR = round(allMeasureM, 2);
-allMeasureSER = round(allMeasureSE, 2);
-
+allMeasureMR  = round(allMeasureM, 2);
+allMeasureSTDR = round(allMeasureSTD, 2);
 
 axes(ha(1))
 histogram(allMeasureNorm(:,1))
-title(['Stimulus Magnitude (' mu '=' num2str(allMeasureMR(1)) 'cents, ' sigmaSq '=' num2str(allMeasureSER(1)) 'cents)'])
+title({'Stimulus Magnitude', ['(' mu '=' num2str(allMeasureMR(1)) ' cents, ' sigma '=' num2str(allMeasureSTDR(1)) ' cents)']})
 box off
 
 axes(ha(2))
 histogram(allMeasureNorm(:,2))
-title(['Response Magnitude (' mu '=' num2str(allMeasureMR(2)) 'cents, ' sigmaSq '=' num2str(allMeasureSER(2)) 'cents)'])
+title({'Response Magnitude', ['(' mu '=' num2str(allMeasureMR(2)) ' cents, ' sigma '=' num2str(allMeasureSTDR(2)) ' cents)']})
 box off
 
 axes(ha(3))
 histogram(allMeasureNorm(:,3))
-title(['Response Percentage (' mu '=' num2str(allMeasureMR(3)) '%, ' sigmaSq '=' num2str(allMeasureSER(3)) '%)'])
+title({'Response Percentage', ['(' mu '=' num2str(allMeasureMR(3)) '%, ' sigma '=' num2str(allMeasureSTDR(3)) '%)']})
 box off
 
 end
