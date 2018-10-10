@@ -663,27 +663,48 @@ end
 function allSubjStatTable = displayStats(allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-allSM = allSubjStatTable.StimMag;
-allRM = allSubjStatTable.RespMag;
-allRP = allSubjStatTable.RespPer;
+n = height(allSubjStatTable);
+meas = {'StimMag', 'RespMag', 'RespPer'};
+nMeas = length(meas);
+
+allMeasure = [];
+for i = 1:nMeas
+    allMeasure = cat(2, allMeasure, eval(['allSubjStatTable.' meas{i}]));
+end
+allMeasureM = mean(allMeasure, 1);
+allMeasureSTD = std(allMeasure, 0, 1);
+allMeasureSE  = allMeasureSTD/sqrt(n);
+
+allMeasureNorm = (allMeasure - allMeasureM)./allMeasureSTD;
+
 aSRM = fitrm(allSubjStatTable, 'StimMag-RespPer~AudFB');
         
 normDist = figure('Color', [1 1 1]);
-subplot(1,3,1)
-histogram(allSM)
-title('Stimulus Magnitude')
+plotpos = [10 10]; plotdim = [1300 600];
+set(normDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+ha = tight_subplot(1, 3,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
+
+mu      = '\mu';
+sigmaSq = '\sigma^{2}';
+
+allMeasureMR = round(allMeasureM, 2);
+allMeasureSER = round(allMeasureSE, 2);
+
+
+axes(ha(1))
+histogram(allMeasureNorm(:,1))
+title(['Stimulus Magnitude (' mu '=' num2str(allMeasureMR(1)) 'cents, ' sigmaSq '=' num2str(allMeasureSER(1)) 'cents)'])
 box off
 
-subplot(1,3,2)
-histogram(allRM)
-title('Response Magnitude')
+axes(ha(2))
+histogram(allMeasureNorm(:,2))
+title(['Response Magnitude (' mu '=' num2str(allMeasureMR(2)) 'cents, ' sigmaSq '=' num2str(allMeasureSER(2)) 'cents)'])
 box off
 
-subplot(1,3,3)
-histogram(allRP)
-title('Response Percentage')
+axes(ha(3))
+histogram(allMeasureNorm(:,3))
+title(['Response Percentage (' mu '=' num2str(allMeasureMR(3)) '%, ' sigmaSq '=' num2str(allMeasureSER(3)) '%)'])
 box off
-
-
 
 end
