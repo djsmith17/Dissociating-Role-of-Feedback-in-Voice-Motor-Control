@@ -112,6 +112,9 @@ for i = 1:AVar.numPart
 
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
+        res.sRateExp  = auAn.sRate;
+        res.rawAudioM = auAn.audioMSvt;
+        res.rawAudioH = auAn.audioHSvt;
 
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run ext 'ResultsDRF.mat']);
         if AVar.debug == 0
