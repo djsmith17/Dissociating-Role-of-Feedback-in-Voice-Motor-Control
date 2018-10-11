@@ -658,6 +658,7 @@ function allSubjStatTable = displayStats(allSubjRes)
 allSubjStatTable = allSubjRes.statTable;
 n = height(allSubjStatTable);
 meas = {'StimMag', 'RespMag', 'RespPer'};
+units = {'cents', 'cents', '%'};
 nMeas = length(meas);
 
 allMeasure = [];
@@ -684,19 +685,11 @@ sigma = '\sigma';
 allMeasureMR  = round(allMeasureM, 2);
 allMeasureSTDR = round(allMeasureSTD, 2);
 
-axes(ha(1))
-histogram(allMeasureNorm(:,1))
-title({'Stimulus Magnitude', ['(' mu '=' num2str(allMeasureMR(1)) ' cents, ' sigma '=' num2str(allMeasureSTDR(1)) ' cents)']})
-box off
-
-axes(ha(2))
-histogram(allMeasureNorm(:,2))
-title({'Response Magnitude', ['(' mu '=' num2str(allMeasureMR(2)) ' cents, ' sigma '=' num2str(allMeasureSTDR(2)) ' cents)']})
-box off
-
-axes(ha(3))
-histogram(allMeasureNorm(:,3))
-title({'Response Percentage', ['(' mu '=' num2str(allMeasureMR(3)) '%, ' sigma '=' num2str(allMeasureSTDR(3)) '%)']})
-box off
-
+for ii = 1:nMeas
+    axes(ha(ii))
+    histogram(allMeasureNorm(:,ii))
+    title({meas{ii},...
+          ['(' mu '=' num2str(allMeasureMR(ii)) units{ii} ', ' sigma '=' num2str(allMeasureSTDR(ii)) units{ii} ')']})
+    box off
+end
 end
