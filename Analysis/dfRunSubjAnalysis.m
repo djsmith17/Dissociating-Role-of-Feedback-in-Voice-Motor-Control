@@ -124,14 +124,20 @@ res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
 res.numContTrialsNi = niRes.numContTrials;
 res.pertIdxNi       = niRes.pertIdx;
+
 res.timeS           = niRes.timeS;
 res.sensorP         = niRes.sensorP;        % Individual Processed perturbed trials. 
 res.lagTimeP        = niRes.lagTimeP;
 res.lagTimePm       = niRes.lagTimePm;
 res.riseTimeP       = niRes.riseTimeP;
 res.riseTimePm      = niRes.riseTimePm;
+res.riseTimePSE     = niRes.riseTimePSE;
 res.OnOfValP        = niRes.OnOfValP;
 res.OnOfValPm       = niRes.OnOfValPm;
+res.OnOfValPSE      = niRes.OnOfValPSE;
+res.pTrialLossP     = niRes.pTrialLossP;
+res.pTrialLossPm    = niRes.pTrialLossPm; 
+res.pTrialLossPSE   = niRes.pTrialLossPSE;
 res.limitsP         = niRes.limitsP;
 
 % Sectioned and Aligned Pressure recordings 

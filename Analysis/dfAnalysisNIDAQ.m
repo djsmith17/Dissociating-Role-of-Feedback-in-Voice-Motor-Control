@@ -631,20 +631,20 @@ res.contIdx       = niAn.contIdx;
 res.pertIdx       = niAn.pertIdx;
 res.pertTrig      = niAn.pertTrig;
 
-res.timeS      = niAn.time_DN;
-res.sensorP    = niAn.sensorP_p; %Individual Processed perturbed trials. 
-res.lagTimeP   = niAn.lagsPres;
-res.lagTimePm  = niAn.meanLagTimeP;
-res.riseTimeP  = niAn.riseTimeP;
-res.riseTimePm = niAn.riseTimePm;
-res.riseTimePSE = niAn.riseTimePSE;
-res.OnOfValP   = niAn.OnOfValP;
-res.OnOfValPm  = niAn.OnOfValPm;
-res.OnOfValPSE = niAn.OnOfValPSE;
-res.pTrialLossP = niAn.pTrialLossP;
-res.pTrialLossPm = niAn.pTrialLossPm; 
+res.timeS         = niAn.time_DN;
+res.sensorP       = niAn.sensorP_p; %Individual Processed perturbed trials. 
+res.lagTimeP      = niAn.lagsPres;
+res.lagTimePm     = niAn.meanLagTimeP;
+res.riseTimeP     = niAn.riseTimeP;
+res.riseTimePm    = niAn.riseTimePm;
+res.riseTimePSE   = niAn.riseTimePSE;
+res.OnOfValP      = niAn.OnOfValP;
+res.OnOfValPm     = niAn.OnOfValPm;
+res.OnOfValPSE    = niAn.OnOfValPSE;
+res.pTrialLossP   = niAn.pTrialLossP;
+res.pTrialLossPm  = niAn.pTrialLossPm; 
 res.pTrialLossPSE = niAn.pTrialLossPSE;
-res.limitsP    = lims.pressure;
+res.limitsP       = lims.pressure;
 
 % Sectioned and Aligned Pressure recordings 
 res.timeSAl   = niAn.timeAl;

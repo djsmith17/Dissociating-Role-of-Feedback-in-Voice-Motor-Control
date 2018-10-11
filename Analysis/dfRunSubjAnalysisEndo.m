@@ -1,5 +1,5 @@
 function dfRunSubjAnalysisEndo()
-% dfRunSubjAnalysis() is my main script for analyzing recorded audio files 
+% dfRunSubjAnalysisEndo() is my main script for analyzing recorded audio files 
 % and sensor information from experiments studying Voice Motor Control. 
 % This function is set up to analyze multiple subject and runs in an 
 % identical fashion, so that once you have a new data set, you can run it 
@@ -16,13 +16,14 @@ function dfRunSubjAnalysisEndo()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF_ENP2'};    % List of multiple participants.
+AVar.participants  = {'DRF_ENP3'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
 AVar.run           = 'SFL1';
 AVar.trials        = 10;
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
 AVar.cond          = {'VF', 'MN', 'All'};
+AVar.numCond       = length(AVar.cond);
 
 dirs               = dfDirs(AVar.project);
 dirs.LoadData      = dirs.SavData;
@@ -80,7 +81,7 @@ for i = 1:AVar.numPart
         ssAll.SeqAudFBSw = cat(1, ssAll.SeqAudFBSw, DRF.expParam.AudFBSw);
     end
     
-    for ii = 1:3
+    for ii = 1:AVar.numCond
         ext = AVar.cond{ii};
         ss  = eval(['ss' ext]);
         DRF = eval(['DRF' ext]);
@@ -148,14 +149,20 @@ res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
 res.numContTrialsNi = niRes.numContTrials;
 res.pertIdxNi       = niRes.pertIdx;
+
 res.timeS           = niRes.timeS;
 res.sensorP         = niRes.sensorP;        % Individual Processed perturbed trials. 
 res.lagTimeP        = niRes.lagTimeP;
 res.lagTimePm       = niRes.lagTimePm;
 res.riseTimeP       = niRes.riseTimeP;
 res.riseTimePm      = niRes.riseTimePm;
+res.riseTimePSE     = niRes.riseTimePSE;
 res.OnOfValP        = niRes.OnOfValP;
 res.OnOfValPm       = niRes.OnOfValPm;
+res.OnOfValPSE      = niRes.OnOfValPSE;
+res.pTrialLossP     = niRes.pTrialLossP;
+res.pTrialLossPm    = niRes.pTrialLossPm; 
+res.pTrialLossPSE   = niRes.pTrialLossPSE;
 res.limitsP         = niRes.limitsP;
 
 % Sectioned and Aligned Pressure recordings 
