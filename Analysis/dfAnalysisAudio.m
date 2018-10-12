@@ -24,14 +24,15 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % -An.curSess
 % -An.f0Type
 % -An.f0AnaFile
-% -An.bTf0b
+% -An.f0b
 % -An.gender
 % -An.sRate
-% -An.audioMSvt
-% -An.audioHSvt
-% -An.expTrigsSvt
-% -An.allIdxSvt
-% -An.trialTypeSvt
+
+% -An.allIdxPreProc
+% -An.audioM
+% -An.audioH
+% -An.expTrigs
+% -An.trialType
 
 if isempty(varargin)
     iRF    = 0; 
@@ -48,7 +49,13 @@ end
 An = initAudVar(An);
 
 if AudFlag == 1
-    fprintf('\nStarting Pitch Analysis\n')
+%     fprintf('\nStarting Pitch Analysis\n')
+
+    An.audioMSvt   = An.audioM(:, An.allIdxPreProc);
+    An.audioHSvt   = An.audioH(:, An.allIdxPreProc);
+    An.expTrigsSvt = An.expTrigs(An.allIdxPreProc, :);
+    An.trialTypeSvt = An.trialType(An.allIdxPreProc);
+    An.numTrialSvt  = length(An.allIdxPreProc);
    
     % Set some frequency analysis variables
     An.numSamp = length(An.audioMSvt);
@@ -99,11 +106,10 @@ if AudFlag == 1
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
     
-    svF = 0;
     for ii = 1:An.numTrialSvt
         
         expTrig = An.expTrigsf0(ii, :);
-        svIdc   = An.allIdxSvt(ii);
+        svIdc   = An.allIdxPreProc(ii);
         
         preSt = expTrig(1) - 0.5;
         posSp = expTrig(2) + 1.0;
@@ -117,33 +123,29 @@ if AudFlag == 1
 
         if ~isempty(MisCalcf0)
             if An.trialTypeSvt(ii) == 0
-                type = 'Cont';
+                type = 'Control';
             else
-                type = 'Pert';
+                type = 'Perturbed';
             end       
-            fprintf('Threw away %s Trial %d (%s), due to Miscalculated Pitch Trace\n', An.curSess, svIdc, type)
+            fprintf('%s Trial %d (%s) excluded due to Miscalculated Pitch Trace\n', An.curSess, svIdc, type)
 
             removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
             An.removedTrialTracker = cat(1, An.removedTrialTracker, removedTrial);
         else
-            svF = svF + 1;
-
-            An.subSvIdx      = cat(1, An.subSvIdx, ii);
-            An.svf0Idx       = cat(1, An.svf0Idx, svIdc);
-            An.expTrigsf0Sv = cat(1, An.expTrigsf0Sv, expTrig);
-            if An.trialTypeSvt(ii) == 0
-                An.contf0Idx  = cat(1, An.contf0Idx, svF);
-            else
-                An.pertf0Idx  = cat(1, An.pertf0Idx, svF);       
-            end        
+            An.subSvIdx      = cat(1, An.subSvIdx, ii);    
         end
     end
+    An.svf0Idx       = An.allIdxPreProc(An.subSvIdx);
+    An.expTrigsf0Sv  = An.expTrigsf0(An.subSvIdx, :);
+    An.trialTypef0Sv = An.trialTypeSvt(An.subSvIdx);
+    An.contf0Idx     = An.trialTypef0Sv == 0;
+    An.pertf0Idx     = An.trialTypef0Sv == 1;
     
     An.audioMf0sv      = An.audioMf0_norm(:, An.subSvIdx);
     An.audioHf0sv      = An.audioHf0_norm(:, An.subSvIdx); 
     An.numTrialsPP     = length(An.subSvIdx);
-    An.numPertTrialsPP = length(An.pertf0Idx);
-    An.numContTrialsPP = length(An.contf0Idx);
+    An.numPertTrialsPP = sum(An.pertf0Idx);
+    An.numContTrialsPP = sum(An.contf0Idx);
 
     %Find the Perturbed Trials
     An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
