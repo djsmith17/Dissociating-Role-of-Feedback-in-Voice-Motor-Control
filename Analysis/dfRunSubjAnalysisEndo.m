@@ -112,9 +112,6 @@ for i = 1:AVar.numPart
 
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
-        res.sRateExp  = auAn.sRate;
-        res.rawAudioM = auAn.audioM;
-        res.rawAudioH = auAn.audioH;
 
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run ext 'ResultsDRF.mat']);
         if AVar.debug == 0
@@ -142,6 +139,8 @@ res.SeqAudFB = auRes.SeqAudFB;
 res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
 
+% Raw Recorded data
+res.sRate               = auRes.sRate;
 res.numTrial            = auRes.numTrial;   % Total trials recorded
 res.removedTrialTracker = auRes.removedTrialTracker;
 res.incTrialInfo        = auRes.incTrialInfo;
@@ -220,8 +219,10 @@ res.respVarM     = auRes.respVarM;
 res.respVarSD    = auRes.respVarSD;
 res.InflaStimVar = auRes.InflaStimVar;
 
-%NIAu Delay
-res.allAuNiDelays = auRes.allAuNiDelays;
+%Some Final Output time series data
+res.audioMinc = auRes.audioMinc;
+res.audioHinc = auRes.audioHinc;
+res.AuNiDelaysinc = auRes.AuNiDelaysinc;
 
 %Check the Ni trials against the Au trials
 presInd = [];
@@ -260,7 +261,7 @@ function [DRF, pF, iRF] = preAnalysisCheck(DRF, f0b)
 
 expType = DRF.expParam.expType;
 
-if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
+if strcmp(expType(1:4), 'Soma') == 1
     % Laryngeal perturbations. AKA, we want to analyze the pressure, and 
     % the behavioral response to the inflation!
     pF  = 1;      %Pressure Analysis Flag

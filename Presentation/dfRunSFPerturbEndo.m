@@ -38,6 +38,7 @@ FBInstr    = {'Your Own Voice'; 'Loud White Noise'};
 
 expParam = dfInitExpParam();
 
+expParam.expType = 'Somatosensory Perturbation_Endoscopy';
 expParam.subject   = subject;
 expParam.run       = run;
 expParam.curSess   = [expParam.subject expParam.run];
