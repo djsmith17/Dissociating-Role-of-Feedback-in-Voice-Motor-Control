@@ -22,7 +22,7 @@ AVar.run           = 'SFL1';
 AVar.trials        = 10;
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
-AVar.cond          = {'VF', 'MN', 'All'};
+AVar.cond          = {'All'};
 AVar.numCond       = length(AVar.cond);
 
 dirs               = dfDirs(AVar.project);
@@ -113,8 +113,8 @@ for i = 1:AVar.numPart
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
         res.sRateExp  = auAn.sRate;
-        res.rawAudioM = auAn.audioMSvt;
-        res.rawAudioH = auAn.audioHSvt;
+        res.rawAudioM = auAn.audioM;
+        res.rawAudioH = auAn.audioH;
 
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run ext 'ResultsDRF.mat']);
         if AVar.debug == 0

@@ -33,10 +33,10 @@ else
 end
 
 enA.sRateExp    = res.sRateExp;
-enA.numTrials   = res.numPertTrialsFin;
-enA.pertIdx     = res.pertIdxFin;
-enA.expAudioM   = res.rawAudioM;
-enA.expAudioH   = res.rawAudioH;
+enA.allIdxFin   = res.allIdxFin;
+enA.numTrials   = length(enA.allIdxFin);
+enA.expAudioM   = res.rawAudioM(:,enA.allIdxFin);
+enA.expAudioH   = res.rawAudioH(:,enA.allIdxFin);
 enA.trialLenP   = length(enA.expAudioM);
 enA.setA        = (1:enA.trialLenP) - 1;
 
@@ -71,7 +71,7 @@ for ii = 1:enA.numTrials
 %     subplot(2,1,2)
 %     plot(enA.endoAudioM(:,ii))
 %     title([num2str(enA.trialRecStTimes(ii)) 's'])
-    curVideoFile = fullfile(dirs.parsedVideoDir, [enA.participant 'parsedVideoTrial' num2str(ii) '.avi']);
+    curVideoFile = fullfile(dirs.parsedVideoDir, [enA.participant 'parsedVideoTrial' num2str(enA.allIdxFin(ii)) '.avi']);
     curV = VideoWriter(curVideoFile);
     open(curV)
     writeVideo(curV, trialVideo);
