@@ -40,13 +40,12 @@ enA.expAudioM   = res.audioMinc;
 enA.expAudioH   = res.audioHinc;
 enA.trialLenP   = length(enA.expAudioM);
 enA.setA        = (1:enA.trialLenP) - 1;
+enA.timef0      = res.timef0;
+enA.expAudioMf0 = res.audioMf0TrialPert;
 
 % Setup Video Frame Structure
 [rawVStr, enA]            = setupVideoFrames(rawVObj, enA);
 [enA.vidFig, enA.vidAxes] = setViewWindowParams(enA);
-
-enA.timef0      = res.timef0;
-enA.expAudioMf0 = res.audioMf0TrialPert;
 
 enA.endoAudioDN = resample(endoAudio(:,1), enA.sRateExp, endoAfs);
 
