@@ -1,8 +1,9 @@
 function dfParseRawVideoScript()
+matlab.video.read.UseHardwareAcceleration('off')
 
 close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-enA.participant = 'DRF_ENP3';    % List of multiple participants.
+enA.participant = 'DRF_ENP4';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
 
@@ -32,11 +33,11 @@ else
     error('Could not find Results')
 end
 
-enA.sRateExp    = res.sRateExp;
+enA.sRateExp    = res.sRate;
 enA.allIdxFin   = res.allIdxFin;
 enA.numTrials   = length(enA.allIdxFin);
-enA.expAudioM   = res.rawAudioM(:,enA.allIdxFin);
-enA.expAudioH   = res.rawAudioH(:,enA.allIdxFin);
+enA.expAudioM   = res.audioMinc;
+enA.expAudioH   = res.audioHinc;
 enA.trialLenP   = length(enA.expAudioM);
 enA.setA        = (1:enA.trialLenP) - 1;
 
