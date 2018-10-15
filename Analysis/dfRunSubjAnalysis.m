@@ -102,18 +102,24 @@ end
 
 function res = combineRes(niRes, auRes)
 
+% Identifying Subject Information
 res.subject = auRes.subject;
 res.run     = auRes.run;
 res.curSess = auRes.curSess;
 res.gender  = auRes.gender;
 res.age     = auRes.age;
 
-res.expType = auRes.expType;
-res.AudFB   = auRes.AudFB;
+% Identifying Experimental Settings
+res.expType  = auRes.expType;
+res.AudFB    = auRes.AudFB;
+res.SeqAudFB = auRes.SeqAudFB;
 
+% Identifying Analysis Settings
 res.f0Type  = auRes.f0Type;
 res.etMH    = auRes.etMH;
 
+% Raw Recorded data
+res.sRate               = auRes.sRate;
 res.numTrial            = auRes.numTrial;   % Total trials recorded
 res.removedTrialTracker = auRes.removedTrialTracker;
 res.incTrialInfo        = auRes.incTrialInfo;
@@ -193,7 +199,7 @@ res.respVarSD    = auRes.respVarSD;
 res.InflaStimVar = auRes.InflaStimVar;
 
 %NIAu Delay
-res.allAuNiDelays = auRes.allAuNiDelays;
+res.AuNiDelaysinc = auRes.AuNiDelaysinc;
 
 %Check the Ni trials against the Au trials
 presInd = [];

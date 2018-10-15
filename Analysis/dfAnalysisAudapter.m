@@ -135,7 +135,7 @@ auAn.f0b       = [];        % Participant f0 from baseline recording
 auAn.AudFB     = [];        % Form of Auditory Feedback used in experimental run
 auAn.AudFBSw   = [];        % Auditory Feedback settings used in experimental run
 auAn.SeqAudFB  = [];        % If different AudFB was presented from trial-to-trial, track it here. 
-auAn.SeqAudFBSw = [];        % If different AudFB was presented from trial-to-trial, track it here. 
+auAn.SeqAudFBSw = [];       % If different AudFB was presented from trial-to-trial, track it here. 
 
 auAn.sRate     = []; % Sampling Rate of Audapter (down-sampled)
 auAn.sRateNi   = []; % Sampling Rate of NIDAQ
