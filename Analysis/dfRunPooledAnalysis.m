@@ -112,42 +112,20 @@ end
 
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
+ 
+% Organize and Print the Stats of the Demographics included in this study
+organizeAndPrintDemographicStats(allSubjRes);   
 
-fprintf('\nAcross all subjects, %d trials were excluded Automatically:\n', allSubjRes.tossedAll);
-fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
-fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
-fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
-fprintf('An additional %d trials were excluded Manually, of the %d trials Manually selected\n', allSubjRes.tossedAutoMiss, allSubjRes.tossedManual);
-fprintf('Automatic trial exclusion methods accounted for %s%% of trials selected Manually\n', allSubjRes.autoSuccessPerc)
+% Organize and Save the Table of Excluded Trials
+organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
 
-tossedTable = table(tossTrialTracker.curSess,... 
-                    tossTrialTracker.tossedTrials,...
-                    tossTrialTracker.manuallyExcl,...
-                    tossTrialTracker.autoMiss,...
-                    tossTrialTracker.perCaught,...
-                    'VariableNames', tVN);
-                
-uitable('Data', tossedTable{:,:},...
-        'ColumnName', tossedTable.Properties.VariableNames,...
-        'Units', 'Normalized',...
-        'Position', [0, 0, 1, 1]);
-    
-allSubjStatTable = displayStats(allSubjRes);    
-
-[mAge, rAge, gRatio] = demoStats(allSubjRes);
-fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f (Mean: %.1f)\n', rAge(1), rAge(2), mAge)
-fprintf('This data set includes %d males, and %d females\n\n', gRatio(1), gRatio(2))
+% Organize and Save the Table of Output Variables
+organizeAndSaveOutputVariables(dirs, pA, allSubjRes);    
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
-
-dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
-writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
-
-dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.xlsx']);
-writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
 end
 
 function sortStr = initSortedStruct(numCond)
@@ -637,7 +615,7 @@ varNames = {'SubjID', 'Age', 'Gender', 'AudFB', 'StimMag', 'RespMag', 'RespPer'}
 statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
 end
 
-function [meanAge, rangeAge, genderRatio] = demoStats(allSubjRes)
+function organizeAndPrintDemographicStats(allSubjRes)
 
 ages    = allSubjRes.age;
 genders = allSubjRes.gender;
@@ -651,9 +629,38 @@ numMales = sum(strcmp(genders, 'male'));
 numFemales = sum(strcmp(genders, 'female'));
 
 genderRatio = [numMales numFemales];
+
+fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f years (Mean: %.1f years)\n', rangeAge(1), rangeAge(2), meanAge)
+fprintf('This data set includes %d males, and %d females\n', genderRatio(1), genderRatio(2))
 end
 
-function allSubjStatTable = displayStats(allSubjRes)
+function organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, svFile)
+
+fprintf('\nAcross all subjects, %d trials were excluded Automatically:\n', allSubjRes.tossedAll);
+fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
+fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
+fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+fprintf('An additional %d trials were excluded Manually, of the %d trials Manually selected\n', allSubjRes.tossedAutoMiss, allSubjRes.tossedManual);
+fprintf('Automatic trial exclusion methods accounted for %s%% of trials selected Manually\n', allSubjRes.autoSuccessPerc)
+fprintf('\n')
+tossedTable = table(tossTrialTracker.curSess,... 
+                    tossTrialTracker.tossedTrials,...
+                    tossTrialTracker.manuallyExcl,...
+                    tossTrialTracker.autoMiss,...
+                    tossTrialTracker.perCaught,...
+                    'VariableNames', tVN);
+if svFile == 1                
+    uitable('Data', tossedTable{:,:},...
+            'ColumnName', tossedTable.Properties.VariableNames,...
+            'Units', 'Normalized',...
+            'Position', [0, 0, 1, 1]);
+        
+    dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.xlsx']);
+    writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
+end
+end
+
+function organizeAndSaveOutputVariables(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
 n = height(allSubjStatTable);
@@ -692,4 +699,7 @@ for ii = 1:nMeas
           ['(' mu '=' num2str(allMeasureMR(ii)) units{ii} ', ' sigma '=' num2str(allMeasureSTDR(ii)) units{ii} ')']})
     box off
 end
+
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
+writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
 end
