@@ -108,6 +108,16 @@ while hasFrame(rawVObj)
 end
 end
 
+function [vidFig, vidAxes] = setViewWindowParams(enA)
+
+vidFig  = figure();
+vidAxes = axes();
+
+set(vidFig,'position',[150 150 enA.vidWidth enA.vidHeight]);
+set(vidAxes,'units','pixels');
+set(vidAxes,'position',[0 0 enA.vidWidth enA.vidHeight]);
+end
+
 function pointLag = xCorrTimeLag(sig1, sig2)
 % xCorrTimeLag(sig1, sig2, fs) calculates the lag between two (seemingly) 
 % identical time based signals. 
@@ -120,16 +130,6 @@ function pointLag = xCorrTimeLag(sig1, sig2)
 [r, lags]    = xcorr(sig1, sig2);
 [~, peakInd] = max(r);
 pointLag     = lags(peakInd);
-end
-
-function [vidFig, vidAxes] = setViewWindowParams(enA)
-
-vidFig  = figure();
-vidAxes = axes();
-
-set(vidFig,'position',[150 150 enA.vidWidth enA.vidHeight]);
-set(vidAxes,'units','pixels');
-set(vidAxes,'position',[0 0 enA.vidWidth enA.vidHeight]);
 end
 
 function playRawVideo(enA, vid)
