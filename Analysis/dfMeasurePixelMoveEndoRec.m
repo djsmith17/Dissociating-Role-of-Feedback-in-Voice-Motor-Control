@@ -6,12 +6,12 @@ enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 enA.participant = 'DRF_ENP3';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
-enA.trial       = 'Trial1';
+enA.trial       = 1;
 
 dirs           = dfDirs(enA.project);
 
 dirs.parsedVideoDir  = fullfile(dirs.SavData, enA.participant, 'parsedVideo');
-dirs.parsedVideoFile = fullfile(dirs.parsedVideoDir, [enA.participant 'parsedVideo' enA.trial '.avi']);
+dirs.parsedVideoFile = fullfile(dirs.parsedVideoDir, [enA.participant 'parsedVideoTrial' num2str(enA.trial) '.avi']);
 dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run enA.ext 'ResultsDRF.mat']);
 
 if ~isfile(dirs.parsedVideoFile)
@@ -30,24 +30,39 @@ enA.numTrials   = length(enA.allIdxFin);
 enA.expAudioM   = res.audioMinc;
 enA.expAudioH   = res.audioHinc;
 enA.trialLenP   = length(enA.expAudioM);
+enA.trialLenT   = enA.trialLenP/enA.sRateExp;
 enA.setA        = (1:enA.trialLenP) - 1;
 enA.timef0      = res.timef0;
 enA.expAudioMf0 = res.audioMf0TrialPert;
+enA.pertTrigs   = res.pertTrigsFin(enA.trial, :);
+
+videoWidth  = 720;
+videoHeight = 480;
+frameRate   = 30;
 
 videoFileReader = vision.VideoFileReader(dirs.parsedVideoFile);
-videoPlayer     = vision.VideoPlayer('Position',[200,500,750,500]);
+videoPlayer     = vision.VideoPlayer('Position',[200,500,videoWidth + 30, videoHeight+ 20]);
 objectFrame     = videoFileReader();
 
-figure; imshow(objectFrame);
-objectRegion = round(getPosition(imrect)); close;
+% figure; imshow(objectFrame);
+% objectRegion = round(getPosition(imrect)); close;
+objectRegion = [126, 66, 457, 336];
+
 iniPoints    = detectMinEigenFeatures(rgb2gray(objectFrame), 'ROI', objectRegion);
 
-pointImage = insertMarker(objectFrame, iniPoints.Location,'+','Color','white');
+pointImage = insertShape(objectFrame, 'Rectangle', objectRegion, 'Color','red');
+pointImage = insertMarker(pointImage, iniPoints.Location,'+','Color','white');
 figure; imshow(pointImage);
 specROI = round(getPosition(imrect));
-specInd = find((iniPoints.Location(:,1) > specROI(1) & iniPoints.Location(:,1) < specROI(1) + specROI(3)) & (iniPoints.Location(:,2) > specROI(2) & iniPoints.Location(:,2) < specROI(2) + specROI(4)));
-stabROI = round(getPosition(imrect)); 
-stabInd = (iniPoints.Location(:,1) > stabROI(1) & iniPoints.Location(:,1) < stabROI(1) + stabROI(3)) & (iniPoints.Location(:,2) > stabROI(2) & iniPoints.Location(:,2) < stabROI(2) + stabROI(4));
+specInd = (iniPoints.Location(:,1) > specROI(1) & iniPoints.Location(:,1) < specROI(1) + specROI(3)) & (iniPoints.Location(:,2) > specROI(2) & iniPoints.Location(:,2) < specROI(2) + specROI(4));
+
+% multiStabInd = [];
+% for ss = 1:3
+%     stabROI = round(getPosition(imrect)); 
+%     stabInd = find((iniPoints.Location(:,1) > stabROI(1) & iniPoints.Location(:,1) < stabROI(1) + stabROI(3)) & (iniPoints.Location(:,2) > stabROI(2) & iniPoints.Location(:,2) < stabROI(2) + stabROI(4)));
+%     multiStabInd = cat(1, multiStabInd, stabInd);
+% end
+stabInd = ~specInd;
 close;
 
 tracker = vision.PointTracker('MaxBidirectionalError',1);
@@ -58,113 +73,118 @@ quivAx  = axes(quivFig);
 set(quivAx, 'XLim', [0 720], 'YLim', [0 480])
 set(quivAx, 'YDir', 'reverse')
 
-stabPointsIni = iniPoints.Location(stabInd,:);
+frame1        = videoFileReader();
+movMean       = frame1;
+correctedMean = frame1;
+curFrame      = frame1;
+[F1Points, ~] = tracker(curFrame);
 
-i = 1;
+curFrameCorrected   = frame1;
+lastPointsCorrected = F1Points;
+
+allFrames = struct;
+allFrames(1).frame = frame1;
 allPoints = [];
+allPoints = cat(1, allPoints, F1Points);
+
+ii = 2;
+Hcumulative = eye(3);
 while ~isDone(videoFileReader)
+    % Read in new frame
     frame = videoFileReader();
-    [points, validity] = tracker(frame);    
+
+    lastFrame = curFrame; % z^-1
+    lastFrameCorrected = curFrameCorrected;
+    curFrame  = frame;
+    movMean   = movMean + curFrame;
     
-    if i > 1
-        stabPointsFrame = points(stabInd,:);
-        stabDiff        = stabPointsFrame - stabPointsIni;
-        meanDiff        = mean(stabDiff, 1);
-        
-        newPoints = points - meanDiff;
-        
-        allDiff  = newPoints - pointsIni;
-        quiver(quivAx, newPoints(:,1), newPoints(:,2), allDiff(:,1), allDiff(:,2), 0.5);
-        set(quivAx, 'XLim', [0 720], 'YLim', [0 480])
-        set(quivAx, 'YDir', 'reverse')
-        
-        pointsIni     = newPoints;
-        allPoints = cat(3, allPoints, newPoints);
-    else
-        pointsIni = points;
-    end
-    i = i + 1;
+    [curPoints, validity] = tracker(curFrame);
+    [lastPoints, ~]       = tracker(lastFrame);
     
+%     curPointsStab  = curPoints(stabInd, :);
+%     lastPointsStab = lastPoints(stabInd, :);
     
-    out = insertMarker(frame, points(validity, :), '+');
-    videoPlayer(out);    
+    % Estimate transform from frame A to frame B, and fit as an s-R-t
+%     H = cvexEstStabilizationTform(lastFrame, curFrame, lastPointsStab, curPointsStab);
+%     HsRt = cvexTformToSRT(H);
+%     Hcumulative = HsRt * Hcumulative;
+%     curFrameCorrected = imwarp(curFrame,affine2d(Hcumulative),'OutputView',imref2d(size(curFrame)));
+% 
+%     % Detect Velocity of Points between this frame and last frame
+%     [curPointsCorrected, ~]  = tracker(curFrameCorrected);
+%     [lastPointsCorrected, ~] = tracker(lastFrameCorrected);
+    
+    svPoints  = curPoints;
+    svLPoints = lastPoints;
+    
+    pointsShift = svPoints - svLPoints;   
+    
+    % Generate Quiver plot of change in points
+    quiver(quivAx, curPoints(:,1), curPoints(:,2), pointsShift(:,1), pointsShift(:,2), 0.5);
+    set(quivAx, 'XLim', [0 720], 'YLim', [0 480])
+    set(quivAx, 'YDir', 'reverse')
+    title(['Frame ' num2str(ii)])
+    
+    allPoints = cat(3, allPoints, svPoints);
+
+    % Display as color composite with last corrected frame
+%     videoPlayer(imfuse(lastFrameCorrected, curFrameCorrected,'ColorChannels','red-cyan'));
+%     correctedMean = correctedMean + curFrameCorrected;
+    
+    out = insertMarker(frame, curPoints(validity, :), '+');
+    videoPlayer(out);
+    
+    allFrames(ii).frame = frame;
+    ii = ii+1;
 end
+nFrames = ii - 1;
+% correctedMean = correctedMean/(ii-2);
+% movMean = movMean/(ii-2);
 
 release(videoPlayer);
 release(videoFileReader);
 
-% % Setup Video Frame Structure
-% [rawVStr, enA]            = setupVideoFrames(rawVObj, enA);
-% [enA.vidFig, enA.vidAxes] = setViewWindowParams(enA);
-% 
-% frameXs = [];
-% frameYs = [];
-% targXChange = zeros(60, 1);
-% targYChange = zeros(60, 1);
-% for ii = 1:60
-%     fprintf('Frame %f\n', ii)
-%     image(enA.vidAxes, rawVStr(ii).cdata)
-%     hold(enA.vidAxes, 'on')
-% 
-%     [x_fid1, y_fid1] = ginput(1);
-%     plot(enA.vidAxes, x_fid1, y_fid1, 'b*')
-% %     [x_fid2, y_fid2] = ginput(1);
-% %     plot(enA.vidAxes, x_fid2, y_fid2, 'b*')
-% %     [x_fid3, y_fid3] = ginput(1);
-% %     plot(enA.vidAxes, x_fid3, y_fid3, 'b*')
-%     [x_targ, y_targ] = ginput(1);
-%     plot(enA.vidAxes, x_targ, y_targ, 'r*')
-%     hold(enA.vidAxes, 'off')
-% 
-%     frameXs = cat(1, frameXs, [x_fid1 x_targ]);
-%     frameYs = cat(1, frameYs, [y_fid1 y_targ]);
-%     
-%     if ii > 1
-%         diffX = diff(frameXs(ii-1:ii, :));
-%         diffY = diff(frameYs(ii-1:ii, :));
-%         
-%         targXChange(ii) = diffX(2) + diffX(1);
-%         targYChange(ii) = diffY(2) + diffX(1);
-%     end
-% end
+% figure; imshowpair(movMean, correctedMean, 'montage');
+% title(['Raw input mean', repmat(' ',[1 50]), 'Corrected sequence mean']);
+
+videoTime = linspace(0, enA.trialLenT, nFrames);
+
+velAllX = diff(squeeze(allPoints(:, 1, :))');
+velAllY = diff(squeeze(allPoints(:, 2, :))');
+velSpecX = diff(squeeze(allPoints(specInd, 1, :))');
+velSpecY = diff(squeeze(allPoints(specInd, 2, :))');
+velStabX = diff(squeeze(allPoints(stabInd, 1, :))');
+velStabY = diff(squeeze(allPoints(stabInd, 2, :))');
+
+figure
+subplot(1,2,1)
+plot(videoTime(2:end), velStabX, 'b')
+hold on
+plot(videoTime(2:end), velSpecX, 'r')
+plot([enA.pertTrigs(1) enA.pertTrigs(1)], [-50 50], 'k--')
+plot([enA.pertTrigs(2) enA.pertTrigs(2)], [-50 50], 'k--')
+axis([0 4 -40 40])
+
+subplot(1,2,2)
+plot(videoTime(2:end), velStabY, 'b')
+hold on
+plot(videoTime(2:end), velSpecY, 'r')
+plot([enA.pertTrigs(1) enA.pertTrigs(1)], [-50 50], 'k--')
+plot([enA.pertTrigs(2) enA.pertTrigs(2)], [-50 50], 'k--')
+axis([0 4 -40 40])
+ 
 % figure
-% subplot(2,1,1)
-% plot(targXChange)
-% subplot(2,1,2)
-% plot(targYChange)
-% 
-% figure
-% plot(frameXs(:,1), frameYs(:,1), 'b*')
+% subplot(1,2,1)
+% plot(videoTime(2:end), velAllX)
 % hold on
-% plot(frameXs(:,2), frameYs(:,2), 'r*')
-% axis([0 rawVObj.Width 0 rawVObj.Height])
-% set(gca, 'Ydir','reverse')
+% plot([enA.pertTrigs(1) enA.pertTrigs(1)], [-50 50], 'k--')
+% plot([enA.pertTrigs(2) enA.pertTrigs(2)], [-50 50], 'k--')
+% axis([0 4 -40 40])
 % 
-end
-
-function [rawVStr, enA] = setupVideoFrames(rawVObj, enA)
-
-enA.vidWidth  = rawVObj.Width;
-enA.vidHeight = rawVObj.Height;
-enA.vidFrameR = rawVObj.FrameRate;
-enA.trialLenF = round(enA.trialLenP*(enA.vidFrameR/enA.sRateExp));
-enA.setF      = (1:enA.trialLenF) - 1;
-
-rawVStr = struct('cdata', zeros(enA.vidHeight, enA.vidWidth, 3, 'uint8'), 'colormap', []);
-
-enA.nFrames = 0;
-while hasFrame(rawVObj)
-    enA.nFrames = enA.nFrames+1;
-    rawVStr(enA.nFrames).cdata = readFrame(rawVObj);
-end
-end
-
-function [vidFig, vidAxes] = setViewWindowParams(enA)
-
-vidFig  = figure();
-vidAxes = axes();
-
-set(vidFig,'position',[150 150 enA.vidWidth enA.vidHeight]);
-set(vidAxes,'units','pixels');
-set(vidAxes,'position',[0 0 enA.vidWidth enA.vidHeight]);
+% subplot(1,2,2)
+% plot(videoTime(2:end), velAllY)
+% hold on
+% plot([enA.pertTrigs(1) enA.pertTrigs(1)], [-50 50], 'k--')
+% plot([enA.pertTrigs(2) enA.pertTrigs(2)], [-50 50], 'k--')
+% axis([0 4 -40 40])
 end
