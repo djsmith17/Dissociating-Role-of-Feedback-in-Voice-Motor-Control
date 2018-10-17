@@ -14,9 +14,7 @@ dirs.parsedVideoDir  = fullfile(dirs.SavData, enA.participant, 'parsedVideo');
 dirs.parsedVideoFile = fullfile(dirs.parsedVideoDir, [enA.participant 'parsedVideo' enA.trial '.avi']);
 dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run enA.ext 'ResultsDRF.mat']);
 
-if isfile(dirs.parsedVideoFile)
-    rawVObj = VideoReader(dirs.parsedVideoFile);
-else
+if ~isfile(dirs.parsedVideoFile)
     error('Could not find Parsed Video')
 end
 
@@ -36,44 +34,112 @@ enA.setA        = (1:enA.trialLenP) - 1;
 enA.timef0      = res.timef0;
 enA.expAudioMf0 = res.audioMf0TrialPert;
 
-% Setup Video Frame Structure
-[rawVStr, enA]            = setupVideoFrames(rawVObj, enA);
-[enA.vidFig, enA.vidAxes] = setViewWindowParams(enA);
+videoFileReader = vision.VideoFileReader(dirs.parsedVideoFile);
+videoPlayer     = vision.VideoPlayer('Position',[200,500,750,500]);
+objectFrame     = videoFileReader();
 
-frameXs = [];
-frameYs = [];
-for ii = 1:2
-    fprintf('Frame %f\n', ii)
-    image(enA.vidAxes, rawVStr(ii).cdata)
-    hold(enA.vidAxes, 'on')
+figure; imshow(objectFrame);
+objectRegion = round(getPosition(imrect)); close;
+iniPoints    = detectMinEigenFeatures(rgb2gray(objectFrame), 'ROI', objectRegion);
 
-    [x_fid1, y_fid1] = ginput(1);
-    plot(enA.vidAxes, x_fid1, y_fid1, 'b*')
-    [x_fid2, y_fid2] = ginput(1);
-    plot(enA.vidAxes, x_fid2, y_fid2, 'b*')
-    [x_fid3, y_fid3] = ginput(1);
-    plot(enA.vidAxes, x_fid3, y_fid3, 'b*')
-    [x_targ, y_targ] = ginput(1);
-    plot(enA.vidAxes, x_targ, y_targ, 'r*')
-    hold(enA.vidAxes, 'off')
+pointImage = insertMarker(objectFrame, iniPoints.Location,'+','Color','white');
+figure; imshow(pointImage);
+specROI = round(getPosition(imrect));
+specInd = find((iniPoints.Location(:,1) > specROI(1) & iniPoints.Location(:,1) < specROI(1) + specROI(3)) & (iniPoints.Location(:,2) > specROI(2) & iniPoints.Location(:,2) < specROI(2) + specROI(4)));
+stabROI = round(getPosition(imrect)); 
+stabInd = (iniPoints.Location(:,1) > stabROI(1) & iniPoints.Location(:,1) < stabROI(1) + stabROI(3)) & (iniPoints.Location(:,2) > stabROI(2) & iniPoints.Location(:,2) < stabROI(2) + stabROI(4));
+close;
 
-    frameXs = cat(1, frameXs, [x_fid1 x_fid2 x_fid3 x_targ]);
-    frameYs = cat(1, frameYs, [y_fid1 y_fid2 y_fid3 y_targ]);
+tracker = vision.PointTracker('MaxBidirectionalError',1);
+initialize(tracker,iniPoints.Location,objectFrame);
+
+quivFig = figure();
+quivAx  = axes(quivFig);
+set(quivAx, 'XLim', [0 720], 'YLim', [0 480])
+set(quivAx, 'YDir', 'reverse')
+
+stabPointsIni = iniPoints.Location(stabInd,:);
+
+i = 1;
+allPoints = [];
+while ~isDone(videoFileReader)
+    frame = videoFileReader();
+    [points, validity] = tracker(frame);    
     
-    if ii > 1
-        diffX = diff(frameXs(ii-1:ii, :));
-        diffY = diff(frameYs(ii-1:ii, :));
+    if i > 1
+        stabPointsFrame = points(stabInd,:);
+        stabDiff        = stabPointsFrame - stabPointsIni;
+        meanDiff        = mean(stabDiff, 1);
         
-        xE1 = diffX(2) - diffX(1);
-        xE2 = diffX(3) - diffX(1);
-        xE3 = diffX(2) - diffX(3);
+        newPoints = points - meanDiff;
         
-        yE1 = diffY(2) - diffY(1);
-        yE2 = diffY(1) - diffY(3);
-        yE3 = diffY(2) - diffY(3);
+        allDiff  = newPoints - pointsIni;
+        quiver(quivAx, newPoints(:,1), newPoints(:,2), allDiff(:,1), allDiff(:,2), 0.5);
+        set(quivAx, 'XLim', [0 720], 'YLim', [0 480])
+        set(quivAx, 'YDir', 'reverse')
+        
+        pointsIni     = newPoints;
+        allPoints = cat(3, allPoints, newPoints);
+    else
+        pointsIni = points;
     end
+    i = i + 1;
+    
+    
+    out = insertMarker(frame, points(validity, :), '+');
+    videoPlayer(out);    
 end
 
+release(videoPlayer);
+release(videoFileReader);
+
+% % Setup Video Frame Structure
+% [rawVStr, enA]            = setupVideoFrames(rawVObj, enA);
+% [enA.vidFig, enA.vidAxes] = setViewWindowParams(enA);
+% 
+% frameXs = [];
+% frameYs = [];
+% targXChange = zeros(60, 1);
+% targYChange = zeros(60, 1);
+% for ii = 1:60
+%     fprintf('Frame %f\n', ii)
+%     image(enA.vidAxes, rawVStr(ii).cdata)
+%     hold(enA.vidAxes, 'on')
+% 
+%     [x_fid1, y_fid1] = ginput(1);
+%     plot(enA.vidAxes, x_fid1, y_fid1, 'b*')
+% %     [x_fid2, y_fid2] = ginput(1);
+% %     plot(enA.vidAxes, x_fid2, y_fid2, 'b*')
+% %     [x_fid3, y_fid3] = ginput(1);
+% %     plot(enA.vidAxes, x_fid3, y_fid3, 'b*')
+%     [x_targ, y_targ] = ginput(1);
+%     plot(enA.vidAxes, x_targ, y_targ, 'r*')
+%     hold(enA.vidAxes, 'off')
+% 
+%     frameXs = cat(1, frameXs, [x_fid1 x_targ]);
+%     frameYs = cat(1, frameYs, [y_fid1 y_targ]);
+%     
+%     if ii > 1
+%         diffX = diff(frameXs(ii-1:ii, :));
+%         diffY = diff(frameYs(ii-1:ii, :));
+%         
+%         targXChange(ii) = diffX(2) + diffX(1);
+%         targYChange(ii) = diffY(2) + diffX(1);
+%     end
+% end
+% figure
+% subplot(2,1,1)
+% plot(targXChange)
+% subplot(2,1,2)
+% plot(targYChange)
+% 
+% figure
+% plot(frameXs(:,1), frameYs(:,1), 'b*')
+% hold on
+% plot(frameXs(:,2), frameYs(:,2), 'r*')
+% axis([0 rawVObj.Width 0 rawVObj.Height])
+% set(gca, 'Ydir','reverse')
+% 
 end
 
 function [rawVStr, enA] = setupVideoFrames(rawVObj, enA)
