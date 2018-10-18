@@ -7,11 +7,13 @@ enA.participant = 'DRF_ENP3';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
 enA.trial       = 1;
+enA.curSess     = [enA.participant 'parsedVideoTrial' num2str(enA.trial)];
+enA.monSize     = [2560 1440];
 
 dirs           = dfDirs(enA.project);
 
 dirs.parsedVideoDir  = fullfile(dirs.SavData, enA.participant, 'parsedVideo');
-dirs.parsedVideoFile = fullfile(dirs.parsedVideoDir, [enA.participant 'parsedVideoTrial' num2str(enA.trial) '.avi']);
+dirs.parsedVideoFile = fullfile(dirs.parsedVideoDir, [enA.curSess '.avi']);
 dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run enA.ext 'ResultsDRF.mat']);
 
 if ~isfile(dirs.parsedVideoFile)
@@ -40,27 +42,17 @@ enA.videoWidth  = 720;
 enA.videoHeight = 480;
 enA.frameRate   = 30;
 
+videoPlayerPos = [(enA.monSize(1)/2 - enA.videoWidth - 50), 600, (enA.videoWidth + 30), (enA.videoHeight+ 20)];
+quiverPos      = [(enA.monSize(1)/2 + 50), 600, (enA.videoWidth + 30), (enA.videoHeight+ 20)];
 videoFileReader = vision.VideoFileReader(dirs.parsedVideoFile);
-videoPlayer     = vision.VideoPlayer('Position',[200,500,enA.videoWidth + 30, enA.videoHeight+ 20]);
+videoPlayer     = vision.VideoPlayer('Position', videoPlayerPos);
 objectFrame     = videoFileReader();
 
 % figure; imshow(objectFrame);
 % objectRegion = round(getPosition(imrect)); close;
 objectRegion = [126, 66, 457, 336];
 
-compassSt = [640 380];
-vertArrow = [compassSt(1) compassSt(2) compassSt(1) compassSt(2)+50];
-horzArrow = [compassSt(1) compassSt(2) compassSt(1)+50 compassSt(2)];
-vertArrowUp = [vertArrow(3) vertArrow(4) vertArrow(3)-5 vertArrow(4)-5];
-vertArrowDn = [vertArrow(3) vertArrow(4) vertArrow(3)+5 vertArrow(4)-5];
-horzArrowUp = [horzArrow(3) horzArrow(4) horzArrow(3)-5 horzArrow(4)+5];
-horzArrowDn = [horzArrow(3) horzArrow(4) horzArrow(3)-5 horzArrow(4)-5];
-
-compassLines = [vertArrow; horzArrow; vertArrowUp; vertArrowDn; horzArrowUp; horzArrowDn];
-
-leftTextPos = [mean([horzArrow(1) horzArrow(3)]), (horzArrow(2) -2)];
-AntTextPos  = [vertArrow(1), (vertArrow(4) + 25)];
-textPos     = [leftTextPos; AntTextPos];
+[compassLines, textPos] = setupVideoFrameAnno();
 
 objectFrame = insertShape(objectFrame, 'Line', compassLines, 'Color', 'white');
 objectFrame = insertText(objectFrame, textPos, {'Left', 'Anterior'}, 'TextColor', 'white', 'BoxColor', 'black', 'AnchorPoint', 'CenterBottom');
@@ -69,7 +61,7 @@ iniPoints    = detectMinEigenFeatures(rgb2gray(objectFrame), 'ROI', objectRegion
 
 pointImage = insertShape(objectFrame, 'Rectangle', objectRegion, 'Color','red');
 pointImage = insertMarker(pointImage, iniPoints.Location,'+','Color','white');
-figure; imshow(pointImage);
+figure('Position', videoPlayerPos); imshow(pointImage);
 specROI = round(getPosition(imrect));
 specInd = (iniPoints.Location(:,1) > specROI(1) & iniPoints.Location(:,1) < specROI(1) + specROI(3)) & (iniPoints.Location(:,2) > specROI(2) & iniPoints.Location(:,2) < specROI(2) + specROI(4));
 
@@ -86,7 +78,7 @@ close;
 tracker = vision.PointTracker('MaxBidirectionalError',1);
 initialize(tracker,iniPoints.Location,objectFrame);
 
-quivFig = figure();
+quivFig = figure('Position', quiverPos);
 quivAx  = axes(quivFig);
 set(quivAx, 'XLim', [0 720], 'YLim', [0 480])
 set(quivAx, 'YDir', 'reverse')
@@ -103,6 +95,8 @@ allFrames(1).frame = frame1;
 allPoints = [];
 allPoints = cat(1, allPoints, F1Points);
 
+stable = 0;
+% videoPlayer(frame1)
 ii = 2;
 Hcumulative = eye(3);
 while ~isDone(videoFileReader)
@@ -117,18 +111,20 @@ while ~isDone(videoFileReader)
     [curPoints, validity] = tracker(curFrame);
     [lastPoints, ~]       = tracker(lastFrame);
     
-%     curPointsStab  = curPoints(stabInd, :);
-%     lastPointsStab = lastPoints(stabInd, :);
-%     
-%     % Estimate transform from frame A to frame B, and fit as an s-R-t
-%     H = cvexEstStabilizationTform(lastFrame, curFrame, lastPointsStab, curPointsStab);
-%     HsRt = cvexTformToSRT(H);
-%     Hcumulative = HsRt * Hcumulative;
-%     curFrameCorrected = imwarp(curFrame,affine2d(Hcumulative),'OutputView',imref2d(size(curFrame)));
-% 
-%     % Detect Velocity of Points between this frame and last frame
-%     [curPointsCorrected, ~]  = tracker(curFrameCorrected);
-%     [lastPointsCorrected, ~] = tracker(lastFrameCorrected);
+    if stable == 1
+        curPointsStab  = curPoints(stabInd, :);
+        lastPointsStab = lastPoints(stabInd, :);
+
+        % Estimate transform from frame A to frame B, and fit as an s-R-t
+        H = cvexEstStabilizationTform(lastFrame, curFrame, lastPointsStab, curPointsStab);
+        HsRt = cvexTformToSRT(H);
+        Hcumulative = HsRt * Hcumulative;
+        curFrameCorrected = imwarp(curFrame,affine2d(Hcumulative),'OutputView',imref2d(size(curFrame)));
+
+        % Detect Velocity of Points between this frame and last frame
+        [curPointsCorrected, ~]  = tracker(curFrameCorrected);
+        [lastPointsCorrected, ~] = tracker(lastFrameCorrected);
+    end
     
     svPoints  = curPoints;
     svLPoints = lastPoints;
@@ -142,34 +138,56 @@ while ~isDone(videoFileReader)
     title(['Frame ' num2str(ii)])
     
     allPoints = cat(3, allPoints, svPoints);
-
-    % Display as color composite with last corrected frame
-%     videoPlayer(imfuse(lastFrameCorrected, curFrameCorrected,'ColorChannels','red-cyan'));
-%     correctedMean = correctedMean + curFrameCorrected;
     
-    out = insertMarker(frame, curPoints(validity, :), '+');
+    if stable == 1
+        % Display as color composite with last corrected frame
+        out = imfuse(lastFrameCorrected, curFrameCorrected,'ColorChannels','red-cyan');
+        correctedMean = correctedMean + curFrameCorrected;
+    else
+        out = frame;
+    end
+    
+    out = insertMarker(out, curPoints(validity, :), '+');
     out = insertShape(out, 'Line', compassLines, 'Color', 'white');
-    out = insertText(out, textPos, {'Left', 'Anterior'}, 'TextColor', 'white', 'BoxColor', 'black', 'AnchorPoint', 'CenterBottom');
-
+    out = insertText(out, textPos, {'Left', 'Anterior'}, 'TextColor', 'white', 'BoxColor', 'black', 'AnchorPoint', 'CenterBottom');     
+    
     videoPlayer(out);
     
     allFrames(ii).frame = frame;
     ii = ii+1;
 end
+close(quivFig)
 enA.nFrames = ii - 1;
 correctedMean = correctedMean/(ii-2);
 movMean = movMean/(ii-2);
 
 release(videoPlayer);
 release(videoFileReader);
-
-% figure; imshowpair(movMean, correctedMean, 'montage');
-% title(['Raw input mean', repmat(' ',[1 50]), 'Corrected sequence mean']);
-
-plotPointVelocities(enA, allPoints, specInd, stabInd)
+if stable == 1
+    figure; imshowpair(movMean, correctedMean, 'montage');
+    title(['Raw input mean', repmat(' ',[1 50]), 'Corrected sequence mean']);
+end
+plotPointVelocities(dirs, enA, allPoints, specInd, stabInd)
 end
 
-function plotPointVelocities(enA, allPoints, specInd, stabInd)
+function [compassLines, textPos] = setupVideoFrameAnno()
+
+compassSt = [640 380];
+vertArrow = [compassSt(1) compassSt(2) compassSt(1) compassSt(2)+50];
+horzArrow = [compassSt(1) compassSt(2) compassSt(1)+50 compassSt(2)];
+vertArrowUp = [vertArrow(3) vertArrow(4) vertArrow(3)-5 vertArrow(4)-5];
+vertArrowDn = [vertArrow(3) vertArrow(4) vertArrow(3)+5 vertArrow(4)-5];
+horzArrowUp = [horzArrow(3) horzArrow(4) horzArrow(3)-5 horzArrow(4)+5];
+horzArrowDn = [horzArrow(3) horzArrow(4) horzArrow(3)-5 horzArrow(4)-5];
+
+compassLines = [vertArrow; horzArrow; vertArrowUp; vertArrowDn; horzArrowUp; horzArrowDn];
+
+leftTextPos = [mean([horzArrow(1) horzArrow(3)]), (horzArrow(2) -2)];
+AntTextPos  = [vertArrow(1), (vertArrow(4) + 25)];
+textPos     = [leftTextPos; AntTextPos];
+end
+
+function plotPointVelocities(dirs, enA, allPoints, specInd, stabInd)
 videoTime = linspace(0, enA.trialLenT, enA.nFrames);
 
 velAllX = diff(squeeze(allPoints(:, 1, :))')./enA.frameRate;
@@ -185,8 +203,11 @@ velXMax = max(max(velAllX)); velYMax = max(max(velAllY));
 limitsX = [0 4 velXMin-0.1 velXMax + 0.1];
 limitsY = [0 4 velYMin-0.1 velYMax + 0.1];
 
+figSize = [1400 500];
+figPos  = [(enA.monSize(1)/2-figSize(1)/2) 90];
+
 sepGroupsFig = figure('Color', [1 1 1]);
-set(sepGroupsFig, 'Position', [200 500 1400 500])
+set(sepGroupsFig, 'Position', [figPos figSize])
 
 ha = tight_subplot(1,2,[0.08 0.08],[0.12 0.15],[0.05 0.01]);
 
@@ -202,7 +223,7 @@ annotation('textarrow',x,y,'String','Left')
 axis(limitsX); box off
 xlabel('Time (s)')
 ylabel('Velocity (pixels/s)')
-title('Horizontal Component of Velocity')
+title('Horizontal Component of Pixel Velocity')
 
 axes(ha(2))
 plot(videoTime(2:end), velStabY, 'b')
@@ -216,20 +237,11 @@ annotation('textarrow',x,y,'String','Anterior')
 axis(limitsY); box off
 xlabel('Time (s)')
 ylabel('Velocity (pixels/s)')
-title('Vertical Component of Velocity')
+title('Vertical Component of Pixel Velocity')
 
-% figure
-% subplot(1,2,1)
-% plot(videoTime(2:end), velAllX)
-% hold on
-% plot([enA.pertTrigs(1) enA.pertTrigs(1)], [-50 50], 'k--')
-% plot([enA.pertTrigs(2) enA.pertTrigs(2)], [-50 50], 'k--')
-% axis([0 4 -40 40])
-% 
-% subplot(1,2,2)
-% plot(videoTime(2:end), velAllY)
-% hold on
-% plot([enA.pertTrigs(1) enA.pertTrigs(1)], [-50 50], 'k--')
-% plot([enA.pertTrigs(2) enA.pertTrigs(2)], [-50 50], 'k--')
-% axis([0 4 -40 40])
+enA.curSess(strfind(enA.curSess, '_')) = '';
+suptitle(enA.curSess)
+
+saveFileName = fullfile(dirs.Results, enA.participant, enA.run, [enA.curSess '_PixelVelocity.jpg']);
+export_fig(saveFileName)
 end
