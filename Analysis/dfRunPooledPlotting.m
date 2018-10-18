@@ -18,7 +18,7 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
-PolPlt.MaskVVoice        = 1;
+PolPlt.MaskVVoice        = 0;
 PolPlt.AllSubjMaskvVoice = 1;
 
 fStat    = 0;

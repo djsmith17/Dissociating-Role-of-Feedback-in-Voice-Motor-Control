@@ -110,6 +110,7 @@ for ii = 1:pA.numPart
     allSubjRes.age(ii)    = sortStruc.age;
 end
 
+allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
  
@@ -383,8 +384,38 @@ else
     polRes.autoSuccessPerc = 'N/A';
 end
 
+polRes.statLib = packStatLib(polRes);
+
 statTable        = packStatTable(polRes);
 polRes.statTable = statTable;
+end
+
+function allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr)
+
+numPartici = length(pooledRunStr);
+
+audioMf0SecContAllSubj = [];
+audioMf0SecPertAllSubj = cell(pA.numCond,1);
+for nP = 1:numPartici
+    curSubj = pooledRunStr(nP);
+    
+    meanOnsetCont   = curSubj.audioMf0MeanCont(:,1);
+    meanOffsetCont  = curSubj.audioMf0MeanCont(:,3);
+    secCont(:,:,1) = meanOnsetCont;
+    secCont(:,:,2) = meanOffsetCont;
+    audioMf0SecContAllSubj = cat(2, audioMf0SecContAllSubj, secCont);
+    
+    for wC = 1:pA.numCond
+        meanOnsetPert   = curSubj.audioMf0MeanPert{wC}(:,1);
+        meanOffsetPert  = curSubj.audioMf0MeanPert{wC}(:,3);
+        secPert(:,:,1) = meanOnsetPert;
+        secPert(:,:,2) = meanOffsetPert;
+        audioMf0SecPertAllSubj{wC} = cat(2, audioMf0SecPertAllSubj{wC}, secPert);
+    end
+end
+
+allSubjRes.audioMf0SecCont = audioMf0SecContAllSubj;
+allSubjRes.audioMf0SecPert = audioMf0SecPertAllSubj;
 end
 
 function meanData = meanSecData(secData)
@@ -463,12 +494,12 @@ for i = 1:numTrial
     ir.iAtMin = ir.iPostOnsetR(minIdx);           % Indice of the min f0 value
     ir.tAtMin = ir.time(ir.iAtMin);               % Time at min f0 value in PostOnsetR
     ir.vAtMin = minOn;                            % Min f0 value in PostOnsetR
-    ir.stimMag = ir.vAtMin - ir.vAtOnset;         % Distance traveled from onset to min value
+    ir.stimMag = abs(ir.vAtMin - ir.vAtOnset);         % Distance traveled from onset to min value
     
     ir.vAtResp = onset(ir.iAtResp);               % f0 value when participant 'fully' responded 
     ir.respMag = ir.vAtResp - ir.vAtMin;          % Distance traveled from min f0 value to response f0 value
     
-    ir.respPer = 100*(ir.respMag/abs(ir.stimMag));% Percent change from stimMag to respMag 
+    ir.respPer = 100*(ir.respMag/ir.stimMag);% Percent change from stimMag to respMag 
     
     if ir.stimMag == 0
         ir.respPer = 0.0;
@@ -479,6 +510,9 @@ for i = 1:numTrial
     stimMag  = cat(1, stimMag, ir.stimMag); 
     respMag  = cat(1, respMag, ir.respMag); 
     respPer  = cat(1, respPer, ir.respPer);
+    
+    drawInflationResultMetrics(onset, ir)
+    pause(); close all;
 end
 
 % Organize the results 
@@ -591,8 +625,8 @@ function statLib = packStatLib(ss)
 cond1 = ss.respVar{1};
 cond2 = ss.respVar{2};
 
-condM1 = ss.respVarM(1,:);
-condM2 = ss.respVarM(2,:);
+condM1 = ss.respVarM{1,:};
+condM2 = ss.respVarM{2,:};
 
 [~, pStim] = ttest2(cond1(:,2), cond2(:,2));
 [~, pResp] = ttest2(cond1(:,3), cond2(:,3));
@@ -620,12 +654,12 @@ function organizeAndPrintDemographicStats(allSubjRes)
 ages    = allSubjRes.age;
 genders = allSubjRes.gender;
 
-meanAge = round(mean(ages), 1);
-minAge  = round(min(ages), 1);
-maxAge  = round(max(ages), 1);
+meanAge  = round(mean(ages), 1);
+minAge   = round(min(ages), 1);
+maxAge   = round(max(ages), 1);
 rangeAge = [minAge maxAge];
 
-numMales = sum(strcmp(genders, 'male'));
+numMales   = sum(strcmp(genders, 'male'));
 numFemales = sum(strcmp(genders, 'female'));
 
 genderRatio = [numMales numFemales];
