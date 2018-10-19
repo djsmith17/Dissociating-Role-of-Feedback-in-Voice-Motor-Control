@@ -236,10 +236,13 @@ end
 
 function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
 
+% AUTO: Identify trials that were excluded by automated methods 
 [tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes);
 
+% MANUAL: Identify trials that were excluded by manual methods
 [mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(curRes.incTrialInfo);
 
+% COMPARE AUTO and MANUAL
 [autoMiss, perCaught] = compareTossedTrials(aTossTrials, mTossTrials);
 numManual = length(mTossTrials);
 numMissed = length(autoMiss);
@@ -285,7 +288,10 @@ end
 end
 
 function [tDetails, trialNums] = writeTossedDetails(tT, logicToss, note, tDetails)
-    
+% [tDetails, trialNums] = writeTossedDetails(tT, logicToss, note, tDetails)
+% records which trials were lost and for reason for use in a table later on
+% which details all trials considered.
+
 numTrials = sum(logicToss);
 curTrials = tT(logicToss);
 
@@ -301,7 +307,9 @@ end
 end
 
 function [mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(incTrialInfo)
-
+% [mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(incTrialInfo)
+% opens the notes we made regarding which trials to manually exclude. These
+% notes are later compared against the automated methods
 mTossTrials  = [];
 mTossDetails = [];
 
@@ -336,20 +344,19 @@ end
 
 function curRes = adjustCurRes(curRes, autoMiss)
 
-acceptedContTrials = curRes.contIdxFin;
-[~, contKeepIdx] = setdiff(acceptedContTrials, autoMiss);
-numCont2Keep = length(contKeepIdx);
+keptElementsCont = curRes.allIdxFin(curRes.contIdxFin);
+keptElementsPert = curRes.allIdxFin(curRes.pertIdxFin);
 
-acceptedPertTrials = curRes.pertIdxFin;
-[~, pertKeepIdx] = setdiff(acceptedPertTrials, autoMiss);
-numPert2Keep = length(pertKeepIdx);
+[~, contIdx2Remove] = intersect(keptElementsCont, autoMiss);
+[~, pertIdx2Remove] = intersect(keptElementsPert, autoMiss);
 
-curRes.numContTrialsFin = numCont2Keep;
-curRes.numPertTrialsFin = numPert2Keep;
+%Re-Adjust curRes for those extra trials we threw away.
+curRes.audioMf0SecCont(:, contIdx2Remove,:) = [];
+curRes.audioMf0SecPert(:, pertIdx2Remove,:) = [];
+curRes.sensorPSec(:, pertIdx2Remove,:)      = [];
 
-curRes.audioMf0SecCont = curRes.audioMf0SecCont(:, contKeepIdx, :);
-curRes.audioMf0SecPert = curRes.audioMf0SecPert(:, pertKeepIdx, :);
-curRes.sensorPSec      = curRes.sensorPSec(:, pertKeepIdx, :);
+[~, curRes.numContTrialsFin, ~] = size(curRes.audioMf0SecCont);
+[~, curRes.numPertTrialsFin, ~] = size(curRes.audioMf0SecPert);
 end
 
 function polRes = meanCondTrials(pA, polRes)
@@ -511,8 +518,8 @@ for i = 1:numTrial
     respMag  = cat(1, respMag, ir.respMag); 
     respPer  = cat(1, respPer, ir.respPer);
     
-    drawInflationResultMetrics(onset, ir)
-    pause(); close all;
+%     drawInflationResultMetrics(onset, ir)
+%     pause(); close all;
 end
 
 % Organize the results 
