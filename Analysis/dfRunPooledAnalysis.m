@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'LarynxPos'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -501,7 +501,7 @@ for i = 1:numTrial
     ir.iAtMin = ir.iPostOnsetR(minIdx);           % Indice of the min f0 value
     ir.tAtMin = ir.time(ir.iAtMin);               % Time at min f0 value in PostOnsetR
     ir.vAtMin = minOn;                            % Min f0 value in PostOnsetR
-    ir.stimMag = abs(ir.vAtMin - ir.vAtOnset);         % Distance traveled from onset to min value
+    ir.stimMag = abs(ir.vAtMin - ir.vAtOnset);    % Distance traveled from onset to min value
     
     ir.vAtResp = onset(ir.iAtResp);               % f0 value when participant 'fully' responded 
     ir.respMag = ir.vAtResp - ir.vAtMin;          % Distance traveled from min f0 value to response f0 value
