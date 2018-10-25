@@ -3,12 +3,13 @@ matlab.video.read.UseHardwareAcceleration('off')
 
 close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-enA.participant = 'DRF_ENP3';    % List of multiple participants.
+enA.participant = 'DRF_ENP4';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
-enA.trial       = 1;
+enA.trial       = 2;
 enA.curSess     = [enA.participant 'parsedVideoTrial' num2str(enA.trial)];
-enA.monSize     = [2560 1440];
+monitorSize     = get(0, 'Monitor');
+enA.monSize     = monitorSize(3:4);
 
 dirs           = dfDirs(enA.project);
 
@@ -42,8 +43,8 @@ enA.videoWidth  = 720;
 enA.videoHeight = 480;
 enA.frameRate   = 30;
 
-videoPlayerPos = [(enA.monSize(1)/2 - enA.videoWidth - 50), 600, (enA.videoWidth + 30), (enA.videoHeight+ 20)];
-quiverPos      = [(enA.monSize(1)/2 + 50), 600, (enA.videoWidth + 30), (enA.videoHeight+ 20)];
+videoPlayerPos = [(enA.monSize(1)/2 - enA.videoWidth - 50), 400, (enA.videoWidth + 30), (enA.videoHeight+ 20)];
+quiverPos      = [(enA.monSize(1)/2 + 50), 400, (enA.videoWidth + 30), (enA.videoHeight+ 20)];
 videoFileReader = vision.VideoFileReader(dirs.parsedVideoFile);
 videoPlayer     = vision.VideoPlayer('Position', videoPlayerPos);
 objectFrame     = videoFileReader();
