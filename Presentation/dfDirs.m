@@ -140,6 +140,27 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = ''; 
+        
+    case '677-GUE-WD-0002'
+        % RecData must be moved to SavData for backup and local disk space consolidation
+        dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to  
+        dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
+        
+        dirs.Code           = fullfile('C:\Users\djsmith\Documents\GitHub', project);
+        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
+        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
+        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
+        
+        dirs.Results        = 'C:\Users\djsmith\Documents\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'C:\Users\djsmith\Documents\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
+        
+        dirs.RecFileDir     = '';
+        dirs.RecWaveDir     = '';
+        dirs.SavFileDir     = '';
+        dirs.SavResultsDir  = '';
+       
+        dirs.InflaRespFile  = '';
+        dirs.saveFileSuffix = ''; 
     otherwise
         fprintf('\nERROR: Please set directories for this host\n')
         return

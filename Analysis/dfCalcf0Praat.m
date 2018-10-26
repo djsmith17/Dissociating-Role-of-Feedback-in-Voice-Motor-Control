@@ -1,4 +1,4 @@
-function [time, trialsetf0, fsA] = dfCalcf0Praat(dirs, trialset, fs, bTf0b)
+function [time, trialsetf0, fsA] = dfCalcf0Praat(dirs, trialset, fs, f0Bounds)
 %This asks praat to calculate f0 for a given saved wav file. 
 
 helperFolder   = dirs.helpers;
@@ -12,8 +12,8 @@ pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 tStep = 0.005; % seconds; hard set
 fsA   = 1/tStep;
 
-lwPitchBnd = 75;
-upPitchBnd = 300;
+lwPitchBnd = f0Bounds(1);
+upPitchBnd = f0Bounds(2);
 
 p_fn = fullfile(pbDir, 'praat.exe');
 if ~exist(p_fn, 'file')
@@ -63,12 +63,12 @@ for ii = 1:numTrial
     delete(wavFileLoc);
     delete(txtFileLoc);
     
-    [time, trialf0, ~] = PraatPostProcessing(praatScan, bTf0b);
+    [time, trialf0, ~] = PraatPostProcessing(praatScan);
     trialsetf0         = cat(2, trialsetf0, trialf0);
 end
 end
 
-function [time, f0, meanf0] = PraatPostProcessing(praatScan, bTf0b)
+function [time, f0, meanf0] = PraatPostProcessing(praatScan)
 %Expects the table is 2 columns, and the f0 values are in column 2
 time   = praatScan{1,1};
 f0_str = praatScan{1,2};

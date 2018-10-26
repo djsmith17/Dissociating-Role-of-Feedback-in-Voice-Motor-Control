@@ -1,5 +1,5 @@
-function dfRunSubjAnalysis()
-% dfRunSubjAnalysis() is my main script for analyzing recorded audio files 
+function dfRunSubjAnalysisEndo()
+% dfRunSubjAnalysisEndo() is my main script for analyzing recorded audio files 
 % and sensor information from experiments studying Voice Motor Control. 
 % This function is set up to analyze multiple subject and runs in an 
 % identical fashion, so that once you have a new data set, you can run it 
@@ -16,29 +16,21 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF_MN6',...
-                      'DRF_MN7',...
-                      'DRF_MN9',...
-                      'DRF_MN10',...
-                      'DRF_MN12',...
-                      'DRF_MN13',...
-                      'DRF_MN14',...
-                      'DRF_MN15',...
-                      'DRF_MN16',...
-                      'DRF_MN18',...
-                      'DRF_MN19',...
-                      'DRF_MN21'};   % List of multiple participants.
+AVar.participants  = {'DRF_ENP3'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'SF1', 'SF2', 'SF3'}; %    List of multiple runs.
-AVar.numRuns       = length(AVar.runs);
+AVar.run           = 'SFL1';
+AVar.trials        = 10;
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
+AVar.cond          = {'All'};
+AVar.numCond       = length(AVar.cond);
 
 dirs               = dfDirs(AVar.project);
 dirs.LoadData      = dirs.SavData;
 
 for i = 1:AVar.numPart
     participant = AVar.participants{i};
+    run         = AVar.run;
     dirs.baselineData  = fullfile(dirs.LoadData, participant, AVar.baselineFile, [participant AVar.baselineFile 'DRF.mat']); % Where to find data
       
     % Look for the baseline voice info for this participant, then load it
@@ -53,17 +45,21 @@ for i = 1:AVar.numPart
     
     % Baseline f0
     f0b = bV.qRes.meanf0;
-    for j = 1:AVar.numRuns
-        run         = AVar.runs{j};
-        
-        % Define where to load raw data and save analyzed results
-        dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);  % Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                % Where to save results
-        
-        % Make sure there is a place to save results
-        if exist(dirs.SavResultsDir, 'dir') == 0
-            mkdir(dirs.SavResultsDir)
-        end
+    
+    % Define where to load raw data and save analyzed results
+    dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                % Where to save results
+
+    % Make sure there is a place to save results
+    if exist(dirs.SavResultsDir, 'dir') == 0
+        mkdir(dirs.SavResultsDir)
+    end
+     
+    ssVF  = createSortingStruct();
+    ssMN  = createSortingStruct();
+    ssAll = createSortingStruct();
+    ssAll.SeqAudFB = {}; ssAll.SeqAudFBSw = [];
+    for j = 1:AVar.trials
+        dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'Trial' num2str(j) 'DRF.mat']);  % Where to find data        
         
         % Look for the recording sessoin raw data for this participant, then load it
         fprintf('%%%%%%%%%%%%%%%%%%%%%%%%\n')
@@ -75,12 +71,40 @@ for i = 1:AVar.numPart
             load(dirs.SavFileDir) % Returns DRF
         end
         
+        if strcmp(DRF.expParam.AudFB, 'Voice Feedback')
+            [DRFVF, ssVF] = ammendSortingStruc(DRF, ssVF, j);
+        else        
+            [DRFMN, ssMN] = ammendSortingStruc(DRF, ssMN, j);
+        end
+        [DRFAll, ssAll] = ammendSortingStruc(DRF, ssAll, j);
+        ssAll.SeqAudFB   = cat(1, ssAll.SeqAudFB, DRF.expParam.AudFB);
+        ssAll.SeqAudFBSw = cat(1, ssAll.SeqAudFBSw, DRF.expParam.AudFBSw);
+    end
+    
+    for ii = 1:AVar.numCond
+        ext = AVar.cond{ii};
+        ss  = eval(['ss' ext]);
+        DRF = eval(['DRF' ext]);
+        
+        DRF.expParam.curSess   = [DRF.expParam.curSess ext];
+        DRF.expParam.numTrial  = length(ss.trialType);
+        DRF.expParam.trialType = ss.trialType;
+        DRF.expParam.sigs      = ss.sigs;
+        DRF.expParam.trigs     = ss.trigs;
+        
+        if strcmp(ext, 'All')
+            DRF.expParam.SeqAudFB   = ss.SeqAudFB;
+            DRF.expParam.SeqAudFBSw = ss.SeqAudFBSw;
+        end            
+        
+        DRF.rawData = ss.rawData;
+        DRF.DAQin   = ss.DAQin;
+        
         % Identify the type of experiment and decide what types of analyzes
         % we need. pF: Pressure Flag; iRF: Inflation Response Flag
-        
         [DRF, pF, iRF] = preAnalysisCheck(DRF, f0b);
         aFn = 0; aFa = 1; %Audio Analysis Flag
-        
+
         % Analysis on the NIDAQ raw data
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
         % Analysis on the Audapter raw data
@@ -88,14 +112,15 @@ for i = 1:AVar.numPart
 
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
-        
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
+
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run ext 'ResultsDRF.mat']);
         if AVar.debug == 0
             % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')
         end
     end
+        
 end
 end
 
@@ -197,7 +222,9 @@ res.respVarM     = auRes.respVarM;
 res.respVarSD    = auRes.respVarSD;
 res.InflaStimVar = auRes.InflaStimVar;
 
-%NIAu Delay
+%Some Final Output time series data
+res.audioMinc = auRes.audioMinc;
+res.audioHinc = auRes.audioHinc;
 res.AuNiDelaysinc = auRes.AuNiDelaysinc;
 
 %Check the Ni trials against the Au trials
@@ -237,7 +264,7 @@ function [DRF, pF, iRF] = preAnalysisCheck(DRF, f0b)
 
 expType = DRF.expParam.expType;
 
-if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
+if strcmp(expType(1:4), 'Soma') == 1
     % Laryngeal perturbations. AKA, we want to analyze the pressure, and 
     % the behavioral response to the inflation!
     pF  = 1;      %Pressure Analysis Flag
@@ -255,4 +282,27 @@ end
 if ~isfield(DRF.expParam, 'f0b')
     DRF.expParam.f0b = f0b;
 end
+end
+
+function ss = createSortingStruct()
+
+ss.trialType = [];
+ss.sigs      = [];
+ss.trigs     = [];
+ss.rawData   = [];
+ss.DAQin     = [];
+end
+
+function [DRFe, ss] = ammendSortingStruc(DRF, ss, j)
+
+DRFe.dirs     = DRF.dirs;
+DRFe.expParam = DRF.expParam;
+DRFe.p        = DRF.p;
+DRFe.audStimP = DRF.audStimP;
+
+ss.trialType = cat(2, ss.trialType, DRF.expParam.trialType(j));
+ss.sigs      = cat(2, ss.sigs, DRF.expParam.sigs(:,j));
+ss.trigs     = cat(1, ss.trigs, DRF.expParam.trigs(j, :, :));
+ss.rawData   = cat(1, ss.rawData, DRF.rawData);
+ss.DAQin     = cat(3, ss.DAQin, DRF.DAQin);
 end

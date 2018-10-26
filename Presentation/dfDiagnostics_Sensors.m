@@ -43,7 +43,7 @@ expParam.perCatch      = str2double(ExpPrompt{4});
 expParam.balloon       = ExpPrompt{5};
 expParam.AudFB         = 'Masking Noise';
 expParam.AudFBSw       = 2;
-expParam.resPause      = 3;
+expParam.resPause      = 6;
 expParam.trialLenLong  = expParam.numTrial*(expParam.trialLen + expParam.resPause);
 expParam.sigLong       = [];
 
