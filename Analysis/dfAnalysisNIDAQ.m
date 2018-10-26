@@ -103,12 +103,14 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.OnOfValP   = [];
-niAn.OnOfValPm  = [];
+niAn.OnOfValPm  = []; niAn.OnOfValPSE  = []; 
 niAn.riseTimeP  = [];
-niAn.riseTimePm = [];
+niAn.riseTimePm = []; niAn.riseTimePSE = [];
+niAn.pTrialLossP = [];
+niAn.pTrialLossPm = []; niAn.pTrialLossPSE = [];
 niAn.timeAl     = [];
 niAn.sensorPAl  = [];
-niAn.timeSec    = [];
+niAn.secTimeP   = [];
 niAn.sensorPSec = [];
 niAn.sensorPMean = [];
 
@@ -123,17 +125,19 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
     
     niAn.OnOfValPm    = mean(niAn.OnOfValP);
-    niAn.OnOfValPstd  = std(niAn.OnOfValP);
+    niAn.OnOfValPSE   = (std(niAn.OnOfValP))/sqrt(niAn.numTrial);
     niAn.riseTimePm   = mean(niAn.riseTimeP);
-    niAn.riseTimePstd = std(niAn.riseTimeP);
+    niAn.riseTimePSE  = (std(niAn.riseTimeP))/sqrt(niAn.numTrial);
     
-%     diff(niAn.OnOfValP)
+    niAn.pTrialLossP   = diff(niAn.OnOfValP(:,1));
+    niAn.pTrialLossPm  = mean(niAn.pTrialLossP);
+    niAn.pTrialLossPSE = (std(niAn.pTrialLossP))/sqrt(niAn.numTrial-1);
 
     % Section and aligning pressure signal for perturbed trials
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     
-    [niAn.timeSec, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-    niAn.sensorPMean                = meanSensorData(niAn.sensorPSec);   
+    [niAn.secTimeP, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
+    niAn.sensorPMean                 = meanSensorData(niAn.sensorPSec);   
 end
 
 %The Audio Analysis
@@ -230,10 +234,10 @@ lags = sensorTrig - pertTrig;
 lagsMean = mean(lags, 1);
 lagsSTD  = std(lags, 0, 1);
 
-SEM = lagsSTD/sqrt(length(lags)); 
-CIM = 1.96*SEM;
+SEM = lagsSTD/sqrt(length(lags)); % Standard Error
+CIM = 1.96*SEM;                   % 95% Confidence Interval
 
-lagMeans = [lagsMean, CIM];
+lagMeans = [lagsMean; SEM]; %OnsetMean OffsetMean; OnsetSEM, OffsetSEM
 end
 
 function [OnOfVals, riseTimes] = analyzeSensorDynamics(time, sensor, fs, sensTrig)
@@ -404,8 +408,8 @@ function [secTime, secSigs] = sectionData(sigs, fs, trigs)
 %          The 2nd 3D later are Offset Sections
 
 [~, numTrial] = size(sigs);
-preEveT  = 0.5; posEveT = 1.0;
-preEve = preEveT*fs; posEve = posEveT*fs;
+preEveT = 0.5; posEveT = 1.0;
+preEve  = preEveT*fs; posEve = posEveT*fs;
 
 secSigs    = [];
 OnsetSecs  = [];
@@ -434,7 +438,7 @@ else
     numSampSec = 1200;
 end
 
-secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
+secTime = linspace(-preEveT, posEveT, numSampSec); % time vector correspnding to the sectioned signals
 secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
 secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
 end
@@ -627,22 +631,27 @@ res.contIdx       = niAn.contIdx;
 res.pertIdx       = niAn.pertIdx;
 res.pertTrig      = niAn.pertTrig;
 
-res.timeS      = niAn.time_DN;
-res.sensorP    = niAn.sensorP_p; %Individual Processed perturbed trials. 
-res.lagTimeP   = niAn.lagsPres;
-res.lagTimePm  = niAn.meanLagTimeP;
-res.riseTimeP  = niAn.riseTimeP;
-res.riseTimePm = niAn.riseTimePm;
-res.OnOfValP   = niAn.OnOfValP;
-res.OnOfValPm  = niAn.OnOfValPm;
-res.limitsP    = lims.pressure;
+res.timeS         = niAn.time_DN;
+res.sensorP       = niAn.sensorP_p; %Individual Processed perturbed trials. 
+res.lagTimeP      = niAn.lagsPres;
+res.lagTimePm     = niAn.meanLagTimeP;
+res.riseTimeP     = niAn.riseTimeP;
+res.riseTimePm    = niAn.riseTimePm;
+res.riseTimePSE   = niAn.riseTimePSE;
+res.OnOfValP      = niAn.OnOfValP;
+res.OnOfValPm     = niAn.OnOfValPm;
+res.OnOfValPSE    = niAn.OnOfValPSE;
+res.pTrialLossP   = niAn.pTrialLossP;
+res.pTrialLossPm  = niAn.pTrialLossPm; 
+res.pTrialLossPSE = niAn.pTrialLossPSE;
+res.limitsP       = lims.pressure;
 
 % Sectioned and Aligned Pressure recordings 
 res.timeSAl   = niAn.timeAl;
 res.sensorPAl = niAn.sensorPAl;
 res.limitsPAl = lims.pressureAl;
 
-res.timeSec     = niAn.timeSec;
+res.secTimeP    = niAn.secTimeP;
 res.sensorPSec  = niAn.sensorPSec;
 res.sensorPMean = niAn.sensorPMean;
 res.limitsPMean = lims.pressureMean;

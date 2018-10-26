@@ -16,23 +16,23 @@ time             = poolRes.secTime;
 contf0           = poolRes.audioMf0MeanCont;  
 pertf0           = poolRes.audioMf0MeanPert;
 
-statLib = poolRes.statLib;
-statSMM = round(statLib(1), 1);
-statSMV = round(statLib(2), 1);
-statRMM = round(statLib(3), 1);
-statRMV = round(statLib(4), 1);
-statRPM = round(statLib(5));
-statRPV = round(statLib(6));
-statSP  = statLib(7);
-statRP  = statLib(8);
-statPP  = statLib(9);
+statLib = poolRes.statLib;      % Stats Library
+statSMM = round(statLib(1), 1); % Mean Stimulus Magnitude (Masked)
+statSMV = round(statLib(2), 1); % Mean Stimulus Magnitude (Voice)
+statRMM = round(statLib(3), 1); % Mean Response Magnitude (Masked)
+statRMV = round(statLib(4), 1); % Mean Response Magnitude (Voice)
+statRPM = round(statLib(5));    % Mean Response Percentage (Masked)
+statRPV = round(statLib(6));    % Mean Response Percentage (Voice)
+statSP  = statLib(7);           % p-value of Stimulus Magnitude t-test
+statRP  = statLib(8);           % p-value of Response Magnitude t-test
+statPP  = statLib(9);           % p-value of Response Percentage t-test
 
 limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
 
 timeP       = poolRes.secTimeP;
-sensorP     = poolRes.sensorPMean;
-limitsP     = poolRes.limitsPmean;
+sensorPAdj  = poolRes.sensorPAdjust;
+InflDeflT   = poolRes.InflDeflT;
 
 legLines = [];
 legNames = {};
@@ -61,33 +61,14 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 axes(ha(1))
 
 if presFlag == 1
-    m = (limits(4) - limits(3))/(limitsP(4) - limitsP(3));
-    b = limits(3) - m*limitsP(3);
-    
-    adjustPres = (m*sensorP(:,1)+ b);
-    adjustPresB = (m*sensorP(:,2)+ b);
-    
-    minPres = min(adjustPres);
-    [~, maxInd] = max(adjustPres);
-    [minInds] = find(adjustPres > 0.98*minPres);
-    minInd = minInds(1);
-    StTime = timeP(minInd);
-    SpTime = timeP(maxInd);
-    
-    pertAx  = [StTime, SpTime];
+    pertAx  = [InflDeflT(1), InflDeflT(2)];
     pertAy  = [600 600];
     
     pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on 
     
-    plot(timeP, adjustPres, '--m', 'LineWidth', 3)
+    plot(timeP, sensorPAdj(:,1), '--m', 'LineWidth', 3)
     hold on
-
-    ylabel('Pressure (psi)')
-    axis([limitsP].*[1 1 m m]);
-    set(gca,'FontSize', 14,...
-            'FontWeight','bold')
-
 end  
 
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
@@ -115,43 +96,15 @@ set(gca,'FontName', fontN,...
 %Offset of Perturbation
 axes(ha(2))
 
-if presFlag == 1
-    m = (limits(4) - limits(3))/(limitsP(4) - limitsP(3));
-    b = limits(3) - m*limitsP(3);
-    
-    adjustPres  = (m*sensorP(:,3)+ b);
-    adjustPresB = (m*sensorP(:,4)+ b);
-    
-    maxPres   = max(adjustPres);
-    [maxInds] = find(adjustPres < 0.95*maxPres);
-    maxInd    = maxInds(1);
-    
-    minPres   = min(adjustPres);
-    [minInds] = find(adjustPres > 0.98*minPres & adjustPres < 0.97*minPres);
-    minInd    = minInds(1);  
-    
-    fD = 20*[diff(adjustPres); 0];
-    mfD = mean(fD(1:200));
-    bumpsSt = find(fD < 50*mfD);    
-    bumpsSp = find(fD < 10*mfD); 
-    
-    StTime = timeP(bumpsSt(1));
-    SpTime = timeP(bumpsSp(end));
-    
-    pertAx  = [StTime, SpTime];
+if presFlag == 1    
+    pertAx  = [InflDeflT(3), InflDeflT(4)];
     pertAy  = [600 600];
     
     pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
     hold on 
     
-    plot(timeP, adjustPres, '--m', 'LineWidth', 3)
+    plot(timeP, sensorPAdj(:,3), '--m', 'LineWidth', 3)
     hold on
-
-    ylabel('Pressure (psi)')
-    axis([limitsP].*[1 1 m m]);
-    set(gca,'FontSize', 14,...
-            'FontWeight','bold')
-
 end  
 plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
 hold on

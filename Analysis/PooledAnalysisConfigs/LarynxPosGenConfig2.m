@@ -27,14 +27,7 @@ pooledParticipants = {'Pilot29';...
 
 % Runs for each participant. There should be an equal number of runs for
 % each participant. Each row will be the runs to 
-pooledRuns  = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
-               'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
-               'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
-               'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
-               'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
-               'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
-               'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6';...
-               'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'};
+pooledRuns  = {'DS1', 'DS2', 'DS3', 'DS4', 'DS5', 'DS6'};
            
 % Conditions to test against
 testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
@@ -43,38 +36,15 @@ testingConditions = {'Masking Noise'; 'Voice Not Shifted'};
 condVar = 'curRes.AudFB'; 
 
 % How do you want to title the Result Plots?
-pltNameTop = 'LarynxPos ';
-testType = 'Resp_MaskvVoice';
-% MaskvVoice Individual
-pltNameMVi = {[pltNameTop 'Pilot29' testType],...
-              [pltNameTop 'Pilot30' testType],...
-              [pltNameTop 'Pilot31' testType],...
-              [pltNameTop 'Pilot32' testType],...
-              [pltNameTop 'Pilot33' testType],...
-              [pltNameTop 'Pilot21' testType],...
-              [pltNameTop 'Pilot28' testType],...
-              [pltNameTop 'Pilot0'  testType]};
-
-pltNameMVm =  [pltNameTop 'MeanSubj' testType];
+testExt = 'Resp_MaskvVoice';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-numPart = length(pooledParticipants);
-
-[p, ~] = size(pooledRuns);
-
-if p ~= numPart
-    fprintf('Please double check your Pooled Config File\n')
-    fprintf('Number of rows in pooledRuns does not match number of participants\n')
-    return
-end
 
 cF.participants = pooledParticipants;
 cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 cF.condVar      = condVar;
-cF.pltNameMVi   = pltNameMVi;
-cF.pltNameMVm   = pltNameMVm;
+cF.testExt      = testExt;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)
