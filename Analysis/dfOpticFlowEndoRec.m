@@ -1,12 +1,12 @@
 function dfOpticFlowEndoRec()
 matlab.video.read.UseHardwareAcceleration('off')
 
-close all
+% close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 enA.participant = 'DRF_ENP3';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
-enA.trial       = 1;
+enA.trial       = 2;
 enA.curSess     = [enA.participant 'parsedVideoTrial' num2str(enA.trial)];
 monitorSize     = get(0, 'Monitor');
 enA.monSize     = monitorSize(3:4);
@@ -102,7 +102,7 @@ vidReader = VideoReader(dirs.parsedVideoFile);
 % stable = 0;
 % videoPlayer(frame1)
 
-opticFlow = opticalFlowHS;
+opticFlow = opticalFlowHS('Smoothness', 0.5, 'VelocityDifference', 2);
 % ii = 2;
 % Hcumulative = eye(3);
 while hasFrame(vidReader)
@@ -113,7 +113,7 @@ while hasFrame(vidReader)
     flow = estimateFlow(opticFlow, frameGray);
     imshow(frame) 
     hold on
-    plot(flow,'DecimationFactor',[10 10],'ScaleFactor',100)
+    plot(flow,'DecimationFactor',[1 1],'ScaleFactor',50)
     hold off
 
 %     lastFrame = curFrame; % z^-1

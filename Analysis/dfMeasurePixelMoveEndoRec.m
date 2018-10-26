@@ -6,10 +6,10 @@ enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 enA.participant = 'DRF_ENP4';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
-enA.trial       = 2;
+enA.trial       = 6;
 enA.curSess     = [enA.participant 'parsedVideoTrial' num2str(enA.trial)];
 monitorSize     = get(0, 'Monitor');
-enA.monSize     = monitorSize(3:4);
+enA.monSize     = monitorSize(1, 3:4);
 
 dirs           = dfDirs(enA.project);
 
@@ -154,7 +154,7 @@ while ~isDone(videoFileReader)
     
     videoPlayer(out);
     
-    allFrames(ii).frame = frame;
+    allFrames(ii).frame = out;
     ii = ii+1;
 end
 close(quivFig)
@@ -164,6 +164,18 @@ movMean = movMean/(ii-2);
 
 release(videoPlayer);
 release(videoFileReader);
+
+alteredVideoFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.curSess 'PixelTrackVideo.avi']);
+
+vidWriter = VideoWriter(alteredVideoFile, 'Uncompressed AVI');
+vidWriter.FrameRate = 30;
+open(vidWriter);
+
+for nn = 1:enA.nFrames
+    writeVideo(vidWriter, allFrames(nn).frame)
+end
+close(vidWriter)
+
 if stable == 1
     figure; imshowpair(movMean, correctedMean, 'montage');
     title(['Raw input mean', repmat(' ',[1 50]), 'Corrected sequence mean']);

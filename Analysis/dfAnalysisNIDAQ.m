@@ -110,7 +110,7 @@ niAn.pTrialLossP = [];
 niAn.pTrialLossPm = []; niAn.pTrialLossPSE = [];
 niAn.timeAl     = [];
 niAn.sensorPAl  = [];
-niAn.timeSec    = [];
+niAn.secTimeP   = [];
 niAn.sensorPSec = [];
 niAn.sensorPMean = [];
 
@@ -137,7 +137,7 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
     
     [niAn.secTimeP, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-    niAn.sensorPMean                = meanSensorData(niAn.sensorPSec);   
+    niAn.sensorPMean                 = meanSensorData(niAn.sensorPSec);   
 end
 
 %The Audio Analysis
