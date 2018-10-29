@@ -66,7 +66,7 @@ auAn.AudFB     = expParam.AudFB;
 auAn.AudFBSw   = expParam.AudFBSw;
 auAn.bTf0b     = expParam.f0b;
 
-fprintf('\nStarting Audapter Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, auAn.bTf0b)
+fprintf('\nStarting Analysis for %s, %s with f0 of %0.2f Hz\n', auAn.subject, auAn.run, auAn.f0b)
 
 % Idenitfy some Recording Variables
 auAn.sRate        = expParam.sRateAnal;        % Sampling Rate of Audapter (down-sampled)
@@ -501,7 +501,12 @@ res.expType = auAn.expType;
 res.subject = auAn.subject;
 res.run     = auAn.run;
 res.curSess = auAn.curSess;
-res.AudFB   = auAn.AudFB;
+res.gender  = auAn.gender;
+res.age     = auAn.age;
+
+res.expType  = auAn.expType;          % Somatosensory Perturbation_Perceptual, etc
+res.AudFB    = auAn.AudFB;            % Voice Feedback, Masking Noise
+res.SeqAudFB = auAn.SeqAudFB;         % Same as above, but keeps track of individual trial differences
 
 res.f0Type = auAn.f0Type;
 res.etMH   = auAn.etMH;
