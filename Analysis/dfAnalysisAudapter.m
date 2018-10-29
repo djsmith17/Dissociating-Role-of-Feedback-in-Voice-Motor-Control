@@ -297,7 +297,7 @@ end
 % Find the delay between NIDAQ recording and Audapter recording
 micRds        = resample(micR, fsNI, fs);           % Downsample the Audapter recording
 pp.AuNidelay  = xCorrTimeLag(micRNi, micRds, fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
-pp.AuNidelayP = pp.AuNidelay*fs;                    % Convert to points
+pp.AuNidelayP = pp.AuNidelay*fs;                       % Convert to points
 
 % Find the delay between Audapter Headphone and Microphone
 if pp.AudFBSw == 2 % No Headphone Out
@@ -407,51 +407,6 @@ function timeLag = xCorrTimeLag(sig1, sig2, fs)
 maxLag       = lags(peakInd);
 timeLag      = maxLag/fs;
 timeLag      = -timeLag;
-end
-
-function pp = findVoiceOnset(audio, fs, audioSt, audioSp)
-% pp = findVoiceOnset(audio, fs, audioSt, audioSecSp) identifies
-% onset of voice by the envelope of a microphone recording (audio).
-% Based on a specific point (audioSt), this script identifies if the 
-% participant started production late. Then the script identifies any
-% points where the participant might have had a voice break, up to the end
-% of interesting data will be collected (audioSp). 
-%
-% This returns a structure (pp) with the results of the voice onset 
-% detection methods, and boolean values for whether the participant started
-% late (pp.voiceOnsetLate) or if they had a voice break (pp.chk4Break)
-
-pp.thresh   = 0.3; % Threshold of Decimal amount of full peak height
-pp.breakTol = 0.1; % Voice Break Tolerance; Time (s)
-pp.envCutOf = 40;  % Cutoff frequency for enveloping the audio
-pp.fs       = fs;
-pp.audio    = audio;
-pp.audioSt  = audioSt;
-pp.audioSp  = audioSp;
-pp.lenSig   = length(audio);
-pp.t        = 0:1/fs:(pp.lenSig-1)/fs; % Not used, but useful if debugging
-
-% 4th order low-pass butter filter settings
-[B,A] = butter(4, pp.envCutOf/(fs/2));
-
-% Envelope the signal by low-pass filtering (change in amplitude/time ~RMS)
-pp.env  = filter(B,A,abs(audio));  
-
-% Largest peak in the envelope theoretically occurs during voicing
-pp.maxPeak = max(pp.env); 
-
-% Find values that are within threshold of max 'voicing' value
-pp.threshIdx     = find(pp.env > pp.thresh*pp.maxPeak); 
-
-% First index of the theoretical useable signal (Voice onset)
-pp.voiceOnsetInd = pp.threshIdx(1);
-
-% Check the voice onset time against when we want to start analyzing data
-pp.voiceOnsetLate = audioSt < pp.voiceOnsetInd;
-
-% Check the whole The rest of the signal base the first index...are there any dead zones??
-pp.fallOffLog = pp.env(pp.voiceOnsetInd:audioSp) < pp.thresh*pp.maxPeak;
-pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*fs; % Last longer than break tolerance
 end
 
 function lims = identifyLimits(An)
