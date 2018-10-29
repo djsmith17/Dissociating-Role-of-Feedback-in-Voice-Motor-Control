@@ -101,15 +101,29 @@ auAn.numContTrialSvt = []; % Number of control trials saved for further analyses
 auAn.contIdxSvt      = []; % Vector of indicies of control SAVED trials (Referencing allIdxSvt)
 auAn.contTrigSvt     = []; % Trigger Onset and Offset (Time) for control SAVED trials
 
-svC = 0; % Saved Trial Count
+if isfield(expParam, 'incTrialInfo')
+    auAn.incTrialInfo = expParam.incTrialInfo;
+end
+
+if isfield(expParam, 'SeqAudFB')
+    auAn.SeqAudFB   = expParam.SeqAudFB;
+    auAn.SeqAudFBSw = expParam.SeqAudFBSw;
+else
+    auAn.SeqAudFB      = cell(1, auAn.numTrial);
+    [auAn.SeqAudFB{:}] = deal(auAn.AudFB);
+    auAn.SeqAudFBSw    = repmat(auAn.AudFBSw, 1, auAn.numTrial);
+end
+
 for ii = 1:auAn.numTrial
     data = rawData(ii);       % Get the data from this trial
     
     Mraw     = data.signalIn;     % Microphone
     Hraw     = data.signalOut;    % Headphones
-    rms      = data.rms(:,3);     % RMS recording
-    expTrigs = auAn.expTrigs(ii,:);
+    rms      = data.rms(:,1);     % RMS recording
     anaTrigs = auAn.anaTrigs(ii,:);
+    AudFBSw  = auAn.SeqAudFBSw(ii);
+    typeIdx  = auAn.trialType(ii);
+    type     = auAn.types{typeIdx + 1};
     
     if isfield(niAn, 'audioM')
         MrawNi = niAn.audioM(:,ii);          % Microphone (NIDAQ) 
@@ -118,44 +132,31 @@ for ii = 1:auAn.numTrial
     end
     
     % Preprocessing step identifies time-series errors in production/recording
-    [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, rms, MrawNi, anaTrigs);
+    [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, rms, MrawNi, anaTrigs, AudFBSw);
     
-    auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual analysis
-    auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual analysis
+    auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual exclusion
+    auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual exclusion
 
+    auAn.allAuMHDelays = cat(1, auAn.allAuMHDelays, preProSt.AuMHdelay);
+    auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, preProSt.AuNidelay);
     if preProSt.saveT == 0     % Don't save the trial :(
-        fprintf('%s Trial %d not saved. %s\n', auAn.curSess, ii, preProSt.saveTmsg)
+        fprintf('%s Trial %d (%s) excluded due to %s\n', auAn.curSess, ii, type, preProSt.saveTmsg)
         removedTrial = {['Trial ' num2str(ii)], preProSt.saveTmsg};
         auAn.removedTrialTracker = cat(1, auAn.removedTrialTracker, removedTrial);
-    elseif preProSt.saveT == 1 % Save the Trial
-        svC = svC + 1; % Iterate Saved Trial Count
         
-        auAn.allIdxSvt   = cat(1, auAn.allIdxSvt, ii); % Save the experimental index
-        auAn.expTrigsSvt = cat(1, auAn.expTrigsSvt, expTrigs); % Save the triggers from this index
-        if auAn.trialType(ii) == 0
-            auAn.contIdxSvt  = cat(1, auAn.contIdxSvt, svC); %
-            auAn.contTrigSvt = cat(1, auAn.contTrigSvt, expTrigs); %
-        else
-            auAn.pertIdxSvt  = cat(1, auAn.pertIdxSvt, svC); %
-            auAn.pertTrigSvt = cat(1, auAn.pertTrigSvt, expTrigs); %
-        end   
-        auAn.allAuMHDelays = cat(1, auAn.allAuMHDelays, preProSt.AuMHdelay);
-        auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, preProSt.AuNidelay);
+    elseif preProSt.saveT == 1 % Save the Trial        
+        auAn.allIdxPreProc = cat(1, auAn.allIdxPreProc, ii); % Save the experimental index
     end
 end
-
-% Find only the trials we care about
-auAn.audioMSvt     = auAn.audioM(:, auAn.allIdxSvt); % Grabbing the recorded audio based on the saved indices
-auAn.audioHSvt     = auAn.audioH(:, auAn.allIdxSvt); % Grabbing the recorded audio based on the saved indices
-auAn.trialTypeSvt  = auAn.trialType(auAn.allIdxSvt); % The order of trial type based on the saved trials post-tP
-
-auAn.numTrialSvt     = length(auAn.allIdxSvt);
-auAn.numPertTrialSvt = length(auAn.pertIdxSvt);
-auAn.numContTrialSvt = length(auAn.contIdxSvt);
 
 % The Audio Analysis
 f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
+
+auAn.audioMinc = auAn.audioM(:, auAn.svf0Idx);
+auAn.audioHinc = auAn.audioH(:, auAn.svf0Idx);
+auAn.AuMHDelaysinc = auAn.allAuMHDelays(auAn.svf0Idx);
+auAn.AuNiDelaysinc = auAn.allAuNiDelays(auAn.svf0Idx);
 
 lims  = identifyLimits(auAn);
 auRes = packResults(auAn, lims);
@@ -230,7 +231,6 @@ function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs,
 % Outputs:
 % micP:      Processed Microphone signal
 % headP:     Processed Headphone signal
-% AuNidelay: Calculated delay between NIDAQ and Audapter
 % pp:        Preprocessing results structure. This has information
 %            regarding the envelope of the recorded audio file, and 
 %            if the participant started late, or has a voice break. 
@@ -393,6 +393,37 @@ for ii = 1:numChunk
 end
 end
 
+function drawPreProcessDiagnostic(pp)
+
+plotPos = [1800 10];
+plotDim = [1200 900];
+
+ppDiag = figure('Color', [1 1 1]);
+set(ppDiag, 'Position', [plotPos plotDim],'PaperPositionMode','auto')
+
+ha = tight_subplot(2,1,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
+
+axes(ha(1))
+plot(pp.t, pp.rawMic)
+hold on
+plot(pp.t, pp.env, 'y')
+hold on
+plot([pp.voiceOnsetT pp.voiceOnsetT ], [-0.2 0.2])
+hold on
+plot([pp.t(pp.auTrigs(1)) pp.t(pp.auTrigs(1))], [-0.2 0.2], 'k--')
+hold on
+plot([pp.t(pp.auTrigs(2)) pp.t(pp.auTrigs(2))], [-0.2 0.2], 'k--')
+box off
+axis([0 6 -0.25 0.25])
+
+axes(ha(2))
+plot(pp.tNi, pp.micRNi)
+title(num2str(pp.AuNidelay))
+axis([0 4 -0.25 0.25])
+box off
+
+end
+
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
 % xCorrTimeLag(sig1, sig2, fs) calculates the lag between two (seemingly) 
 % identical time based signals. 
@@ -553,29 +584,22 @@ res.expType  = auAn.expType;          % Somatosensory Perturbation_Perceptual, e
 res.AudFB    = auAn.AudFB;            % Voice Feedback, Masking Noise
 res.SeqAudFB = auAn.SeqAudFB;         % Same as above, but keeps track of individual trial differences
 
-res.f0Type = auAn.f0Type;
-res.etMH   = auAn.etMH;
+res.f0Type = auAn.f0Type;             % Type of pitch-shift perturbation used
+res.etMH   = auAn.etMH;               % 
 
 % Raw Recorded data
+res.sRate         = auAn.sRate;
 res.numTrial      = auAn.numTrial;    % Total trials recorded
 res.audioM        = auAn.audioM;      % Raw microphone recording (no lag correction)
 res.audioH        = auAn.audioH;      % Raw headphone recording  (no lag correction)
-res.removedTrialTracker = auAn.removedTrialTracker;
-
-% Post temporal processing data
-res.numTrialSvt   = auAn.numTrialSvt;   % Number of trials saved (post temporal processing)
-res.allIdxSvt     = auAn.allIdxSvt;     % Vector of indicies of recorded trials saved (post temporal processing)
-res.trialTypeSvt  = auAn.trialTypeSvt;  % Key for identifying Control (0) & Perturbed (1) trials (post temporal processing)
-res.expTrigsSvt   = auAn.expTrigsSvt;   % Trigger Onset and Offset (Time) for trials saved (post temporal processing)
 res.allAuMHDelays = auAn.allAuMHDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 res.allAuNiDelays = auAn.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 
-res.numPertTrialSvt = auAn.numPertTrialSvt; % Number of perturbed trials saved (post temporal processing)
-res.pertIdxSvt      = auAn.pertIdxSvt;      % Vector of indicies of perturbed trials (Referencing allIdxSvt) (post temporal processing)
-res.pertTrigSvt     = auAn.pertTrigSvt;     % Trigger Onset and Offset (Time) for perturbed trials (post temporal processing)
-res.numContTrialSvt = auAn.numContTrialSvt; % Number of control trials saved (post temporal processing)
-res.contIdxSvt      = auAn.contIdxSvt;      % Vector of indicies of control trials (Referencing allIdxSvt) (post temporal processing)
-res.contTrigSvt     = auAn.contTrigSvt;     % Trigger Onset and Offset (Time) for control trials (post temporal processing)
+res.removedTrialTracker = auAn.removedTrialTracker; % Result of Automatic Trial Exclusion
+res.incTrialInfo = auAn.incTrialInfo; % Result of Manual Trial Exclusion
+
+% Post temporal processing data
+res.allIdxPreProc = auAn.allIdxPreProc; % Vector of indicies of recorded trials saved (post temporal processing)
 
 % Audio f0 analysis
 res.timef0        = auAn.timef0;
@@ -629,6 +653,8 @@ res.respVarM     = auAn.respVarM;
 res.respVarSD    = auAn.respVarSD;
 res.InflaStimVar = auAn.InflaStimVar;
 
-%NIAu Delay
-res.allAuNiDelays = auAn.allAuNiDelays;
+%Some Final Output time series data
+res.audioMinc = auAn.audioMinc;
+res.audioHinc = auAn.audioHinc;
+res.AuNiDelaysinc = auAn.AuNiDelaysinc;
 end

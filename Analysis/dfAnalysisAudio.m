@@ -24,13 +24,15 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % -An.curSess
 % -An.f0Type
 % -An.f0AnaFile
-% -An.bTf0b
+% -An.f0b
+% -An.gender
 % -An.sRate
-% -An.audioMSvt
-% -An.audioHSvt
-% -An.expTrigsSvt
-% -An.allIdxSvt
-% -An.trialTypeSvt
+
+% -An.allIdxPreProc
+% -An.audioM
+% -An.audioH
+% -An.expTrigs
+% -An.trialType
 
 if isempty(varargin)
     iRF    = 0; 
@@ -47,11 +49,17 @@ end
 An = initAudVar(An);
 
 if AudFlag == 1
-    fprintf('\nStarting Pitch Analysis\n')
+%     fprintf('\nStarting Pitch Analysis\n')
+
+    An.audioMSvt   = An.audioM(:, An.allIdxPreProc);
+    An.audioHSvt   = An.audioH(:, An.allIdxPreProc);
+    An.expTrigsSvt = An.expTrigs(An.allIdxPreProc, :);
+    An.trialTypeSvt = An.trialType(An.allIdxPreProc);
+    An.numTrialSvt  = length(An.allIdxPreProc);
    
     % Set some frequency analysis variables
     An.numSamp = length(An.audioMSvt);
-    fV = setFreqAnalVar(An.sRate, An.numSamp);
+    fV = setFreqAnalVar(An.sRate, An.numSamp, An.f0b, An.gender);
     
     % File where to save/find pitch contour analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
@@ -67,8 +75,8 @@ if AudFlag == 1
     % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, An.f0b, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, An.f0b, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, anaFlag);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, anaFlag);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -98,11 +106,10 @@ if AudFlag == 1
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
     
-    svF = 0;
     for ii = 1:An.numTrialSvt
         
         expTrig = An.expTrigsf0(ii, :);
-        svIdc   = An.allIdxSvt(ii);
+        svIdc   = An.allIdxPreProc(ii);
         
         preSt = expTrig(1) - 0.5;
         posSp = expTrig(2) + 1.0;
@@ -116,33 +123,29 @@ if AudFlag == 1
 
         if ~isempty(MisCalcf0)
             if An.trialTypeSvt(ii) == 0
-                type = 'Cont';
+                type = 'Control';
             else
-                type = 'Pert';
+                type = 'Perturbed';
             end       
-            fprintf('Threw away %s Trial %d (%s), due to Miscalculated Pitch Trace\n', An.curSess, svIdc, type)
+            fprintf('%s Trial %d (%s) excluded due to Miscalculated Pitch Trace\n', An.curSess, svIdc, type)
 
             removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
             An.removedTrialTracker = cat(1, An.removedTrialTracker, removedTrial);
         else
-            svF = svF + 1;
-
-            An.subSvIdx      = cat(1, An.subSvIdx, ii);
-            An.svf0Idx       = cat(1, An.svf0Idx, svIdc);
-            An.expTrigsf0Sv = cat(1, An.expTrigsf0Sv, expTrig);
-            if An.trialTypeSvt(ii) == 0
-                An.contf0Idx  = cat(1, An.contf0Idx, svF);
-            else
-                An.pertf0Idx  = cat(1, An.pertf0Idx, svF);       
-            end        
+            An.subSvIdx      = cat(1, An.subSvIdx, ii);    
         end
     end
+    An.svf0Idx       = An.allIdxPreProc(An.subSvIdx);
+    An.expTrigsf0Sv  = An.expTrigsf0(An.subSvIdx, :);
+    An.trialTypef0Sv = An.trialTypeSvt(An.subSvIdx);
+    An.contf0Idx     = An.trialTypef0Sv == 0;
+    An.pertf0Idx     = An.trialTypef0Sv == 1;
     
     An.audioMf0sv      = An.audioMf0_norm(:, An.subSvIdx);
     An.audioHf0sv      = An.audioHf0_norm(:, An.subSvIdx); 
     An.numTrialsPP     = length(An.subSvIdx);
-    An.numPertTrialsPP = length(An.pertf0Idx);
-    An.numContTrialsPP = length(An.contf0Idx);
+    An.numPertTrialsPP = sum(An.pertf0Idx);
+    An.numContTrialsPP = sum(An.contf0Idx);
 
     %Find the Perturbed Trials
     An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
@@ -228,9 +231,13 @@ An.respVarSD      = [];
 An.InflaStimVar   = [];
 end
 
-function fV = setFreqAnalVar(sRate, numSamp)
+function fV = setFreqAnalVar(sRate, numSamp, f0b, gender)
 
 %Identify a few analysis varaibles
+fV.f0b        = f0b;
+fV.gender     = gender;
+fV.f0Bounds   = identifyf0Bounds(f0b, gender);
+
 fV.sRate      = sRate;
 fV.numSamp    = numSamp;
 fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; %Time vector for full mic
@@ -249,7 +256,7 @@ fV.roundFact = fV.sRate/fV.tStepP;
 fV.winHalf   = fV.win/2;
 end
 
-function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, f0b, flag)
+function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, flag)
 ET = tic;
 [~, numTrial] = size(audio);
 
@@ -263,7 +270,7 @@ if flag == 1
     fV.roundFact = fV.sRate/fV.tStepP;
     fV.winHalf   = 1.0*fV.win;
     
-    [timef0, audiof0, fsA] = dfCalcf0Praat(dirs, audio, fs, f0b);
+    [timef0, audiof0, ~] = dfCalcf0Praat(dirs, audio, fs, fV.f0Bounds);
 else
     audiof0 = [];
     for j = 1:numTrial %Trial by Trial             
@@ -295,6 +302,29 @@ expTrigsR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
 % fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+end
+
+function bounds = identifyf0Bounds(f0b, gender)
+% Based on Literature search
+
+defaultMale   = [75 300];
+defaultFemale = [100 500];
+
+switch gender
+    case 'male'
+        if (f0b/2) < defaultMale(1) % Especially low-pitch Male
+            bounds = [25 250];
+        else
+            bounds = defaultMale;
+        end
+        
+    case 'female'
+        if (f0b*2) > defaultFemale(2) % Especially high-pitch Female
+            bounds = [200 600];
+        else
+            bounds = defaultFemale;
+        end
+end
 end
 
 function f0Win = simpleAutoCorr(voice, fV)

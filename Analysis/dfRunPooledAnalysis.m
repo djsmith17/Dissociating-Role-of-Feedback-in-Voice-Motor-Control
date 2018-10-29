@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'LarynxPos2'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -69,8 +69,10 @@ end
 
 allSubjRes         = initSortedStruct(pA.numCond);
 allSubjRes.subject = 'Mean Participant Response';
-allSubjRes.curSess = allSubjRes.subject; 
-allSubjRes.cond    = pA.cond;  
+allSubjRes.curSess = allSubjRes.subject;
+allSubjRes.cond    = pA.cond;
+
+[tossTrialTracker, tVN] = initTossedTrialTracker();
 
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
@@ -89,8 +91,14 @@ for ii = 1:pA.numPart
         sortStruc.gender  = curRes.gender;
         sortStruc.age     = curRes.age;
         
-        sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
-        allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
+        [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker);
+        
+        if ~isempty(autoMiss)
+            curRes = adjustCurRes(curRes, autoMiss);
+        end
+        
+        sortStruc  = combineCondTrials(pA, curRes, sortStruc, tossCounts);       
+        allSubjRes = combineCondTrials(pA, curRes, allSubjRes, tossCounts);
     end
         
     sortStruc = meanCondTrials(pA, sortStruc);
@@ -102,25 +110,23 @@ for ii = 1:pA.numPart
     allSubjRes.age(ii)    = sortStruc.age;
 end
 
+allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
+ 
+% Organize and Print the Stats of the Demographics included in this study
+organizeAndPrintDemographicStats(allSubjRes);   
 
-fprintf('\nAcross all subjects, %d trials were thrown away.\n', allSubjRes.tossedAll);
-fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
-fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
-fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+% Organize and Save the Table of Excluded Trials
+organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
 
-[mAge, rAge, gRatio] = demoStats(allSubjRes);
-fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f (Mean: %.1f)\n', rAge(1), rAge(2), mAge)
-fprintf('This data set includes %d males, and %d females\n\n', gRatio(1), gRatio(2))
+% Organize and Save the Table of Output Variables
+organizeAndSaveOutputVariables(dirs, pA, allSubjRes);    
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
-
-dirs.excelFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Stat.xlsx']);
-% xlswrite(dirs.excelFile, statLib, 1)
 end
 
 function sortStr = initSortedStruct(numCond)
@@ -151,21 +157,45 @@ sortStr.numPertTrialsFin = zeros(numCond, 1);
 sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
-sortStr.respVar         = cell(numCond, 1);
+
+sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
-sortStr.respVarM         = zeros(numCond, 4);
 sortStr.sensorPMean      = [];
 
 sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
 sortStr.tossedBreak      = 0;
 sortStr.tossedMisCalc    = 0;
+sortStr.tossedManual     = 0;
+sortStr.tossedAutoMiss   = 0;
+
+sortStr.respVar          = cell(numCond, 1);
+sortStr.respVarM         = cell(numCond, 1);
+
+sortStr.obvSubj          = {};
+sortStr.obvAge           = [];
+sortStr.obvGender        = {};
+sortStr.obvAudFB         = {};
+sortStr.obvRespVar       = [];
 end
 
-function polRes = combineCondTrials(pA, curRes, polRes)
+function [tossTrialTracker, tVN] = initTossedTrialTracker()
+
+tossTrialTracker              = []; %structure of keeping of which trials and when
+tossTrialTracker.curSess      = {};
+tossTrialTracker.tossedTrials = {};
+tossTrialTracker.manuallyExcl = {};
+tossTrialTracker.autoMiss     = {};
+tossTrialTracker.perCaught    = {};
+
+% Tossed Trials Table Variable Names
+tVN = {'CurSess', 'AutoExcluded', 'ManuallyExcluded', 'MissedByAuto', 'PercentCaught'};
+end
+
+function polRes = combineCondTrials(pA, curRes, polRes, tossT)
 
 whichCondAr = strcmp(pA.cond, eval(pA.condVar));
 wC          = find(whichCondAr == 1);            % Which Condition?
@@ -173,7 +203,7 @@ wC          = find(whichCondAr == 1);            % Which Condition?
 polRes.runs{wC}   = cat(1, polRes.runs{wC}, {curRes.run});
 polRes.runf0b{wC} = cat(1, polRes.runf0b{wC}, curRes.f0b);
 
-polRes.AudFB{wC}  = cat(1, polRes.AudFB{wC}, {curRes.AudFB});    
+polRes.AudFB{wC}  = cat(1, polRes.AudFB{wC}, {curRes.AudFB});
 
 polRes.allContTrials     = cat(1, polRes.allContTrials, curRes.numContTrialsFin);
 polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrialsFin);
@@ -183,25 +213,150 @@ polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0S
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
 
-polRes.secTimeP            = curRes.timeSec;
+polRes.secTimeP            = curRes.secTimeP;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, curRes.sensorPSec);
 
-tT = curRes.removedTrialTracker;
-if ~isempty(tT)
-    [tossedA, ~] = size(tT);
-    tossedL = sum(strcmp(tT(:,2), 'Participant started too late!!'));
-    tossedB = sum(strcmp(tT(:,2), 'Participant had a voice break!!'));
-    tossedC = sum(strcmp(tT(:,2), 'Miscalculated pitch Trace'));
-else
-    tossedA = 0;
-    tossedL = 0;
-    tossedB = 0;
-    tossedC = 0;
+polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
+polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
+polRes.tossedBreak    = polRes.tossedBreak + tossT.B;     % Voice Break
+polRes.tossedMisCalc  = polRes.tossedMisCalc + tossT.C;   % f0 Miscalc
+polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Excluded Trials
+polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
+
+[respVar, respVarM, ~] = InflationResponse(curRes.secTime, curRes.audioMf0SecPert);
+polRes.respVar{wC}     = respVar;
+polRes.respVarM{wC}    = respVarM;
+
+polRes.obvSubj         = cat(1, polRes.obvSubj, curRes.subject);
+polRes.obvAge          = cat(1, polRes.obvAge, curRes.age);
+polRes.obvGender       = cat(1, polRes.obvGender, curRes.gender);
+polRes.obvAudFB        = cat(1, polRes.obvAudFB, curRes.AudFB);
+polRes.obvRespVar      = cat(1, polRes.obvRespVar, respVarM);
 end
-polRes.tossedAll     = polRes.tossedAll + tossedA;
-polRes.tossedLate    = polRes.tossedLate + tossedL;
-polRes.tossedBreak   = polRes.tossedBreak + tossedB;
-polRes.tossedMisCalc = polRes.tossedMisCalc + tossedC;
+
+function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
+
+% AUTO: Identify trials that were excluded by automated methods 
+[tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes);
+
+% MANUAL: Identify trials that were excluded by manual methods
+[mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(curRes.incTrialInfo);
+
+% COMPARE AUTO and MANUAL
+[autoMiss, perCaught] = compareTossedTrials(aTossTrials, mTossTrials);
+numManual = length(mTossTrials);
+numMissed = length(autoMiss);
+tossCounts.M  = numManual;
+tossCounts.aM = numMissed;
+
+tossTrialTracker.curSess      = cat(1, tossTrialTracker.curSess, curRes.curSess);
+tossTrialTracker.tossedTrials = cat(1, tossTrialTracker.tossedTrials, {aTossDetails});
+tossTrialTracker.manuallyExcl = cat(1, tossTrialTracker.manuallyExcl, {mTossDetails});
+tossTrialTracker.autoMiss     = cat(1, tossTrialTracker.autoMiss, {num2str(autoMiss)});
+tossTrialTracker.perCaught    = cat(1, tossTrialTracker.perCaught, {perCaught}); 
+end
+
+function [tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes)
+
+tT = curRes.removedTrialTracker;
+aTossDetails = [];
+if ~isempty(tT)
+    [tossAll, ~] = size(tT);
+    
+    tossLate  = strcmp(tT(:,2), 'Participant started too late!!');
+    tossBreak = strcmp(tT(:,2), 'Participant had a voice break!!');
+    tossCalc  = strcmp(tT(:,2), 'Miscalculated pitch Trace');
+
+    tossCounts.A = sum(tossAll); 
+    tossCounts.L = sum(tossLate);
+    tossCounts.B = sum(tossBreak);
+    tossCounts.C = sum(tossCalc);
+    
+    [aTossDetails, LSTrialNums] = writeTossedDetails(tT, tossLate, 'LS', aTossDetails);
+    [aTossDetails, VBTrialNums] = writeTossedDetails(tT, tossBreak, 'VB', aTossDetails);
+    [aTossDetails, MCTrialNums] = writeTossedDetails(tT, tossCalc, 'MC', aTossDetails);
+    aTossTrials  = [LSTrialNums VBTrialNums MCTrialNums];
+else
+    tossCounts.A = 0;
+    tossCounts.L = 0;
+    tossCounts.B = 0;
+    tossCounts.C = 0;
+    aTossDetails = '';
+    aTossTrials  = [];
+end
+
+end
+
+function [tDetails, trialNums] = writeTossedDetails(tT, logicToss, note, tDetails)
+% [tDetails, trialNums] = writeTossedDetails(tT, logicToss, note, tDetails)
+% records which trials were lost and for reason for use in a table later on
+% which details all trials considered.
+
+numTrials = sum(logicToss);
+curTrials = tT(logicToss);
+
+trialNums = [];
+for i = 1:numTrials
+    curTrial = curTrials{i};
+    spc = find(curTrial == ' ');
+    curTrialNum = curTrial(spc+1:end);
+    
+    tDetails  = cat(2, tDetails, [curTrialNum '(' note ') ']);
+    trialNums = cat(2, trialNums, str2double(curTrialNum));
+end
+end
+
+function [mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(incTrialInfo)
+% [mTossTrials, mTossDetails] = unpackManuallyExcludedTrials(incTrialInfo)
+% opens the notes we made regarding which trials to manually exclude. These
+% notes are later compared against the automated methods
+mTossTrials  = [];
+mTossDetails = [];
+
+if ~isempty(incTrialInfo)
+    excludedTrials     = find([incTrialInfo.include] == 0);
+    excludedTrialNotes = [incTrialInfo(excludedTrials).trialNote];
+    numExcludedTrials  = length(excludedTrials);
+
+    for ii = 1:numExcludedTrials
+        curExcTrial = excludedTrials(ii);
+
+        mTossTrials  = cat(2, mTossTrials, curExcTrial);
+        mTossDetails = cat(2, mTossDetails, [num2str(curExcTrial) ' (' excludedTrialNotes{ii} ') ']);
+    end
+end
+end
+
+function [autoMiss, perCaughtStr] = compareTossedTrials(aTossTrials, mTossTrials)
+
+numM = length(mTossTrials);
+if numM == 0
+    perCaughtStr = 'N/A';
+else
+    autoCorrect  = intersect(aTossTrials, mTossTrials);
+    numCorrect   = length(autoCorrect);
+    perCaught    = round(100*(numCorrect/numM));
+    perCaughtStr = [num2str(perCaught) '%'];
+end
+
+autoMiss = setdiff(mTossTrials, aTossTrials);
+end
+
+function curRes = adjustCurRes(curRes, autoMiss)
+
+keptElementsCont = curRes.allIdxFin(curRes.contIdxFin);
+keptElementsPert = curRes.allIdxFin(curRes.pertIdxFin);
+
+[~, contIdx2Remove] = intersect(keptElementsCont, autoMiss);
+[~, pertIdx2Remove] = intersect(keptElementsPert, autoMiss);
+
+%Re-Adjust curRes for those extra trials we threw away.
+curRes.audioMf0SecCont(:, contIdx2Remove,:) = [];
+curRes.audioMf0SecPert(:, pertIdx2Remove,:) = [];
+curRes.sensorPSec(:, pertIdx2Remove,:)      = [];
+
+[~, curRes.numContTrialsFin, ~] = size(curRes.audioMf0SecCont);
+[~, curRes.numPertTrialsFin, ~] = size(curRes.audioMf0SecPert);
 end
 
 function polRes = meanCondTrials(pA, polRes)
@@ -209,20 +364,65 @@ function polRes = meanCondTrials(pA, polRes)
 polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
 polRes.sensorPMean      = meanSecData(polRes.sensorPSec);
-for kk = 1:pA.numCond
-    polRes.f0b(kk)              = mean(polRes.runf0b{kk});
+
+for wC = 1:pA.numCond
+    polRes.f0b(wC)              = mean(polRes.runf0b{wC});
     
-    polRes.numPertTrialsFin(kk) = sum(polRes.allPertTrials{kk});
-    polRes.audioMf0MeanPert{kk} = meanSecData(polRes.audioMf0SecPert{kk});
-    polRes.respVarM(kk, :)      = mean(polRes.respVar{kk}, 1);
+    polRes.numPertTrialsFin(wC) = sum(polRes.allPertTrials{wC});
+    polRes.audioMf0MeanPert{wC} = meanSecData(polRes.audioMf0SecPert{wC});
+    polRes.respVarM{wC}         = mean(polRes.respVar{wC}, 1);
 end
 
+% Identify Limits of the newly meaned data
 lims = identifyLimits(polRes);
 polRes.limitsAmean = lims.audioMean;
 polRes.limitsPmean = lims.presMean;
 
-statLib         = packStatLib(polRes);
-polRes.statLib  = statLib;
+% Scale Pressure traces against the f0 traces
+[sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
+polRes.sensorPAdjust = sensorPAdjust;
+polRes.InflDeflT     = InflDeflT;
+
+% Identify success of automatic trial exclusion methods
+if polRes.tossedManual > 0
+    perc = round(100*(1-(polRes.tossedAutoMiss/polRes.tossedManual)));
+    polRes.autoSuccessPerc = num2str(perc);
+else
+    polRes.autoSuccessPerc = 'N/A';
+end
+
+polRes.statLib = packStatLib(polRes);
+
+statTable        = packStatTable(polRes);
+polRes.statTable = statTable;
+end
+
+function allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr)
+
+numPartici = length(pooledRunStr);
+
+audioMf0SecContAllSubj = [];
+audioMf0SecPertAllSubj = cell(pA.numCond,1);
+for nP = 1:numPartici
+    curSubj = pooledRunStr(nP);
+    
+    meanOnsetCont   = curSubj.audioMf0MeanCont(:,1);
+    meanOffsetCont  = curSubj.audioMf0MeanCont(:,3);
+    secCont(:,:,1) = meanOnsetCont;
+    secCont(:,:,2) = meanOffsetCont;
+    audioMf0SecContAllSubj = cat(2, audioMf0SecContAllSubj, secCont);
+    
+    for wC = 1:pA.numCond
+        meanOnsetPert   = curSubj.audioMf0MeanPert{wC}(:,1);
+        meanOffsetPert  = curSubj.audioMf0MeanPert{wC}(:,3);
+        secPert(:,:,1) = meanOnsetPert;
+        secPert(:,:,2) = meanOffsetPert;
+        audioMf0SecPertAllSubj{wC} = cat(2, audioMf0SecPertAllSubj{wC}, secPert);
+    end
+end
+
+allSubjRes.audioMf0SecCont = audioMf0SecContAllSubj;
+allSubjRes.audioMf0SecPert = audioMf0SecPertAllSubj;
 end
 
 function meanData = meanSecData(secData)
@@ -246,54 +446,93 @@ NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 meanData   = [meanOnset NCIOnset meanOffset NCIOffset];
 end
 
-function statLib = packStatLib(ss)
+function [respVar, respVarM, respVarSD] = InflationResponse(secTime, secAudio)
+% [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+% Identifies the relevant pitch contour characteristics that are important
+% for deciding how a participant responded to the inflation of the balloon
+% during production. iR is a structure representing the result variables
+% from studying the inflation response (iR). 
+%
+% secTime:  Vector of time points corresponding to the sectioned data (numSamp)
+% secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
+%           The 1st 3D layer are Onset Sections
+%           The 2nd 3D later are Offset Sections
+%
+% respVar: Matrix of per trial iR results (numTrial x 4)
+%          respVar(:,1) = Time of the minimum f0 value in the sec
+%          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
+%          respVar(:,3) = Value of f0 at end of sec (response magnitude)
+%          respVar(:,4) = ABS percent change of stim and response
+%          magnitude (response percentage)
+% respVarM:    Vector of mean trial values from respVarm (1x4)
+% respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
+% InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
 
-cond1 = ss.respVar{1};
-cond2 = ss.respVar{2};
+[numSamp, numTrial, ~] = size(secAudio); % Size of the data we are dealing with
 
-condM1 = ss.respVarM(1,:);
-condM2 = ss.respVarM(2,:);
+ir.numSamp  = numSamp;
+ir.numTrial = numTrial;
+ir.time     = secTime;
 
-[~, pStim] = ttest2(cond1(:,2), cond2(:,2));
-[~, pResp] = ttest2(cond1(:,3), cond2(:,3));
-[~, pPerc] = ttest2(cond1(:,4), cond2(:,4));
+ir.iAtOnset = find(secTime == 0); % Index where t = 0
+ir.tAtOnset = 0;                  % Time at t = 0 ...duh
+ir.vAtOnset = [];                 % f0 value at t = 0
 
-statLib(1) = condM1(2); % Condition 1 StimMag
-statLib(2) = condM2(2); % Condition 2 StimMag
-statLib(3) = condM1(3); % Condition 1 RespMag
-statLib(4) = condM2(3); % Condition 2 RespMag
-statLib(5) = condM1(4); % Condition 1 %
-statLib(6) = condM2(4); % Condition 2 %
-statLib(7) = pStim;     % p-value stimulus
-statLib(8) = pResp;     % p-value response
-statLib(9) = pPerc;     % p-value percent increase 
+ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); % Range of indices between t = 0ms and t = 200ms;
+ir.iAtMin  = [];                  % Index at min f0 value in PostOnsetR
+ir.tAtMin  = [];                  % Time at min f0 value in PostOnsetR
+ir.vAtMin  = [];                  % Min f0 value in PostOnsetR
+ir.stimMag = [];                  % ir.vAtMin - ir.vAtOnset ..in a perfect world vAtOnset = 0
+
+ir.iAtResp = ir.numSamp;          % Index of f0 value when participant 'fully' responded...right now = last value in section
+ir.tAtResp = ir.time(ir.numSamp); % Time at f0 value when participant 'fully' responded
+ir.vAtResp = [];                  % f0 value when participant 'fully' responded 
+ir.respMag = [];                  % vAtResp - vAtMin   ...distance traveled
+ir.respPer = [];                  % Percent change from stimMag to respMag
+
+% Variables to be concatenated and saved as outputs 
+tAtMin  = []; stimMag = [];
+respMag = []; respPer = [];
+for i = 1:numTrial
+    onset = secAudio(:,i,1); % Go trial by trial; First 3D layer is Onset
+    ir.vAtOnset = onset(ir.iAtOnset); % f0 value at t = 0
+
+    [minOn, minIdx] = min(onset(ir.iPostOnsetR)); % Minimum f0 in PostOnsetR
+    ir.iAtMin = ir.iPostOnsetR(minIdx);           % Indice of the min f0 value
+    ir.tAtMin = ir.time(ir.iAtMin);               % Time at min f0 value in PostOnsetR
+    ir.vAtMin = minOn;                            % Min f0 value in PostOnsetR
+    ir.stimMag = abs(ir.vAtMin - ir.vAtOnset);    % Distance traveled from onset to min value
+    
+    ir.vAtResp = onset(ir.iAtResp);               % f0 value when participant 'fully' responded 
+    ir.respMag = ir.vAtResp - ir.vAtMin;          % Distance traveled from min f0 value to response f0 value
+    
+    ir.respPer = 100*(ir.respMag/ir.stimMag);% Percent change from stimMag to respMag 
+    
+    if ir.stimMag == 0
+        ir.respPer = 0.0;
+    end
+    
+    % Concatenate the results from this trial 
+    tAtMin   = cat(1, tAtMin, ir.tAtMin);
+    stimMag  = cat(1, stimMag, ir.stimMag); 
+    respMag  = cat(1, respMag, ir.respMag); 
+    respPer  = cat(1, respPer, ir.respPer);
+    
+%     drawInflationResultMetrics(onset, ir)
+%     pause(); close all;
 end
 
-function [meanAge, rangeAge, genderRatio] = demoStats(allSubjRes)
-
-ages    = allSubjRes.age;
-genders = allSubjRes.gender;
-
-meanAge = round(mean(ages), 1);
-minAge  = round(min(ages), 1);
-maxAge  = round(max(ages), 1);
-rangeAge = [minAge maxAge];
-
-numMales = sum(strcmp(genders, 'male'));
-numFemales = sum(strcmp(genders, 'female'));
-
-genderRatio = [numMales numFemales];
+% Organize the results 
+respVar   = [tAtMin stimMag respMag respPer];
+respVarM  = mean(respVar, 1);
+respVarSD = std(respVar, 0, 1);
 end
 
 function lims = identifyLimits(ss)
-
-maxPres = max(ss.sensorPMean(:,1)) + 0.5;
-minPres = min(ss.sensorPMean(:,1)) - 0.1;
-
-lims.presMean = [-0.5 1.0 minPres maxPres];
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% f0 Traces Limits
 mf0MeanPert = ss.audioMf0MeanPert;
-numCond = length(mf0MeanPert);
+numCond     = length(mf0MeanPert);
 
 setupBoundSec = zeros(numCond, 1);
 setlwBoundSec = zeros(numCond, 1);
@@ -326,8 +565,182 @@ for ii = 1:numCond
     setlwBoundSec(ii) = lwBoundSec;  
 end
 
-maxUpBound = max(setupBoundSec);
-minLwBound = min(setlwBoundSec);
+maxUpBound = max(setupBoundSec); % Max f0 Bound
+minLwBound = min(setlwBoundSec); % Min f0 Bound 
 
 lims.audioMean = [-0.5 1.0 minLwBound maxUpBound];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pressure Traces Limits
+maxPres = max(ss.sensorPMean(:,1)) + 0.5;
+minPres = min(ss.sensorPMean(:,1)) - 0.1;
+
+lims.presMean = [-0.5 1.0 minPres maxPres];
+end
+
+function [adjustPres, InflDeflT] = adjustPressureVals(ss)
+
+time        = ss.secTimeP;
+presOnsetM  = ss.sensorPMean(:,1);
+presOnsetE  = ss.sensorPMean(:,2);
+presOffsetM = ss.sensorPMean(:,3);
+presOffsetE = ss.sensorPMean(:,4);
+
+limsA    = ss.limitsAmean;
+limsAMin = limsA(3); limsAMax = limsA(4);
+limsP    = ss.limitsPmean;
+limsPMin = limsP(3); limsPMax = limsP(4);
+
+% Scale pressure values against the 
+m = (limsAMax - limsAMin)/(limsPMax - limsPMin);
+b = limsAMin - m*limsPMin;
+
+adjPresOnsetM  = (m*presOnsetM + b);
+adjPresOnsetE  = (m*presOnsetE + b);
+adjPresOffsetM = (m*presOffsetM + b);
+adjPresOffsetE = (m*presOffsetE + b);
+
+adjPresOnsetMin = min(adjPresOnsetM);
+[~, maxInd]     = max(adjPresOnsetM);
+[minInds]       = find(adjPresOnsetM > 0.98*adjPresOnsetMin);
+minInd          = minInds(1);
+
+StInflTime = time(minInd);
+SpInflTime = time(maxInd);
+
+adjPresOffsetMax = max(adjPresOffsetM);
+[maxInds] = find(adjPresOffsetM < 0.95*adjPresOffsetMax);
+maxInd    = maxInds(1);
+
+adjPresOffsetMin = min(adjPresOffsetM);
+[minInds] = find(adjPresOffsetM > 0.98*adjPresOffsetMin & adjPresOffsetM < 0.97*adjPresOffsetMin);
+minInd    = minInds(1);  
+
+fD = 20*[diff(adjPresOffsetM); 0];
+mfD = mean(fD(1:200));
+bumpsSt = find(fD < 50*mfD);    
+bumpsSp = find(fD < 10*mfD); 
+
+StDeflTime = time(bumpsSt(1));
+SpDeflTime = time(bumpsSp(end));
+
+adjustPres = [adjPresOnsetM, adjPresOnsetE, adjPresOffsetM, adjPresOffsetE];
+InflDeflT  = [StInflTime SpInflTime StDeflTime SpDeflTime];
+end
+
+function statLib = packStatLib(ss)
+
+cond1 = ss.respVar{1};
+cond2 = ss.respVar{2};
+
+condM1 = ss.respVarM{1,:};
+condM2 = ss.respVarM{2,:};
+
+[~, pStim] = ttest2(cond1(:,2), cond2(:,2));
+[~, pResp] = ttest2(cond1(:,3), cond2(:,3));
+[~, pPerc] = ttest2(cond1(:,4), cond2(:,4));
+
+statLib(1) = condM1(2); % Condition 1 StimMag
+statLib(2) = condM2(2); % Condition 2 StimMag
+statLib(3) = condM1(3); % Condition 1 RespMag
+statLib(4) = condM2(3); % Condition 2 RespMag
+statLib(5) = condM1(4); % Condition 1 %
+statLib(6) = condM2(4); % Condition 2 %
+statLib(7) = pStim;     % p-value stimulus
+statLib(8) = pResp;     % p-value response
+statLib(9) = pPerc;     % p-value percent increase 
+end
+
+function statTable = packStatTable(ss)
+
+varNames = {'SubjID', 'Age', 'Gender', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
+statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
+end
+
+function organizeAndPrintDemographicStats(allSubjRes)
+
+ages    = allSubjRes.age;
+genders = allSubjRes.gender;
+
+meanAge  = round(mean(ages), 1);
+minAge   = round(min(ages), 1);
+maxAge   = round(max(ages), 1);
+rangeAge = [minAge maxAge];
+
+numMales   = sum(strcmp(genders, 'male'));
+numFemales = sum(strcmp(genders, 'female'));
+
+genderRatio = [numMales numFemales];
+
+fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f years (Mean: %.1f years)\n', rangeAge(1), rangeAge(2), meanAge)
+fprintf('This data set includes %d males, and %d females\n', genderRatio(1), genderRatio(2))
+end
+
+function organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, svFile)
+
+fprintf('\nAcross all subjects, %d trials were excluded Automatically:\n', allSubjRes.tossedAll);
+fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
+fprintf('%d trials due to voice breaks\n', allSubjRes.tossedBreak);
+fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
+fprintf('An additional %d trials were excluded Manually, of the %d trials Manually selected\n', allSubjRes.tossedAutoMiss, allSubjRes.tossedManual);
+fprintf('Automatic trial exclusion methods accounted for %s%% of trials selected Manually\n', allSubjRes.autoSuccessPerc)
+fprintf('\n')
+tossedTable = table(tossTrialTracker.curSess,... 
+                    tossTrialTracker.tossedTrials,...
+                    tossTrialTracker.manuallyExcl,...
+                    tossTrialTracker.autoMiss,...
+                    tossTrialTracker.perCaught,...
+                    'VariableNames', tVN);
+if svFile == 1                
+    uitable('Data', tossedTable{:,:},...
+            'ColumnName', tossedTable.Properties.VariableNames,...
+            'Units', 'Normalized',...
+            'Position', [0, 0, 1, 1]);
+        
+    dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.xlsx']);
+    writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
+end
+end
+
+function organizeAndSaveOutputVariables(dirs, pA, allSubjRes)
+
+allSubjStatTable = allSubjRes.statTable;
+n = height(allSubjStatTable);
+meas = {'StimMag', 'RespMag', 'RespPer'};
+units = {'cents', 'cents', '%'};
+nMeas = length(meas);
+
+allMeasure = [];
+for i = 1:nMeas
+    allMeasure = cat(2, allMeasure, eval(['allSubjStatTable.' meas{i}]));
+end
+allMeasureM   = mean(allMeasure, 1);
+allMeasureSTD = std(allMeasure, 0, 1);
+allMeasureSE  = allMeasureSTD/sqrt(n);
+
+allMeasureNorm = (allMeasure - allMeasureM)./allMeasureSTD;
+
+aSRM = fitrm(allSubjStatTable, 'StimMag-RespPer~AudFB');
+        
+normDist = figure('Color', [1 1 1]);
+plotpos = [10 10]; plotdim = [1300 600];
+set(normDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+ha = tight_subplot(1, nMeas,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
+
+mu    = '\mu';
+sigma = '\sigma';
+
+allMeasureMR  = round(allMeasureM, 2);
+allMeasureSTDR = round(allMeasureSTD, 2);
+
+for ii = 1:nMeas
+    axes(ha(ii))
+    histogram(allMeasureNorm(:,ii))
+    title({meas{ii},...
+          ['(' mu '=' num2str(allMeasureMR(ii)) units{ii} ', ' sigma '=' num2str(allMeasureSTDR(ii)) units{ii} ')']})
+    box off
+end
+
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
+writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
 end
