@@ -1,11 +1,15 @@
-function drawJNDResults(JNDa, dirs, numRuns, allRunData, allMeanJND, allCatchAcc)
+function drawJNDResults(JNDa, saveResultsDir, allRunData)
 % drawJNDResults() displays the results from a single subject's JND runs.
 %
 % This function calls the following helper functions
 % -tight_subplot
 % -export_fig
 
-saveResultsDir = dirs.SavResultsDir;
+runs    = JNDa.runs;
+numRuns = length(runs);
+
+JNDScores  = JNDa.JNDScores;
+lastSetAcc = JNDa.lastSetAccuracy;
 
 plotpos = [50 150];
 plotdim = [1600 750];
@@ -30,9 +34,9 @@ set(AllJND, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 ha = tight_subplot(2, 2, [0.15 0.06], [0.1 0.1], [0.05 0.03]);
 
 for ii = 1:numRuns
-    UD = allRunData(ii);
-    meanJND = allMeanJND(ii);
-    catchAccu = allCatchAcc(ii);
+    UD        = allRunData(ii);
+    meanJND   = JNDScores(ii);
+    catchAccu = lastSetAcc(ii);
     revNote   = [num2str(UD.reversals) ' Reversals, '];
     triNote   = [num2str(UD.performedTrials) '/' num2str(UD.totalTrials) ' Trials, '];
     timNote   = [num2str(round(10*UD.elapsedTime)/10) ' min, '];
@@ -89,9 +93,9 @@ for ii = 1:numRuns
     end  
 end
 
-suptitle({JNDa.participant; ['f0: ' num2str(UD.subjf0) ' Hz']})
+suptitle({'f0 Acuity JND', [JNDa.participant ', f0 = ' num2str(JNDa.f0) ' Hz'], ['JND Score: ' num2str(JNDa.JNDScoreMean) ' Cents']})
 
-legend(aH,{['Correct ' UD.tN{1}],['Incorrect ' UD.tN{1}],'Reversals',['Correct ' UD.tN{2}],['Incorrect ' UD.tN{2}]},...
+legend(aH,{['Correct ' JNDa.tN{1}],['Incorrect ' JNDa.tN{1}],'Reversals',['Correct ' JNDa.tN{2}],['Incorrect ' JNDa.tN{2}]},...
           'Orientation','Horizontal',...
           'FontSize', 8,...
           'Position', [0.51 0.48 0.01 0.01],...
