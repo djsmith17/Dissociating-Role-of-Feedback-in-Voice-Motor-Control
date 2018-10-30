@@ -12,8 +12,7 @@ function dfAnalysisJND()
 % -drawJNDResults
 %
 % This script has the following subfunctions:
-% -setCatchAcc
-% -setDirection
+% -initJNDAnalysis()
 
 prompt = {'Subject ID:',...
           'Run Type:',...
@@ -57,8 +56,6 @@ for ii = JNDa.runs2Analyze
     dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, curRun, [JNDa.participant curRun 'DRF.mat']); %Where to find data
     
     load(dirs.SavFileDir) % Returns UD
-    UD = setCatchAcc(UD);
-    UD = setDirection(UD, JNDa, ii);
     
     JNDa.f0     = round(UD.subjf0, 1);
     JNDa.gender = UD.gender;
@@ -66,10 +63,11 @@ for ii = JNDa.runs2Analyze
     JNDa.reversalsReached = cat(1, JNDa.reversalsReached, UD.reversals);
     JNDa.trialsCompleted  = cat(1, JNDa.trialsCompleted, UD.performedTrials);
     JNDa.timeElapsed      = cat(1, JNDa.timeElapsed, UD.elapsedTime);
-
-    [meanJND, lastSetAccu] = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
     
-    JNDa.JNDScores       = cat(1, JNDa.JNDScores, meanJND);
+    % Determine the JND Score and Accuracy of the last set of trials
+    [JNDScore, lastSetAccu] = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
+    
+    JNDa.JNDScores       = cat(1, JNDa.JNDScores, JNDScore);
     JNDa.lastSetAccuracy = cat(1, JNDa.lastSetAccuracy, round(lastSetAccu, 1));
     JNDa.catchAccuracy   = cat(1, JNDa.catchAccuracy, round(UD.catchAccuracy));
     
@@ -105,39 +103,4 @@ JNDa.JNDScoreMean        = [];
 JNDa.JNDScoreSD          = [];
 JNDa.lastSetAccuracyMean = [];
 JNDa.lastSetAccuracySD   = [];
-end
-
-function UD = setCatchAcc(UD)
-% setCatchAcc() calculates the stats on performed catch trials, only if the
-% JND task had catch trials. Not all versions do.
-
-if ~isfield(UD, 'catchTrials')
-    UD.performedTrials = length(UD.catchResponse);
-    UD.JNDTrials       = length(UD.reversal);
-    UD.catchTrials     = length(UD.catchResponse) - length(UD.reversal);
-    UD.reversals       = max(UD.reversal);
-    UD.catchCorrect    = sum(UD.catchResponse == 0);
-    UD.catchAccuracy   = 100*(UD.catchCorrect/UD.catchTrials);
-end
-end
-
-function UD = setDirection(UD, JNDa, ii)
-% setDirection is a function I made because I goofed in recording some
-% pilot data. You can ignore this otherwise. 
-
-if ~isfield(UD, 'JNDDirection')
-    if strcmp(JNDa.participant, 'Pilot9')
-        if ii == 1 || ii == 3
-            UD.JNDDirection = 'Above';
-        else
-            UD.JNDDirection = 'Below';
-        end
-    elseif strcmp(JNDa.participant, 'Pilot10')
-        if ii == 2 || ii == 4
-            UD.JNDDirection = 'Above';
-        else
-            UD.JNDDirection = 'Below';
-        end 
-    end
-end
 end
