@@ -77,6 +77,10 @@ end
 JNDa.JNDScoreMean        = round(mean(JNDa.JNDScores), 2);
 JNDa.lastSetAccuracyMean = round(mean(JNDa.lastSetAccuracy), 1);
 
+dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [JNDa.participant JNDa.runType 'f0AcuityPooledResults.mat']);
+fprintf('\nSaving Pooled JND Results for %s\n', JNDa.participant)
+save(dirs.SavResultsFile, 'JNDa')
+
 drawJNDResults(JNDa, dirs.SavResultsDir, allJNDData)
 end
 
