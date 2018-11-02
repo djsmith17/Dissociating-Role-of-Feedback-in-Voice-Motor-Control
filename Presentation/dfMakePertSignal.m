@@ -36,12 +36,10 @@ trigs   = zeros(numTrial,2,3);
 % Make a pert period for every trial, although only applied as a
 % perturbatron signal, if actually a perturbed trial. See line 54
 for i = 1:numTrial
-            
+    St_t   = (minSt + (maxSt-minSt)*rand);        % Start Time Seconds
     if diag == 1
-        St_t   = minSt;                           % Start Time Seconds
         pLen_t = minLen;                          % Pert Len Seconds
     else
-        St_t   = (minSt + (maxSt-minSt)*rand);    % Start Time Seconds
         pLen_t = (minLen + (maxLen-minLen)*rand); % Pert Len Seconds
     end
     Sp_t   = St_t + pLen_t;                       % Stop Time Seconds

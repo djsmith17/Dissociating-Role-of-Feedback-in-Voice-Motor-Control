@@ -73,7 +73,7 @@ for i = 1:AVar.numPart
         % Analysis on the NIDAQ raw data
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
         % Analysis on the Audapter raw data
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, niAn, aFa, iRF);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRF, niAn);
 
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
