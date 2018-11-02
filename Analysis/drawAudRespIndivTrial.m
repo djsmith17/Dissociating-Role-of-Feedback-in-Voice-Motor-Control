@@ -13,7 +13,7 @@ micf0Trials      = res.audioMf0TrialPert;
 heaf0Trials      = res.audioHf0TrialPert;
 limits           = res.limitsAudRes;
 
-plotpos = [10 10];
+plotpos = [10 100];
 plotdim = [1600 800];
 IndivTrialAudResp = figure('Color', [1 1 1]);
 set(IndivTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -27,7 +27,7 @@ titleFSize   = 14;
 axisLSize    = 14;
 lineThick    = 4;
 
-ha = tight_subplot(1, 4, [0.15 0.05],[0.12 0.15],[0.05 0.03]);
+ha = tight_subplot(1, 4, [0.15 0.05],[0.12 0.15],[0.08 0.08]);
 
 for ii = 1:numPT      
     axes(ha(ii))
