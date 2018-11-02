@@ -27,7 +27,7 @@ titleFSize   = 14;
 axisLSize    = 14;
 lineThick    = 4;
 
-ha = tight_subplot(1, 4, [0.15 0.05],[0.12 0.15],[0.05 0.05]);
+ha = tight_subplot(1, 4, [0.15 0.05],[0.12 0.15],[0.05 0.03]);
 
 for ii = 1:numPT      
     axes(ha(ii))
