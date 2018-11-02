@@ -37,7 +37,7 @@ else
     LowReversal = 3;
 end
 
-if strncmpi(criterion,'reversals',4)
+if strncmpi(criterion, 'reversals', 4)
     meanJND = sum(UD.xStaircase(UD.reversal >= LowReversal))/(HighReversal-LowReversal+1);
     ind = find(UD.reversal == (LowReversal-1))+1;
     lastSet = UD.catchResponse(ind:end);
@@ -45,5 +45,5 @@ if strncmpi(criterion,'reversals',4)
     lastSetAccu = 100*sum(lastSet)/lastSetL;
 else
     meanJND = sum(UD.xStaircase(LowTrial:NumTrials))/(NumTrials-LowTrial+1);
-    lastSetAccu =[];
+    lastSetAccu = [];
 end

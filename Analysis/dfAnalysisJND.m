@@ -12,8 +12,7 @@ function dfAnalysisJND()
 % -drawJNDResults
 %
 % This script has the following subfunctions:
-% -setCatchAcc
-% -setDirection
+% -initJNDAnalysis()
 
 prompt = {'Subject ID:',...
           'Run Type:',...
@@ -27,11 +26,14 @@ if isempty(answer)
     return
 end
 
+% Initalize the analysis structure
+JNDa = initJNDAnalysis();
+
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 JNDa.participant  = answer{1};
 JNDa.runType      = answer{2};
-JNDa.runs2Analyze = str2double(answer{3});
-numRuns           = length(JNDa.runs2Analyze);
+num = textscan(answer{3}, '%f', 'Delimiter', ',');
+JNDa.runs2Analyze = num{1}';
 
 dirs = dfDirs(JNDa.project);
 dirs.SavResultsDir = fullfile(dirs.Results, JNDa.participant, 'JND'); %Where to save results
@@ -40,64 +42,69 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-allRunData  = [];
-allmeanJND  = [];
-allCatchAcc = [];
+if strcmp(JNDa.runType, 'fAC')
+    JNDa.tN = {'Diff'; 'Same'}; 
+else
+    JNDa.tN = {'First'; 'Last'}; 
+end  
+
+allJNDData  = [];
 for ii = JNDa.runs2Analyze 
-    JNDa.run         = [JNDa.runType num2str(ii)];
+    curRun = [JNDa.runType num2str(ii)];
+    JNDa.runs = cat(1, JNDa.runs, {curRun});
     
-    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, JNDa.run, [JNDa.participant JNDa.run 'DRF.mat']); %Where to find data
+    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, curRun, [JNDa.participant curRun 'DRF.mat']); %Where to find data
     
-    load(dirs.SavFileDir)
-    UD = setCatchAcc(UD);
-    UD = setDirection(UD, JNDa, ii);
-    [meanJND, lastSetAccu]= dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
-    accuracy = round(UD.catchAccuracy);
-        
-    if strcmp(JNDa.runType, 'fAC')
-        UD.tN = {'Diff'; 'Same'}; 
-    else
-        UD.tN = {'First'; 'Last'}; 
-    end    
-    allRunData  = cat(1, allRunData, UD);
-    allmeanJND  = cat(1, allmeanJND, meanJND);
-    allCatchAcc = cat(1, allCatchAcc, lastSetAccu);
+    load(dirs.SavFileDir) % Returns UD
+    
+    JNDa.f0     = round(UD.subjf0, 1);
+    JNDa.gender = UD.gender;
+    
+    JNDa.reversalsReached = cat(1, JNDa.reversalsReached, UD.reversals);
+    JNDa.trialsCompleted  = cat(1, JNDa.trialsCompleted, UD.performedTrials);
+    JNDa.timeElapsed      = cat(1, JNDa.timeElapsed, UD.elapsedTime);
+    
+    % Determine the JND Score and Accuracy of the last set of trials
+    [JNDScore, lastSetAccu] = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
+    
+    JNDa.JNDScores       = cat(1, JNDa.JNDScores, JNDScore);
+    JNDa.lastSetAccuracy = cat(1, JNDa.lastSetAccuracy, round(lastSetAccu, 1));
+    JNDa.catchAccuracy   = cat(1, JNDa.catchAccuracy, round(UD.catchAccuracy));
+    
+    allJNDData  = cat(1, allJNDData, UD);
 end
 
-drawJNDResults(JNDa, dirs, numRuns, allRunData, allmeanJND, allCatchAcc)
+JNDa.JNDScoreMean        = round(mean(JNDa.JNDScores), 2);
+JNDa.lastSetAccuracyMean = round(mean(JNDa.lastSetAccuracy), 1);
+
+dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [JNDa.participant JNDa.runType 'f0AcuityPooledResults.mat']);
+fprintf('\nSaving Pooled JND Results for %s\n', JNDa.participant)
+save(dirs.SavResultsFile, 'JNDa')
+
+drawJNDResults(JNDa, dirs.SavResultsDir, allJNDData)
 end
 
-function UD = setCatchAcc(UD)
-% setCatchAcc() calculates the stats on performed catch trials, only if the
-% JND task had catch trials. Not all versions do.
+function JNDa = initJNDAnalysis()
 
-if ~isfield(UD, 'catchTrials')
-    UD.performedTrials = length(UD.catchResponse);
-    UD.JNDTrials       = length(UD.reversal);
-    UD.catchTrials     = length(UD.catchResponse) - length(UD.reversal);
-    UD.reversals       = max(UD.reversal);
-    UD.catchCorrect    = sum(UD.catchResponse == 0);
-    UD.catchAccuracy   = 100*(UD.catchCorrect/UD.catchTrials);
-end
-end
+JNDa.project     = [];
+JNDa.participant = [];
+JNDa.runType     = [];
+JNDa.runs        = {};
+JNDa.gender      = [];
+JNDa.age         = [];
+JNDa.f0          = [];
 
-function UD = setDirection(UD, JNDa, ii)
-% setDirection is a function I made because I goofed in recording some
-% pilot data. You can ignore this otherwise. 
+JNDa.instructions     = {};
+JNDa.reversalsReached = [];
+JNDa.trialsCompleted  = [];
+JNDa.timeElapsed      = [];
 
-if ~isfield(UD, 'JNDDirection')
-    if strcmp(JNDa.participant, 'Pilot9')
-        if ii == 1 || ii == 3
-            UD.JNDDirection = 'Above';
-        else
-            UD.JNDDirection = 'Below';
-        end
-    elseif strcmp(JNDa.participant, 'Pilot10')
-        if ii == 2 || ii == 4
-            UD.JNDDirection = 'Above';
-        else
-            UD.JNDDirection = 'Below';
-        end 
-    end
-end
+JNDa.JNDScores       = [];
+JNDa.lastSetAccuracy = [];
+JNDa.catchAccuracy   = [];
+
+JNDa.JNDScoreMean        = [];
+JNDa.JNDScoreSD          = [];
+JNDa.lastSetAccuracyMean = [];
+JNDa.lastSetAccuracySD   = [];
 end
