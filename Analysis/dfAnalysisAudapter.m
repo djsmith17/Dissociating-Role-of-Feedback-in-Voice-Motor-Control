@@ -343,26 +343,13 @@ headP   = headAuNi(1:pp.numSamp);
 
 pp.saveT    = saveT;    % Save trial or no?
 pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
-
-%%%%Double check all this
-voicingInd  = find(rms >= rmsThresh);
-vOdelayP    = (voicingInd(1) - frameDel)*frameLen;
-vOdelay     = vOdelayP/fs;
-
-vOAuNi  =  vOdelayP - pp.AuNidelayP;
-
-micVO  = micAuNi(vOAuNi:end);
-headVO = headAuNi(vOAuNi:end);
-
-pp.vOdelay   = vOdelay;   % Voice Onset
 end
 
 function [timeSet, delaySet] = MHdelayChunked(sig1, sig2, fs)
 
 numSamp = length(sig1);
-chunkP = 64*15;
-% chunkL = 0.05;
-% chunkP = fs*chunkL;
+chunkL = 0.05;
+chunkP = fs*chunkL;
 numChunk = floor(numSamp/chunkP);
 
 timeSet  = zeros(numChunk, 1);
