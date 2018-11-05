@@ -19,17 +19,14 @@ function [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p)
   
 dB           = expParam.headGain;
 gender       = expParam.gender;
+f0           = expParam.f0;
 p.bBypassFmt = 1;               % No Formant tracking
 p.dScale     = setLoudRatio(dB);% Scale of output from input
-% p.nDelay     = 7;
+p.nDelay     = 7;
 
-if isequal(lower(gender), 'female')
-    p.pitchLowerBoundHz = 150;
-    p.pitchUpperBoundHz = 300;
-elseif isequal(lower(gender), 'male')
-    p.pitchLowerBoundHz = 80;
-    p.pitchUpperBoundHz = 160;
-end 
+bounds = identifyf0Bounds(f0, gender);
+p.pitchLowerBoundHz = bounds(1); % Lower
+p.pitchUpperBoundHz = bounds(2); % Upper
 
 SSNw   = [];
 SSNfs  = [];
@@ -75,23 +72,27 @@ function dScale = setLoudRatio(dB)
 dScale = 10^(dB/20);
 end
 
-function [w, fs] = audapterGeneratedNoise(dirs, p)
+function bounds = identifyf0Bounds(f0b, gender)
+% Based on Literature search
 
-%Uses Speech-Shaped Noise stored in util
-noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
+defaultMale   = [75 300];
+defaultFemale = [100 500];
 
-maxPBSize  = Audapter('getMaxPBLen');
-
-check_file(noiseWavFN);
-[w, fs] = read_audio(noiseWavFN);
-
-if fs ~= p.sr * p.downFact
-    w = resample(w, p.sr * p.downFact, fs);              
+switch gender
+    case 'male'
+        if (f0b/2) < defaultMale(1) % Especially low-pitch Male
+            bounds = [25 250];
+        else
+            bounds = defaultMale;
+        end
+        
+    case 'female'
+        if (f0b*2) > defaultFemale(2) % Especially high-pitch Female
+            bounds = [200 600];
+        else
+            bounds = defaultFemale;
+        end
 end
-if length(w) > maxPBSize
-    w = w(1:maxPBSize);
-end
-Audapter('setParam', 'datapb', w, 1);
 end
 
 function noiseTime = calcMaskLen(expParam)
@@ -142,4 +143,23 @@ rampFilt(rampUpIdx) = rampUp;
 rampFilt(rampDnIdx) = rampDn;
 
 sessionNoise = fullNoise.*rampFilt;
+end
+
+function [w, fs] = audapterGeneratedNoise(dirs, p)
+
+%Uses Speech-Shaped Noise stored in util
+noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
+
+maxPBSize  = Audapter('getMaxPBLen');
+
+check_file(noiseWavFN);
+[w, fs] = read_audio(noiseWavFN);
+
+if fs ~= p.sr * p.downFact
+    w = resample(w, p.sr * p.downFact, fs);              
+end
+if length(w) > maxPBSize
+    w = w(1:maxPBSize);
+end
+Audapter('setParam', 'datapb', w, 1);
 end
