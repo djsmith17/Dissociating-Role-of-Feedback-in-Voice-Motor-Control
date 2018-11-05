@@ -28,9 +28,15 @@ meanf0ContOffset = res.audioMf0MeanCont(:,3);
 CIf0ContOffset   = res.audioMf0MeanCont(:,4);
 limits           = res.limitsAmean;
 
-statSM = round(res.respVarM(2), 1);
-statRM = round(res.respVarM(3), 1);
-statRP = round(res.respVarM(4));
+if ~isempty(res.respVarM)
+    statSM = round(res.respVarM(2), 1);
+    statRM = round(res.respVarM(3), 1);
+    statRP = round(res.respVarM(4));
+else
+    statSM = '';
+    statRM = '';
+    statRP = '';
+end
 curSess(strfind(curSess, '_')) = ' ';
 
 lgdCurv = [];

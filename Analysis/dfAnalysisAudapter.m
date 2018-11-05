@@ -296,8 +296,14 @@ else
 end
 
 % Align the Microphone and Headphones
-micAuAl  = micR(1:(end-pp.AuMHdelayP));
-headAuAl = headR((pp.AuMHdelayP+1):end); 
+if pp.AuMHdelayP > 0
+    micAuAl  = micR(1:(end-pp.AuMHdelayP));
+    headAuAl = headR((pp.AuMHdelayP+1):end);
+else
+    fprintf('Odd xCorr Here\n')
+    micAuAl  = micR;
+    headAuAl = headR;
+end
 
 % Adjust for delay between Audapter and NIDAQ
 if pp.AuNidelayP > 0 % As long as the delay is non 0
