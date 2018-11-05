@@ -269,7 +269,11 @@ if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-% [~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData);
+f0b = 100;
+aFa = 1; iRf = 0;
+niAn = struct;
+niAn.sRate = 8000;
+% [~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
 % 
 % drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
 % pause(2)
@@ -362,7 +366,7 @@ if exist(dirs.BaseFile, 'File')
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
     gender  = DRF.expParam.gender;
-    age  = DRF.expParam.age;
+    age     = DRF.expParam.age;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
