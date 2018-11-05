@@ -95,7 +95,8 @@ end
 [expParam.f0b,...
  expParam.targRMS,...
  expParam.rmsB, ...
- expParam.gender] = loadBaselineVoice(dirs);
+ expParam.gender,...
+ expParam.age] = loadBaselineVoice(dirs);
 
 % Look for the Inflation Response Files. Should Return InflaVar
 expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat']; % Results from the laryngeal perturbation experiment
@@ -262,12 +263,12 @@ f0b = 100;
 aFa = 1; iRf = 0;
 niAn = struct;
 niAn.sRate = 8000;
-[~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
-
-drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
-pause(2)
-drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
-pause(2)
+% [~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
+% 
+% drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+% pause(2)
+% drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+% pause(2)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
@@ -334,7 +335,7 @@ end
 fprintf('Subject was %s\n', result)
 end
 
-function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender, age] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -343,6 +344,7 @@ if exist(dirs.BaseFile, 'File')
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
     gender  = DRF.expParam.gender;
+    age     = DRF.expParam.age;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
@@ -350,5 +352,6 @@ else
     targRMS = 70.00;
     rmsB    = 0.00002;
     gender  = 'female';
+    age     = 20;
 end
 end
