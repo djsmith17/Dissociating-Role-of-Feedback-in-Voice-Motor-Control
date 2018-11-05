@@ -53,9 +53,9 @@ auAn.frameLen = expParam.frameLenDown;
 auAn.trialLen = expParam.trialLen;
 auAn.numSamp  = auAn.sRate*auAn.trialLen;
 
-auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)'; 
-auAn.numTrial   = expParam.numTrial;         
-auAn.trialType  = expParam.trialType;        
+auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
+auAn.numTrial   = expParam.numTrial;
+auAn.trialType  = expParam.trialType;
 auAn.expTrigs   = expParam.trigs(:,:,1);
 auAn.anaTrigs   = expParam.trigs(:,:,3);
 
@@ -296,8 +296,14 @@ else
 end
 
 % Align the Microphone and Headphones
-micAuAl  = micR(1:(end-pp.AuMHdelayP));
-headAuAl = headR((pp.AuMHdelayP+1):end); 
+if pp.AuMHdelayP > 0
+    micAuAl  = micR(1:(end-pp.AuMHdelayP));
+    headAuAl = headR((pp.AuMHdelayP+1):end);
+else
+    fprintf('Odd xCorr Here\n')
+    micAuAl  = micR;
+    headAuAl = headR;
+end
 
 % Adjust for delay between Audapter and NIDAQ
 if pp.AuNidelayP > 0 % As long as the delay is non 0
