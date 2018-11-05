@@ -51,9 +51,9 @@ An = initAudVar(An);
 if AudFlag == 1
 %     fprintf('\nStarting Pitch Analysis\n')
 
-    An.audioMSvt   = An.audioM(:, An.allIdxPreProc);
-    An.audioHSvt   = An.audioH(:, An.allIdxPreProc);
-    An.expTrigsSvt = An.expTrigs(An.allIdxPreProc, :);
+    An.audioMSvt    = An.audioM(:, An.allIdxPreProc);
+    An.audioHSvt    = An.audioH(:, An.allIdxPreProc);
+    An.expTrigsSvt  = An.expTrigs(An.allIdxPreProc, :);
     An.trialTypeSvt = An.trialType(An.allIdxPreProc);
     An.numTrialSvt  = length(An.allIdxPreProc);
    
