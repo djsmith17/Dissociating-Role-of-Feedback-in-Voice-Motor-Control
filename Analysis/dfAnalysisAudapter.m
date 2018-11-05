@@ -201,7 +201,7 @@ fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLen;     % Frame rate of recording (After downsampling)
 rmsThresh = 0.011;
-voiceOnM  = 1;
+voiceOnM  = 2;
 frameDel  = 7;
 
 pp.rawMic      = micR;
@@ -244,7 +244,7 @@ if voiceOnM == 1
     pp.voiceOnsetT   = pp.t(pp.voiceOnsetInd);
 else
     voicingInd = find(rms > rmsThresh);
-    pp.voiceOnsetInd = voicingInd(1)*frameLen;
+    pp.voiceOnsetInd = (voicingInd(1) - frameDel)*frameLen;
     pp.voiceOnsetT   = pp.t(pp.voiceOnsetInd);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
