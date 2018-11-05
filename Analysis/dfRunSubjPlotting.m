@@ -70,7 +70,7 @@ for ii = 1:sPlt.numPart
             drawAudRespMeanTrial(res, dirs.PlotResultsDir)
         end
         
-        close all
+%         close all
     end
 end
 % close all

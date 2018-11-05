@@ -38,7 +38,7 @@ for ii = 1:numPT
     pertAx  = [pertTrig(ii,1), pertTrig(ii,2)];
     pertAy  = [200 200];
     
-    area(pertAx, pertAy, -200, 'FaceColor', pertBoxC, 'EdgeColor', pertBoxC)
+    area(pertAx, pertAy, -600, 'FaceColor', pertBoxC, 'EdgeColor', pertBoxC)
     hold on
     mH = plot(time, micf0Trials(:, ii), micColor, 'LineWidth', lineThick);
     hold on
