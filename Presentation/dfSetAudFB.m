@@ -11,12 +11,22 @@ function [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p)
 % PITCH-SHIFTED AUDITORY FEEDBACK OF THEIR VOICE
 % SPEECH-SHAPED MASKING NOISE
 %
-% This function has a subfunction below named: setLoudRatio
+% This function has the following subfunctions 
+% -setLoudRatio
+% -audapterGeneratedNoise
+% -calcMaskLen
+% -createSessionNoise
   
-default = 1;
 dB           = expParam.headGain;
-f0           = round(expParam.f0b);
 gender       = expParam.gender;
+f0           = expParam.f0;
+p.bBypassFmt = 1;               % No Formant tracking
+p.dScale     = setLoudRatio(dB);% Scale of output from input
+p.nDelay     = 7;
+
+bounds = identifyf0Bounds(f0, gender);
+p.pitchLowerBoundHz = bounds(1); % Lower
+p.pitchUpperBoundHz = bounds(2); % Upper
 
 SSNw   = [];
 SSNfs  = [];
@@ -39,46 +49,19 @@ elseif expParam.AudFBSw == 2
     p.bTimeDomainShift  = 0; % No pitch-shifting
     p.bCepsLift         = 0;
     
-    %Uses Speech-Shaped Noise stored in util
-    noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
+    % For this trial (or set of trials), how long do we need noise?
+    noiseTime = calcMaskLen(expParam);
     
-    maxPBSize  = Audapter('getMaxPBLen');
+    % Generate a full length masking noise signal for the length we need
+    [w, fs] = createSessionNoise(dirs, noiseTime);
+    
+%     [w, fs] = audapterGeneratedNoise(dirs, p);
 
-    check_file(noiseWavFN);
-    [w, fs] = read_audio(noiseWavFN);
-    
-    if fs ~= p.sr * p.downFact
-        w = resample(w, p.sr * p.downFact, fs);              
-    end
-    if length(w) > maxPBSize
-        w = w(1:maxPBSize);
-    end
-    Audapter('setParam', 'datapb', w, 1);
-    
     SSNw   = w;
     SSNfs  = fs;
 else
-    disp('ERROR in dfSetAudFB: Inappropriate feedback method selected')
-    return
-end
-
-% p.bBypassFmt = 1;               % No Formant tracking
-p.dScale     = setLoudRatio(dB);% Scale of output from input
-p.nDelay     = 7;
-
-if default == 1
-    if isequal(lower(gender), 'female')
-        p.pitchLowerBoundHz = 150;
-        p.pitchUpperBoundHz = 300;
-    elseif isequal(lower(gender), 'male')
-        p.pitchLowerBoundHz = 80;
-        p.pitchUpperBoundHz = 160;
-    end 
-else
-    p.pitchLowerBoundHz = f0 - 20;
-    p.pitchUpperBoundHz = f0 + 20;
-end
-
+    error('ERROR in dfSetAudFB: Inappropriate feedback method selected')
+end 
 end
 
 function dScale = setLoudRatio(dB)
@@ -87,4 +70,96 @@ function dScale = setLoudRatio(dB)
 % microphone level.
 
 dScale = 10^(dB/20);
+end
+
+function bounds = identifyf0Bounds(f0b, gender)
+% Based on Literature search
+
+defaultMale   = [75 300];
+defaultFemale = [100 500];
+
+switch gender
+    case 'male'
+        if (f0b/2) < defaultMale(1) % Especially low-pitch Male
+            bounds = [25 250];
+        else
+            bounds = defaultMale;
+        end
+        
+    case 'female'
+        if (f0b*2) > defaultFemale(2) % Especially high-pitch Female
+            bounds = [200 600];
+        else
+            bounds = defaultFemale;
+        end
+end
+end
+
+function noiseTime = calcMaskLen(expParam)
+
+numMaskRep = expParam.numMaskRep;
+
+rdyTime  = expParam.rdyPause;  % Ready Message
+cueTime  = expParam.cuePause;  % Cue period
+buffTime = expParam.buffPause; % Buffer to begin phonating
+trlTime  = expParam.trialLen;  % Phonation period
+endTime  = expParam.endPause;  % Buffer to end phonating
+resTime  = expParam.resPause;  % Rest/Feedback period
+
+noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime + 0.3)*numMaskRep;
+end
+
+function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime)
+
+maskFile = fullfile(dirs.Prelim, 'SSN_ampChunk.wav');
+
+[wavFile, fs] = audioread(maskFile);
+wavLen   = length(wavFile);
+noiseLen = round(noiseTime*fs);
+
+rampUpSp = round(2*fs) + 1;
+rampDnSt = round((noiseTime-2)*fs);
+
+rampUpIdx = 1:rampUpSp;
+rampUpL   = length(rampUpIdx);
+rampDnIdx = rampDnSt:noiseLen;
+rampDnL   = length(rampDnIdx);
+
+rampUp = linspace(0, 1, rampUpL);
+rampDn = linspace(1, 0, rampDnL);
+
+numRep   = noiseLen/wavLen; % How many repetitions of the .wav file (decimal)
+minInt   = floor(numRep);   % Min number of whole repeitions (integer)
+noiseInt = repmat(wavFile', [1, minInt]);
+
+remRep   = numRep - minInt; % How many decimal amounts left?
+remIdx   = round(wavLen*remRep);
+noiseRem = wavFile(1:remIdx)';
+
+fullNoise = [noiseInt noiseRem];
+
+rampFilt = ones(size(fullNoise));
+rampFilt(rampUpIdx) = rampUp;
+rampFilt(rampDnIdx) = rampDn;
+
+sessionNoise = fullNoise.*rampFilt;
+end
+
+function [w, fs] = audapterGeneratedNoise(dirs, p)
+
+%Uses Speech-Shaped Noise stored in util
+noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
+
+maxPBSize  = Audapter('getMaxPBLen');
+
+check_file(noiseWavFN);
+[w, fs] = read_audio(noiseWavFN);
+
+if fs ~= p.sr * p.downFact
+    w = resample(w, p.sr * p.downFact, fs);              
+end
+if length(w) > maxPBSize
+    w = w(1:maxPBSize);
+end
+Audapter('setParam', 'datapb', w, 1);
 end
