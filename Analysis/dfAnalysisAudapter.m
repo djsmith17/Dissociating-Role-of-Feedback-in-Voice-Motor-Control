@@ -201,7 +201,7 @@ fs        = An.sRate;        % Sampling rate (Audapter)
 fsNI      = An.sRateNi;      % Sampling rate (NIDAQ)
 frameLen  = An.frameLen;     % Frame rate of recording (After downsampling)
 rmsThresh = 0.011;
-voiceOnM  = 1;
+voiceOnM  = 2;
 frameDel  = 7;
 
 pp.rawMic      = micR;
@@ -244,7 +244,7 @@ if voiceOnM == 1
     pp.voiceOnsetT   = pp.t(pp.voiceOnsetInd);
 else
     voicingInd = find(rms > rmsThresh);
-    pp.voiceOnsetInd = voicingInd(1)*frameLen;
+    pp.voiceOnsetInd = (voicingInd(1) - frameDel)*frameLen;
     pp.voiceOnsetT   = pp.t(pp.voiceOnsetInd);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -300,17 +300,6 @@ else
 end
 pp.AuMHdelayP = pp.AuMHdelay*pp.fs; % Convert to points
 
-if pp.voiceOnsetLate
-    saveT    = 0;  
-    saveTmsg = 'Participant started too late!!';
-elseif pp.chk4Break
-    saveT    = 0;
-    saveTmsg = 'Participant had a voice break!!';
-else
-    saveT    = 1;
-    saveTmsg = 'Everything is good'; 
-end
-
 % Align the Microphone and Headphones
 if pp.AuMHdelayP > 0
     micAuAl  = micR(1:(end-pp.AuMHdelayP));
@@ -328,7 +317,25 @@ if pp.adjustedDelay > 0 % As long as the delay is non 0
 else
     micAuNi  = micAuAl;
     headAuNi = headAuAl;
-end 
+end
+
+if pp.voiceOnsetLate
+    saveT    = 0;  
+    saveTmsg = 'Participant started too late!!';
+elseif pp.chk4Break
+    saveT    = 0;
+    saveTmsg = 'Participant had a voice break!!';
+elseif length(micAuNi) < pp.numSamp
+    saveT    = 0;
+    saveTmsg = 'Recording not long enough';
+    
+    diffLen = pp.numSamp - length(micAuNi);
+    micAuNi  = [micAuNi; zeros(diffLen, 1)];
+    headAuNi = [headAuNi; zeros(diffLen, 1)];
+else
+    saveT    = 1;
+    saveTmsg = 'Everything is good';
+end
 
 % Grab the full numSamp so they can be concatenated cleanly
 micP    = micAuNi(1:pp.numSamp);
