@@ -26,16 +26,17 @@ function dfRunAFPerturb()
 close all;
 ET = tic;
 rng('shuffle');
-debug = 0;
+lenDb = 0;
+boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';
+subject    = 'DRF1';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
-pertType = questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
+pertType = 'Linear Standard'; %questdlg('What type of Perturbation?', 'Type of Perturbation?', 'Linear Standard', 'Sinusoid Matched', 'Sinusoid Matched');
 switch pertType
     case 'Linear Standard'
         pertTypeSw = 0;
@@ -43,15 +44,17 @@ switch pertType
         pertTypeSw = 1;
 end
 
+AlgoType = MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
+
 % Dialogue box asking if Practice set or Full set of trials
-recType = questdlg('Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
+recType = MFquestdlg(boxPos, 'Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
 switch recType
     case 'Practice'
         numTrials = 4;
         perCatch  = 1.00;
     case 'Diagnostic'
-        numTrials = 4;
-        perCatch  = 1.00;
+        numTrials = 10;
+        perCatch  = 0.5;
     case 'Full'
         numTrials = 40;
         perCatch  = 0.25;
@@ -76,6 +79,8 @@ expParam.AudFB        = 'Voice Shifted';
 expParam.AudFBSw      = 1; %Voice Shifted
 expParam.AudPert      = pertType;
 expParam.AudPertSw    = pertTypeSw;
+expParam.rmsThresh    = 0.011;
+expParam.pitchShiftAlgo = AlgoType;
 expParam.bVis         = 0;
 
 %Set our dirs based on the project
@@ -95,41 +100,47 @@ end
 [expParam.f0b,...
  expParam.targRMS,...
  expParam.rmsB, ...
- expParam.gender] = loadBaselineVoice(dirs);
+ expParam.gender,...
+ expParam.age] = loadBaselineVoice(dirs);
 
 % Look for the Inflation Response Files. Should Return InflaVar
 expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat']; % Results from the laryngeal perturbation experiment
 dirs.InflaVarFile  = fullfile(dirs.SavData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
 if ~exist(dirs.InflaVarFile, 'file')
-    fprintf('ERROR: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
-    return
+    fprintf('Warning: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
+    fprintf('Will use default Inflation Vars instead\n')
+    InflaVar = [0.100 -100];
 else
     fprintf('Inflation Variables found!!\n')
+    load(dirs.InflaVarFile);
 end
 
 %Paradigm Configurations
 expParam.sRate              = 48000;  % Hardware sampling rate (before downsampling)
-expParam.frameLen           = 96;     % Before downsampling
+expParam.frameLen           = 192;     % Before downsampling
 expParam.downFact           = 3;
 expParam.sRateAnal          = expParam.sRate/expParam.downFact; %Everything get automatically downsampled! So annoying
 expParam.frameLenDown       = expParam.frameLen/expParam.downFact;
 expParam.audioInterfaceName = 'MOTU MicroBook'; %'ASIO4ALL' 'Komplete'
 
 %Set up Audapter
-Audapter('deviceName', expParam.audioInterfaceName);
-Audapter('setParam', 'downFact', expParam.downFact, 0);
-Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
-Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
+% Audapter('deviceName', expParam.audioInterfaceName);
+% Audapter('setParam', 'downFact', expParam.downFact, 0);
+% Audapter('setParam', 'sRate', expParam.sRateAnal, 0);
+% Audapter('setParam', 'frameLen', expParam.frameLenDown, 0);
 p = getAudapterDefaultParams(expParam.gender);
+p.rmsThresh        = expParam.rmsThresh;
+p.frameLen         = expParam.frameLenDown;
+p.timeDomainPitchShiftAlgorithm = AlgoType;
 
 %Set up Parameters to control NIDAQ and Perturbatron
 [s, niCh, nVS]  = dfInitNIDAQ(expParam.niDev, expParam.trialLen);
 expParam.sRateQ = s.Rate; % NIDAQ sampling rate
 expParam.niCh   = niCh;   % Structure of Channel Names
 
-%Set up OST and PCF Files
-expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
-expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
+% %Set up OST and PCF Files
+% expParam.ostFN = fullfile(dirs.Prelim, 'AFPerturbOST.ost'); check_file(expParam.ostFN);
+% expParam.pcfFN = fullfile(dirs.Prelim, 'AFPerturbPCF.pcf'); check_file(expParam.pcfFN);
 
 %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
 [p, SSNw, SSNfs]  = dfSetAudFB(expParam, dirs, p);
@@ -139,7 +150,7 @@ expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch);
 
 %Select the trigger points for perturbation onset and offset and creating
 %the digital signal to be sent to the NIDAQ
-[expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType);
+[expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, lenDb);
 
 expParam.rdyPause  = 5.0; % How long to show them 'Ready'
 expParam.cuePause  = 1.0; % How long the cue period lasts
@@ -149,7 +160,6 @@ expParam.resPause  = 2.0; % How long the rest/VisFB lasts
 expParam.boundsRMS = 3;   % +/- dB
 
 % Load the InflaVar Variables. Analyzed from previous recording
-load(dirs.InflaVarFile);
 expParam.InflaT   = InflaVar(1);
 expParam.InflaV   = InflaVar(2);
 
@@ -176,11 +186,12 @@ for ii = 1:expParam.numTrial
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
     
     %Level of f0 change based on results from Laryngeal pert Exp
-    audStimP = dfSetAudapFiles(expParam, dirs, ii, debug);
+    audStimP = dfSetAudapFiles(dirs, expParam, ii);
+    p.timeDomainPitchShiftSchedule = audStimP.pertSched; 
     
     %Set the OST and PCF functions
-    Audapter('ost', expParam.ostFN, 0);
-    Audapter('pcf', expParam.pcfFN, 0);
+%     Audapter('ost', expParam.ostFN, 0);
+%     Audapter('pcf', expParam.pcfFN, 0);
     
     %Setup which perturb file we want
     NIDAQsig = [expParam.sigs(:,ii) nVS];
@@ -199,7 +210,7 @@ for ii = 1:expParam.numTrial
     Audapter('reset');
     Audapter('start');
 %     pause(expParam.buffPause)
-    
+
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 
     [dataDAQ, ~] = s.startForeground;
@@ -262,17 +273,29 @@ f0b = 100;
 aFa = 1; iRf = 0;
 niAn = struct;
 niAn.sRate = 8000;
-[~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
-
-drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
-pause(2)
-drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
-pause(2)
+% [~, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRf, niAn);
+% 
+% drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+% pause(2)
+% drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+% pause(2)
 
 %Draw the OST progression, if you want to
 if expParam.bVis == 1
     OST_MULT = 500; %Scale factor for OST
     visSignals(data, 16000, OST_MULT, savedWavdir)
+end
+end
+
+function boxPos = setDialBoxPos(debug)
+
+monitorSize = get(0, 'Monitor');
+numMon = size(monitorSize, 1);
+
+boxPos = [0.45 0.45];
+
+if debug == 1 && numMon > 1
+    boxPos = boxPos + [1 0];
 end
 end
 
@@ -334,7 +357,7 @@ end
 fprintf('Subject was %s\n', result)
 end
 
-function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender, age] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -343,6 +366,7 @@ if exist(dirs.BaseFile, 'File')
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
     gender  = DRF.expParam.gender;
+    age     = DRF.expParam.age;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
@@ -350,5 +374,6 @@ else
     targRMS = 70.00;
     rmsB    = 0.00002;
     gender  = 'female';
+    age     = 20;
 end
 end

@@ -19,8 +19,8 @@ meanf0HeadOffset = res.audioHf0MeanPert(:,3);
 CIf0HeadOffset   = res.audioHf0MeanPert(:,4);
 limits           = res.limitsAMH;
 
-plotpos = [10 100];
-plotdim = [1600 600];
+plotpos = [10 10];
+plotdim = [1600 800];
 MeanTrialAudResp = figure('Color', [1 1 1]);
 set(MeanTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
@@ -30,20 +30,20 @@ micColor     = 'b';
 headColor    = 'r';
 pertLineC    = [0.3 0.3 0.3];
 fontN        = 'Arial';
-legAnnoFSize = 10;
+legAnnoFSize = 12;
 titleFSize   = 14;
-axisLSize    = 12;
-lineThick    = 1;
+axisLSize    = 14;
+lineThick    = 4;
 
 ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
+plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', 4)
+hold on
 mH = shadedErrorBar(time, meanf0MicOnset, CIf0MicOnset, 'lineprops', micColor, 'transparent', 1); %Pertrubed Microphone
 hold on
 hH = shadedErrorBar(time, meanf0HeadOnset, CIf0HeadOnset, 'lineprops', headColor, 'transparent', 1); %Perturbed Headphones
-hold on
-plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', 4)
 
 set(mH.mainLine, 'LineWidth', lineThick)
 set(hH.mainLine, 'LineWidth', lineThick)
@@ -52,8 +52,7 @@ ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bo
 title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
-        'FontName', fontN,...
+set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
@@ -72,8 +71,7 @@ ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bo
 title('Offset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
-        'FontName', fontN,...
+set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
@@ -83,8 +81,8 @@ set(sup, 'FontName', fontN,...
          'FontSize', titleFSize,...
          'FontWeight','bold')
      
-legend([mH.mainLine hH.mainLine],{'Microphone', 'Headphones'},...
-            'Position', [0.8 0.30 0.1 0.1],...
+legend([mH2.mainLine hH2.mainLine],{'Microphone', 'Headphones'},...
+            'Position', [0.8 0.93 0.05 0.05],...
             'Box', 'off',...
             'Edgecolor', [1 1 1],...
             'FontName', fontN,...
