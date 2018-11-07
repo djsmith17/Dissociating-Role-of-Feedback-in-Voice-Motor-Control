@@ -42,6 +42,10 @@ curSess(strfind(curSess, '_')) = ' ';
 lgdCurv = [];
 lgdLabl = {};
 
+controlColor   = [0 0 0];
+perturbedColor = [0 0 1];
+lineThick      = 4;
+
 plotpos = [10 100];
 plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
@@ -54,16 +58,19 @@ ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
 %Onset of Perturbation
 axes(ha(1))
 if ~isempty(meanf0ContOnset)
-    uH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', '-b', 'transparent', 1); %Unperturbed
-    lgdCurv = [lgdCurv uH.mainLine];
+    cH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', {'color', controlColor}, 'transparent', 1); %Unperturbed
+    lgdCurv = [lgdCurv cH.mainLine];
     lgdLabl = [lgdLabl, [num2str(numCT) ' Control Trials']];
     hold on
 end
-pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'lineprops', '-r', 'transparent', 1); %Perturbed
+pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'lineprops', {'color', perturbedColor}, 'transparent', 1); %Perturbed
 lgdCurv = [lgdCurv pH.mainLine];
 lgdLabl = [lgdLabl, [num2str(numPT) ' Perturbed Trials']];
 hold on
 plot(dottedStartx, dottedy, 'k', 'LineWidth', 4)
+
+set(cH.mainLine, 'LineWidth', lineThick)
+set(pH.mainLine, 'LineWidth', lineThick)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
 title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
@@ -77,12 +84,15 @@ set(gca,'YTickLabelMode', 'auto',...
 %Offset of Perturbation
 axes(ha(2))
 if ~isempty(meanf0ContOffset)
-    shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', 'b', 'transparent', 1)  %Unperturbed
+    cH2 = shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', {'color', controlColor}, 'transparent', 1); %Unperturbed
     hold on
 end
-shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'lineprops', 'r', 'transparent', 1) %Perturbed
+pH2 = shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'lineprops', {'color', perturbedColor}, 'transparent', 1); %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
+
+set(cH2.mainLine, 'LineWidth', lineThick)
+set(pH2.mainLine, 'LineWidth', lineThick)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
 title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
@@ -113,7 +123,7 @@ legend(lgdCurv, lgdLabl,...
             'Edgecolor', [1 1 1],...
             'FontSize', 12,...
             'FontWeight', 'bold',...
-            'Position', [0.35 0.2 0.1 0.1]);
+            'Position', [0.8 0.93 0.05 0.05]);
         
 % timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
 %                      'string', {f0Type;
