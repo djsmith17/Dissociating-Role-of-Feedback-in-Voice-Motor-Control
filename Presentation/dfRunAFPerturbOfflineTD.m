@@ -214,12 +214,15 @@ else
 end
 close all
 
-% [~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData);
-% 
-% drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
-% pause(2)
-% drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
-% pause(2)
+f0 = OA.expParam.f0b;
+AudFlag = 1; iRF = 0;
+niAn.sRate = 8000;
+[~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0, AudFlag, iRF, niAn);
+
+drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
+pause(2)
+drawAudRespIndivTrial(auRes, dirs.SavResultsDir)
+pause(2)
 end
 
 function boxPos = setDialBoxPos(debug)
