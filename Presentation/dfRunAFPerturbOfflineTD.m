@@ -22,11 +22,11 @@ function dfRunAFPerturbOfflineTD()
 close all;
 ET = tic;
 rng('shuffle');
-lenDb = 1;
+lenDb = 0;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot21';
+subject    = 'DRF1';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
@@ -89,7 +89,7 @@ dirs = dfDirs(expParam.project);
 % Folder paths to save data files
 dirs.RecFileDir = fullfile(dirs.RecData, expParam.subject, expParam.run);
 dirs.RecWaveDir = fullfile(dirs.RecFileDir, 'wavFiles');
-dirs.BaseFile   = fullfile(dirs.RecData, expParam.subject, BaseRun, [expParam.subject BaseRun 'DRF.mat']);
+dirs.BaseFile   = fullfile(dirs.SavData, expParam.subject, BaseRun, [expParam.subject BaseRun 'DRF.mat']);
 
 if exist(dirs.RecFileDir, 'dir') == 0
     mkdir(dirs.RecFileDir)
@@ -101,19 +101,8 @@ end
 [expParam.f0b,...
  expParam.targRMS,...
  expParam.rmsB, ...
- expParam.gender] = loadBaselineVoice(dirs);
-
-% Look for the Inflation Response Files
-expParam.InflaFile = [expParam.subject expParam.InflaVarNm 'DRF.mat'];
-dirs.InflaVarFile  = fullfile(dirs.RecData, expParam.subject, expParam.InflaVarNm, expParam.InflaFile);
-if ~exist(dirs.InflaVarFile, 'file')
-    fprintf('Warning: No Inflation Vars File at %s!\n', dirs.InflaVarFile)
-    fprintf('Will use default Inflation Vars instead\n')
-    InflaVar = [0.100 -100];
-else
-    fprintf('Inflation Variables found!!\n')
-    load(dirs.InflaVarFile);
-end
+ expParam.gender, ...
+ expParam.age] = loadBaselineVoice(dirs);
 
 % Look for a place to save the data
 dirs.SavResultsDir = fullfile(dirs.Results, expParam.subject, expParam.run);
@@ -141,7 +130,7 @@ if collectNewData == 1
     p.timeDomainPitchShiftAlgorithm = AlgoType;
     
     %Set up Auditory Feedback (Masking Noise, Pitch-Shift?)
-    [expParam, p]      = dfSetAudFB(expParam, dirs, p);    
+    [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p);    
     
     %Set up the order of trials (Order of perturbed, control, etc)
     expParam.trialType = dfSetTrialOrder(expParam.numTrial, expParam.perCatch); %numTrials, percentCatch
@@ -156,6 +145,7 @@ if collectNewData == 1
     expParam.boundsRMS = 3;   % +/- dB
     
     % Gives variable of InflaVar. Analyzed from previous recording
+    InflaVar = [0.100 -100];
     expParam.InflaT   = InflaVar(1);
     expParam.InflaV   = InflaVar(2);
     
@@ -359,7 +349,7 @@ ylabel('Pitch (Hz)');
 % axis([0 4 190 240])
 end
 
-function [f0b, targRMS, rmsB, gender] = loadBaselineVoice(dirs)
+function [f0b, targRMS, rmsB, gender, age] = loadBaselineVoice(dirs)
 
 if exist(dirs.BaseFile, 'File')
     load(dirs.BaseFile, 'DRF')
@@ -368,12 +358,14 @@ if exist(dirs.BaseFile, 'File')
     targRMS = DRF.qRes.meanRMS;
     rmsB    = DRF.expParam.rmsB;
     gender  = DRF.expParam.gender;
+    age     = DRF.expParam.age;
 else
     fprintf('Could not find baseline voice file at %s\n', dirs.BaseFile)
     fprintf('Loading Default Values for f0b, meanRMS, and rmsB\n')
-    f0b     = 100;
+    f0b     = 180;
     targRMS = 70.00;
     rmsB    = 0.00002;
     gender  = 'female';
+    age     = 20;
 end
 end

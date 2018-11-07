@@ -19,7 +19,7 @@ function [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p)
   
 dB           = expParam.headGain;
 gender       = expParam.gender;
-f0           = expParam.f0;
+f0           = expParam.f0b;
 p.bBypassFmt = 1;               % No Formant tracking
 p.dScale     = setLoudRatio(dB);% Scale of output from input
 p.nDelay     = 7;
