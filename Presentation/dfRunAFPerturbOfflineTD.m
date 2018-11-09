@@ -22,11 +22,11 @@ function dfRunAFPerturbOfflineTD()
 close all;
 ET = tic;
 rng('shuffle');
-lenDb = 0;
+lenDb = 1;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF1';
+subject    = 'DRF_MN21';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
@@ -216,7 +216,7 @@ close all
 
 f0 = OA.expParam.f0b;
 AudFlag = 1; iRF = 0;
-niAn.sRate = 8000;
+niAn = createDummyNIDAQ(OA);
 [~, auRes] = dfAnalysisAudapter(dirs, OA.expParam, OA.rawData, f0, AudFlag, iRF, niAn);
 
 drawAudRespMeanTrial(auRes, dirs.SavResultsDir)
@@ -258,15 +258,36 @@ load(dirs.BaseFile, 'DRF')
 baseData = DRF.rawData(trial);
 
 fs       = DRF.expParam.sRateAnal;
+halfSecZ = zeros(fs*1.0, 1);
 mic      = baseData.signalIn;
-micEnd   = mic(48000:end);
-mic      = [mic; micEnd];
+mic      = [halfSecZ; mic; halfSecZ];
 downFact = baseData.params.downFact;
 sr       = baseData.params.sr;
 
 %Resample at 48000Hz
 mic_reSamp = resample(mic, sr*downFact, fs);
 mic_reSamp = mic_reSamp - mean(mic_reSamp);
+end
+
+function niAn = createDummyNIDAQ(DRF)
+
+Au_sRate = DRF.expParam.sRateAnal;
+Ni_sRate = 8000;
+numTrials = length(DRF.rawData);
+
+halfSec = Au_sRate*1.0;
+
+audioM = [];
+for ii = 1:numTrials
+    mic = DRF.rawData(ii).signalIn;
+    mic_short = mic(halfSec:end-halfSec);
+    mic_resamp = resample(mic_short, Ni_sRate, Au_sRate);
+    
+    audioM = cat(2, audioM, mic_resamp);
+end
+
+niAn.sRate  = Ni_sRate;
+niAn.audioM = audioM;
 end
 
 function micproc = OfflineLoadBaselineVoiceWav(dirs, expParam)
