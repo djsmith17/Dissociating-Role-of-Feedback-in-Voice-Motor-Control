@@ -26,7 +26,7 @@ lenDb = 1;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF_MN21';
+subject    = 'DRF1';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
@@ -249,7 +249,7 @@ end
 
 function [mic_reSamp] = OfflineLoadBaselineVoice(dirs)
 %Making an extra function because I am extra
-trial = 1;
+trial = 3;
 
 %Load previously recorded voice sample to perturb
 fprintf('Loading Previously Recorded Data Set %s\n\n', dirs.BaseFile)
