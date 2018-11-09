@@ -31,7 +31,6 @@ run        = prompt4RunName();
 InflaVarNm = 'IV1';
 BaseRun    = 'BV1';
 
-LoadSavDataLoc = 0;
 collectNewData = 1; %Boolean
 
 % Dialogue box asking for what type of Pitch-Shifted Feedback?
@@ -44,7 +43,7 @@ switch pertType
 end
 
 AlgoList = {'pp_none', 'pp_peaks', 'pp_valleys'};
-AlgoType = MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
+AlgoType = AlgoList{1};
 
 % Dialogue box asking if Practice set or Full set of trials
 recType = MFquestdlg(boxPos, 'Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
@@ -160,7 +159,7 @@ if collectNewData == 1
         %Level of f0 change based on results from Laryngeal pert Exp
         audStimP = dfSetAudapFiles(dirs, expParam, ii);
         p.timeDomainPitchShiftSchedule  = audStimP.pertSched;
-        p.timeDomainPitchShiftAlgorithm = AlgoList{ii};
+%         p.timeDomainPitchShiftAlgorithm = AlgoType;
         
         %Cue to begin trial
         pause(expParam.cuePause)

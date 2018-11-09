@@ -301,7 +301,7 @@ end
 pp.AuMHdelayP = pp.AuMHdelay*pp.fs; % Convert to points
 
 % Align the Microphone and Headphones
-if pp.AuMHdelayP > 0
+if pp.AuMHdelayP >= 0
     micAuAl  = micR(1:(end-pp.AuMHdelayP));
     headAuAl = headR((pp.AuMHdelayP+1):end);
 else
