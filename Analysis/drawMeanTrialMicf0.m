@@ -61,6 +61,7 @@ if ~isempty(meanf0ContOnset)
     cH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', {'color', controlColor}, 'transparent', 1); %Unperturbed
     lgdCurv = [lgdCurv cH.mainLine];
     lgdLabl = [lgdLabl, [num2str(numCT) ' Control Trials']];
+    set(cH.mainLine, 'LineWidth', lineThick)
     hold on
 end
 pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'lineprops', {'color', perturbedColor}, 'transparent', 1); %Perturbed
@@ -69,7 +70,6 @@ lgdLabl = [lgdLabl, [num2str(numPT) ' Perturbed Trials']];
 hold on
 plot(dottedStartx, dottedy, 'k', 'LineWidth', 4)
 
-set(cH.mainLine, 'LineWidth', lineThick)
 set(pH.mainLine, 'LineWidth', lineThick)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
@@ -85,13 +85,12 @@ set(gca,'YTickLabelMode', 'auto',...
 axes(ha(2))
 if ~isempty(meanf0ContOffset)
     cH2 = shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', {'color', controlColor}, 'transparent', 1); %Unperturbed
+    set(cH2.mainLine, 'LineWidth', lineThick)
     hold on
 end
 pH2 = shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'lineprops', {'color', perturbedColor}, 'transparent', 1); %Perturbed
 hold on
 plot(dottedStartx, dottedy,'k','LineWidth',4)
-
-set(cH2.mainLine, 'LineWidth', lineThick)
 set(pH2.mainLine, 'LineWidth', lineThick)
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
