@@ -89,20 +89,22 @@ niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Pertur
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
-%Make a dummy set of contTrig
-niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
-
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
 [niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
 [niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
-[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_p, niAn.sRateDN); 
+[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_p, niAn.sRateDN);
+
+%Just copy over the intended times, since it doesnt matter too much
+niAn.contTrig = niAn.expTrigs(niAn.contIdx, :);
 
 % What was the delay between the intended (code) onset/offset triggers
 % and actual (measured) onset/offset triggers
 OnsetTriggerLags  = round((niAn.pertTrig(:, 1) - niAn.expTrigs(niAn.pertIdx, 1)), 3);
 OffsetTriggerLags = round((niAn.pertTrig(:, 2) - niAn.expTrigs(niAn.pertIdx, 2)), 3);
 niAn.TriggerLag   = [OnsetTriggerLags, OffsetTriggerLags];
+
+niAn.alignResponseTriggers = niAn.expTrigs;
 
 [niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
@@ -636,6 +638,10 @@ res.numPertTrials = niAn.numPertTrials;
 res.contIdx       = niAn.contIdx;
 res.pertIdx       = niAn.pertIdx;
 res.pertTrig      = niAn.pertTrig;
+
+% How would you like the audio to be aligned? Against the Trigger Onset?
+% Against the pressure onset?
+res.alignResponseTriggers = niAn.alignResponseTriggers;
 
 res.timeS         = niAn.time_DN;
 res.sensorP       = niAn.sensorP_p; %Individual Processed perturbed trials. 

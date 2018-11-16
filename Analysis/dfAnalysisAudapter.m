@@ -255,18 +255,18 @@ else
 end
 
 % Find the delay between NIDAQ recording and Audapter recording
-micRds        = resample(pp.rawMic, pp.fsNI, pp.fs);      % Downsample the Audapter recording
-pp.AuNidelay  = xCorrTimeLag(micRNi, micRds, pp.fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
-pp.AuNidelayP = pp.AuNidelay*pp.fs;                       % Convert to points
+pp.micRds     = resample(pp.rawMic, pp.fsNI, pp.fs);         % Downsample the Audapter recording
+pp.AuNidelay  = xCorrTimeLag(pp.micRNi, pp.micRds, pp.fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
+pp.AuNidelayP = pp.AuNidelay*pp.fs;                          % Convert to points
 
 % Adjust Triggers against NIDAQ only if we are using Laryngeal Pert Exp.
 % Otherwise adjsut based on VoiceOnset, which is what Audapter does in PSR
 if strcmp(pp.expType(1:3), 'Som')
     pp.adjustedDelay = pp.AuNidelayP;
-    auTrigsAuNi = auTrigs + pp.adjustedDelay;
+    auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
 else
     pp.adjustedDelay = pp.voiceOnsetInd;
-    auTrigsAuNi = auTrigs + pp.adjustedDelay;
+    auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
 end
 
 % Aim to section audio at 0.5s pre-onset to 1.0s post-offset.
