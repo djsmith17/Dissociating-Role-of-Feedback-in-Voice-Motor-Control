@@ -98,6 +98,12 @@ niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
 [niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
 [niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_p, niAn.sRateDN); 
 
+% What was the delay between the intended (code) onset/offset triggers
+% and actual (measured) onset/offset triggers
+OnsetTriggerLags  = round((niAn.pertTrig(:, 1) - niAn.expTrigs(niAn.pertIdx, 1)), 3);
+OffsetTriggerLags = round((niAn.pertTrig(:, 2) - niAn.expTrigs(niAn.pertIdx, 2)), 3);
+niAn.TriggerLag   = [OnsetTriggerLags, OffsetTriggerLags];
+
 [niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
 [niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
 [niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
