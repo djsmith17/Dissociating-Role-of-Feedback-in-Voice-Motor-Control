@@ -14,7 +14,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'LarynxPos2'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -709,10 +709,28 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 units = {'cents', 'cents', '%'};
 nMeas = length(meas);
 
-allMeasure = [];
-for i = 1:nMeas
-    allMeasure = cat(2, allMeasure, eval(['allSubjStatTable.' meas{i}]));
+AudFBTypes = unique(allSubjStatTable.AudFB);
+numFBTypes = length(AudFBTypes);
+
+FBMeasures = [];
+for i = 1:numFBTypes
+    curFB = strcmp(allSubjStatTable.AudFB, AudFBTypes(i));
+    curStatTable = allSubjStatTable(curFB, :);
+    for j = 1:nMeas
+        FBMeasures(:, i, j) = eval(['curStatTable.' meas{j}]);
+    end
 end
+
+for k = 1:nMeas
+    figure
+    subplot(1,3,1)
+    histogram(FBMeasures(:, 1, k))
+    subplot(1,3,2)
+    histogram(FBMeasures(:, 2, k))
+    subplot(1,3,3)
+    histogram(FBMeasures(:, 3, k))
+end
+
 allMeasureM   = mean(allMeasure, 1);
 allMeasureSTD = std(allMeasure, 0, 1);
 allMeasureSE  = allMeasureSTD/sqrt(n);
