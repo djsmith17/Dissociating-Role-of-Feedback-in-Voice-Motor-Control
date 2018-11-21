@@ -719,13 +719,13 @@ allMeasureStats = [];
 for k = 1:nMeas
     curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
     
-    measFit = fitrm(curStatTable, 'StimMag~AudFB');
-    measSph = mauchly(measFit);
+%     measFit = fitrm(curStatTable, 'StimMag~AudFB');
+%     measSph = mauchly(measFit);
     
     measDist = figure('Color', [1 1 1]);
-    plotpos = [10 10]; plotdim = [1300 600];
+    plotpos = [10 10]; plotdim = [1300 800];
     set(measDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-    ha = tight_subplot(1, numCond,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
+    ha = tight_subplot(2, numCond,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
 
     measStats = [];
     for i = 1:numCond
@@ -739,7 +739,9 @@ for k = 1:nMeas
         
         measureSkew     = skewness(measure);
         measureKurotsis = kurtosis(measure);
-        kstestResult    = kstest((measure-measureM)./measureSD);
+        
+        measureZScore   = (measure-measureM)./measureSD;
+        kstestResult    = kstest(measureZScore);
         
         measStat = [measureM;...
                     measureSD;...
@@ -760,10 +762,19 @@ for k = 1:nMeas
         histogram(measure, nBins, 'FaceColor', colors(i), 'EdgeColor', colors(i), 'BinLimits', [minBound maxBound])
         title(cond{i})
         box off;
+        
+        axes(ha(i+numCond))
+        cdfplot(measureZScore)
+        hold on
+        xValues = linspace(min(measureZScore), max(measureZScore));
+        plot(xValues, normcdf(xValues, 0, 1), 'r-')
+        legend('Empirical CDF','Standard Normal CDF','Location','best')        
     end
-    suptitle(meas{k})
+    suptitle({pA.pAnalysis, meas{k}})    
     
     allMeasureStats = cat(2, allMeasureStats, measStats);
+    dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis meas{k} 'DistributionPlot.jpg']);
+    export_fig(dirs.DistributionFigureFile)
 end
 
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
