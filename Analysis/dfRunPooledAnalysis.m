@@ -707,28 +707,65 @@ allSubjStatTable = allSubjRes.statTable;
 n = height(allSubjStatTable);
 meas = {'StimMag', 'RespMag', 'RespPer'};
 units = {'cents', 'cents', '%'};
+colors = ['b', 'r', 'g'];
 nMeas = length(meas);
 
-AudFBTypes = unique(allSubjStatTable.AudFB);
-numFBTypes = length(AudFBTypes);
+cond    = pA.cond;
+numCond = pA.numCond;
 
 FBMeasures = [];
-for i = 1:numFBTypes
-    curFB = strcmp(allSubjStatTable.AudFB, AudFBTypes(i));
+for i = 1:numCond
+    curFB = strcmp(allSubjStatTable.AudFB, cond(i));
     curStatTable = allSubjStatTable(curFB, :);
     for j = 1:nMeas
         FBMeasures(:, i, j) = eval(['curStatTable.' meas{j}]);
     end
 end
 
+allMeasureStats = [];
 for k = 1:nMeas
-    figure
-    subplot(1,3,1)
-    histogram(FBMeasures(:, 1, k))
-    subplot(1,3,2)
-    histogram(FBMeasures(:, 2, k))
-    subplot(1,3,3)
-    histogram(FBMeasures(:, 3, k))
+    measDist = figure('Color', [1 1 1]);
+    plotpos = [10 10]; plotdim = [1300 600];
+    set(measDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+    ha = tight_subplot(1, numCond,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
+
+    measStats = [];
+    for i = 1:numCond
+        measure = FBMeasures(:, i, k);
+        numObs  = length(measure);
+        measureM  = mean(measure);
+        measureSD = std(measure);
+        measureSE = measureSD/sqrt(numObs);
+        
+        measureSkew     = skewness(measure);
+        measureKurotsis = kurtosis(measure);
+        kstestResult    = kstest((measure-measureM)./measureSD);
+        
+        measStat = [measureM;...
+                    measureSD;...
+                    measureSE;...
+                    measureSkew;...
+                    measureKurotsis;...
+                    kstestResult];
+        measStats = cat(2, measStats, measStat);
+        
+        minMeasure = min(measure);
+        maxMeasure = max(measure);
+        minBound = floor(minMeasure/50)*50;
+        maxBound = ceil(maxMeasure/50)*50;
+        distBin = minBound:50:maxBound;
+        nBins = length(distBin)-1;
+        
+        axes(ha(i))
+        histogram(measure, nBins, 'FaceColor', colors(i), 'EdgeColor', colors(i), 'BinLimits', [minBound maxBound])
+        title(cond{i})
+        box off;
+    end
+    suptitle(meas{k})
+    
+%     measFit = fitrm(
+    
+    allMeasureStats = cat(2, allMeasureStats, measStats);
 end
 
 allMeasureM   = mean(allMeasure, 1);
