@@ -708,22 +708,20 @@ n = height(allSubjStatTable);
 meas = {'StimMag', 'RespMag', 'RespPer'};
 units = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
+mu     = '\mu';
+sigma  = '\sigma';
 nMeas = length(meas);
 
 cond    = pA.cond;
 numCond = pA.numCond;
 
-FBMeasures = [];
-for i = 1:numCond
-    curFB = strcmp(allSubjStatTable.AudFB, cond(i));
-    curStatTable = allSubjStatTable(curFB, :);
-    for j = 1:nMeas
-        FBMeasures(:, i, j) = eval(['curStatTable.' meas{j}]);
-    end
-end
-
 allMeasureStats = [];
 for k = 1:nMeas
+    curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
+    
+    measFit = fitrm(curStatTable, 'StimMag~AudFB');
+    measSph = mauchly(measFit);
+    
     measDist = figure('Color', [1 1 1]);
     plotpos = [10 10]; plotdim = [1300 600];
     set(measDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -731,8 +729,10 @@ for k = 1:nMeas
 
     measStats = [];
     for i = 1:numCond
-        measure = FBMeasures(:, i, k);
-        numObs  = length(measure);
+        curFB = strcmp(curStatTable.AudFB, cond(i));
+        
+        measure   = curStatTable{curFB, 2};
+        numObs    = length(measure);
         measureM  = mean(measure);
         measureSD = std(measure);
         measureSE = measureSD/sqrt(numObs);
@@ -763,37 +763,7 @@ for k = 1:nMeas
     end
     suptitle(meas{k})
     
-%     measFit = fitrm(
-    
     allMeasureStats = cat(2, allMeasureStats, measStats);
-end
-
-allMeasureM   = mean(allMeasure, 1);
-allMeasureSTD = std(allMeasure, 0, 1);
-allMeasureSE  = allMeasureSTD/sqrt(n);
-
-allMeasureNorm = (allMeasure - allMeasureM)./allMeasureSTD;
-
-aSRM = fitrm(allSubjStatTable, 'StimMag-RespPer~AudFB');
-        
-normDist = figure('Color', [1 1 1]);
-plotpos = [10 10]; plotdim = [1300 600];
-set(normDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-ha = tight_subplot(1, nMeas,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
-
-mu    = '\mu';
-sigma = '\sigma';
-
-allMeasureMR  = round(allMeasureM, 2);
-allMeasureSTDR = round(allMeasureSTD, 2);
-
-for ii = 1:nMeas
-    axes(ha(ii))
-    histogram(allMeasureNorm(:,ii))
-    title({meas{ii},...
-          ['(' mu '=' num2str(allMeasureMR(ii)) units{ii} ', ' sigma '=' num2str(allMeasureSTDR(ii)) units{ii} ')']})
-    box off
 end
 
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
