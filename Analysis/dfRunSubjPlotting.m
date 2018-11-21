@@ -13,7 +13,7 @@ close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'DRF1'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'AF1'}; %All runs to consider 
+sPlt.runs          = {'SF1'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 ext                = '';
@@ -22,10 +22,10 @@ ext                = '';
 sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
-sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
+sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawMeanTrial_PertCont  = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
-sPlt.drawAllTrial_Pert       = 0; % All Perturbed Trials Microphone input
-sPlt.drawMeanTrial_MicHead   = 1; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawAllTrial_Pert       = 1; % All Perturbed Trials Microphone input
+sPlt.drawMeanTrial_MicHead   = 0; % Mean Perturbed Trials. Microphone vs Headphones
 
 presFlag = 1;
  

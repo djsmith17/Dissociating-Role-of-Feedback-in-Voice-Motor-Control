@@ -18,7 +18,7 @@ close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'DRF1'};   % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF2'}; %    List of multiple runs.
+AVar.runs          = {'SF1'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
