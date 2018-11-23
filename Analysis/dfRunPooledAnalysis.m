@@ -737,6 +737,8 @@ for k = 1:nMeas
         numObs    = length(measure);
         measureM  = round(mean(measure), 2);
         measureMed = round(median(measure), 2);
+        measureMin = round(min(measure), 2);
+        measureMax = round(max(measure), 2);
         measureSD = round(std(measure), 2);
         measureSE = round(measureSD/sqrt(numObs), 2);
         
@@ -747,7 +749,9 @@ for k = 1:nMeas
         kstestResult    = kstest(measureZScore);
         
         measStat = [measureM;...
+                    measureMin;...
                     measureMed;...
+                    measureMax;...
                     measureSD;...
                     measureSE;...
                     measureSkew;...
@@ -755,10 +759,9 @@ for k = 1:nMeas
                     kstestResult];
         measStats = cat(2, measStats, measStat);
         
-        minMeasure = min(measure);
-        maxMeasure = max(measure);
-        minBound = floor(minMeasure/50)*50;
-        maxBound = ceil(maxMeasure/50)*50;
+        
+        minBound = floor(measureMin/50)*50;
+        maxBound = ceil(measureMax/50)*50;
         distBin = minBound:50:maxBound;
         nBins = length(distBin)-1;
         
