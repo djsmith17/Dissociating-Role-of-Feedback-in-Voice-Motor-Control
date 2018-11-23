@@ -703,6 +703,8 @@ end
 
 function organizeAndSaveOutputVariables(dirs, pA, allSubjRes)
 
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
+
 allSubjStatTable = allSubjRes.statTable;
 n = height(allSubjStatTable);
 meas = {'StimMag', 'RespMag', 'RespPer'};
@@ -733,17 +735,19 @@ for k = 1:nMeas
         
         measure   = curStatTable{curFB, 2};
         numObs    = length(measure);
-        measureM  = mean(measure);
-        measureSD = std(measure);
-        measureSE = measureSD/sqrt(numObs);
+        measureM  = round(mean(measure), 2);
+        measureMed = round(median(measure), 2);
+        measureSD = round(std(measure), 2);
+        measureSE = round(measureSD/sqrt(numObs), 2);
         
-        measureSkew     = skewness(measure);
-        measureKurotsis = kurtosis(measure);
+        measureSkew     = round(skewness(measure), 4);
+        measureKurotsis = round(kurtosis(measure), 2);
         
         measureZScore   = (measure-measureM)./measureSD;
         kstestResult    = kstest(measureZScore);
         
         measStat = [measureM;...
+                    measureMed;...
                     measureSD;...
                     measureSE;...
                     measureSkew;...
@@ -775,8 +779,9 @@ for k = 1:nMeas
     allMeasureStats = cat(2, allMeasureStats, measStats);
     dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis meas{k} 'DistributionPlot.jpg']);
     export_fig(dirs.DistributionFigureFile)
+    
+    xlswrite(dirs.behavioralResultTable, measStats, meas{k})
 end
 
-dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
-writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
+% writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
 end
