@@ -759,10 +759,10 @@ for k = 1:nMeas
                     kstestResult];
         measStats = cat(2, measStats, measStat);
         
-        
-        minBound = floor(measureMin/50)*50;
-        maxBound = ceil(measureMax/50)*50;
-        distBin = minBound:50:maxBound;
+        step = 25;
+        minBound = floor(measureMin/step)*step;
+        maxBound = ceil(measureMax/step)*step;
+        distBin = minBound:step:maxBound;
         nBins = length(distBin)-1;
         
         axes(ha(i))
