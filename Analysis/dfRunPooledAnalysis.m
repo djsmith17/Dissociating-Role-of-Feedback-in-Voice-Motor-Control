@@ -746,7 +746,7 @@ for k = 1:nMeas
         measureKurotsis = round(kurtosis(measure), 2);
         
         measureZScore   = (measure-measureM)./measureSD;
-        kstestResult    = kstest(measureZScore);
+        [swtestResult, pValue, WStat] = swtest(measureZScore);
         
         measStat = [measureM;...
                     measureMin;...
@@ -756,7 +756,7 @@ for k = 1:nMeas
                     measureSE;...
                     measureSkew;...
                     measureKurotsis;...
-                    kstestResult];
+                    swtestResult];
         measStats = cat(2, measStats, measStat);
         
         step = 25;
@@ -786,5 +786,6 @@ for k = 1:nMeas
     xlswrite(dirs.behavioralResultTable, measStats, meas{k})
 end
 
-% writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
+fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
+writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
 end
