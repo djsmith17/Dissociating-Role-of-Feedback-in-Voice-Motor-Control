@@ -30,7 +30,7 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'Pilot0'; % Subject#, Pilot#, null
+subject    = 'DRF2'; % Subject#, Pilot#, null
 run        = 'BV1';
 gender     = 'male';    % "male" or "female"
 DOB        = datetime(1990, 4, 9); % Year, Month, Day
