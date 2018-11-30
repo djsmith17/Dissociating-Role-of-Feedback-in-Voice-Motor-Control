@@ -30,7 +30,7 @@ lenDb = 0;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF1';
+subject    = 'DRF2';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
@@ -82,6 +82,7 @@ expParam.AudPertSw    = pertTypeSw;
 expParam.rmsThresh    = 0.011;
 expParam.pitchShiftAlgo = AlgoType;
 expParam.bVis         = 0;
+expParam.sensorPType  = 'Seven';
 
 %Set our dirs based on the project
 dirs = dfDirs(expParam.project);
