@@ -21,8 +21,10 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'DS1', '5', '1', '2.0K_4','yes'};
+defaultanswer = {'null', 'DS1', '2', '1', 'Not Selected','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
+
+sensorPType = 'Seven';
 
 if isempty(ExpPrompt)
     return
@@ -46,6 +48,7 @@ expParam.AudFBSw       = 2;
 expParam.resPause      = 6;
 expParam.trialLenLong  = expParam.numTrial*(expParam.trialLen + expParam.resPause);
 expParam.sigLong       = [];
+expParam.sensorPType   = sensorPType;
 
 sv2F                   = 1; %Boolean
 collectNewData         = ExpPrompt{6};

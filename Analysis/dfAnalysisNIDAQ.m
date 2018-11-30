@@ -42,6 +42,12 @@ else
     niAn.balloon = 'N/A';
 end
 
+if isfield(expParam, 'sensorPType')
+    niAn.sensorPType = expParam.sensorPType;
+else
+    niAn.sensorPType = 'Five';
+end
+
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 [r, c, n]      = size(DAQin);
@@ -70,7 +76,7 @@ niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
 %ZeroMean the Pressure Offset
-niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
+niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sensorPType);
 
 %Preprocessing some of the Force sensors
 niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
@@ -155,19 +161,23 @@ lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
 end
 
-function sensorPres = correctBaseline(sensor, fs)
+function sensorPres = correctBaseline(sensor, sensorType)
 % sensorZeroed = correctBaseline(sensor, fs) zeromeans a set of trials 
 % against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
 % recordings (esp. the Pressure sensor)
 
-MaxPres      = 5;
-MinPres      = 0;
-MaxVol       = 4.5;
-MinVol       = 0.444;
-
-% firstS       = 1:(1*fs);          % Grab the first second
-% firstT       = sensor(firstS, 1); % Grab the 1st sec of 1st trial
-% meanBaseLine = mean(firstT);      % Mean value of 1st sec of 1st trial
+switch sensorType
+    case 'Five'
+        MaxPres      = 5;
+        MinPres      = 0;
+        MaxVol       = 4.5;
+        MinVol       = 0.5;
+    case 'Seven'
+        MaxPres      = 7;
+        MinPres      = 0;
+        MaxVol       = 4.5;
+        MinVol       = 0.5;
+end
 
 m = (MaxPres - MinPres) / (MaxVol - MinVol);
 b = MinPres - m*MinVol;
