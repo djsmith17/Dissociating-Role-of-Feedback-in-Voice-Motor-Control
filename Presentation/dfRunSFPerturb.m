@@ -27,11 +27,11 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF2';   % Subject#, Pilot#, null
+subject    = 'DRF7';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
 balloon    = 'GB1';     % Which perturbation balloon?
-tightness  = 'n/a';     % (inches of slack in bungie cord)
+tightness  = '23';     % (cm of slack in bungie cord)
 baseV      = 'BV1';
 
 % Dialogue box asking for what type of Auditory Feedback
@@ -235,14 +235,6 @@ DRF.p           = p;
 DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
-
-switch recType
-    case 'Practice'
-        for ii = 1:expParam.numTrial
-            dfShowPraatSpect(dirs, expParam.curSess, ['Trial' num2str(ii)])
-        end
-%         DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
-end
 
 % Save the large data structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);
