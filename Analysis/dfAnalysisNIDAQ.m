@@ -75,8 +75,8 @@ niAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal (M)
 niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
-%ZeroMean the Pressure Offset
-niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sensorPType);
+%Convert the measured Pressure Sensor Voltage (V) to Pressure (psi)
+niAn.sensorPz = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 
 %Preprocessing some of the Force sensors
 niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
@@ -161,10 +161,13 @@ lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
 end
 
-function sensorPres = correctBaseline(sensor, sensorType)
-% sensorZeroed = correctBaseline(sensor, fs) zeromeans a set of trials 
-% against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
-% recordings (esp. the Pressure sensor)
+function sensorPres = convertPressureSensor(sensorV, sensorType)
+% sensorPres = convertPressureSensor(sensorV, sensorType) converts the 
+% the recorded voltage from the pressure sensor to the actual pressure
+% of the system. The conversion is doing using the transfer function of the
+% sensor circuit itself. The sensor being used will have a different Max
+% Voltage and therefore a slightly different function. See the attached 
+% links for information about the sensors used and their transfer functions
 
 switch sensorType
     case 'Five'
@@ -182,7 +185,7 @@ end
 m = (MaxPres - MinPres) / (MaxVol - MinVol);
 b = MinPres - m*MinVol;
 
-sensorPres = sensor*m + b; % Subtract that mean value from all points in all trials. 
+sensorPres = sensorV*m + b; % Convert from voltage to pressure
 end
 
 function sensorPP = sensorPreProcessing(sensor, sRate)
