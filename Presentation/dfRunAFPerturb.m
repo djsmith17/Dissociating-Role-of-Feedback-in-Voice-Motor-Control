@@ -30,7 +30,7 @@ lenDb = 0;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF2';
+subject    = 'DRF7';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
@@ -44,7 +44,7 @@ switch pertType
         pertTypeSw = 1;
 end
 
-AlgoType = MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
+AlgoType = 'pp_none'; %MFquestdlg(boxPos, 'What type of Perturbation?', 'Type of Perturbation?', 'pp_none', 'pp_peaks', 'pp_valleys', 'pp_none');
 
 % Dialogue box asking if Practice set or Full set of trials
 recType = MFquestdlg(boxPos, 'Practice or Full?','Length', 'Practice', 'Diagnostic', 'Full','Full');
