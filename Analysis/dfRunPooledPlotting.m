@@ -10,7 +10,7 @@ function dfRunPooledPlotting()
 
 close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.analyses = 'LarynxPos2';
+PolPlt.analyses = 'DRF_Aud';
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses);       % Analyzed Results Folder
@@ -18,7 +18,7 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
-PolPlt.MaskVVoice        = 0;
+PolPlt.MaskVVoice        = 1;
 PolPlt.AllSubjMaskvVoice = 1;
 
 fStat    = 0;

@@ -88,6 +88,7 @@ for ii = 1:pA.numPart
         curRes = allDataStr(ii, jj);
 
         sortStruc.studyID = curRes.subject; % Study ID
+        sortStruc.expType = curRes.expType;
         sortStruc.gender  = curRes.gender;
         sortStruc.age     = curRes.age;
         
@@ -106,6 +107,7 @@ for ii = 1:pA.numPart
     
     pooledRunStr(ii)   = sortStruc;
     
+    allSubjRes.expType    = sortStruc.expType;
     allSubjRes.gender{ii} = sortStruc.gender;
     allSubjRes.age(ii)    = sortStruc.age;
 end
@@ -115,13 +117,15 @@ allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
  
 % Organize and Print the Stats of the Demographics included in this study
-organizeAndPrintDemographicStats(allSubjRes);   
+organizeAndPrintDemographicStats(allSubjRes);
+
+organizePooledResultsForFrank(dirs, allSubjRes)
 
 % Organize and Save the Table of Excluded Trials
-organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
+% organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
 
 % Organize and Save the Table of Output Variables
-organizeAndSaveOutputVariables(dirs, pA, allSubjRes);    
+% organizeAndSaveOutputVariables(dirs, pA, allSubjRes);    
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
@@ -138,6 +142,7 @@ function sortStr = initSortedStruct(numCond)
 % currently the above scripts only consider one condition to test against. 
 
 % Basic info about the session, the recordings, the subjects
+sortStr.expType = [];
 sortStr.subject = [];
 sortStr.gender  = [];
 sortStr.age     = [];
@@ -363,7 +368,12 @@ function polRes = meanCondTrials(pA, polRes)
 
 polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
-polRes.sensorPMean      = meanSecData(polRes.sensorPSec);
+
+if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+    polRes.sensorPMean = meanSecData(polRes.sensorPSec);
+else
+    polRes.sensorPMean = zeros(size(polRes.audioMf0SecPert{1}));
+end
 
 for wC = 1:pA.numCond
     polRes.f0b(wC)              = mean(polRes.runf0b{wC});
@@ -379,7 +389,12 @@ polRes.limitsAmean = lims.audioMean;
 polRes.limitsPmean = lims.presMean;
 
 % Scale Pressure traces against the f0 traces
-[sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
+if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+    [sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
+else
+    sensorPAdjust = polRes.sensorPMean;
+    InflDeflT     = [0.04 0.24 1.04 1.24];
+end
 polRes.sensorPAdjust = sensorPAdjust;
 polRes.InflDeflT     = InflDeflT;
 
@@ -391,7 +406,7 @@ else
     polRes.autoSuccessPerc = 'N/A';
 end
 
-polRes.statLib = packStatLib(polRes);
+polRes.statLib = zeros(9,1); %packStatLib(polRes);
 
 statTable        = packStatTable(polRes);
 polRes.statTable = statTable;
