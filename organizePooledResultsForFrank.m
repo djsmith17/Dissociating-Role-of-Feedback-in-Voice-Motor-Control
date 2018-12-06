@@ -12,7 +12,8 @@ offsetsRatio = exp(offsets/1200);
 onsetSet  = [time, onsetsRatio];
 offsetSet = [time, offsetsRatio];
 
-dirs.alignedMicResponsesFile = fullfile(dirs.SavResultsDir, 'Pitch-Shift Reflex Aligned Mic Recordings.xlsx');
-xlswrite(dirs.alignedMicResponsesFile, onsetSet, 'Perturbation Onset');
-xlswrite(dirs.alignedMicResponsesFile, offsetSet, 'Perturbation Offset');
+dirs.alignedMicResponsesFile_Onset  = fullfile(dirs.SavResultsDir, 'Pitch-Shift Reflex Aligned Mic Recordings_Onset.csv');
+dirs.alignedMicResponsesFile_Offset = fullfile(dirs.SavResultsDir, 'Pitch-Shift Reflex Aligned Mic Recordings_Offset.csv');
+csvwrite(dirs.alignedMicResponsesFile_Onset, onsetSet);
+csvwrite(dirs.alignedMicResponsesFile_Offset, offsetSet);
 end
