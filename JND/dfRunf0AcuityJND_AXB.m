@@ -31,10 +31,11 @@ rng('shuffle');
 prompt = {'Subject ID:',...
           'Session ID:',...
           'Tokens File:',...
-          'Instruction ("Same" or "Diff):'};
+          'Instruction ("Same" or "Diff):',...
+          'Gender ("male" or "female")'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'fAX1', 'GT1', 'Diff'};
+defaultanswer = {'null', 'fAX1', 'GT1', 'Diff', 'female'};
 answer = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(answer)
@@ -54,6 +55,7 @@ UD.subject   = answer{1};
 UD.run       = answer{2};
 UD.tokenFile = answer{3};
 UD.inst      = answer{4};
+UD.gender    = answer{5};
 
 dirs = dfDirs(UD.project);
 % Folder paths to save data files
@@ -72,12 +74,6 @@ else
 end
 
 %Token Generation Output;
-if isfield (GT, 'gender')
-    UD.gender = GT.gender;
-else
-    disp('Warning: Token Files did not have a gender listed. Setting gender to "N/A"')
-    UD.gender = 'N/A';
-end
 UD.baseRec    = GT.baseRec;
 UD.baseTrial  = GT.baseTrial;
 UD.subjf0     = GT.subjf0;
