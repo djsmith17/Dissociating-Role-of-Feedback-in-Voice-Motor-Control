@@ -31,15 +31,17 @@ end
 
 GT.project   = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 GT.subject   = answer{1};             % Participant Identifier
+GT.gender    = [];
+GT.age       = [];
 GT.run       = answer{2};             % What is the name of this set of tokens?
 GT.baseRec   = answer{3};             % Which baseline recording
 GT.baseTrial = str2double(answer{4}); % Which trial to use from baseline
 
 dirs = dfDirs(GT.project);
 % Folder paths to save data files
-dirs.RecFileDir    = fullfile(dirs.RecData, GT.subject, GT.run);
-dirs.TokenDir      = fullfile(dirs.RecFileDir, 'speechTokens');
-dirs.baseTokenFile = fullfile(dirs.TokenDir, [GT.subject GT.run 'BaseToken.wav']);
+dirs.RecFileDir    = fullfile(dirs.RecData, GT.subject, GT.run);  % Dir to save any files at all
+dirs.TokenDir      = fullfile(dirs.RecFileDir, 'speechTokens');   % Dir to save the tokens
+dirs.baseTokenFile = fullfile(dirs.TokenDir, [GT.subject GT.run 'BaseToken.wav']); % File name of the Baseline toke
 
 if ~exist(dirs.RecFileDir, 'dir')
     mkdir(dirs.RecFileDir);
@@ -50,7 +52,12 @@ if ~exist(dirs.TokenDir, 'dir')
 end
 
 % Where to find the baseline recordings
-dirs.BaseFile    = fullfile(dirs.RecData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
+dirs.BaseFile = fullfile(dirs.RecData, GT.subject, GT.baseRec, [GT.subject GT.baseRec 'DRF.mat']);
+
+[GT.BVDataMic,...
+ GT.BVfs,...
+ GT.gender,...
+ GT.age]      = loadBaselineRecording(dirs, GT.baseTrial);
 
 GT.xMax = 200;  %max difference between speaker's f0 and f0 of stimulus in headphones
 GT.xMin = 1;    %min difference between speaker's f0 and f0 of stimulus in headphones
@@ -74,6 +81,27 @@ fprintf('Completed creating tokens for participant %s with f0 of %0.2f Hz\n', GT
 
 elapsed_time = toc(ET);
 fprintf('Elapsed Time: %f (s)\n', elapsed_time)
+end
+
+function [BVMic, BVfs, gender, age] = loadBaselineRecording(dirs, baseTrial)
+
+baseFile = dirs.BaseFile;
+
+if ~exist(baseFile, 'file')
+    error('ERROR: No baseline voice file at the designated location!')
+else
+    fprintf('Loading Baseline recording from...\n%s\n\n', dirs.BaseFile)
+    load(baseFile) % Returns a structure called 'DRF'
+end
+
+rawData  = DRF.rawData;
+BVData   = rawData(baseTrial); % Grab a specific trial
+BVMic    = BVData.signalIn;    % Grab the microphone channel.
+
+expParam = DRF.expParam;
+BVfs     = expParam.sRateAnal; % Sampling Rate
+gender   = expParam.gender;
+age      = expParam.age;
 end
 
 function shiftedFreqs = calcShiftedf0(f0, allCentShifts)
