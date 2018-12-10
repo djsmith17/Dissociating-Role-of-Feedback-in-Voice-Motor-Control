@@ -30,7 +30,7 @@ lenDb = 0;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF7';
+subject    = 'DRF12';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';

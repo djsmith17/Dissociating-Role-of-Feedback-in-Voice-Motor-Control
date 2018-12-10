@@ -27,11 +27,11 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF7';   % Subject#, Pilot#, null
+subject    = 'DRF12';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
-balloon    = 'GB1';     % Which perturbation balloon?
-tightness  = '23';     % (cm of slack in bungie cord)
+balloon    = 'GB3';     % Which perturbation balloon?
+tightness  = '29';     % (cm of slack in bungie cord)
 baseV      = 'BV1';
 
 % Dialogue box asking for what type of Auditory Feedback

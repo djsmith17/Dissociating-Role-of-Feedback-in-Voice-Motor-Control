@@ -30,10 +30,10 @@ function dfRecBaselineVoice()
 
 close all;
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF2'; % Subject#, Pilot#, null
+subject    = 'DRF12'; % Subject#, Pilot#, null
 run        = 'BV1';
-gender     = 'male';    % "male" or "female"
-DOB        = datetime(1990, 4, 9); % Year, Month, Day
+gender     = 'female';    % "male" or "female"
+DOB        = datetime(1997, 1, 5); % Year, Month, Day
 numTrials  = 3;         % number of trials;
 
 % Paradigm Configurations
