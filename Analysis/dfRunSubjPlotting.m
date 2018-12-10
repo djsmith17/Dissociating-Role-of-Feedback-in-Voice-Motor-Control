@@ -25,7 +25,7 @@ sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawMeanTrial_PertCont  = 1; % Mean Trials Microphone input. Control vs Perturbed Trials
 sPlt.drawAllTrial_Pert       = 0; % All Perturbed Trials Microphone input
-sPlt.drawMeanTrial_MicHead   = 1; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawMeanTrial_MicHead   = 0; % Mean Perturbed Trials. Microphone vs Headphones
 
 presFlag = 1;
  
