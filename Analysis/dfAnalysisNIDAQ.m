@@ -171,21 +171,25 @@ function sensorPres = convertPressureSensor(sensorV, sensorType)
 
 switch sensorType
     case 'Five'
-        MaxPres      = 5;
-        MinPres      = 0;
-        MaxVol       = 4.5;
-        MinVol       = 0.5;
+        PMax      = 5;
+        PMin      = 0;
+        VMax      = 4.5;
+        VMin      = 0.5;
+        Vsupply   = 4.7292;
     case 'Seven'
-        MaxPres      = 7;
-        MinPres      = 0;
-        MaxVol       = 4.5;
-        MinVol       = 0.5;
+        PMax      = 7;
+        PMin      = 0;
+        VMax      = 4.5;
+        VMin      = 0.5;
+        Vsupply   = 4.8535;
 end
 
-m = (MaxPres - MinPres) / (MaxVol - MinVol);
-b = MinPres - m*MinVol;
+sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
 
-sensorPres = sensorV*m + b; % Convert from voltage to pressure
+% m = (PMax - PMin) / (VMax - VMin);
+% b = PMin - m*VMin;
+% 
+% sensorPres = sensorV*m + b; % Convert from voltage to pressure
 end
 
 function sensorPP = sensorPreProcessing(sensor, sRate)
