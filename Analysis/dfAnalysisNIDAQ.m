@@ -175,13 +175,13 @@ switch sensorType
         PMin      = 0;
         VMax      = 4.5;
         VMin      = 0.5;
-        Vsupply   = 4.7292;
+        Vsupply   = 5;
     case 'Seven'
         PMax      = 7;
         PMin      = 0;
         VMax      = 4.5;
         VMin      = 0.5;
-        Vsupply   = 4.8535;
+        Vsupply   = 5;
 end
 
 sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
@@ -320,7 +320,7 @@ sensorFilt = filtfilt(B,A, sensor);     % Low-pass filter the signal
 numSamp   = length(sensor); 
 sensDiff  = diff(sensorFilt)*50;        % 1st derivative, then magnified for ease of viewing
 sensDiff  = [0; sensDiff];              % Add a zero to correct for the length
-sensDiff  = smooth(sensDiff, 10);       % Smooth the 1st derivative
+sensDiff  = smooth(sensDiff, 50);       % Smooth the 1st derivative
 
 diffPeakMax = 0.05;      % Threshold value of derivative 
 peakLeadLag = fs*0.5;    % How many seconds past peak to look for the level off. 
@@ -337,10 +337,14 @@ if toggle == 0 % Automatic selection
     else
         [~, maxInd] = max(pksU);           % Largest Mag positive peak
         maxIndFull = locU(maxInd);         % Ind of the maxPeak in the signal
-        searchR = maxIndFull:maxIndFull+peakLeadLag; % Range of Max peak to Max Peak+lag
-        diffDownRamp = find(sensDiff(searchR) > diffPeakMax);
-        
-        endRiseInd = searchR(diffDownRamp(end)); % Take the last point that is satisfies the threshold in the range
+        searchRSt = maxIndFull;
+        searchRSp = maxIndFull + peakLeadLag;
+        searchR   = searchRSt:searchRSp; % Range of Max peak to Max Peak+lag
+        upRoute      = sensDiff(searchR);
+        upRouteDiff  = diff(upRoute)*5;
+        noLongerRise = find(upRouteDiff > -.010);
+
+        endRiseInd = noLongerRise(1)+ searchRSt; % Take the last point that is satisfies the threshold in the range
     end
     
     if isempty(pksD)
@@ -349,21 +353,25 @@ if toggle == 0 % Automatic selection
     else
         [~, minInd] = max(pksD);         % Largest Mag negative peak
         minIndFull = locD(minInd);       % Ind of the maxPeak in the signal
-        searchR = minIndFull-peakLeadLag:minIndFull; % Range of Max Peak-lag to Max Peak
-        diffUpRamp = find(sensDiff(searchR) > diffPeakMax); % All points that are above threshold in the range 
-        
-        startFallInd = searchR(diffUpRamp(1)); % Take the first point that is satisfies the threshold in the range
+        searchRSt = minIndFull-peakLeadLag;
+        searchRSp = minIndFull;
+        searchR   = searchRSt:searchRSp; % Range of Max Peak-lag to Max Peak
+        dnRoute      = sensDiff(searchR);
+        dnRouteDiff  = diff(dnRoute)*5;
+        noLongerStraight = find(dnRouteDiff < -1);
+
+        startFallInd = noLongerStraight(1) + searchRSt; % Take the first point that is satisfies the threshold in the range
     end
   
 % During debugging, uncomment the below so you can see how well the
 % automated selection is finding the endRiseInd and startFallInd
-%     figure
-%     plot(sensor,'k')
-%     hold on
-%     plot([endRiseInd endRiseInd], [-100 100], 'b')
-%     hold on
-%     plot([startFallInd startFallInd], [-100 100], 'r')
-%     axis([0 3200 -0.05 5])
+    figure
+    plot(sensor,'k')
+    hold on
+    plot([endRiseInd endRiseInd], [-100 100], 'b')
+    hold on
+    plot([startFallInd startFallInd], [-100 100], 'r')
+    axis([0 3200 -0.10 7])
 
 else % Manual selection
     PresFig = figure;
