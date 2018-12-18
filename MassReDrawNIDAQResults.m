@@ -7,7 +7,7 @@ numRuns = length(runs);
 
 dirs = dfDirs(project);
 
-dirs.SavedResultsDir = fullfile(dirs.Results, exp);
+dirs.SavResultsDir = fullfile(dirs.Results, exp);
 
 f0b = 100;
 pF  = 1;
@@ -20,7 +20,8 @@ for ii = 1:numRuns
     
     load(theFile) % returns NSD    
 
-    [niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, iRF, pF);        
+    [niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, iRF, pF);
+    niRes.numPertTrialsNi = niRes.numPertTrials;
     drawDAQAlignedPressure(niRes, dirs.SavResultsDir, 1)
     close all
 end
