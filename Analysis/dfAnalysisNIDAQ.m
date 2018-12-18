@@ -381,26 +381,34 @@ for ii = 1:numTrial
     trial = sensor(:,ii);
     
     fDiff = [0; diff(trial)];
-    fDiff = smooth(fDiff);
+    fDiff = smooth(5*fDiff, 10);
     
-    threshUp = 0.5*max(fDiff);
-    threshDn = 0.5*min(fDiff);
+    threshUp = 0.2*max(fDiff);
+    threshDn = 0.2*min(fDiff);
     ups = find(fDiff > threshUp);
     dns = find(fDiff < threshDn);
     
-    StRiseIdx = ups(1);
-    SpRiseIdx = StRiseIdx + 160;
-    
+    StRiseIdx = ups(1);    
     StFallIdx = dns(1);
+    
+    RisingEdgeRange = StRiseIdx:(StRiseIdx + 0.3*fs);
+    [~, idxAtMax] = max(trial(RisingEdgeRange));
+    SpRiseIdx = StRiseIdx + idxAtMax-1;
+    
+    FallingEdgeRange = StFallIdx:(StFallIdx + 0.3*fs);
+    [~, idxAtMin] = min(trial(FallingEdgeRange));
+    SpFallIdx = StFallIdx + idxAtMin-1;
     
     StRiseTime = round(time(StRiseIdx), 3);
     SpRiseTime = round(time(SpRiseIdx), 3);
     StFallTime = round(time(StFallIdx), 3);
+    SpFallTime = round(time(SpFallIdx), 3);
     
     lagTimeRise = StRiseTime - pertTime(ii, 1);
     lagTimeFall = StFallTime - pertTime(ii, 2);
     
     riseTime = SpRiseTime - StRiseTime;
+    fallTime = SpFallTime - StFallTime;
     
     % What was the val of the sensor at the end of Rising Edge (Start Plateau)
     RiseVal = trial(SpRiseIdx);
@@ -412,7 +420,7 @@ for ii = 1:numTrial
     SD.TrigTime = cat(1, SD.TrigTime, [StRiseTime StFallTime]);
     
     SD.lagTimes  = cat(1, SD.lagTimes, [lagTimeRise lagTimeFall]);
-    SD.riseTimes = cat(1, SD.riseTimes, riseTime);
+    SD.riseTimes = cat(1, SD.riseTimes, [riseTime fallTime]);
     
     SD.OnOffVal = cat(1, SD.OnOffVal, [RiseVal, FallVal]);
     
@@ -421,7 +429,12 @@ for ii = 1:numTrial
 %     hold on
 %     plot([StRiseTime StRiseTime], [-5 10], 'g')
 %     hold on
+%     plot([SpRiseTime SpRiseTime], [-5 10], 'g--')
+%     hold on
 %     plot([StFallTime StFallTime], [-5 10], 'r')
+%     hold on
+%     plot([SpFallTime SpFallTime], [-5 10], 'r--')
+%     axis([0 4 -0.5 5])
 end
 
 %Difference in val at between subsequent trials at SpRiseIdx

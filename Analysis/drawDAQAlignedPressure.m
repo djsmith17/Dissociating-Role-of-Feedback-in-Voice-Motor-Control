@@ -17,8 +17,8 @@ LagTimeM  = presSD.lagTimeM(1); % Onset
 LagTimeSE = presSD.lagTimeSE(1); % Onset
 LagNote = ['Mean Onset Lag: ' num2str(LagTimeM) ' ms ± ' num2str(LagTimeSE) ' ms'];
 
-RiseTimeM  = presSD.riseTimeM; % Onset
-RiseTimeSE = presSD.riseTimeSE; % Onset
+RiseTimeM  = presSD.riseTimeM(1); % Onset
+RiseTimeSE = presSD.riseTimeSE(1); % Onset
 RiseNote = ['Mean Rise Time: ' num2str(RiseTimeM) ' ms ± ' num2str(RiseTimeSE) ' ms'];
 
 OnOfValM  = presSD.OnOffValM;
@@ -39,7 +39,7 @@ trialColors = distinguishable_colors(numTrial);
 CombinedSensor = figure('Color', [1 1 1]);
 set(CombinedSensor, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-plot([0 0], [-1 5], 'k-', 'LineWidth', 2)
+plot([0 0], [-1 20], 'k-', 'LineWidth', 2)
 
 for ii = 1:numTrial
     hold on
