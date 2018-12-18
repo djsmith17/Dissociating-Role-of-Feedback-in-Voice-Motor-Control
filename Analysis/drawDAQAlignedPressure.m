@@ -7,11 +7,11 @@ numTrial = res.numPertTrialsNi; % Number of Catch Trials (Only relevant ones)
 AudFB    = res.AudFB;
 balloon  = res.balloon;
 
-time     = res.timeSAl;
-sensor   = res.sensorPAl;
-limits   = res.limitsPAl;
-
 presSD = res.presSD;
+
+time     = presSD.timeAl;
+sensor   = presSD.sensorAl;
+limits   = res.limitsPAl;
 
 LagTimeM  = presSD.lagTimeM(1); % Onset
 LagTimeSE = presSD.lagTimeSE(1); % Onset

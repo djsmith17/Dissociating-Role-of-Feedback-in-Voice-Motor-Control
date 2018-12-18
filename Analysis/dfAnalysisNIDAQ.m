@@ -56,6 +56,7 @@ niAn.sRate     = expParam.sRateQ;       % Sampling Rate of the NIDAQ
 niAn.numCh     = c;                     % Number of Channels recorded
 niAn.numSamp   = r;                     % Number of Samples recorded
 niAn.numTrial  = n;                     % Number of Trials recorded
+niAn.trialLen  = niAn.numSamp/niAn.sRate;
 niAn.trialType = expParam.trialType;    % Control (0), Perturbed (1)
 niAn.expTrigs  = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
 niAn.dnSamp    = 10;
@@ -67,7 +68,7 @@ niAn.numContTrials = sum(niAn.ContTrials);
 niAn.numPertTrials = sum(niAn.PertTrials);
 
 %Unpack the NIDAQ raw data set, a 3D matrix (numSamp, numCh, numTrial)
-niAn.time     = (0:1/niAn.sRate:(niAn.numSamp-1)/niAn.sRate)';
+niAn.time     = linspace(0, niAn.trialLen, niAn.numSamp)';
 niAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbatron Signal (Pert)
 niAn.sensorFC = squeeze(DAQin(:,2,:)); % Force Sensor Collar (FC)
 niAn.sensorFN = squeeze(DAQin(:,3,:)); % Force Sensor Neck (FN)
@@ -99,15 +100,6 @@ niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Pertur
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
 
-
-
-[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
-[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
-[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_p, niAn.sRateDN);
-
-%Just copy over the intended times, since it doesnt matter too much
-niAn.contTrig = niAn.expTrigs(niAn.contIdx, :);
-
 % What was the delay between the intended (code) onset/offset triggers
 % and actual (measured) onset/offset triggers
 OnsetTriggerLags  = round((niAn.pertTrig(:, 1) - niAn.expTrigs(niAn.pertIdx, 1)), 3);
@@ -115,10 +107,6 @@ OffsetTriggerLags = round((niAn.pertTrig(:, 2) - niAn.expTrigs(niAn.pertIdx, 2))
 niAn.TriggerLag   = [OnsetTriggerLags, OffsetTriggerLags];
 
 niAn.alignResponseTriggers = niAn.expTrigs;
-
-[niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
-[niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
-[niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
 
 niAn.pertSD.TrigTime = niAn.pertTrig;
 niAn.pertSD.TrigIdx  = niAn.idxPert;
@@ -135,21 +123,6 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     
     % Pressure Sensor Dynamics
     [niAn.presSD] = analyzeSensorDynamics(niAn.presSD, niAn.pertSD);
-    
-%     niAn.OnOfValPm    = mean(niAn.OnOfValP);
-%     niAn.OnOfValPSE   = (std(niAn.OnOfValP))/sqrt(niAn.numTrial);
-%     niAn.riseTimePm   = mean(niAn.riseTimeP);
-%     niAn.riseTimePSE  = (std(niAn.riseTimeP))/sqrt(niAn.numTrial);
-%     
-%     niAn.pTrialLossP   = diff(niAn.OnOfValP(:,1));
-%     niAn.pTrialLossPm  = mean(niAn.pTrialLossP);
-%     niAn.pTrialLossPSE = (std(niAn.pTrialLossP))/sqrt(niAn.numTrial-1);
-
-    % Section and aligning pressure signal for perturbed trials
-    [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-    
-    [niAn.secTimeP, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-    niAn.sensorPMean                 = meanSensorData(niAn.sensorPSec);   
 end
 
 %The Audio Analysis
@@ -180,6 +153,7 @@ niAn.sRate     = [];
 niAn.numCh     = [];
 niAn.numSamp   = [];
 niAn.numTrial  = [];
+niAn.trialLen  = [];
 niAn.trialType = [];
 niAn.expTrigs  = [];
 niAn.dnSamp    = [];
@@ -469,6 +443,11 @@ SD.OnOffValSE = round(SD.OnOffValSE, 3); % Round
 SD.pTrialLossM  = round(SD.pTrialLossM, 3); % Round
 SD.pTrialLossSE = round(SD.pTrialLossSE, 3); % Round
 
+%%%%%%%%%%%%%
+[SD.timeAl, SD.sensorAl] = alignSensorData(sensor, fs, pertIdx);
+
+[SD.timeSec, SD.sensorSec] = sectionData(sensor, fs, pertIdx);
+SD.sensorSecM              = meanSensorData(SD.sensorSec);   
 end
 
 function [endRiseInd, startFallInd] = findCrossings(sensor, fs, toggle)
@@ -855,13 +834,7 @@ res.presSD        = niAn.presSD;
 res.limitsP       = lims.pressure;
 
 % Sectioned and Aligned Pressure recordings 
-res.timeSAl   = niAn.timeAl;
-res.sensorPAl = niAn.sensorPAl;
 res.limitsPAl = lims.pressureAl;
-
-res.secTimeP    = niAn.secTimeP;
-res.sensorPSec  = niAn.sensorPSec;
-res.sensorPMean = niAn.sensorPMean;
 res.limitsPMean = lims.pressureMean;
 
 % Audio f0 analysis
