@@ -5,32 +5,29 @@ function drawDAQAlignedPressure(res, saveResultsDir, sv2F)
 curSess  = res.curSess;         % The current experiment details (Subject/Run)
 numTrial = res.numPertTrialsNi; % Number of Catch Trials (Only relevant ones)
 AudFB    = res.AudFB;
+balloon  = res.balloon;
 
 time     = res.timeSAl;
 sensor   = res.sensorPAl;
 limits   = res.limitsPAl;
 
-LagTimeM  = 1000*res.lagTimePm(1,1);
-LagTimeSE = round(1000*res.lagTimePm(2,1),1);
+presSD = res.presSD;
+
+LagTimeM  = presSD.lagTimeM(1); % Onset
+LagTimeSE = presSD.lagTimeSE(1); % Onset
 LagNote = ['Mean Onset Lag: ' num2str(LagTimeM) ' ms ± ' num2str(LagTimeSE) ' ms'];
 
-RiseTimeM  = 1000*res.riseTimePm;
-RiseTimeSE = round(1000*res.riseTimePSE,1);
+RiseTimeM  = presSD.riseTimeM; % Onset
+RiseTimeSE = presSD.riseTimeSE; % Onset
 RiseNote = ['Mean Rise Time: ' num2str(RiseTimeM) ' ms ± ' num2str(RiseTimeSE) ' ms'];
 
-OnOfValM  = round(res.OnOfValPm, 3);
-OnOfValSE = round(res.OnOfValPSE, 3);
+OnOfValM  = presSD.OnOffValM;
+OnOfValSE = presSD.OnOffValSE;
 PlatStNote = ['Mean Plataeu (Start) Val: ' num2str(OnOfValM(1)) ' psi ± ' num2str(OnOfValSE(1)) ' psi'];
 
-PresLossM  = round(res.pTrialLossPm, 3);
-PresLossSE = round(res.pTrialLossPSE, 3);
+PresLossM  = presSD.pTrialLossM;
+PresLossSE = presSD.pTrialLossSE;
 PresLossNote = ['Mean Pressure Loss: ' num2str(PresLossM) ' psi ± ' num2str(PresLossSE) ' psi'];
-
-if isfield(res, 'balloon')
-    balloon = res.balloon;
-else
-    balloon = 'N/A';
-end
 
 curSess(strfind(curSess, '_')) = ' ';
 balloon(strfind(balloon, '_')) = '';
