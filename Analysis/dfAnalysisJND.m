@@ -74,13 +74,16 @@ for ii = JNDa.runs2Analyze
     allJNDData  = cat(1, allJNDData, UD);
 end
 
-JNDa.JNDScoreMean        = round(mean(JNDa.JNDScores), 2);
-JNDa.lastSetAccuracyMean = round(mean(JNDa.lastSetAccuracy), 1);
+% Investigate some general stats now that we have compiled all the runs we
+% want to look at.
+JNDa = generalJNDStats(JNDa);
 
+% Save the structure for future grouped analysis
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [JNDa.participant JNDa.runType 'f0AcuityPooledResults.mat']);
 fprintf('\nSaving Pooled JND Results for %s\n', JNDa.participant)
 save(dirs.SavResultsFile, 'JNDa')
 
+% Draw 
 drawJNDResults(JNDa, dirs.SavResultsDir, allJNDData)
 end
 
@@ -104,7 +107,16 @@ JNDa.lastSetAccuracy = [];
 JNDa.catchAccuracy   = [];
 
 JNDa.JNDScoreMean        = [];
-JNDa.JNDScoreSD          = [];
+JNDa.JNDScoreSE          = [];
 JNDa.lastSetAccuracyMean = [];
-JNDa.lastSetAccuracySD   = [];
+JNDa.lastSetAccuracySE   = [];
+end
+
+function JNDa = generalJNDStats(JNDa)
+
+JNDa.numJNDScores        = length(JNDa.JNDScores);
+JNDa.JNDScoreMean        = round(mean(JNDa.JNDScores), 2);
+JNDA.JNDScoreSE          = std(JNDa.JNDScores)/sqrt(JNDa.numJNDScores);
+JNDa.lastSetAccuracyMean = round(mean(JNDa.lastSetAccuracy), 1);
+
 end

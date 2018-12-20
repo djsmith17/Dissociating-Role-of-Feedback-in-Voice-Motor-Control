@@ -261,7 +261,7 @@ switch sensorType
 end
 
 sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
-
+% 
 % m = (PMax - PMin) / (VMax - VMin);
 % b = PMin - m*VMin;
 % 
