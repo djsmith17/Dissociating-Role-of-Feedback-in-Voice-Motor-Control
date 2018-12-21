@@ -78,18 +78,20 @@ niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
 %Convert the measured Pressure Sensor Voltage (V) to Pressure (psi)
-niAn.sensorPz = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
+niAn.sensorFNz = convertPressureSensor(niAn.sensorFN, niAn.sensorPType);
+niAn.sensorPz  = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 
 %Preprocessing some of the Force sensors
-niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
-niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
+% niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
+% niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
 
 niAn.sRateDN     = niAn.sRate/niAn.dnSamp;
 niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
 niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
+
+niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
+niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
-niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFCz, niAn.dnSamp);
-niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFNz, niAn.dnSamp);
 
 %Parse out the perturbed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
@@ -115,6 +117,10 @@ niAn.presSD.time   = niAn.time_DN;
 niAn.presSD.sensor = niAn.sensorP_p;
 niAn.presSD.fs     = niAn.sRateDN;
 
+niAn.fSNSD.time   = niAn.time_DN;
+niAn.fSNSD.sensor = niAn.sensorFN_p;
+niAn.fSNSD.fs     = niAn.sRateDN;
+
 if PresFlag == 1 && niAn.numPertTrials > 0
     % Set PresFlag = 1 if pressure dynamics are worth looking investigating
     % Observe dynamics of the pressure sensor and save pert-onset aligned
@@ -123,6 +129,8 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     
     % Pressure Sensor Dynamics
     [niAn.presSD] = analyzeSensorDynamics(niAn.presSD, niAn.pertSD);
+    
+    [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
 end
 
 %The Audio Analysis
@@ -832,6 +840,8 @@ res.timeS         = niAn.time_DN;
 res.sensorP       = niAn.sensorP_p; %Individual Processed perturbed trials. 
 res.presSD        = niAn.presSD;
 res.limitsP       = lims.pressure;
+
+res.fSNSD         = niAn.fSNSD;
 
 % Sectioned and Aligned Pressure recordings 
 res.limitsPAl = lims.pressureAl;
