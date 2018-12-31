@@ -115,8 +115,9 @@ end
 function JNDa = generalJNDStats(JNDa)
 
 JNDa.numJNDScores        = length(JNDa.JNDScores);
-JNDa.JNDScoreMean        = round(mean(JNDa.JNDScores), 2);
-JNDA.JNDScoreSE          = std(JNDa.JNDScores)/sqrt(JNDa.numJNDScores);
-JNDa.lastSetAccuracyMean = round(mean(JNDa.lastSetAccuracy), 1);
 
+JNDa.JNDScoreMean        = round(mean(JNDa.JNDScores), 2);
+JNDa.JNDScoreSE          = std(JNDa.JNDScores)/sqrt(JNDa.numJNDScores);
+JNDa.lastSetAccuracyMean = round(mean(JNDa.lastSetAccuracy), 1);
+JNDa.lastSetAccuracySE   = std(JNDa.lastSetAccuracy)/sqrt(JNDa.numJNDScores);
 end
