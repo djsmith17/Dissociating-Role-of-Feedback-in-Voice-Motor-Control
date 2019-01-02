@@ -55,8 +55,7 @@ for ii = 1:pA.numPart
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
         if exist(dirs.SavFile, 'file') == 0
-            disp('ERROR: The Results file for Run %s does not exist yet\n', run)
-            return
+            error('ERROR: The Results file for Run %s does not exist yet\n', run)
         else   
             load(dirs.SavFile)
             % Returns a results struture of 'res'
