@@ -1,4 +1,4 @@
-function dfAnalysisJND()
+function dfAnalysisJNDStandalone()
 % dfAnalysisJND() loads a f0 JND data set (fAX#DRF.mat) and analyzed the raw
 % data into interpretable results. After the results have been computed and
 % organized, they are immediately plotted. Multiple JND results can be
@@ -14,16 +14,26 @@ function dfAnalysisJND()
 % This script has the following subfunctions:
 % -initJNDAnalysis()
 
-close all
+prompt = {'Subject ID:',...
+          'Run Type:',...
+          'Runs to Analyze:'};
+name = 'Subject Information';
+numlines = 1;
+defaultanswer = {'null', 'fAX', '1, 2, 3, 4'};
+answer = inputdlg(prompt, name, numlines, defaultanswer);
+
+if isempty(answer)
+    return
+end
 
 % Initalize the analysis structure
 JNDa = initJNDAnalysis();
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participants  = {'DRF1'}; % List of multiple participants.
-JNDa.numPart       = length(JNDa.participants);
-JNDa.runs          = {'fAX1'}; %List of multiple runs.
-JNDa.numRuns       = length(JNDa.runs);
+JNDa.participant  = answer{1};
+JNDa.runType      = answer{2};
+num = textscan(answer{3}, '%f', 'Delimiter', ',');
+JNDa.runs2Analyze = num{1}';
 
 dirs = dfDirs(JNDa.project);
 dirs.SavResultsDir = fullfile(dirs.Results, JNDa.participant, 'JND'); %Where to save results
@@ -35,7 +45,7 @@ end
 if strcmp(JNDa.runType, 'fAC')
     JNDa.tN = {'Diff'; 'Same'}; 
 else
-    JNDa.tN = {'First'; 'Last'};
+    JNDa.tN = {'First'; 'Last'}; 
 end  
 
 allJNDData  = [];
@@ -89,7 +99,6 @@ JNDa.age         = [];
 JNDa.f0          = [];
 
 JNDa.instructions     = {};
-JNDa.tN               = {};
 JNDa.reversalsReached = [];
 JNDa.trialsCompleted  = [];
 JNDa.timeElapsed      = [];
