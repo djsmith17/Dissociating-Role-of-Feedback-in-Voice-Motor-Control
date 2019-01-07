@@ -5,8 +5,9 @@ function drawJNDResults(JNDa, saveResultsDir, allRunData)
 % -tight_subplot
 % -export_fig
 
-runs    = JNDa.runs;
-numRuns = length(runs);
+participant = JNDa.participant;
+runs        = JNDa.runs;
+numRuns     = length(runs);
 
 JNDScores  = JNDa.JNDScores;
 lastSetAcc = JNDa.lastSetAccuracy;
@@ -96,7 +97,7 @@ for ii = 1:numRuns
     end  
 end
 
-suptitle({'f0 Acuity JND', [JNDa.participant ', f0 = ' num2str(JNDa.f0) ' Hz'], ['JND Score: ' num2str(JNDa.JNDScoreMean) ' Cents']})
+suptitle({'f0 Acuity JND', [participant ', f0 = ' num2str(JNDa.f0) ' Hz'], ['JND Score: ' num2str(JNDa.JNDScoreMean) ' Cents']})
 
 legend(aH,{['Correct ' selectOpt{1}],['Incorrect ' selectOpt{1}],'Reversals',['Correct ' selectOpt{2}],['Incorrect ' selectOpt{2}]},...
           'Orientation','Horizontal',...
@@ -105,7 +106,7 @@ legend(aH,{['Correct ' selectOpt{1}],['Incorrect ' selectOpt{1}],'Reversals',['C
           'EdgeColor', [0.5 0.5 0.5])
 
 
-plTitle = [JNDa.participant 'JNDStaircaseResults.jpg'];     
+plTitle = [participant 'JNDStaircaseResults.jpg'];     
 saveFileName = fullfile(saveResultsDir, plTitle);
 export_fig(saveFileName) 
 end
