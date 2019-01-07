@@ -55,3 +55,7 @@ for ii = 1:pA.numPart
 end
 
 end
+
+function pA = identifyPooledJNDResultsSet()
+
+end

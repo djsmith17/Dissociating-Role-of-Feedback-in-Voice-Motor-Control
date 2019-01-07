@@ -6,11 +6,15 @@ function drawJNDResults(JNDa, saveResultsDir, allRunData)
 % -export_fig
 
 participant = JNDa.participant;
+f0          = JNDa.f0;
+
 runs        = JNDa.runs;
 numRuns     = length(runs);
 
 JNDScores  = JNDa.JNDScores;
 lastSetAcc = JNDa.lastSetAccuracy;
+
+JNDScoreM = JNDa.JNDScoreMean;
 
 selectOpt  = JNDa.selectOpt;
 
@@ -97,14 +101,13 @@ for ii = 1:numRuns
     end  
 end
 
-suptitle({'f0 Acuity JND', [participant ', f0 = ' num2str(JNDa.f0) ' Hz'], ['JND Score: ' num2str(JNDa.JNDScoreMean) ' Cents']})
+suptitle({'f0 Acuity JND', [participant ', f0 = ' num2str(f0) ' Hz'], ['JND Score: ' num2str(JNDScoreM) ' Cents']})
 
 legend(aH,{['Correct ' selectOpt{1}],['Incorrect ' selectOpt{1}],'Reversals',['Correct ' selectOpt{2}],['Incorrect ' selectOpt{2}]},...
           'Orientation','Horizontal',...
           'FontSize', 12,...
           'Position', [0.51 0.455 0.02 0.05],...
           'EdgeColor', [0.5 0.5 0.5])
-
 
 plTitle = [participant 'JNDStaircaseResults.jpg'];     
 saveFileName = fullfile(saveResultsDir, plTitle);

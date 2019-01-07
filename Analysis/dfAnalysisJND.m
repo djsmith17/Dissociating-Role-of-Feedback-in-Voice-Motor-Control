@@ -20,36 +20,39 @@ close all
 JNDa = initJNDAnalysis();
 
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participants  = {'DRF1'}; % List of multiple participants.
-JNDa.numPart       = length(JNDa.participants);
-JNDa.runs          = {'fAX1'}; %List of multiple runs.
-JNDa.numRuns       = length(JNDa.runs);
+JNDa.participants = {'DRF2'}; % List of multiple participants.
+JNDa.numPart      = length(JNDa.participants);
+JNDa.runs         = {'fAX1', 'fAX2','fAX3','fAX4'}; %List of multiple runs.
+JNDa.numRuns      = length(JNDa.runs);
 
 dirs = dfDirs(JNDa.project);
-dirs.SavResultsDir = fullfile(dirs.Results, JNDa.participant, 'JND'); %Where to save results
+
+JNDa.curPart = JNDa.participants{1};
+
+dirs.SavResultsDir = fullfile(dirs.Results, curPart, 'JND'); %Where to save results
 
 if exist(dirs.SavResultsDir, 'dir') == 0
     mkdir(dirs.SavResultsDir)
 end
 
-if strcmp(JNDa.runType, 'fAC')
-    JNDa.tN = {'Diff'; 'Same'}; 
-else
-    JNDa.tN = {'First'; 'Last'};
-end  
-
 allJNDData  = [];
-for ii = JNDa.runs2Analyze 
-    curRun = [JNDa.runType num2str(ii)];
-    JNDa.runs = cat(1, JNDa.runs, {curRun});
+for ii = 1:JNDa.numRuns
+    JNDa.curRun     = JNDa.runs{ii};    
+    dirs.SavFileDir = fullfile(dirs.SavData, curPart, curRun, [curPart curRun 'DRF.mat']); %Where to find data
     
-    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, curRun, [JNDa.participant curRun 'DRF.mat']); %Where to find data
-    
-    fprintf('Loading Raw JND Data for %s %s\n', JNDa.participant, curRun)
+    fprintf('Loading Raw JND Data for %s %s\n', curPart, curRun)
     load(dirs.SavFileDir) % Returns UD
     
-    JNDa.f0     = round(UD.subjf0, 1);
-    JNDa.gender = UD.gender;
+    JNDa.participant = curPart;
+    JNDa.gender      = UD.gender;
+    JNDa.f0          = round(UD.subjf0, 1);
+    
+    JNDa.instructions = UD.inst;    
+    if isfield(UD, 'selectOpt')
+        JNDa.selectOpt = UD.selectOpt;
+    else
+        JNDa.selectOpt = {'First'; 'Last'};
+    end
     
     JNDa.reversalsReached = cat(1, JNDa.reversalsReached, UD.reversals);
     JNDa.trialsCompleted  = cat(1, JNDa.trialsCompleted, UD.performedTrials);
@@ -70,7 +73,7 @@ end
 JNDa = generalJNDStats(JNDa);
 
 % Save the structure for future grouped analysis
-dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [JNDa.participant JNDa.runType 'f0AcuityPooledResults.mat']);
+dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [JNDa.participant 'f0AcuityPooledResults.mat']);
 fprintf('\nSaving Pooled JND Results for %s\n', JNDa.participant)
 save(dirs.SavResultsFile, 'JNDa')
 
@@ -78,30 +81,32 @@ save(dirs.SavResultsFile, 'JNDa')
 drawJNDResults(JNDa, dirs.SavResultsDir, allJNDData)
 end
 
-function JNDa = initJNDAnalysis()
+function resJND = initJNDAnalysis()
 
-JNDa.project     = [];
-JNDa.participant = [];
-JNDa.runType     = [];
-JNDa.runs        = {};
-JNDa.gender      = [];
-JNDa.age         = [];
-JNDa.f0          = [];
+resJND.participant = [];
+resJND.gender      = [];
+resJND.age         = [];
+resJND.f0          = [];
+resJND.run         = [];
 
-JNDa.instructions     = {};
-JNDa.tN               = {};
-JNDa.reversalsReached = [];
-JNDa.trialsCompleted  = [];
-JNDa.timeElapsed      = [];
+resJND.subjResponseData = [];
 
-JNDa.JNDScores       = [];
-JNDa.lastSetAccuracy = [];
-JNDa.catchAccuracy   = [];
+resJND.instructions     = {};
+resJND.selectOpt        = {};
 
-JNDa.JNDScoreMean        = [];
-JNDa.JNDScoreSE          = [];
-JNDa.lastSetAccuracyMean = [];
-JNDa.lastSetAccuracySE   = [];
+resJND.JNDScores       = [];
+resJND.lastSetAccuracy = [];
+resJND.catchAccuracy   = [];
+
+resJND.reversalsReached = [];
+resJND.trialsCompleted  = [];
+resJND.timeElapsed      = [];
+end
+
+function resJND = AnalyzeRawJNDData(JNDa, UD)
+
+resJND = initJNDAnalysis();
+
 end
 
 function JNDa = generalJNDStats(JNDa)

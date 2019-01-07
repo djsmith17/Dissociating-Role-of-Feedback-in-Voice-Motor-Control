@@ -43,9 +43,9 @@ if exist(dirs.SavResultsDir, 'dir') == 0
 end
 
 if strcmp(JNDa.runType, 'fAC')
-    JNDa.tN = {'Diff'; 'Same'}; 
+    JNDa.selectOpt = {'Diff'; 'Same'}; 
 else
-    JNDa.tN = {'First'; 'Last'}; 
+    JNDa.selectOpt = {'First'; 'Last'}; 
 end  
 
 allJNDData  = [];
