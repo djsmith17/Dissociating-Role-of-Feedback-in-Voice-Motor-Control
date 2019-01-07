@@ -11,6 +11,8 @@ numRuns = length(runs);
 JNDScores  = JNDa.JNDScores;
 lastSetAcc = JNDa.lastSetAccuracy;
 
+selectOpt  = JNDa.selectOpt;
+
 plotpos = [50 150];
 plotdim = [1600 750];
 xyFS    = 12;
@@ -96,14 +98,14 @@ end
 
 suptitle({'f0 Acuity JND', [JNDa.participant ', f0 = ' num2str(JNDa.f0) ' Hz'], ['JND Score: ' num2str(JNDa.JNDScoreMean) ' Cents']})
 
-legend(aH,{['Correct ' JNDa.tN{1}],['Incorrect ' JNDa.tN{1}],'Reversals',['Correct ' JNDa.tN{2}],['Incorrect ' JNDa.tN{2}]},...
+legend(aH,{['Correct ' selectOpt{1}],['Incorrect ' selectOpt{1}],'Reversals',['Correct ' selectOpt{2}],['Incorrect ' selectOpt{2}]},...
           'Orientation','Horizontal',...
           'FontSize', 12,...
           'Position', [0.51 0.455 0.02 0.05],...
           'EdgeColor', [0.5 0.5 0.5])
 
 
-plTitle = [JNDa.participant 'JNDStaircaseResults' JNDa.runType '.jpg'];     
+plTitle = [JNDa.participant 'JNDStaircaseResults.jpg'];     
 saveFileName = fullfile(saveResultsDir, plTitle);
 export_fig(saveFileName) 
 end
