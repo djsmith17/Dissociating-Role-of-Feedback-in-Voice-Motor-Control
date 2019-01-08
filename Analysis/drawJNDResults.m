@@ -44,13 +44,6 @@ for ii = 1:numRuns
     UD        = allRunData(ii);
     JNDScore  = JNDScores(ii);
     catchAccu = lastSetAcc(ii);
-%     revNote   = [num2str(UD.reversals) ' Reversals, '];
-%     triNote   = [num2str(UD.performedTrials) '/' num2str(UD.totalTrials) ' Trials, '];
-%     timNote   = [num2str(round(10*UD.elapsedTime)/10) ' min, '];
-%     
-%     if isfield(UD, 'inst')
-%        timNote   = [timNote 'Instru: ' UD.inst];
-%     end
     
     scoreNote = ['JND Score: ' num2str(JNDScore) ' cents'];
     accurNote = ['Last Trials Accuracy: ' num2str(catchAccu) '%'];
@@ -66,7 +59,6 @@ for ii = 1:numRuns
     iS = plot(find(UD.allTrialTypes==4), UD.x(find(UD.allTrialTypes==4)),'o','MarkerFaceColor',tColors(4,:),'MarkerEdgeColor',tColors(4,:),'MarkerSize',10);
        
     aJ = line([0 length(UD.response)], [JNDScore JNDScore],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1]);
-%     title(['f0 Acuity JND ' num2str(ii) ': ' revNote triNote timNote], 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     title(runs{ii}, 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     xlabel('Trials','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     ylabel('f0 Distance (cents)','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
@@ -109,7 +101,7 @@ legend(aH,{['Correct ' selectOpt{1}],['Incorrect ' selectOpt{1}],'Reversals',['C
           'Position', [0.51 0.455 0.02 0.05],...
           'EdgeColor', [0.5 0.5 0.5])
 
-plTitle = [participant 'JNDStaircaseResults.jpg'];     
+plTitle = [participant 'JNDStaircaseResults.jpg'];
 saveFileName = fullfile(saveResultsDir, plTitle);
 export_fig(saveFileName) 
 end

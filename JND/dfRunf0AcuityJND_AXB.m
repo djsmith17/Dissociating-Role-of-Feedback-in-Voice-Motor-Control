@@ -55,6 +55,7 @@ UD.subject   = answer{1};
 UD.run       = answer{2};
 UD.tokenFile = answer{3};
 UD.inst      = answer{4};
+UD.selectOpt = {'First'; 'Last'};
 UD.gender    = answer{5};
 
 dirs = dfDirs(UD.project);
