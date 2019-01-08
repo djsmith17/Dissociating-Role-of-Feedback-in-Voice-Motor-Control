@@ -1,22 +1,17 @@
-function drawJNDResults(JNDa, saveResultsDir, allRunData)
+function drawJNDResults(JNDa, saveResultsDir)
 % drawJNDResults() displays the results from a single subject's JND runs.
 %
 % This function calls the following helper functions
 % -tight_subplot
 % -export_fig
 
-participant = JNDa.participant;
-f0          = JNDa.f0;
+participant = JNDa.resJNDs(1).participant;
+numRuns     = length(JNDa.resJNDs);
 
-runs        = JNDa.runs;
-numRuns     = length(runs);
-
-JNDScores  = JNDa.JNDScores;
-lastSetAcc = JNDa.lastSetAccuracy;
-
+f0        = JNDa.resJNDs(1).f0;
 JNDScoreM = JNDa.JNDScoreMean;
 
-selectOpt  = JNDa.selectOpt;
+selectOpt = JNDa.resJNDs(1).selectOpt;
 
 plotpos = [50 150];
 plotdim = [1600 750];
@@ -41,25 +36,40 @@ set(AllJND, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 ha = tight_subplot(2, 2, [0.15 0.06], [0.1 0.1], [0.05 0.03]);
 
 for ii = 1:numRuns
-    UD        = allRunData(ii);
-    JNDScore  = JNDScores(ii);
-    catchAccu = lastSetAcc(ii);
+    % Set up some specifics of this recording
+    resJND    = JNDa.resJNDs(ii);
+    curRun    = resJND.run;
+    trlsComp  = resJND.trialsCompleted;
+    JNDScore  = resJND.JNDScore;
+    catchAccu = resJND.LastSetAccuracy;
+    
+    distProg = resJND.distProgression;
+    revTrl   = resJND.trialsAtReversals;
+    revDst   = resJND.distAtReversals;    
+    opt1CTrl = resJND.trialsAtCorrectOpt1;
+    opt1CDst = resJND.distAtCorrectOpt1;
+    opt1ITrl = resJND.trialsAtIncorrectOpt1;
+    opt1IDst = resJND.distAtIncorrectOpt1;
+    opt2CTrl = resJND.trialsAtCorrectOpt2;
+    opt2CDst = resJND.distAtCorrectOpt2;
+    opt2ITrl = resJND.trialsAtIncorrectOpt2;
+    opt2IDst = resJND.distAtIncorrectOpt2;
     
     scoreNote = ['JND Score: ' num2str(JNDScore) ' cents'];
     accurNote = ['Last Trials Accuracy: ' num2str(catchAccu) '%'];
     
     axes(ha(ii))
-    rV = plot(find(UD.reversal~=0), UD.x(find(UD.reversal~=0)),'o','MarkerFaceColor',[1 1 1],'MarkerEdgeColor',[0 0 0],'MarkerSize',12);
+    rV = plot(revTrl, revDst,'o','MarkerFaceColor',[1 1 1],'MarkerEdgeColor',[0 0 0],'MarkerSize',12);
     hold on;
-    plot(UD.x, 'Color', [0.7 0.7 0.7], 'LineWidth', 3);   
+    plot(distProg, 'Color', [0.7 0.7 0.7], 'LineWidth', 3);
     
-    cD = plot(find(UD.allTrialTypes==1), UD.x(find(UD.allTrialTypes==1)),'o','MarkerFaceColor',tColors(1,:),'MarkerEdgeColor',tColors(1,:),'MarkerSize',10);
-    iD = plot(find(UD.allTrialTypes==2), UD.x(find(UD.allTrialTypes==2)),'o','MarkerFaceColor',tColors(2,:),'MarkerEdgeColor',tColors(2,:),'MarkerSize',10);
-    cS = plot(find(UD.allTrialTypes==3), UD.x(find(UD.allTrialTypes==3)),'o','MarkerFaceColor',tColors(3,:),'MarkerEdgeColor',tColors(3,:),'MarkerSize',10);
-    iS = plot(find(UD.allTrialTypes==4), UD.x(find(UD.allTrialTypes==4)),'o','MarkerFaceColor',tColors(4,:),'MarkerEdgeColor',tColors(4,:),'MarkerSize',10);
+    c1 = plot(opt1CTrl, opt1CDst,'o','MarkerFaceColor',tColors(1,:),'MarkerEdgeColor',tColors(1,:),'MarkerSize',10);
+    i1 = plot(opt1ITrl, opt1IDst,'o','MarkerFaceColor',tColors(2,:),'MarkerEdgeColor',tColors(2,:),'MarkerSize',10);
+    c2 = plot(opt2CTrl, opt2CDst,'o','MarkerFaceColor',tColors(3,:),'MarkerEdgeColor',tColors(3,:),'MarkerSize',10);
+    i2 = plot(opt2ITrl, opt2IDst,'o','MarkerFaceColor',tColors(4,:),'MarkerEdgeColor',tColors(4,:),'MarkerSize',10);
        
-    aJ = line([0 length(UD.response)], [JNDScore JNDScore],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1]);
-    title(runs{ii}, 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
+    jS = line([0 trlsComp], [JNDScore JNDScore],'LineStyle', '-.', 'LineWidth',3,'color',[1 0 1]);
+    title(curRun, 'FontSize', titleFS, 'FontName', 'Arial', 'FontWeight', 'bold')
     xlabel('Trials','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     ylabel('f0 Distance (cents)','FontSize', xyFS,'FontName','Arial', 'FontWeight', 'bold');
     axis([0 80 0 80])
@@ -76,20 +86,20 @@ for ii = 1:numRuns
              'FontName', 'Arial',...
              'FontWeight', 'bold')
     
-    if ~isempty(cD)
-       aH(1) = cD;
+    if ~isempty(c1)
+       aH(1) = c1;
     end
-    if ~isempty(iD)
-       aH(2) = iD;
+    if ~isempty(i1)
+       aH(2) = i1;
     end
     if ~isempty(rV)
        aH(3) = rV;
     end
-    if ~isempty(cS)
-       aH(4) = cS;
+    if ~isempty(c2)
+       aH(4) = c2;
     end
-    if ~isempty(iS)
-       aH(5) = iS;
+    if ~isempty(i2)
+       aH(5) = i2;
     end  
 end
 
