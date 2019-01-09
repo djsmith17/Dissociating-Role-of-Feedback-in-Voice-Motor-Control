@@ -13,14 +13,28 @@ function dfAnalysisJND()
 %
 % This script has the following subfunctions:
 % -initJNDAnalysis()
-
+tic
 close all
 
 % Initalize the analysis structure
-JNDa = initJNDAnalysis();
-
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participants = {'DRF1', 'DRF2'}; % List of multiple participants.
+JNDa.participants = {'DRF1',...
+                      'DRF2',...
+                      'DRF4',...
+                      'DRF5',...
+                      'DRF6',...
+                      'DRF7',...
+                      'DRF8',...
+                      'DRF9',...
+                      'DRF10',...
+                      'DRF12',...
+                      'DRF13',...
+                      'DRF14',...
+                      'DRF15',...
+                      'DRF16',...
+                      'DRF17',...
+                      'DRF18',...
+                      'DRF19'}; % List of multiple participants.
 JNDa.numPart      = length(JNDa.participants);
 JNDa.runs         = {'fAX1', 'fAX2','fAX3','fAX4'}; %List of multiple runs.
 JNDa.numRuns      = length(JNDa.runs);
@@ -35,7 +49,6 @@ for jj = 1:JNDa.numPart
         mkdir(dirs.SavResultsDir)
     end
 
-    JNDa.resJNDs = [];
     for ii = 1:JNDa.numRuns
         curRun     = JNDa.runs{ii};    
         dirs.SavFileDir = fullfile(dirs.SavData, curPart, curRun, [curPart curRun 'DRF.mat']); %Where to find data
@@ -48,22 +61,9 @@ for jj = 1:JNDa.numPart
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [curPart curRun 'ResultsDRF.mat']);
         fprintf('Saving Individual JND Results\n\n')
         save(dirs.SavResultsFile, 'resJND')    
-
-        JNDa.resJNDs = cat(1, JNDa.resJNDs, resJND);
     end
-
-    % Investigate some general stats now that we have compiled all the runs we
-    % want to look at.
-    JNDa = generalJNDStats(JNDa);
-
-    % Save the structure for future grouped analysis
-    dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [curPart 'f0AcuityPooledResults.mat']);
-    fprintf('\nSaving Pooled JND Results for %s\n', curPart)
-    save(dirs.SavResultsFile, 'JNDa')
-
-    % Draw 
-    drawJNDResults(JNDa, dirs.SavResultsDir)
 end
+fprintf('Elapsed time was %f min\n', toc/60)
 end
 
 function resJND = initJNDAnalysis()
@@ -140,17 +140,4 @@ resJND.distAtIncorrectOpt2 = UD.x(resJND.trialsAtIncorrectOpt2)';
 resJND.JNDScore        = JNDScore;
 resJND.LastSetAccuracy = round(LastSetAccuracy, 1);
 resJND.catchAccuracy   = round(0); %Currently N/A, but maybe used again later
-end
-
-function JNDa = generalJNDStats(JNDa)
-resJNDs = JNDa.resJNDs;
-
-JNDa.numJNDScores        = length(resJNDs);
-allJNDScores             = [resJNDs.JNDScore];
-allAccuracies            = [resJNDs.LastSetAccuracy];
-
-JNDa.JNDScoreMean        = round(mean(allJNDScores), 2);
-JNDa.JNDScoreSE          = std(allJNDScores)/sqrt(JNDa.numJNDScores);
-JNDa.lastSetAccuracyMean = round(mean(allAccuracies), 1);
-JNDa.lastSetAccuracySE   = std(allAccuracies)/sqrt(JNDa.numJNDScores);
 end

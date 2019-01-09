@@ -1,17 +1,17 @@
-function drawJNDResults(JNDa, saveResultsDir)
+function drawJNDResults(res, saveResultsDir)
 % drawJNDResults() displays the results from a single subject's JND runs.
 %
 % This function calls the following helper functions
 % -tight_subplot
 % -export_fig
 
-participant = JNDa.resJNDs(1).participant;
-numRuns     = length(JNDa.resJNDs);
+participant = res.studyID;
+numRuns     = length(res.runs);
 
-f0        = JNDa.resJNDs(1).f0;
-JNDScoreM = JNDa.JNDScoreMean;
+f0        = res.f0;
+JNDScoreM = res.JNDScoreMean;
 
-selectOpt = JNDa.resJNDs(1).selectOpt;
+selectOpt = res.selectOpt;
 
 plotpos = [50 150];
 plotdim = [1600 750];
@@ -37,23 +37,22 @@ ha = tight_subplot(2, 2, [0.15 0.06], [0.1 0.1], [0.05 0.03]);
 
 for ii = 1:numRuns
     % Set up some specifics of this recording
-    resJND    = JNDa.resJNDs(ii);
-    curRun    = resJND.run;
-    trlsComp  = resJND.trialsCompleted;
-    JNDScore  = resJND.JNDScore;
-    catchAccu = resJND.LastSetAccuracy;
+    curRun    = res.runs{ii};
+    trlsComp  = res.trialsCompleted(ii);
+    JNDScore  = res.JNDScores(ii);
+    catchAccu = res.LastSetAccuracies(ii);
     
-    distProg = resJND.distProgression;
-    revTrl   = resJND.trialsAtReversals;
-    revDst   = resJND.distAtReversals;    
-    opt1CTrl = resJND.trialsAtCorrectOpt1;
-    opt1CDst = resJND.distAtCorrectOpt1;
-    opt1ITrl = resJND.trialsAtIncorrectOpt1;
-    opt1IDst = resJND.distAtIncorrectOpt1;
-    opt2CTrl = resJND.trialsAtCorrectOpt2;
-    opt2CDst = resJND.distAtCorrectOpt2;
-    opt2ITrl = resJND.trialsAtIncorrectOpt2;
-    opt2IDst = resJND.distAtIncorrectOpt2;
+    distProg = res.distProgression{ii};
+    revTrl   = res.trialsAtReversals{ii};
+    revDst   = res.distAtReversals{ii};    
+    opt1CTrl = res.trialsAtCorrectOpt1{ii};
+    opt1CDst = res.distAtCorrectOpt1{ii};
+    opt1ITrl = res.trialsAtIncorrectOpt1{ii};
+    opt1IDst = res.distAtIncorrectOpt1{ii};
+    opt2CTrl = res.trialsAtCorrectOpt2{ii};
+    opt2CDst = res.distAtCorrectOpt2{ii};
+    opt2ITrl = res.trialsAtIncorrectOpt2{ii};
+    opt2IDst = res.distAtIncorrectOpt2{ii};
     
     scoreNote = ['JND Score: ' num2str(JNDScore) ' cents'];
     accurNote = ['Last Trials Accuracy: ' num2str(catchAccu) '%'];
@@ -111,7 +110,7 @@ legend(aH,{['Correct ' selectOpt{1}],['Incorrect ' selectOpt{1}],'Reversals',['C
           'Position', [0.51 0.455 0.02 0.05],...
           'EdgeColor', [0.5 0.5 0.5])
 
-plTitle = [participant 'JNDStaircaseResults.jpg'];
+plTitle = [participant 'f0AcuityPooledResults.jpg'];
 saveFileName = fullfile(saveResultsDir, plTitle);
 export_fig(saveFileName) 
 end

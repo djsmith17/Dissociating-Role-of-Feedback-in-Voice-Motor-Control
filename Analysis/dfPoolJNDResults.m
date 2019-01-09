@@ -5,8 +5,8 @@ pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 pA.pAnalysis     = 'DRF_JND'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
-dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
-dirs.PooledConfigF = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'PooledConfig.mat']);
+dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);        % The directory to save Files/Figures
+dirs.PooledConfigF = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'PooledConfig.mat']);% The Pooled Config File for this Pooled Analysis
 
 % Can we find the Pooled Config File?
 if exist(dirs.PooledConfigF, 'file') == 0
@@ -39,7 +39,7 @@ for ii = 1:pA.numPart
     subjRes  = [];
     for jj = 1:pA.numRuns
         run              = pA.runs{jj};
-        dirs.SavFileDir  = fullfile(dirs.Results, participant, run);                      % Where results are saved
+        dirs.SavFileDir  = fullfile(dirs.Results, participant, 'JND');                      % Where results are saved
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
         if exist(dirs.SavFile, 'file') == 0
@@ -49,11 +49,152 @@ for ii = 1:pA.numPart
             % Returns a results struture of 'res'
         end
         
-        subjRes = cat(2, subjRes, res);
+        subjRes = cat(2, subjRes, resJND);
     end
     allDataStr = cat(1, allDataStr, subjRes);
 end
 
+allSubjRes = initSortedStruct(pA.numCond, pA.numRuns);
+allSubjRes.subject = 'Mean Participant Response';
+allSubjRes.curSess = allSubjRes.subject;
+allSubjRes.cond    = pA.cond;
+
+for ii = 1:pA.numPart
+    participant = pA.participants{ii};
+    fprintf('Sorting task conditions for %s\n', participant)
+    
+    sortStruc         = initSortedStruct(pA.numCond, pA.numRuns);
+    sortStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+    
+    sortStruc.curSess = sortStruc.subject;
+ 
+    for jj = 1:pA.numRuns
+        curRes = allDataStr(ii, jj);
+
+        sortStruc.studyID = curRes.participant; % Study ID
+        sortStruc.gender  = curRes.gender;
+%         sortStruc.age     = curRes.age;
+        sortStruc.f0      = curRes.f0;
+        
+        sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
+        allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
+        
+        sortStruc.distProgression{jj}   = curRes.distProgression;
+        sortStruc.trialsAtReversals{jj} = curRes.trialsAtReversals;
+        sortStruc.distAtReversals{jj}   = curRes.distAtReversals;
+        
+        sortStruc.trialsAtCorrectOpt1{jj}   = curRes.trialsAtCorrectOpt1;
+        sortStruc.distAtCorrectOpt1{jj}     = curRes.distAtCorrectOpt1;
+        sortStruc.trialsAtIncorrectOpt1{jj} = curRes.trialsAtIncorrectOpt1;
+        sortStruc.distAtIncorrectOpt1{jj}   = curRes.distAtIncorrectOpt1;
+        sortStruc.trialsAtCorrectOpt2{jj}   = curRes.trialsAtCorrectOpt2;
+        sortStruc.distAtCorrectOpt2{jj}     = curRes.distAtCorrectOpt2;
+        sortStruc.trialsAtIncorrectOpt2{jj} = curRes.trialsAtIncorrectOpt2;
+        sortStruc.distAtIncorrectOpt2{jj}   = curRes.distAtIncorrectOpt2;
+    end
+        
+    sortStruc = meanCondTrials(sortStruc);
+    sortStruc.pltName = pA.pltNameMVi{ii};
+    
+    pooledRunStr(ii)   = sortStruc;
+    
+    allSubjRes.expType    = sortStruc.expType;
+    allSubjRes.gender{ii} = sortStruc.gender;
+%     allSubjRes.age(ii)    = sortStruc.age;
+    
+%     Save the structure for future grouped analysis
+    dirs.SavResultsDirParti = fullfile(dirs.Results, participant, 'JND');
+    dirs.SavResultsFile = fullfile(dirs.SavResultsDirParti, [participant 'f0AcuityPooledResults.mat']);
+    fprintf('\nSaving Pooled JND Results for %s\n', participant)
+    save(dirs.SavResultsFile, 'sortStruc')
+
+    % Draw 
+    drawJNDResults(sortStruc, dirs.SavResultsDirParti)
+    close all
+end
+end
+
+function sortStr = initSortedStruct(numCond, numRun)
+% sortStr = initSortedStruct(numCond) initializes the structure that will
+% store the pooled results for each subject, or group of subjects. It is
+% created to have different sizes, based on the number of conditions that
+% are being tested against. I think this should generalize to subconditions
+% of conditions, or two condition crossing, but I have not tested that, and
+% currently the above scripts only consider one condition to test against. 
+
+% Basic info about the session, the recordings, the subjects
+sortStr.expType = [];
+sortStr.subject = [];
+sortStr.gender  = [];
+sortStr.age     = [];
+sortStr.f0      = [];
+sortStr.curSess = [];
+sortStr.studyID = [];
+sortStr.runs    = [];
+
+sortStr.instructions = [];
+sortStr.selectOpt    = [];
+
+sortStr.reversalsReached = [];
+sortStr.trialsCompleted  = [];
+sortStr.timeElapsed      = [];
+
+sortStr.distProgression = cell(numRun, 1);
+
+sortStr.trialsAtReversals = cell(numRun, 1);
+sortStr.distAtReversals   = cell(numRun, 1);
+
+sortStr.trialsAtCorrectOpt1   = cell(numRun, 1);
+sortStr.distAtCorrectOpt1     = cell(numRun, 1);
+sortStr.trialsAtIncorrectOpt1 = cell(numRun, 1);
+sortStr.distAtIncorrectOpt1   = cell(numRun, 1);
+sortStr.trialsAtCorrectOpt2   = cell(numRun, 1);
+sortStr.distAtCorrectOpt2     = cell(numRun, 1);
+sortStr.trialsAtIncorrectOpt2 = cell(numRun, 1);
+sortStr.distAtIncorrectOpt2   = cell(numRun, 1);
+
+sortStr.JNDScores         = [];
+sortStr.LastSetAccuracies = [];
+sortStr.catchAccuracies   = [];
+
+sortStr.obvSubj          = {};
+sortStr.obvAge           = [];
+sortStr.obvGender        = {};
+end
+
+function polRes = combineCondTrials(pA, curRes, polRes)
+
+whichCondAr = strcmp(pA.cond, eval(pA.condVar));
+wC          = find(whichCondAr == 1);            % Which Condition?
+
+polRes.runs         = cat(1, polRes.runs, {curRes.run});
+
+polRes.instructions = curRes.instructions;
+polRes.selectOpt    = curRes.selectOpt;
+
+polRes.reversalsReached = cat(1, polRes.reversalsReached, curRes.reversalsReached);
+polRes.trialsCompleted  = cat(1, polRes.trialsCompleted, curRes.trialsCompleted);
+polRes.timeElapsed      = cat(1, polRes.timeElapsed, curRes.timeElapsed);
+
+polRes.JNDScores         = cat(1, polRes.JNDScores, curRes.JNDScore);
+polRes.LastSetAccuracies = cat(1, polRes.LastSetAccuracies, curRes.LastSetAccuracy);
+polRes.catchAccuracies   = cat(1, polRes.catchAccuracies, curRes.catchAccuracy);
+
+polRes.obvSubj         = cat(1, polRes.obvSubj, curRes.participant);
+% polRes.obvAge          = cat(1, polRes.obvAge, curRes.age);
+polRes.obvGender       = cat(1, polRes.obvGender, curRes.gender);
+end
+
+function sortStruc = meanCondTrials(sortStruc)
+JNDScores  = sortStruc.JNDScores;
+Accuracies = sortStruc.LastSetAccuracies;
+
+numJNDScores   = length(JNDScores);
+
+sortStruc.JNDScoreMean        = round(mean(JNDScores), 2);
+sortStruc.JNDScoreSE          = std(JNDScores)/sqrt(numJNDScores);
+sortStruc.lastSetAccuracyMean = round(mean(Accuracies), 1);
+sortStruc.lastSetAccuracySE   = std(Accuracies)/sqrt(numJNDScores);
 end
 
 function pA = identifyPooledJNDResultsSet()
