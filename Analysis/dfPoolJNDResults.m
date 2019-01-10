@@ -109,9 +109,28 @@ for ii = 1:pA.numPart
     save(dirs.SavResultsFile, 'sortStruc')
 
     % Draw 
-    drawJNDResults(sortStruc, dirs.SavResultsDirParti)
+%     drawJNDResults(sortStruc, dirs.SavResultsDirParti)
     close all
 end
+
+stat.participants = {pooledRunStr.subject}';
+stat.genders      = {pooledRunStr.gender}';
+stat.f0           = {pooledRunStr.f0}';
+stat.JNDScoreMean = {pooledRunStr.JNDScoreMean}';
+stat.JNDScoreSE   = {pooledRunStr.JNDScoreSE}';
+stat.lastSetAccuracyMean = {pooledRunStr.lastSetAccuracyMean}';
+stat.lastSetAccuracySE   = {pooledRunStr.lastSetAccuracySE}';
+
+JNDStatTable = table(stat.participants,...
+                     stat.genders,...
+                     stat.f0,...
+                     stat.JNDScoreMean,...
+                     stat.JNDScoreSE,...
+                     stat.lastSetAccuracyMean,...
+                     stat.lastSetAccuracySE,...
+                     'VariableNames',...
+                     {'Participant', 'gender', 'f0', 'JNDScoreMean', 'JNDScoreSE', 'lastSetAccuracyMean', 'lastSetAccuracySE'});
+                 
 end
 
 function sortStr = initSortedStruct(numCond, numRun)
