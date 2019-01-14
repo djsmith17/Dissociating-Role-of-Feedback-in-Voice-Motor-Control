@@ -131,6 +131,17 @@ JNDStatTable = table(stat.participants,...
                      'VariableNames',...
                      {'Participant', 'gender', 'f0', 'JNDScoreMean', 'JNDScoreSE', 'lastSetAccuracyMean', 'lastSetAccuracySE'});
                  
+figure
+hist(cell2mat(JNDStatTable.JNDScoreMean))
+title('Mean JND Score Distribution')
+
+figure
+hist(cell2mat(JNDStatTable.lastSetAccuracyMean))
+title('Mean Last 4 Reversals Accuracy Distribution')
+
+
+JNDTableCSV = fullfile(dirs.SavResultsDir, 'JNDStatTable.csv');
+writetable(JNDStatTable, JNDTableCSV);
 end
 
 function sortStr = initSortedStruct(numCond, numRun)
