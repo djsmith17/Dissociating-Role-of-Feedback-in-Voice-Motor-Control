@@ -8,8 +8,11 @@ function dfRunPooledAnalysis()
 % dfRunPooledAnalysis() can be used for more than one set of recordings.
 %
 % Different PooledConfig files can be selected by inputing the name of the
-% pooled data set at line 17.
+% pooled data set at line 20.
 % 
+% Dependent on the following packages from the 'MATLAB-Toolboxes' Repo
+% -swtest
+%
 % Requires the Signal Processing Toolbox
 
 close all
@@ -747,20 +750,26 @@ for k = 1:nMeas
     for i = 1:numCond
         curFB = strcmp(curStatTable.AudFB, cond(i));
         
-        measure   = curStatTable{curFB, 2};
+        measure   = curStatTable{curFB, 2};        
         numObs    = length(measure);
-        measureM  = round(mean(measure), 2);
-        measureMed = round(median(measure), 2);
-        measureMin = round(min(measure), 2);
-        measureMax = round(max(measure), 2);
-        measureSD = round(std(measure), 2);
+        
+        measureTrans = log10(measure + 1 - min(measure));
+        
+        measureM  = round(mean(measureTrans), 2);
+        measureMed = round(median(measureTrans), 2);
+        measureMin = round(min(measureTrans), 2);
+        measureMax = round(max(measureTrans), 2);
+        measureSD = round(std(measureTrans), 2);
         measureSE = round(measureSD/sqrt(numObs), 2);
         
         measureSkew     = round(skewness(measure), 4);
         measureKurotsis = round(kurtosis(measure), 2);
         
-        measureZScore   = (measure-measureM)./measureSD;
-        [swtestResult, pValue, WStat] = swtest(measureZScore);
+        measureZScore   = (measureTrans-measureM)./measureSD;
+        [swH, swPValue, swTest] = swtest(measureZScore);
+        
+        swPValue = round(swPValue, 3);
+        swTest   = round(swTest, 3);
         
         measStat = [measureM;...
                     measureMin;...
@@ -770,17 +779,19 @@ for k = 1:nMeas
                     measureSE;...
                     measureSkew;...
                     measureKurotsis;...
-                    swtestResult];
+                    swH;...
+                    swPValue;...
+                    swTest];
         measStats = cat(2, measStats, measStat);
         
         step = 25;
         minBound = floor(measureMin/step)*step;
         maxBound = ceil(measureMax/step)*step;
-        distBin = minBound:step:maxBound;
-        nBins = length(distBin)-1;
+%         distBin = minBound:step:maxBound;
+%         nBins = length(distBin)-1;
         
         axes(ha(i))
-        histogram(measure, nBins, 'FaceColor', colors(i), 'EdgeColor', colors(i), 'BinLimits', [minBound maxBound])
+        histogram(measureTrans, 'FaceColor', colors(i), 'EdgeColor', colors(i))
         title(cond{i})
         box off;
         
@@ -794,7 +805,7 @@ for k = 1:nMeas
     suptitle({pA.pAnalysis, meas{k}})    
     
     allMeasureStats = cat(2, allMeasureStats, measStats);
-    dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis meas{k} 'DistributionPlot.jpg']);
+    dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis meas{k} 'DistributionPlotTrans.jpg']);
     export_fig(dirs.DistributionFigureFile)
     
     xlswrite(dirs.behavioralResultTable, measStats, meas{k})
