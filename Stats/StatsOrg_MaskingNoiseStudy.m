@@ -34,22 +34,24 @@ for k = 1:nMeas
         numObs    = length(measure);
         
         if k == 1
-            measureTrans = log10(measure);
+            measureTrans = boxcox(measure);
+            suffix = 'Trans';
         else
             measureTrans = measure;
+            suffix = '';
         end
         
-        measureM  = round(mean(measureTrans), 2);
-        measureMed = round(median(measureTrans), 2);
-        measureMin = round(min(measureTrans), 2);
-        measureMax = round(max(measureTrans), 2);
-        measureSD = round(std(measureTrans), 2);
-        measureSE = round(measureSD/sqrt(numObs), 2);
+        measureM   = round(mean(measure), 2);
+        measureMed = round(median(measure), 2);
+        measureMin = round(min(measure), 2);
+        measureMax = round(max(measure), 2);
+        measureSD  = round(std(measure), 2);
+        measureSE  = round(measureSD/sqrt(numObs), 2);
         
-        measureSkew     = round(skewness(measure), 4);
-        measureKurotsis = round(kurtosis(measure), 2);
+        measureSkew     = round(skewness(measureTrans), 4);
+        measureKurotsis = round(kurtosis(measureTrans), 2);
         
-        measureZScore   = (measureTrans-measureM)./measureSD;
+        measureZScore   = zscore(measureTrans);
         [swH, swPValue, swTest] = swtest(measureZScore);
         
         swPValue = round(swPValue, 3);
@@ -71,8 +73,8 @@ for k = 1:nMeas
         step = 25;
         minBound = floor(measureMin/step)*step;
         maxBound = ceil(measureMax/step)*step;
-%         distBin = minBound:step:maxBound;
-%         nBins = length(distBin)-1;
+        distBin = minBound:step:maxBound;
+        nBins   = length(distBin)-1;
         
         axes(ha(i))
         histogram(measureTrans, 8, 'FaceColor', colors(i), 'EdgeColor', colors(i))
@@ -89,7 +91,7 @@ for k = 1:nMeas
     suptitle({pA.pAnalysis, meas{k}})    
     
     allMeasureStats = cat(2, allMeasureStats, measStats);
-    dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis meas{k} 'DistributionPlotTrans.jpg']);
+    dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis meas{k} suffix 'DistributionPlot.jpg']);
     export_fig(dirs.DistributionFigureFile)
     
     xlswrite(dirs.behavioralResultTable, measStats, meas{k})
