@@ -33,7 +33,7 @@ for k = 1:nMeas
         measure   = curStatTable{curFB, 2};        
         numObs    = length(measure);
         
-        if k == 1
+        if k == 4
             measureTrans = boxcox(measure);
             suffix = 'Trans';
         else
@@ -41,6 +41,7 @@ for k = 1:nMeas
             suffix = '';
         end
         
+        % Calculate the Descriptive Stats
         measureM   = round(mean(measure), 2);
         measureMed = round(median(measure), 2);
         measureMin = round(min(measure), 2);
@@ -77,7 +78,11 @@ for k = 1:nMeas
         nBins   = length(distBin)-1;
         
         axes(ha(i))
-        histogram(measureTrans, 8, 'FaceColor', colors(i), 'EdgeColor', colors(i))
+        if k == 4
+            histogram(measureTrans, 8, 'FaceColor', colors(i), 'EdgeColor', colors(i))
+        else
+            histogram(measureTrans, nBins, 'FaceColor', colors(i), 'EdgeColor', colors(i), 'BinLimits', [minBound maxBound])
+        end
         title(cond{i})
         box off;
         
