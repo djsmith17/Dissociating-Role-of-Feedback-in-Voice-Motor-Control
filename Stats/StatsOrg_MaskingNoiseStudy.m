@@ -1,5 +1,7 @@
 function StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes)
 
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
+
 allSubjStatTable = allSubjRes.statTable;
 meas = {'StimMag', 'RespMag', 'RespPer'};
 
@@ -11,8 +13,8 @@ for k = curTestingMeas
     curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
 
     measureSummaryStrs     = [];
+    measureTAcrossCond     = [];
     variableStatAcrossCond = [];
-    % Start by looking at just the summary stats, and get an idea of how 
     for i = 1:numCond
         curFB = strcmp(curStatTable.AudFB, cond(i));
         
@@ -22,27 +24,14 @@ for k = curTestingMeas
         % Perform Standard Sumamry Stats
         [summaryStr, variableStat] = RawSummaryStats(meas{k}, measure);
         
-        [~, lambda] = boxcox(summaryStr.measure);
-        summaryStr.lambdaIdeal = lambda;
-        
-        % Concatenate the Summary Stat Arrays across condition
-        variableStatAcrossCond = cat(2, variableStatAcrossCond, variableStat);
-
-        % Concatenate the Structure for eventual Histogram and Transformed Values
-        measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);         
-    end    
-    
-    % Apply Transformation (if needed), and check normality
-    for i = 1:numCond
-        summaryStr   = measureSummaryStrs(i);
-        variableStat = variableStatAcrossCond(:,i);
-        
         if k == 4
             summaryStr.measureT = boxcox(summaryStr.measure);
             summaryStr.isTrans = 1;
             summaryStr.suffix  = 'Trans';
         else
             summaryStr.measureT = summaryStr.measure;
+            summaryStr.isTrans = 0;
+            summaryStr.suffix  = '';
         end
              
         % Use some function to describe the normality
@@ -51,19 +40,21 @@ for k = curTestingMeas
         % Add the Normality results to the variableStat Array
         variableStat = concateAdditionalStat(summaryStr, variableStat);
         
-        measureSummaryStrs(i)       = summaryStr;
-        variableStatAcrossCond(:,i) = variableStat;        
+        % Concatenate the Summary Stat Arrays across condition
+        variableStatAcrossCond = cat(2, variableStatAcrossCond, variableStat);
+
+        % Concatenate the Structure for Histogram and Transformed Values
+        measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
     plotHistograms(measureSummaryStrs, dirs, pA)
 %     measFit = fitrm(curStatTable, 'RespMag~AudFB');
 %     measSph = mauchly(measFit);
     
-    dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
 end
 
-dirs.rawVariableTableFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
-writetable(allSubjStatTable, dirs.rawVariableTableFile, 'WriteVariableNames',true)
+fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
+writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
 end
 
 function [summaryStr, variableStat] = RawSummaryStats(variableName, measure)
@@ -74,12 +65,7 @@ numObs    = length(measure);
 summaryStr.varName  = variableName;
 summaryStr.measure  = measure;        % Raw Data Values
 summaryStr.measureT = [];             % Transformed Data Values
-summaryStr.measureZ = [];             % Z-Scored Data Values
-
-summaryStr.lambdaIdeal = [];
-summaryStr.isTrans     = 0;
-summaryStr.suffix      = '';
-
+summaryStr.measureZ = [];             % Z-Scored Data Values 
 summaryStr.mean     = round(mean(measure), 2);
 summaryStr.median   = round(median(measure), 2);
 summaryStr.min      = round(min(measure), 2);
@@ -87,19 +73,14 @@ summaryStr.max      = round(max(measure), 2);
 summaryStr.SD       = round(std(measure), 2);
 summaryStr.SE       = round(summaryStr.SD/sqrt(numObs), 2);
 
-summaryStr.measureSkew     = [];
-summaryStr.measureKurtosis = [];
-summaryStr.swH             = [];
-summaryStr.swPValue        = [];
-summaryStr.swTest          = [];
+variableStat = {summaryStr.mean;...
+                summaryStr.median;...
+                summaryStr.min;...
+                summaryStr.max;...
+                summaryStr.SD;...
+                summaryStr.SE};
+                  
 
-variableStat    = cell(11, 1);
-variableStat{1} = summaryStr.mean;
-variableStat{2} = summaryStr.median;
-variableStat{3} = summaryStr.min;
-variableStat{4} = summaryStr.max;
-variableStat{5} = summaryStr.SD;
-variableStat{6} = summaryStr.SE;
 end
 
 function summaryStr = testNormality(summaryStr)
@@ -119,11 +100,11 @@ end
 
 function variableStat = concateAdditionalStat(summaryStr, variableStat)
 
-variableStat{7}  = summaryStr.measureSkew;
-variableStat{8}  = summaryStr.measureKurtosis;
-variableStat{9}  = summaryStr.swH;
-variableStat{10} = summaryStr.swPValue;
-variableStat{11} = summaryStr.swTest;
+variableStat = cat(1, variableStat, summaryStr.measureSkew);
+variableStat = cat(1, variableStat, summaryStr.measureKurtosis);
+variableStat = cat(1, variableStat, summaryStr.swH);
+variableStat = cat(1, variableStat, summaryStr.swPValue);
+variableStat = cat(1, variableStat, summaryStr.swTest);
 end
 
 function plotHistograms(measureSummaryStrs, dirs, pA)
