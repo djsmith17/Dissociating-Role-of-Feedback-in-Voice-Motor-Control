@@ -1,7 +1,5 @@
 function StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes)
 
-dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
-
 allSubjStatTable = allSubjRes.statTable;
 meas = {'StimMag', 'RespMag', 'RespPer'};
 
@@ -12,8 +10,20 @@ curTestingMeas = 1;
 for k = curTestingMeas
     curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
 
+    lambdas = [];
+    for i = 1:numCond
+        curFB = strcmp(curStatTable.AudFB, cond(i));
+        
+        % Identify the Variable and Condition
+        measure   = curStatTable{curFB, 2};
+        
+        [~, lambda] = boxcox(measure);
+        lambdas = cat(1, lambdas, lambda);
+    end
+    
+    usedLambda = lambdas(3);
+    
     measureSummaryStrs     = [];
-    measureTAcrossCond     = [];
     variableStatAcrossCond = [];
     for i = 1:numCond
         curFB = strcmp(curStatTable.AudFB, cond(i));
@@ -24,14 +34,18 @@ for k = curTestingMeas
         % Perform Standard Sumamry Stats
         [summaryStr, variableStat] = RawSummaryStats(meas{k}, measure);
         
-        if k == 4
-            summaryStr.measureT = boxcox(summaryStr.measure);
-            summaryStr.isTrans = 1;
-            summaryStr.suffix  = 'Trans';
+        summaryStr.idealLambda = lambdas(i);
+        
+        if k == 1
+            summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
+            summaryStr.isTrans    = 1;
+            summaryStr.suffix     = 'TransACBC';
+            summaryStr.usedLambda = usedLambda;
         else
-            summaryStr.measureT = summaryStr.measure;
-            summaryStr.isTrans = 0;
-            summaryStr.suffix  = '';
+            summaryStr.measureT   = summaryStr.measure;
+            summaryStr.isTrans    = 0;
+            summaryStr.suffix     = '';
+            summaryStr.usedLambda = 'N/A';
         end
              
         % Use some function to describe the normality
@@ -50,6 +64,7 @@ for k = curTestingMeas
 %     measFit = fitrm(curStatTable, 'RespMag~AudFB');
 %     measSph = mauchly(measFit);
     
+    dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
 end
 
@@ -65,7 +80,9 @@ numObs    = length(measure);
 summaryStr.varName  = variableName;
 summaryStr.measure  = measure;        % Raw Data Values
 summaryStr.measureT = [];             % Transformed Data Values
-summaryStr.measureZ = [];             % Z-Scored Data Values 
+summaryStr.measureZ = [];             % Z-Scored Data Values
+summaryStr.idealLambda = [];
+summaryStr.usedLambda  = [];
 summaryStr.mean     = round(mean(measure), 2);
 summaryStr.median   = round(median(measure), 2);
 summaryStr.min      = round(min(measure), 2);
