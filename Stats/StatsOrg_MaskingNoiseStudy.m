@@ -3,7 +3,6 @@ function StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes)
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
 allSubjStatTable = allSubjRes.statTable;
-n = height(allSubjStatTable);
 meas = {'StimMag', 'RespMag', 'RespPer'};
 units = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
@@ -14,12 +13,11 @@ nMeas = length(meas);
 cond    = pA.cond;
 numCond = pA.numCond;
 
+curTestingMeas = 1;
+
 allMeasureStats = [];
-for k = 1:nMeas
+for k = curTestingMeas
     curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
-    
-%     measFit = fitrm(curStatTable, 'StimMag~AudFB');
-%     measSph = mauchly(measFit);
     
     measDist = figure('Color', [1 1 1]);
     plotpos = [10 10]; plotdim = [1300 800];
@@ -30,33 +28,29 @@ for k = 1:nMeas
     for i = 1:numCond
         curFB = strcmp(curStatTable.AudFB, cond(i));
         
-        measure   = curStatTable{curFB, 2};        
-        numObs    = length(measure);
+        measure   = curStatTable{curFB, 2};
+        
+        [summaryStr, pooledVariable] = RawSummaryStats(measure);
         
         if k == 4
-            measureTrans = boxcox(measure);
+            summaryStr.measureT = boxcox(summaryStr.measure);
             suffix = 'Trans';
         else
-            measureTrans = measure;
+            summaryStr.measureT = summaryStr.measure;
             suffix = '';
         end
+                
+        summaryStr.measureSkew     = round(skewness(summaryStr.measureT), 4);
+        summaryStr.measureKurtosis = round(kurtosis(summaryStr.measureT), 2);
         
-        % Calculate the Descriptive Stats
-        measureM   = round(mean(measure), 2);
-        measureMed = round(median(measure), 2);
-        measureMin = round(min(measure), 2);
-        measureMax = round(max(measure), 2);
-        measureSD  = round(std(measure), 2);
-        measureSE  = round(measureSD/sqrt(numObs), 2);
+        summaryStr.measureZ        = zscore(summaryStr.measureT);
+        [swH, swPValue, swTest]    = swtest(summaryStr.measureZ);
         
-        measureSkew     = round(skewness(measureTrans), 4);
-        measureKurotsis = round(kurtosis(measureTrans), 2);
+        summaryStr.swH      = swH;
+        summaryStr.swPValue = round(swPValue, 3);
+        summaryStr.swTest   = round(swTest, 3);
         
-        measureZScore   = zscore(measureTrans);
-        [swH, swPValue, swTest] = swtest(measureZScore);
-        
-        swPValue = round(swPValue, 3);
-        swTest   = round(swTest, 3);
+        pooledVariable = concateAdditionalStat(summaryStr, pooledVariable);
         
         measStat = [measureM;...
                     measureMin;...
@@ -69,7 +63,7 @@ for k = 1:nMeas
                     swH;...
                     swPValue;...
                     swTest];
-        measStats = cat(2, measStats, measStat);
+        measStats = cat(2, measStats, summaryStr);
         
         step = 25;
         minBound = floor(measureMin/step)*step;
@@ -93,7 +87,11 @@ for k = 1:nMeas
         plot(xValues, normcdf(xValues, 0, 1), 'r-')
         legend('Empirical CDF','Standard Normal CDF','Location','best')        
     end
-    suptitle({pA.pAnalysis, meas{k}})    
+    suptitle({pA.pAnalysis, meas{k}})
+    
+%     measFit = fitrm(curStatTable, 'RespMag~AudFB');
+%     measSph = mauchly(measFit);
+    
     
     allMeasureStats = cat(2, allMeasureStats, measStats);
     dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis meas{k} suffix 'DistributionPlot.jpg']);
@@ -104,4 +102,38 @@ end
 
 fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
+end
+
+function [summaryStr, pooledVariable] = RawSummaryStats(measure)
+
+numObs    = length(measure);
+
+% Calculate the Descriptive Stats
+summaryStr.measure  = measure;        % Raw Data Values
+summaryStr.measureT = [];             % Transformed Data Values
+summaryStr.measureZ = [];             % Z-Scored Data Values 
+summaryStr.mean     = round(mean(measure), 2);
+summaryStr.median   = round(median(measure), 2);
+summaryStr.min      = round(min(measure), 2);
+summaryStr.max      = round(max(measure), 2);
+summaryStr.SD       = round(std(measure), 2);
+summaryStr.SE       = round(summaryStr.SD/sqrt(numObs), 2);
+
+pooledVariable = {summaryStr.mean;...
+                  summaryStr.median;...
+                  summaryStr.min;...
+                  summaryStr.max;...
+                  summaryStr.SD;...
+                  summaryStr.SE};
+                  
+
+end
+
+function pooledVariable = concateAdditionalStat(summaryStr, pooledVariable)
+
+pooledVariable = cat(1, pooledVariable, summaryStr.measureSkew);
+pooledVariable = cat(1, pooledVariable, summaryStr.measureKurtosis);
+pooledVariable = cat(1, pooledVariable, summaryStr.swH);
+pooledVariable = cat(1, pooledVariable, summaryStr.swPValue);
+pooledVariable = cat(1, pooledVariable, summaryStr.swTest);
 end
