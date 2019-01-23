@@ -40,11 +40,11 @@ for k = curTestingMeas
             summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
             summaryStr.isTrans    = 1;
             summaryStr.suffix     = 'TransACBC';
-            summaryStr.usedLambda = usedLambda;
+            summaryStr.usedLambda = num2str(usedLambda);
         else
             summaryStr.measureT   = summaryStr.measure;
             summaryStr.isTrans    = 0;
-            summaryStr.suffix     = '';
+            summaryStr.suffix     = '   noTrans';
             summaryStr.usedLambda = 'N/A';
         end
              
@@ -128,8 +128,8 @@ function plotHistograms(measureSummaryStrs, dirs, pA)
 
 units  = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
-mu     = '\mu';
-sigma  = '\sigma';
+sigma  = '\sigma'; mu = '\mu';
+lambda = '\lambda';
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -157,7 +157,9 @@ for ii = 1:numCond
     else
         histogram(summaryStr.measureT, nBins, 'FaceColor', colors(ii), 'EdgeColor', colors(ii), 'BinLimits', [minBound maxBound])
     end
-    title(cond{ii})
+    
+    histoTitle = [cond{ii} ' (WStat = ' num2str(summaryStr.swTest) ')'];
+    title(histoTitle)
     box off;
 
     axes(ha(ii+numCond))
@@ -167,7 +169,14 @@ for ii = 1:numCond
     plot(xValues, normcdf(xValues, 0, 1), 'r-')
     legend('Empirical CDF','Standard Normal CDF','Location','best') 
 end
-suptitle({pA.pAnalysis, varName})
+suptitle({pA.pAnalysis, [varName suffix]})
+
+annotation('textbox',[0.8 0.88 0.45 0.1],...
+           'string', {[lambda ' = ' summaryStr.usedLambda]},...
+           'LineStyle','none',...
+            'FontWeight','bold',...
+            'FontSize',14,...
+            'FontName','Arial');
 
 dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName suffix 'DistributionPlot.jpg']);
 export_fig(dirs.DistributionFigureFile)
