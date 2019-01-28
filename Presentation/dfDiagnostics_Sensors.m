@@ -1,8 +1,7 @@
 function dfDiagnostics_Sensors()
-% dfDiagnostics_Sensors() collects data from the NIDAQ in the way that the main experimental A quick test of the force sensors before running the actual experiment.
-% This makes sure that the sensors are working they should be and we can
-% continue with the experiment. Eventually this will also include the
-% pressure sensor. 
+% dfDiagnostics_Sensors() collects data from the NIDAQ under standard 
+% conditions to test how the recordings look before entering a full
+% experiment.
 %
 % This script calls the following (4) functions:
 % dfDirs.m
@@ -21,13 +20,13 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'NewSensorTest_Winter18', 'DS31', '5', '1', 'NP (7 Psi Sensor), 50ft + small split + GB2','no'};
+defaultanswer = {'NewSensorTest_Winter18', 'DS54', '5', '1', 'NP(7Psi), Booth + GB2 (Wall PWR)','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
 
 if isempty(ExpPrompt)
-    return
+    returns
 end
 
 %Experiment Configurations
