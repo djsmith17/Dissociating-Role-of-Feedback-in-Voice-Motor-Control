@@ -6,19 +6,23 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 cond    = pA.cond;
 numCond = pA.numCond;
 
-curTestingMeas = 1;
+curTestingMeas = 2;
 for k = curTestingMeas
     curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
 
     lambdas = [];
-    for i = 1:numCond
-        curFB = strcmp(curStatTable.AudFB, cond(i));
-        
-        % Identify the Variable and Condition
-        measure   = curStatTable{curFB, 2};
-        
-        [~, lambda] = boxcox(measure);
-        lambdas = cat(1, lambdas, lambda);
+    if k == 1
+        for i = 1:numCond
+            curFB = strcmp(curStatTable.AudFB, cond(i));
+
+            % Identify the Variable and Condition
+            measure   = curStatTable{curFB, 2};
+
+            [~, lambda] = boxcox(measure);
+            lambdas = cat(1, lambdas, lambda);
+        end
+    else
+        lambdas = [0 0 0];
     end
     
     usedLambda = lambdas(3);
@@ -61,9 +65,13 @@ for k = curTestingMeas
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
     plotHistograms(measureSummaryStrs, dirs, pA)
-%     measFit = fitrm(curStatTable, 'RespMag~AudFB');
-%     measSph = mauchly(measFit);
     
+    if k == 2
+        testParameteric(curStatTable)
+    else
+        testNonParameteric(curStatTable)
+    end
+
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
 end
@@ -180,4 +188,16 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
 
 dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName suffix 'DistributionPlot.jpg']);
 export_fig(dirs.DistributionFigureFile)
+end
+
+function testParameteric(curStatTable)
+
+measFit = fitrm(curStatTable, 'RespMag~AudFB');
+measSph = mauchly(measFit);
+    
+
+end
+
+function testNonParametric()
+
 end
