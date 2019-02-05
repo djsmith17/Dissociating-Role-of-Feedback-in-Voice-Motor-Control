@@ -21,7 +21,7 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'DS1', '4', '1', '2.0K_4','yes'};
+defaultanswer = {'NewSensorTest_Winter18', 'DS54', '5', '1', 'NP(7Psi), Booth + GB2 (Wall PWR)','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 if isempty(ExpPrompt)
