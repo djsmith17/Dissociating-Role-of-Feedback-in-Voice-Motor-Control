@@ -70,7 +70,7 @@ niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
 %ZeroMean the Pressure Offset
-niAn.sensorPz = correctBaseline(niAn.sensorP, niAn.sRate);
+niAn.sensorPz = convertPressureSensor(niAn.sensorP, niAn.sRate);
 
 %Preprocessing some of the Force sensors
 niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
@@ -147,24 +147,140 @@ lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
 end
 
-function sensorPres = correctBaseline(sensor, fs)
-% sensorZeroed = correctBaseline(sensor, fs) zeromeans a set of trials 
-% against the 1st sec of the 1st trial. This fixes the offset of some NIDAQ
-% recordings (esp. the Pressure sensor)
+function niAn = initNIDAQAnalysisStruct()
 
-MaxPres      = 7;
-MinPres      = 0;
-MaxVol       = 4.5;
-MinVol       = 0.444;
+niAn.AnaType   = 'NIDAQ';
+niAn.expType   = [];
+niAn.subject   = [];
+niAn.run       = [];
+niAn.curSess   = [];
+niAn.f0Type    = 'Praat';
+niAn.f0AnaFile = [];
+niAn.gender    = [];
+niAn.AudFB     = [];
+niAn.AudFBSw   = [];
+niAn.bTf0b     = [];
 
-% firstS       = 1:(1*fs);          % Grab the first second
-% firstT       = sensor(firstS, 1); % Grab the 1st sec of 1st trial
-% meanBaseLine = mean(firstT);      % Mean value of 1st sec of 1st trial
+niAn.balloon     = [];
+niAn.sensorPType = [];
 
-m = (MaxPres - MinPres) / (MaxVol - MinVol);
-b = MinPres - m*MinVol;
+niAn.sRate     = [];
+niAn.numCh     = [];
+niAn.numSamp   = [];
+niAn.numTrial  = [];
+niAn.trialLen  = [];
+niAn.trialType = [];
+niAn.expTrigs  = [];
+niAn.dnSamp    = [];
 
-sensorPres = sensor*m + b; % Subtract that mean value from all points in all trials. 
+niAn.ContTrials    = [];
+niAn.contIdx       = [];
+niAn.PertTrials    = [];
+niAn.pertIdx       = [];
+niAn.numContTrials = [];
+niAn.numPertTrials = [];
+
+niAn.time     = [];
+niAn.pertSig  = [];
+niAn.sensorFC = [];
+niAn.sensorFN = [];
+niAn.sensorP  = [];
+niAn.audioM   = [];
+niAn.audioH   = [];
+niAn.sensorO  = [];
+
+niAn.sensorPz  = [];
+niAn.sensorFCz = [];
+niAn.sensorFNz = [];
+
+niAn.sRateDN     = [];
+niAn.time_DN     = [];
+niAn.pertSig_DN  = [];
+niAn.sensorP_DN  = [];
+niAn.sensorFC_DN = [];
+niAn.sensorFN_DN = [];
+
+niAn.pertSig_p  = [];
+niAn.sensorP_p  = [];
+niAn.sensorFC_p = [];
+niAn.sensorFN_p = [];
+
+niAn.pertSD = initSensorDynamicsStruct();
+niAn.presSD = initSensorDynamicsStruct();
+niAn.fSCSD  = initSensorDynamicsStruct();
+niAn.fSNSD  = initSensorDynamicsStruct();
+end
+
+function SD = initSensorDynamicsStruct()
+
+SD.time   = [];
+SD.sensor = [];
+SD.fs     = [];
+
+% Per Trial sensor index and time value of rising edge start and falling
+% edge end (expecting ~step function)
+SD.TrigIdx  = [];
+SD.TrigTime = [];
+
+% Per Trial lag time of trigger to start of rising edge
+SD.lagTimes  = [];
+SD.lagTimeM  = [];
+SD.lagTimeSE = [];
+
+% Per Trial rise time of rising edge (step function)
+SD.riseTimes  = [];
+SD.riseTimeM  = [];
+SD.riseTimeSE = [];
+
+% Per trial value at Onset/Offset (pressure, voltage, etc)
+SD.OnOffVal   = [];
+SD.OnOffValM  = [];
+SD.OnOffValSE = [];
+
+% Per trial loss in value (pressure, voltage, etc)
+SD.pTrialLoss   = [];
+SD.pTrialLossM  = [];
+SD.pTrialLossSE = [];
+
+% Sensor recording aligned at perturbation trigger
+SD.timeAl   = [];
+SD.sensorAl = [];
+
+% Sensor recording sectioned around onset/offset
+SD.timeSec    = [];
+SD.sensorSec  = [];
+SD.sensorSecM = [];
+end
+
+function sensorPres = convertPressureSensor(sensorV, sensorType)
+% sensorPres = convertPressureSensor(sensorV, sensorType) converts the 
+% the recorded voltage from the pressure sensor to the actual pressure
+% of the system. The conversion is doing using the transfer function of the
+% sensor circuit itself. The sensor being used will have a different Max
+% Voltage and therefore a slightly different function. See the attached 
+% links for information about the sensors used and their transfer functions
+
+switch sensorType
+    case 'Five'
+        PMax      = 5;
+        PMin      = 0;
+        VMax      = 4.5;
+        VMin      = 0.5;
+        Vsupply   = 5;
+    case 'Seven'
+        PMax      = 7;
+        PMin      = 0;
+        VMax      = 4.5;
+        VMin      = 0.5;
+        Vsupply   = 5;
+end
+
+sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
+% 
+% m = (PMax - PMin) / (VMax - VMin);
+% b = PMin - m*VMin;
+% 
+% sensorPres = sensorV*m + b; % Convert from voltage to pressure
 end
 
 function sensorPP = sensorPreProcessing(sensor, sRate)
