@@ -20,7 +20,7 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'NewSensorTest_Winter18', 'DS54', '5', '1', 'NP(7Psi), Booth + GB2 (Wall PWR)','yes'};
+defaultanswer = {'NewSensorTest_Winter18', 'DS61', '2', '1', 'NP(7Psi)','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
@@ -82,7 +82,7 @@ if strcmp(collectNewData, 'yes')
     
     % Select the trigger points for perturbation onset and offset and creating
     % the digital signal to be sent to the NIDAQ
-    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);  
+    [expParam.sigs, expParam.trigs, expParam.vSigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);  
     
     DAQin = []; DAQtime = [];
     LR = LiveSensorResult(expParam, 2);
@@ -92,8 +92,9 @@ if strcmp(collectNewData, 'yes')
         expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
         
         %Setup which perturb file we want
-        NIDAQsig = [expParam.sigs(:,ii) nVS];
-        queueOutputData(s, NIDAQsig);        
+        NIDAQsig = [expParam.sigs(:,ii) expParam.vSigs(:,ii)];
+        queueOutputData(s, NIDAQsig);
+        figure; plot(NIDAQsig)
         
         fprintf('Running Trial %d\n', ii)
         % Play out the Analog Perturbatron Signal. 
