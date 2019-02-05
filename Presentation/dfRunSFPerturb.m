@@ -27,24 +27,19 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF1';   % Subject#, Pilot#, null
+subject    = 'DRF12';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
-balloon    = '2E4';     % Which perturbation balloon?
-tightness  = 'n/a';     % (inches of slack in bungie cord)
+balloon    = 'GB3';     % Which perturbation balloon?
+tightness  = '29';     % (cm of slack in bungie cord)
 baseV      = 'BV1';
 
 % Dialogue box asking for what type of Auditory Feedback
-AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Feedback', 'AC Masking Noise', 'AC/BC Masking Noise', 'AC Masking Noise');
+AudFB = questdlg('What type of Auditory Feedback?','Auditory Feedback', 'Voice Feedback', 'Masking Noise', 'Masking Noise');
 switch AudFB
     case 'Voice Feedback'
-        headCk = questdlg('Are the BC Headphones unplugged?','BC Headphones','Yes', 'Yes');
         AudFBSw = 0;
-    case 'AC Masking Noise'
-        headCk = questdlg('Are the BC Headphones unplugged?','BC Headphones','Yes', 'Yes');
-        AudFBSw = 2;
-    case 'AC/BC Masking Noise'
-        headCk = questdlg('Are the BC Headphones plugged in and on?','BC Headphones','Yes', 'Yes');
+    case 'Masking Noise'
         AudFBSw = 2;
 end
 
@@ -85,6 +80,7 @@ expParam.AudFBSw      = AudFBSw;
 expParam.AudPert      = '-100 cents ramped'; % Var not used here. Just saving for balance
 expParam.AudPertSw    = 1;                   % Var not used here. Just saving for balance
 expParam.bVis         = 0;
+expParam.sensorPType  = 'Seven';
 
 expParam.rdyPause  = 5.0; % How long to show them 'Ready'
 expParam.cuePause  = 1.0; % How long the cue period lasts
@@ -239,14 +235,6 @@ DRF.p           = p;
 DRF.audStimP    = audStimP;
 DRF.DAQin       = DAQin;
 DRF.rawData     = rawData; 
-
-switch recType
-    case 'Practice'
-        for ii = 1:expParam.numTrial
-            dfShowPraatSpect(dirs, expParam.curSess, ['Trial' num2str(ii)])
-        end
-%         DRF.qRes = dfAnalysisAudioQuick(DRF, 1);
-end
 
 % Save the large data structure (only if not practice trials)
 dirs.RecFileDir = fullfile(dirs.RecFileDir, [expParam.subject expParam.run dirs.saveFileSuffix 'DRF.mat']);

@@ -16,9 +16,9 @@ function dfRunSubjAnalysis()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF1'};   % List of multiple participants.
+AVar.participants  = {'DRF1', 'DRF2', 'DRF4', 'DRF5', 'DRF6', 'DRF7'}; % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF2'}; %    List of multiple runs.
+AVar.runs          = {'AF1', 'AF2'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
@@ -191,7 +191,7 @@ res.AuNiDelaysinc = auRes.AuNiDelaysinc;
 
 %Check the Ni trials against the Au trials
 presInd = [];
-if res.numPertTrialsFin < res.numPertTrialsNi
+if res.numPertTrialsFin < res.numPertTrialsNi && strcmp(res.expType, 'Somatosensory Perturbation_Perceptual')
     setPertTrials = res.allIdxFin(res.pertIdxFin);
     for ii = 1:length(res.pertIdxNi)
 

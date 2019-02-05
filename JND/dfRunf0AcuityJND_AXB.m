@@ -42,8 +42,8 @@ if isempty(answer)
     return
 end
 
-num_trials = questdlg('Practice or Full?','Length','Practice','Full','Full') ;
-switch num_trials
+setType = questdlg('Practice or Full?','Length','Practice','Full','Full') ;
+switch setType
     case 'Practice'
         totalTrials = 20;
     case 'Full'
@@ -55,6 +55,7 @@ UD.subject   = answer{1};
 UD.run       = answer{2};
 UD.tokenFile = answer{3};
 UD.inst      = answer{4};
+UD.selectOpt = {'First'; 'Last'};
 UD.gender    = answer{5};
 
 dirs = dfDirs(UD.project);
@@ -116,7 +117,7 @@ waitForKeyPress  = 3;   % Seconds
 UD.ISI           = 0.5; % Interstimulus interval (ISI) within each trial (between stimulus 1 and stimulus 2 in pair) in seconds
 UD.measuredDelay = 0.0; % Measured delay of instruments to be incoportated for accurate ISI and token length
 
-fprintf('Starting f0 Acuity Task for %s with f0 of %f\n\n', UD.subject, UD.subjf0)
+fprintf('\nStarting %s f0 Acuity Task for\n%s %s with f0 of %f\n\n', setType, UD.subject, UD.run, UD.subjf0)
 %%%%%Visual Presentation
 [ctrMsg, leftArw, righArw] = JNDVisualPresentation;
 pause(5);
@@ -228,7 +229,7 @@ UD.catchCorrect    = sum(UD.catchResponse);
 UD.catchAccuracy   = 100*(UD.catchCorrect/UD.catchTrials);
 
 expFiles = fullfile(dirs.RecFileDir, [UD.subject UD.run 'DRF.mat']);
-switch num_trials
+switch setType
     case 'Practice'
         return
     case 'Full'

@@ -5,28 +5,29 @@ function drawDAQAlignedPressure(res, saveResultsDir, sv2F)
 curSess  = res.curSess;         % The current experiment details (Subject/Run)
 numTrial = res.numPertTrialsNi; % Number of Catch Trials (Only relevant ones)
 AudFB    = res.AudFB;
+balloon  = res.balloon;
 
-time     = res.timeSAl;
-sensor   = res.sensorPAl;
+presSD = res.presSD;
+
+time     = presSD.timeAl;
+sensor   = presSD.sensorAl;
 limits   = res.limitsPAl;
 
-LagTimeM  = 1000*res.lagTimePm(1,1);
-LagTimeSE = round(1000*res.lagTimePm(2,1),1);
+LagTimeM  = presSD.lagTimeM(1); % Onset
+LagTimeSE = presSD.lagTimeSE(1); % Onset
 LagNote = ['Mean Onset Lag: ' num2str(LagTimeM) ' ms ± ' num2str(LagTimeSE) ' ms'];
 
-RiseTimeM  = 1000*res.riseTimePm;
-RiseTimeSE = round(1000*res.riseTimePSE,1);
+RiseTimeM  = presSD.riseTimeM(1); % Onset
+RiseTimeSE = presSD.riseTimeSE(1); % Onset
 RiseNote = ['Mean Rise Time: ' num2str(RiseTimeM) ' ms ± ' num2str(RiseTimeSE) ' ms'];
 
-PresLossM  = round(res.pTrialLossPm, 3);
-PresLossSE = round(res.pTrialLossPSE, 3);
-PresLossNote = ['Mean Pressure Loss: ' num2str(PresLossM) ' psi ± ' num2str(PresLossSE) ' psi'];
+OnOfValM  = presSD.OnOffValM;
+OnOfValSE = presSD.OnOffValSE;
+PlatStNote = ['Mean Plataeu (Start) Val: ' num2str(OnOfValM(1)) ' psi ± ' num2str(OnOfValSE(1)) ' psi'];
 
-if isfield(res, 'balloon')
-    balloon = res.balloon;
-else
-    balloon = 'N/A';
-end
+PresLossM  = presSD.pTrialLossM;
+PresLossSE = presSD.pTrialLossSE;
+PresLossNote = ['Mean Pressure Loss: ' num2str(PresLossM) ' psi ± ' num2str(PresLossSE) ' psi'];
 
 curSess(strfind(curSess, '_')) = ' ';
 balloon(strfind(balloon, '_')) = '';
@@ -38,7 +39,7 @@ trialColors = distinguishable_colors(numTrial);
 CombinedSensor = figure('Color', [1 1 1]);
 set(CombinedSensor, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-plot([0 0], [-1 5], 'k-', 'LineWidth', 2)
+plot([0 0], [-1 20], 'k-', 'LineWidth', 2)
 
 for ii = 1:numTrial
     hold on
@@ -63,14 +64,15 @@ pltlgd = legend(h, lgdNames);
 set(pltlgd, 'box', 'off',...
             'location', 'NorthWest'); 
 
-t = annotation('textbox',[0.65 0.76 0.9 0.1],...
+t = annotation('textbox',[0.66 0.80 0.9 0.1],...
                'string', {LagNote;...
                           RiseNote;...
+                          PlatStNote;...
                           PresLossNote;...
                           ['Balloon: ' balloon ]},...
                 'LineStyle','none',...
                 'FontWeight','bold',...
-                'FontSize',10,...
+                'FontSize',9,...
                 'FontName','Arial');
 
 if sv2F == 1

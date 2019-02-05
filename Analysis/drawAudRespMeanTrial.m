@@ -19,8 +19,8 @@ meanf0HeadOffset = res.audioHf0MeanPert(:,3);
 CIf0HeadOffset   = res.audioHf0MeanPert(:,4);
 limits           = res.limitsAMH;
 
-plotpos = [10 10];
-plotdim = [1600 800];
+plotpos = [10 100];
+plotdim = [1600 600];
 MeanTrialAudResp = figure('Color', [1 1 1]);
 set(MeanTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 

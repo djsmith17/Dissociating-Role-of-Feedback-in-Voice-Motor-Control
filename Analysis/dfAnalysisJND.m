@@ -13,98 +13,131 @@ function dfAnalysisJND()
 %
 % This script has the following subfunctions:
 % -initJNDAnalysis()
-
-prompt = {'Subject ID:',...
-          'Run Type:',...
-          'Runs to Analyze:'};
-name = 'Subject Information';
-numlines = 1;
-defaultanswer = {'null', 'fAX', '1, 2, 3, 4'};
-answer = inputdlg(prompt, name, numlines, defaultanswer);
-
-if isempty(answer)
-    return
-end
+tic
+close all
 
 % Initalize the analysis structure
-JNDa = initJNDAnalysis();
-
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-JNDa.participant  = answer{1};
-JNDa.runType      = answer{2};
-num = textscan(answer{3}, '%f', 'Delimiter', ',');
-JNDa.runs2Analyze = num{1}';
+JNDa.participants = {'DRF1',...
+                      'DRF2',...
+                      'DRF4',...
+                      'DRF5',...
+                      'DRF6',...
+                      'DRF7',...
+                      'DRF8',...
+                      'DRF9',...
+                      'DRF10',...
+                      'DRF12',...
+                      'DRF13',...
+                      'DRF14',...
+                      'DRF15',...
+                      'DRF16',...
+                      'DRF17',...
+                      'DRF18',...
+                      'DRF19'}; % List of multiple participants.
+JNDa.numPart      = length(JNDa.participants);
+JNDa.runs         = {'fAX1', 'fAX2','fAX3','fAX4'}; %List of multiple runs.
+JNDa.numRuns      = length(JNDa.runs);
 
 dirs = dfDirs(JNDa.project);
-dirs.SavResultsDir = fullfile(dirs.Results, JNDa.participant, 'JND'); %Where to save results
 
-if exist(dirs.SavResultsDir, 'dir') == 0
-    mkdir(dirs.SavResultsDir)
+for jj = 1:JNDa.numPart
+    curPart = JNDa.participants{jj};
+    dirs.SavResultsDir = fullfile(dirs.Results, curPart, 'JND'); %Where to save results
+
+    if exist(dirs.SavResultsDir, 'dir') == 0
+        mkdir(dirs.SavResultsDir)
+    end
+
+    for ii = 1:JNDa.numRuns
+        curRun     = JNDa.runs{ii};    
+        dirs.SavFileDir = fullfile(dirs.SavData, curPart, curRun, [curPart curRun 'DRF.mat']); %Where to find data
+
+        fprintf('****%s  %s****\n', curPart, curRun)
+        fprintf('Loading Raw JND Data\n')
+        load(dirs.SavFileDir) % Returns UD
+
+        resJND = AnalyzeRawJNDData(UD);
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [curPart curRun 'ResultsDRF.mat']);
+        fprintf('Saving Individual JND Results\n\n')
+        save(dirs.SavResultsFile, 'resJND')    
+    end
+end
+fprintf('Elapsed time was %f min\n', toc/60)
 end
 
-if strcmp(JNDa.runType, 'fAC')
-    JNDa.tN = {'Diff'; 'Same'}; 
-else
-    JNDa.tN = {'First'; 'Last'}; 
-end  
+function resJND = initJNDAnalysis()
 
-allJNDData  = [];
-for ii = JNDa.runs2Analyze 
-    curRun = [JNDa.runType num2str(ii)];
-    JNDa.runs = cat(1, JNDa.runs, {curRun});
-    
-    dirs.SavFileDir  = fullfile(dirs.SavData, JNDa.participant, curRun, [JNDa.participant curRun 'DRF.mat']); %Where to find data
-    
-    load(dirs.SavFileDir) % Returns UD
-    
-    JNDa.f0     = round(UD.subjf0, 1);
-    JNDa.gender = UD.gender;
-    
-    JNDa.reversalsReached = cat(1, JNDa.reversalsReached, UD.reversals);
-    JNDa.trialsCompleted  = cat(1, JNDa.trialsCompleted, UD.performedTrials);
-    JNDa.timeElapsed      = cat(1, JNDa.timeElapsed, UD.elapsedTime);
-    
-    % Determine the JND Score and Accuracy of the last set of trials
-    [JNDScore, lastSetAccu] = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
-    
-    JNDa.JNDScores       = cat(1, JNDa.JNDScores, JNDScore);
-    JNDa.lastSetAccuracy = cat(1, JNDa.lastSetAccuracy, round(lastSetAccu, 1));
-    JNDa.catchAccuracy   = cat(1, JNDa.catchAccuracy, round(UD.catchAccuracy));
-    
-    allJNDData  = cat(1, allJNDData, UD);
+resJND.participant = [];
+resJND.gender      = [];
+resJND.f0          = [];
+resJND.run         = [];
+
+resJND.instructions     = {};
+resJND.selectOpt        = {};
+
+resJND.reversalsReached = [];
+resJND.trialsCompleted  = [];
+resJND.timeElapsed      = [];
+
+resJND.distProgression = [];
+
+resJND.trialsAtReversals = [];
+resJND.distAtReversals   = [];
+
+resJND.trialsAtCorrectOpt1   = [];
+resJND.distAtCorrectOpt1     = [];
+resJND.trialsAtIncorrectOpt1 = [];
+resJND.distAtIncorrectOpt1   = [];
+resJND.trialsAtCorrectOpt2   = [];
+resJND.distAtCorrectOpt2     = [];
+resJND.trialsAtIncorrectOpt2 = [];
+resJND.distAtIncorrectOpt2   = [];
+
+resJND.JNDScore        = [];
+resJND.LastSetAccuracy = [];
+resJND.catchAccuracy   = [];
 end
 
-JNDa.JNDScoreMean        = round(mean(JNDa.JNDScores), 2);
-JNDa.lastSetAccuracyMean = round(mean(JNDa.lastSetAccuracy), 1);
+function resJND = AnalyzeRawJNDData(UD)
+% This calls the following subfunctions
+% -initJNDAnalysis()
+% -dfAnalyseThresholdJND()
 
-dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [JNDa.participant JNDa.runType 'f0AcuityPooledResults.mat']);
-fprintf('\nSaving Pooled JND Results for %s\n', JNDa.participant)
-save(dirs.SavResultsFile, 'JNDa')
+fprintf('Starting Individual JND Analysis\n')
 
-drawJNDResults(JNDa, dirs.SavResultsDir, allJNDData)
-end
+resJND = initJNDAnalysis();
 
-function JNDa = initJNDAnalysis()
+resJND.participant = UD.subject;
+resJND.gender      = UD.gender;
+resJND.f0          = round(UD.subjf0, 1);
+resJND.run         = UD.run;
+    
+resJND.instructions = UD.inst;    
+resJND.selectOpt = {'First'; 'Last'};
 
-JNDa.project     = [];
-JNDa.participant = [];
-JNDa.runType     = [];
-JNDa.runs        = {};
-JNDa.gender      = [];
-JNDa.age         = [];
-JNDa.f0          = [];
+resJND.reversalsReached = UD.reversals;
+resJND.trialsCompleted  = UD.performedTrials;
+resJND.timeElapsed      = UD.elapsedTime;
 
-JNDa.instructions     = {};
-JNDa.reversalsReached = [];
-JNDa.trialsCompleted  = [];
-JNDa.timeElapsed      = [];
+resJND.distProgression = UD.x;
 
-JNDa.JNDScores       = [];
-JNDa.lastSetAccuracy = [];
-JNDa.catchAccuracy   = [];
+resJND.trialsAtReversals = find(UD.reversal~=0);
+resJND.distAtReversals   = UD.x(resJND.trialsAtReversals);
 
-JNDa.JNDScoreMean        = [];
-JNDa.JNDScoreSD          = [];
-JNDa.lastSetAccuracyMean = [];
-JNDa.lastSetAccuracySD   = [];
+resJND.trialsAtCorrectOpt1   = find(UD.allTrialTypes == 1);
+resJND.trialsAtIncorrectOpt1 = find(UD.allTrialTypes == 2);
+resJND.trialsAtCorrectOpt2   = find(UD.allTrialTypes == 3);
+resJND.trialsAtIncorrectOpt2 = find(UD.allTrialTypes == 4);
+
+resJND.distAtCorrectOpt1   = UD.x(resJND.trialsAtCorrectOpt1)';
+resJND.distAtIncorrectOpt1 = UD.x(resJND.trialsAtIncorrectOpt1)';
+resJND.distAtCorrectOpt2   = UD.x(resJND.trialsAtCorrectOpt2)';
+resJND.distAtIncorrectOpt2 = UD.x(resJND.trialsAtIncorrectOpt2)';
+
+% Determine the JND Score and Accuracy of the last set of trials
+[JNDScore, LastSetAccuracy] = dfAnalyzeThresholdJND(UD, 'reversals', 4); %Cents
+resJND.JNDScore        = JNDScore;
+resJND.LastSetAccuracy = round(LastSetAccuracy, 1);
+resJND.catchAccuracy   = round(0); %Currently N/A, but maybe used again later
 end

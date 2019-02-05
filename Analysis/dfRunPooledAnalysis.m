@@ -8,13 +8,16 @@ function dfRunPooledAnalysis()
 % dfRunPooledAnalysis() can be used for more than one set of recordings.
 %
 % Different PooledConfig files can be selected by inputing the name of the
-% pooled data set at line 17.
+% pooled data set at line 20.
 % 
+% Dependent on the following packages from the 'MATLAB-Toolboxes' Repo
+% -swtest
+%
 % Requires the Signal Processing Toolbox
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'LarynxPos2'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -55,8 +58,7 @@ for ii = 1:pA.numPart
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
         if exist(dirs.SavFile, 'file') == 0
-            disp('ERROR: The Results file for Run %s does not exist yet\n', run)
-            return
+            error('ERROR: The Results file for Run %s does not exist yet\n', run)
         else   
             load(dirs.SavFile)
             % Returns a results struture of 'res'
@@ -88,6 +90,7 @@ for ii = 1:pA.numPart
         curRes = allDataStr(ii, jj);
 
         sortStruc.studyID = curRes.subject; % Study ID
+        sortStruc.expType = curRes.expType;
         sortStruc.gender  = curRes.gender;
         sortStruc.age     = curRes.age;
         
@@ -106,6 +109,7 @@ for ii = 1:pA.numPart
     
     pooledRunStr(ii)   = sortStruc;
     
+    allSubjRes.expType    = sortStruc.expType;
     allSubjRes.gender{ii} = sortStruc.gender;
     allSubjRes.age(ii)    = sortStruc.age;
 end
@@ -115,13 +119,15 @@ allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
  
 % Organize and Print the Stats of the Demographics included in this study
-organizeAndPrintDemographicStats(allSubjRes);   
+organizeAndPrintDemographicStats(allSubjRes);
+
+% organizePooledResultsForFrank(dirs, allSubjRes)
 
 % Organize and Save the Table of Excluded Trials
-organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
+% organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
 
 % Organize and Save the Table of Output Variables
-organizeAndSaveOutputVariables(dirs, pA, allSubjRes);    
+StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);    
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
@@ -138,6 +144,7 @@ function sortStr = initSortedStruct(numCond)
 % currently the above scripts only consider one condition to test against. 
 
 % Basic info about the session, the recordings, the subjects
+sortStr.expType = [];
 sortStr.subject = [];
 sortStr.gender  = [];
 sortStr.age     = [];
@@ -363,7 +370,12 @@ function polRes = meanCondTrials(pA, polRes)
 
 polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
-polRes.sensorPMean      = meanSecData(polRes.sensorPSec);
+
+if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+    polRes.sensorPMean = meanSecData(polRes.sensorPSec);
+else
+    polRes.sensorPMean = zeros(size(polRes.audioMf0SecPert{1}));
+end
 
 for wC = 1:pA.numCond
     polRes.f0b(wC)              = mean(polRes.runf0b{wC});
@@ -379,7 +391,12 @@ polRes.limitsAmean = lims.audioMean;
 polRes.limitsPmean = lims.presMean;
 
 % Scale Pressure traces against the f0 traces
-[sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
+if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+    [sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
+else
+    sensorPAdjust = polRes.sensorPMean;
+    InflDeflT     = [0.04 0.24 1.04 1.24];
+end
 polRes.sensorPAdjust = sensorPAdjust;
 polRes.InflDeflT     = InflDeflT;
 
@@ -391,7 +408,7 @@ else
     polRes.autoSuccessPerc = 'N/A';
 end
 
-polRes.statLib = packStatLib(polRes);
+polRes.statLib = zeros(9,1); %packStatLib(polRes);
 
 statTable        = packStatTable(polRes);
 polRes.statTable = statTable;
@@ -701,46 +718,3 @@ if svFile == 1
 end
 end
 
-function organizeAndSaveOutputVariables(dirs, pA, allSubjRes)
-
-allSubjStatTable = allSubjRes.statTable;
-n = height(allSubjStatTable);
-meas = {'StimMag', 'RespMag', 'RespPer'};
-units = {'cents', 'cents', '%'};
-nMeas = length(meas);
-
-allMeasure = [];
-for i = 1:nMeas
-    allMeasure = cat(2, allMeasure, eval(['allSubjStatTable.' meas{i}]));
-end
-allMeasureM   = mean(allMeasure, 1);
-allMeasureSTD = std(allMeasure, 0, 1);
-allMeasureSE  = allMeasureSTD/sqrt(n);
-
-allMeasureNorm = (allMeasure - allMeasureM)./allMeasureSTD;
-
-aSRM = fitrm(allSubjStatTable, 'StimMag-RespPer~AudFB');
-        
-normDist = figure('Color', [1 1 1]);
-plotpos = [10 10]; plotdim = [1300 600];
-set(normDist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-ha = tight_subplot(1, nMeas,[0.1 0.05],[0.1 0.1],[0.05 0.05]);
-
-mu    = '\mu';
-sigma = '\sigma';
-
-allMeasureMR  = round(allMeasureM, 2);
-allMeasureSTDR = round(allMeasureSTD, 2);
-
-for ii = 1:nMeas
-    axes(ha(ii))
-    histogram(allMeasureNorm(:,ii))
-    title({meas{ii},...
-          ['(' mu '=' num2str(allMeasureMR(ii)) units{ii} ', ' sigma '=' num2str(allMeasureSTDR(ii)) units{ii} ')']})
-    box off
-end
-
-dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
-writetable(allSubjStatTable, dirs.behavioralResultTable, 'WriteVariableNames',true)
-end

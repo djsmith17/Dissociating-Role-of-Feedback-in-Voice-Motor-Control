@@ -24,12 +24,13 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iR
 % Requires the Signal Processing Toolbox, Image Processing Toolbox
 
 %Identify some starting variables
-niAn.AnaType   = 'NIDAQ';
+niAn = initNIDAQAnalysisStruct();
+
 niAn.expType   = expParam.expType;
 niAn.subject   = expParam.subject;
 niAn.run       = expParam.run;
 niAn.curSess   = expParam.curSess;
-niAn.f0Type    = 'Praat';
+
 niAn.f0AnaFile = [niAn.subject niAn.run 'f0Analysis.mat'];
 niAn.gender    = expParam.gender;
 niAn.AudFB     = expParam.AudFB;
@@ -42,6 +43,12 @@ else
     niAn.balloon = 'N/A';
 end
 
+if isfield(expParam, 'sensorPType')
+    niAn.sensorPType = expParam.sensorPType;
+else
+    niAn.sensorPType = 'Five';
+end
+
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
 [r, c, n]      = size(DAQin);
@@ -49,6 +56,7 @@ niAn.sRate     = expParam.sRateQ;       % Sampling Rate of the NIDAQ
 niAn.numCh     = c;                     % Number of Channels recorded
 niAn.numSamp   = r;                     % Number of Samples recorded
 niAn.numTrial  = n;                     % Number of Trials recorded
+niAn.trialLen  = niAn.numSamp/niAn.sRate;
 niAn.trialType = expParam.trialType;    % Control (0), Perturbed (1)
 niAn.expTrigs  = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
 niAn.dnSamp    = 10;
@@ -60,7 +68,7 @@ niAn.numContTrials = sum(niAn.ContTrials);
 niAn.numPertTrials = sum(niAn.PertTrials);
 
 %Unpack the NIDAQ raw data set, a 3D matrix (numSamp, numCh, numTrial)
-niAn.time     = (0:1/niAn.sRate:(niAn.numSamp-1)/niAn.sRate)';
+niAn.time     = linspace(0, niAn.trialLen, niAn.numSamp)';
 niAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbatron Signal (Pert)
 niAn.sensorFC = squeeze(DAQin(:,2,:)); % Force Sensor Collar (FC)
 niAn.sensorFN = squeeze(DAQin(:,3,:)); % Force Sensor Neck (FN)
@@ -74,15 +82,16 @@ niAn.sensorFNz = convertPressureSensor(niAn.sensorFN, niAn.sensorPType);
 niAn.sensorPz  = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 
 %Preprocessing some of the Force sensors
-niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
-niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
+% niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
+% niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
 
 niAn.sRateDN     = niAn.sRate/niAn.dnSamp;
 niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
 niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
+
+niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
+niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
 niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
-niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFCz, niAn.dnSamp);
-niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFNz, niAn.dnSamp);
 
 %Parse out the perturbed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
@@ -90,30 +99,27 @@ niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Pertur
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
 
-%Make a dummy set of contTrig
-niAn.contTrig = repmat([1 2.5], niAn.numContTrials, 1);
-
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
-[niAn.presTrig, niAn.idxPres] = findPertTrigs(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN);
-[niAn.fSCTrig, niAn.idxFC]    = findPertTrigs(niAn.time_DN, niAn.sensorFC_p, niAn.sRateDN);  
-[niAn.fSNTrig, niAn.idxFN]    = findPertTrigs(niAn.time_DN, niAn.sensorFN_p, niAn.sRateDN); 
 
-[niAn.lagsPres, niAn.meanLagTimeP] = calcMeanLags(niAn.pertTrig, niAn.presTrig);
-[niAn.lagsFC, niAn.meanLagTimeFC]  = calcMeanLags(niAn.pertTrig, niAn.fSCTrig);
-[niAn.lagsFN, niAn.meanLagTimeFN]  = calcMeanLags(niAn.pertTrig, niAn.fSNTrig);
+% What was the delay between the intended (code) onset/offset triggers
+% and actual (measured) onset/offset triggers
+OnsetTriggerLags  = round((niAn.pertTrig(:, 1) - niAn.expTrigs(niAn.pertIdx, 1)), 3);
+OffsetTriggerLags = round((niAn.pertTrig(:, 2) - niAn.expTrigs(niAn.pertIdx, 2)), 3);
+niAn.TriggerLag   = [OnsetTriggerLags, OffsetTriggerLags];
 
-niAn.OnOfValP   = [];
-niAn.OnOfValPm  = []; niAn.OnOfValPSE  = []; 
-niAn.riseTimeP  = [];
-niAn.riseTimePm = []; niAn.riseTimePSE = [];
-niAn.pTrialLossP = [];
-niAn.pTrialLossPm = []; niAn.pTrialLossPSE = [];
-niAn.timeAl     = [];
-niAn.sensorPAl  = [];
-niAn.secTimeP   = [];
-niAn.sensorPSec = [];
-niAn.sensorPMean = [];
+niAn.alignResponseTriggers = niAn.expTrigs;
+
+niAn.pertSD.TrigTime = niAn.pertTrig;
+niAn.pertSD.TrigIdx  = niAn.idxPert;
+
+niAn.presSD.time   = niAn.time_DN;
+niAn.presSD.sensor = niAn.sensorP_p;
+niAn.presSD.fs     = niAn.sRateDN;
+
+niAn.fSNSD.time   = niAn.time_DN;
+niAn.fSNSD.sensor = niAn.sensorFN_p;
+niAn.fSNSD.fs     = niAn.sRateDN;
 
 if PresFlag == 1 && niAn.numPertTrials > 0
     % Set PresFlag = 1 if pressure dynamics are worth looking investigating
@@ -122,23 +128,9 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     % the onset and offset of the perturbation period.
     
     % Pressure Sensor Dynamics
-    [niAn.OnOfValP, niAn.riseTimeP] = ...
-    analyzeSensorDynamics(niAn.time_DN, niAn.sensorP_p, niAn.sRateDN, niAn.presTrig);
+    [niAn.presSD] = analyzeSensorDynamics(niAn.presSD, niAn.pertSD);
     
-    niAn.OnOfValPm    = mean(niAn.OnOfValP);
-    niAn.OnOfValPSE   = (std(niAn.OnOfValP))/sqrt(niAn.numTrial);
-    niAn.riseTimePm   = mean(niAn.riseTimeP);
-    niAn.riseTimePSE  = (std(niAn.riseTimeP))/sqrt(niAn.numTrial);
-    
-    niAn.pTrialLossP   = diff(niAn.OnOfValP(:,1));
-    niAn.pTrialLossPm  = mean(niAn.pTrialLossP);
-    niAn.pTrialLossPSE = (std(niAn.pTrialLossP))/sqrt(niAn.numTrial-1);
-
-    % Section and aligning pressure signal for perturbed trials
-    [niAn.timeAl, niAn.sensorPAl] = alignSensorData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-    
-    [niAn.secTimeP, niAn.sensorPSec] = sectionData(niAn.sensorP_p, niAn.sRateDN, niAn.idxPert);
-    niAn.sensorPMean                 = meanSensorData(niAn.sensorPSec);   
+    [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
 end
 
 %The Audio Analysis
@@ -316,28 +308,25 @@ end
 function [trigs, idx] = findPertTrigs(time, sensor, fs)
 %findPertTrigs(time, sensor, fs) finds rising and falling edges in sensor
 %data. It is expected that these signals will be mostly step functions
-[numSamp, numTrial] = size(sensor);
-
-baselineIdx = 1:fs*1;
+[~, numTrial] = size(sensor);
 
 trigs = [];
 idx   = [];
 for i = 1:numTrial
-    m = [];
-    for j = 2:numSamp
-        m(j) = sensor(j,i) - sensor((j-1),i);
-    end
-    m(baselineIdx) = 0;
-    threshUp = 0.5*max(m);
-    threshDn = 0.5*min(m);
-    ups = find(m > threshUp);
-    dns = find(m < threshDn);
+    
+    fDiff = [0; diff(sensor(:,i))];
+    fDiff = smooth(fDiff);
+    
+    threshUp = 0.5*max(fDiff);
+    threshDn = 0.5*min(fDiff);
+    ups = find(fDiff > threshUp);
+    dns = find(fDiff < threshDn);
     
     idxSt = ups(1); 
     idxSp = dns(1);       
     trigSt = round(time(idxSt), 3);
     trigSp = round(time(idxSp), 3);
-
+    
     trigs = cat(1, trigs, [trigSt trigSp]);
     idx   = cat(1, idx, [idxSt idxSp]);
 end
@@ -357,29 +346,116 @@ CIM = 1.96*SEM;                   % 95% Confidence Interval
 lagMeans = [lagsMean; SEM]; %OnsetMean OffsetMean; OnsetSEM, OffsetSEM
 end
 
-function [OnOfVals, riseTimes] = analyzeSensorDynamics(time, sensor, fs, sensTrig)
-%Analyzing the dynamics of the sensor during onset and offset of the
-%stimulus signal.
+function [SD] = analyzeSensorDynamics(SD, pertSD)
+% Analyzing the dynamics of the sensor during onset and offset of the
+% stimulus signal.
+
+time     = SD.time;
+sensor   = SD.sensor;
+fs       = SD.fs;
+
+pertIdx  = pertSD.TrigIdx;
+pertTime = pertSD.TrigTime;
+
 [~, numTrial] = size(sensor);
 
-OnOfInd   = [];
-OnOfTime  = [];
-OnOfVals  = [];
 for ii = 1:numTrial
-    [endRiseInd, startFallInd] = findCrossings(sensor(:,ii), fs, 0);
-
-    onsetTime      = round(time(endRiseInd), 2);
-    offsetTime     = round(time(startFallInd), 2);
+    trial = sensor(:,ii);
     
-    onsetSensorVal  = round(sensor(endRiseInd, ii), 2);
-    offsetSensorVal = round(sensor(startFallInd, ii), 2);
-  
-    OnOfInd   = cat(1, OnOfInd, [endRiseInd, startFallInd]);
-    OnOfTime  = cat(1, OnOfTime, [onsetTime offsetTime]);
-    OnOfVals  = cat(1, OnOfVals, [onsetSensorVal offsetSensorVal]);
+    fDiff = [0; diff(trial)];
+    fDiff = smooth(5*fDiff, 10);
+    
+    threshUp = 0.2*max(fDiff);
+    threshDn = 0.2*min(fDiff);
+    ups = find(fDiff > threshUp);
+    dns = find(fDiff < threshDn);
+    
+    StRiseIdx = ups(1);    
+    StFallIdx = dns(1);
+    
+    RisingEdgeRange = StRiseIdx:(StRiseIdx + 0.3*fs);
+    [~, idxAtMax] = max(trial(RisingEdgeRange));
+    SpRiseIdx = StRiseIdx + idxAtMax-1;
+    
+    FallingEdgeRange = StFallIdx:(StFallIdx + 0.3*fs);
+    [~, idxAtMin] = min(trial(FallingEdgeRange));
+    SpFallIdx = StFallIdx + idxAtMin-1;
+    
+    StRiseTime = round(time(StRiseIdx), 3);
+    SpRiseTime = round(time(SpRiseIdx), 3);
+    StFallTime = round(time(StFallIdx), 3);
+    SpFallTime = round(time(SpFallIdx), 3);
+    
+    lagTimeRise = StRiseTime - pertTime(ii, 1);
+    lagTimeFall = StFallTime - pertTime(ii, 2);
+    
+    riseTime = SpRiseTime - StRiseTime;
+    fallTime = SpFallTime - StFallTime;
+    
+    % What was the val of the sensor at the end of Rising Edge (Start Plateau)
+    RiseVal = trial(SpRiseIdx);
+    
+    % What was the val of the sensor at the start of the Falling Edge (End Plateau)
+    FallVal = trial(StFallIdx);
+
+    SD.TrigIdx  = cat(1, SD.TrigIdx, [StRiseIdx StFallIdx]);
+    SD.TrigTime = cat(1, SD.TrigTime, [StRiseTime StFallTime]);
+    
+    SD.lagTimes  = cat(1, SD.lagTimes, [lagTimeRise lagTimeFall]);
+    SD.riseTimes = cat(1, SD.riseTimes, [riseTime fallTime]);
+    
+    SD.OnOffVal = cat(1, SD.OnOffVal, [RiseVal, FallVal]);
+    
+%     figure
+%     plot(time, trial)
+%     hold on
+%     plot([StRiseTime StRiseTime], [-5 10], 'g')
+%     hold on
+%     plot([SpRiseTime SpRiseTime], [-5 10], 'g--')
+%     hold on
+%     plot([StFallTime StFallTime], [-5 10], 'r')
+%     hold on
+%     plot([SpFallTime SpFallTime], [-5 10], 'r--')
+%     axis([0 4 -0.5 5])
 end
 
-riseTimes = OnOfTime(:,1) - sensTrig(:,1);
+%Difference in val at between subsequent trials at SpRiseIdx
+SD.pTrialLoss = diff(SD.OnOffVal(:,1));
+
+%Mean and SE lag time
+SD.lagTimeM  = mean(SD.lagTimes);
+SD.lagTimeSE = (std(SD.lagTimes))/sqrt(numTrial);
+
+%Mean and SE rise time
+SD.riseTimeM  = mean(SD.riseTimes);
+SD.riseTimeSE = (std(SD.riseTimes))/sqrt(numTrial);
+
+%Mean and SE Val at SpRiseIdx
+SD.OnOffValM  = mean(SD.OnOffVal);
+SD.OnOffValSE = (std(SD.OnOffVal))/sqrt(numTrial);
+
+%Mean and SE trial-trial difference of val at SpRiseIdx
+SD.pTrialLossM  = mean(SD.pTrialLoss);
+SD.pTrialLossSE = (std(SD.pTrialLoss))/sqrt(numTrial-1);
+
+% Round and Covert to standard units
+SD.lagTimeM  = round(1000*SD.lagTimeM, 3); % Round and Convert s -> ms
+SD.lagTimeSE = round(1000*SD.lagTimeSE, 3); % Round and Convert s -> ms
+
+SD.riseTimeM  = round(1000*SD.riseTimeM, 3); % Round and Convert s -> ms
+SD.riseTimeSE = round(1000*SD.riseTimeSE, 3); % Round and Convert s -> ms
+
+SD.OnOffValM  = round(SD.OnOffValM, 3); % Round
+SD.OnOffValSE = round(SD.OnOffValSE, 3); % Round
+
+SD.pTrialLossM  = round(SD.pTrialLossM, 3); % Round
+SD.pTrialLossSE = round(SD.pTrialLossSE, 3); % Round
+
+%%%%%%%%%%%%%
+[SD.timeAl, SD.sensorAl] = alignSensorData(sensor, fs, pertIdx);
+
+[SD.timeSec, SD.sensorSec] = sectionData(sensor, fs, pertIdx);
+SD.sensorSecM              = meanSensorData(SD.sensorSec);   
 end
 
 function [endRiseInd, startFallInd] = findCrossings(sensor, fs, toggle)
@@ -412,7 +488,7 @@ sensorFilt = filtfilt(B,A, sensor);     % Low-pass filter the signal
 numSamp   = length(sensor); 
 sensDiff  = diff(sensorFilt)*50;        % 1st derivative, then magnified for ease of viewing
 sensDiff  = [0; sensDiff];              % Add a zero to correct for the length
-sensDiff  = smooth(sensDiff, 10);       % Smooth the 1st derivative
+sensDiff  = smooth(sensDiff, 50);       % Smooth the 1st derivative
 
 diffPeakMax = 0.05;      % Threshold value of derivative 
 peakLeadLag = fs*0.5;    % How many seconds past peak to look for the level off. 
@@ -429,10 +505,14 @@ if toggle == 0 % Automatic selection
     else
         [~, maxInd] = max(pksU);           % Largest Mag positive peak
         maxIndFull = locU(maxInd);         % Ind of the maxPeak in the signal
-        searchR = maxIndFull:maxIndFull+peakLeadLag; % Range of Max peak to Max Peak+lag
-        diffDownRamp = find(sensDiff(searchR) > diffPeakMax);
-        
-        endRiseInd = searchR(diffDownRamp(end)); % Take the last point that is satisfies the threshold in the range
+        searchRSt = maxIndFull;
+        searchRSp = maxIndFull + peakLeadLag;
+        searchR   = searchRSt:searchRSp; % Range of Max peak to Max Peak+lag
+        upRoute      = sensDiff(searchR);
+        upRouteDiff  = diff(upRoute)*5;
+        noLongerRise = find(upRouteDiff > -.010);
+
+        endRiseInd = noLongerRise(1)+ searchRSt; % Take the last point that is satisfies the threshold in the range
     end
     
     if isempty(pksD)
@@ -441,21 +521,25 @@ if toggle == 0 % Automatic selection
     else
         [~, minInd] = max(pksD);         % Largest Mag negative peak
         minIndFull = locD(minInd);       % Ind of the maxPeak in the signal
-        searchR = minIndFull-peakLeadLag:minIndFull; % Range of Max Peak-lag to Max Peak
-        diffUpRamp = find(sensDiff(searchR) > diffPeakMax); % All points that are above threshold in the range 
-        
-        startFallInd = searchR(diffUpRamp(1)); % Take the first point that is satisfies the threshold in the range
+        searchRSt = minIndFull-peakLeadLag;
+        searchRSp = minIndFull;
+        searchR   = searchRSt:searchRSp; % Range of Max Peak-lag to Max Peak
+        dnRoute      = sensDiff(searchR);
+        dnRouteDiff  = diff(dnRoute)*5;
+        noLongerStraight = find(dnRouteDiff < -1);
+
+        startFallInd = noLongerStraight(1) + searchRSt; % Take the first point that is satisfies the threshold in the range
     end
   
 % During debugging, uncomment the below so you can see how well the
 % automated selection is finding the endRiseInd and startFallInd
-%     figure
-%     plot(sensor,'k')
-%     hold on
-%     plot([endRiseInd endRiseInd], [-100 100], 'b')
-%     hold on
-%     plot([startFallInd startFallInd], [-100 100], 'r')
-%     axis([0 3200 -0.05 5])
+    figure
+    plot(sensor,'k')
+    hold on
+    plot([endRiseInd endRiseInd], [-100 100], 'b')
+    hold on
+    plot([startFallInd startFallInd], [-100 100], 'r')
+    axis([0 3200 -0.10 7])
 
 else % Manual selection
     PresFig = figure;
@@ -748,29 +832,19 @@ res.contIdx       = niAn.contIdx;
 res.pertIdx       = niAn.pertIdx;
 res.pertTrig      = niAn.pertTrig;
 
+% How would you like the audio to be aligned? Against the Trigger Onset?
+% Against the pressure onset?
+res.alignResponseTriggers = niAn.alignResponseTriggers;
+
 res.timeS         = niAn.time_DN;
 res.sensorP       = niAn.sensorP_p; %Individual Processed perturbed trials. 
-res.lagTimeP      = niAn.lagsPres;
-res.lagTimePm     = niAn.meanLagTimeP;
-res.riseTimeP     = niAn.riseTimeP;
-res.riseTimePm    = niAn.riseTimePm;
-res.riseTimePSE   = niAn.riseTimePSE;
-res.OnOfValP      = niAn.OnOfValP;
-res.OnOfValPm     = niAn.OnOfValPm;
-res.OnOfValPSE    = niAn.OnOfValPSE;
-res.pTrialLossP   = niAn.pTrialLossP;
-res.pTrialLossPm  = niAn.pTrialLossPm; 
-res.pTrialLossPSE = niAn.pTrialLossPSE;
+res.presSD        = niAn.presSD;
 res.limitsP       = lims.pressure;
 
-% Sectioned and Aligned Pressure recordings 
-res.timeSAl   = niAn.timeAl;
-res.sensorPAl = niAn.sensorPAl;
-res.limitsPAl = lims.pressureAl;
+res.fSNSD         = niAn.fSNSD;
 
-res.secTimeP    = niAn.secTimeP;
-res.sensorPSec  = niAn.sensorPSec;
-res.sensorPMean = niAn.sensorPMean;
+% Sectioned and Aligned Pressure recordings 
+res.limitsPAl = lims.pressureAl;
 res.limitsPMean = lims.pressureMean;
 
 % Audio f0 analysis

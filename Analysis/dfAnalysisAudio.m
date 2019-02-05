@@ -349,7 +349,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 10);   % 10 sample length smoothing
+    audioSmooth = smooth(audio(:,ii), 50);   % 10 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end
