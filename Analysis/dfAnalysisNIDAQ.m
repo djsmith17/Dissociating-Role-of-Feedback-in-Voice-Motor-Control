@@ -69,8 +69,9 @@ niAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal (M)
 niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
-%ZeroMean the Pressure Offset
-niAn.sensorPz = convertPressureSensor(niAn.sensorP, niAn.sRate);
+%Convert the measured Pressure Sensor Voltage (V) to Pressure (psi)
+niAn.sensorFNz = convertPressureSensor(niAn.sensorFN, niAn.sensorPType);
+niAn.sensorPz  = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 
 %Preprocessing some of the Force sensors
 niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
