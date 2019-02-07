@@ -11,7 +11,7 @@ for k = curTestingMeas
     curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
 
     lambdas = [];
-    if k == 1
+    if k == 3
         for i = 1:numCond
             curFB = strcmp(curStatTable.AudFB, cond(i));
 
@@ -24,9 +24,7 @@ for k = curTestingMeas
     else
         lambdas = [0 0 0];
     end
-    
-    usedLambda = lambdas(3);
-    
+     
     measureSummaryStrs     = [];
     variableStatAcrossCond = [];
     for i = 1:numCond
@@ -41,9 +39,15 @@ for k = curTestingMeas
         summaryStr.idealLambda = lambdas(i);
         
         if k == 1
+            usedLambda = lambdas(1);
             summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
             summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransACBC';
+            summaryStr.suffix     = 'TransVF';
+            summaryStr.usedLambda = num2str(usedLambda);
+        elseif k == 3
+            summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
+            summaryStr.isTrans    = 1;
+            summaryStr.suffix     = 'TransVF';
             summaryStr.usedLambda = num2str(usedLambda);
         else
             summaryStr.measureT   = summaryStr.measure;
