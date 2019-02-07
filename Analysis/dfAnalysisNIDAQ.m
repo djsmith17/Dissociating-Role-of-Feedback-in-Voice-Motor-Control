@@ -259,15 +259,16 @@ switch sensorType
         PMin      = 0;
         VMax      = 4.5;
         VMin      = 0.5;
-        Vsupply   = 5;
+        Vsupply   = 5.2;
     case 'Seven'
-        PMax      = 7;
+        PMax      = 7.25;
         PMin      = 0;
         VMax      = 4.5;
         VMin      = 0.5;
-        Vsupply   = 5;
+        Vsupply   = 5.2;
 end
 
+% sensorPres = (sensorV - 0.5)*PMax/4;
 sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
 % 
 % m = (PMax - PMin) / (VMax - VMin);
