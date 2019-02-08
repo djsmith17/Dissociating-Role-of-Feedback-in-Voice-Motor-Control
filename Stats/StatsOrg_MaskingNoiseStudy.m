@@ -6,19 +6,20 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 cond    = pA.cond;
 numCond = pA.numCond;
 
-curTestingMeas = 2;
+curTestingMeas = 3;
+ApplyTrans = 0;
 for k = curTestingMeas
     curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
 
     lambdas = [];
-    if k == 3
+    if k == 3 && ApplyTrans
         for i = 1:numCond
             curFB = strcmp(curStatTable.AudFB, cond(i));
 
             % Identify the Variable and Condition
             measure   = curStatTable{curFB, 2};
 
-            [~, lambda] = boxcox(measure);
+            [~, lambda] = boxcox(measure + 1 - min(measure));
             lambdas = cat(1, lambdas, lambda);
         end
     else
@@ -38,16 +39,17 @@ for k = curTestingMeas
         
         summaryStr.idealLambda = lambdas(i);
         
-        if k == 1
+        if k == 1 && ApplyTrans
             usedLambda = lambdas(1);
             summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
             summaryStr.isTrans    = 1;
             summaryStr.suffix     = 'TransVF';
             summaryStr.usedLambda = num2str(usedLambda);
-        elseif k == 3
-            summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
+        elseif k == 3 && ApplyTrans
+            usedLambda = lambdas(3);
+            summaryStr.measureT   = boxcox(usedLambda, [summaryStr.measure + 1 - min(summaryStr.measure)]);
             summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransVF';
+            summaryStr.suffix     = 'TransACBC';
             summaryStr.usedLambda = num2str(usedLambda);
         else
             summaryStr.measureT   = summaryStr.measure;
@@ -71,9 +73,9 @@ for k = curTestingMeas
     plotHistograms(measureSummaryStrs, dirs, pA)
     
     if k == 2
-        testParameteric(curStatTable)
+        testParametric(curStatTable)
     else
-        testNonParameteric(curStatTable)
+        testNonParametric(curStatTable)
     end
 
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
@@ -194,7 +196,7 @@ dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName
 export_fig(dirs.DistributionFigureFile)
 end
 
-function testParameteric(curStatTable)
+function testParametric(curStatTable)
 
 measFit = fitrm(curStatTable, 'RespMag~AudFB');
 measSph = mauchly(measFit);
@@ -202,6 +204,6 @@ measSph = mauchly(measFit);
 
 end
 
-function testNonParametric()
+function testNonParametric(curStatTable)
 
 end
