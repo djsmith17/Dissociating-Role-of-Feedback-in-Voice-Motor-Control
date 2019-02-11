@@ -69,7 +69,7 @@ for k = curTestingMeas
     plotHistograms(measureSummaryStrs, dirs, pA)
     
     if k == 2
-        testParametric(curStatTable, cond_table)
+        [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
     else
         testNonParametric(curStatTable)
     end
@@ -202,14 +202,14 @@ dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName
 export_fig(dirs.DistributionFigureFile)
 end
 
-function testParametric(curStatTable, cond_table)
+function [rAnovaRes, measSph] = testParametric(curStatTable, cond_table)
 
-condTable = table(cond_table);
+condTable = table(cond_table');
 
-measFit = fitrm(curStatTable, 'RespMag~AudFB');
+measFit = fitrm(curStatTable, 'VoiceFeedback-AC_BCMaskingNoise~1', 'WithinDesign', condTable, 'WithinModel', 'separatemeans');
 measSph = mauchly(measFit);
     
-
+rAnovaRes = ranova(measFit);
 end
 
 function testNonParametric(curStatTable)
