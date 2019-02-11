@@ -6,18 +6,16 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 cond    = pA.cond;
 numCond = pA.numCond;
 
-curTestingMeas = 3;
-ApplyTrans = 0;
+curTestingMeas = 2;
+ApplyTrans = 1;
 for k = curTestingMeas
-    curStatTable = allSubjStatTable(:, {'AudFB', meas{k}});
+    [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
-    if k == 3 && ApplyTrans
+    if k == 1 && ApplyTrans
         for i = 1:numCond
-            curFB = strcmp(curStatTable.AudFB, cond(i));
-
             % Identify the Variable and Condition
-            measure   = curStatTable{curFB, 2};
+            measure   = curStatTable.(cond_table{i});
 
             [~, lambda] = boxcox(measure + 1 - min(measure));
             lambdas = cat(1, lambdas, lambda);
@@ -29,10 +27,8 @@ for k = curTestingMeas
     measureSummaryStrs     = [];
     variableStatAcrossCond = [];
     for i = 1:numCond
-        curFB = strcmp(curStatTable.AudFB, cond(i));
-        
         % Identify the Variable and Condition
-        measure   = curStatTable{curFB, 2};
+        measure   = curStatTable.(cond_table{i});
         
         % Perform Standard Sumamry Stats
         [summaryStr, variableStat] = RawSummaryStats(meas{k}, measure);
@@ -73,7 +69,7 @@ for k = curTestingMeas
     plotHistograms(measureSummaryStrs, dirs, pA)
     
     if k == 2
-        testParametric(curStatTable)
+        testParametric(curStatTable, cond_table)
     else
         testNonParametric(curStatTable)
     end
@@ -84,6 +80,16 @@ end
 
 fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
+end
+
+function [curStatTable, cond_Table] = organizeVarByCond(allSubjStatTable, meas, cond)
+
+cond_Table = matlab.lang.makeValidName(cond); % Valid idenitifer strings
+condSubj = ['SubjID' cond_Table];
+
+curStatTable = allSubjStatTable(:, {'SubjID', 'AudFB', meas});
+curStatTable = unstack(curStatTable, meas, 'AudFB');
+curStatTable = curStatTable(:, condSubj);
 end
 
 function [summaryStr, variableStat] = RawSummaryStats(variableName, measure)
@@ -196,7 +202,9 @@ dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName
 export_fig(dirs.DistributionFigureFile)
 end
 
-function testParametric(curStatTable)
+function testParametric(curStatTable, cond_table)
+
+condTable = table(cond_table);
 
 measFit = fitrm(curStatTable, 'RespMag~AudFB');
 measSph = mauchly(measFit);
