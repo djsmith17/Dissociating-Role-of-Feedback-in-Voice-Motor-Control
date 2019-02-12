@@ -6,8 +6,8 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 cond    = pA.cond;
 numCond = pA.numCond;
 
-curTestingMeas = 2;
-ApplyTrans = 1;
+curTestingMeas = 1;
+ApplyTrans = 0;
 for k = curTestingMeas
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
@@ -71,7 +71,7 @@ for k = curTestingMeas
     if k == 2
         [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
     else
-        testNonParametric(curStatTable)
+        [tFried] = testNonParametric(curStatTable);
     end
 
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
@@ -212,6 +212,10 @@ measSph = mauchly(measFit);
 rAnovaRes = ranova(measFit);
 end
 
-function testNonParametric(curStatTable)
+function [tFried] = testNonParametric(curStatTable)
+
+matVer = curStatTable{:,2:4};
+
+[pFried,tFried, stats] = friedman(matVer);
 
 end
