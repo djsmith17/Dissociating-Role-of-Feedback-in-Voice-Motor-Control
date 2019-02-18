@@ -6,9 +6,10 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 cond    = pA.cond;
 numCond = pA.numCond;
 
-curTestingMeas = 1;
+curTestingMeas = 1:3;
 ApplyTrans = 0;
 for k = curTestingMeas
+    pA.k = k;
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
@@ -67,6 +68,7 @@ for k = curTestingMeas
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
     plotHistograms(measureSummaryStrs, dirs, pA)
+    drawBoxPlot(measureSummaryStrs, dirs, pA)
     
     if k == 2
         [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
@@ -118,6 +120,34 @@ variableStat = {summaryStr.mean;...
                 summaryStr.SE};
                   
 
+end
+
+function drawBoxPlot(measureSummaryStrs, dirs, pA)
+
+units  = {'cents', 'cents', '%'};
+colors = ['b', 'r', 'g'];
+
+cond    = pA.cond;
+numCond = pA.numCond;
+
+measBox = figure('Color', [1 1 1]);
+plotpos = [30 30]; plotdim = [700 1000];
+set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+collData = [];
+for i = 1:numCond
+    collData(:,i) = measureSummaryStrs(i).measure;
+    varName = measureSummaryStrs(i).varName;
+end
+
+boxplot(collData, 'Labels', cond, 'Whisker', 30)
+xlabel('AudFB')
+ylabel([varName ' (' units{pA.k} ')'])
+title(varName)
+box off
+
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName 'BoxPlot.jpg']);
+export_fig(dirs.BoxPlotFigureFile)
 end
 
 function summaryStr = testNormality(summaryStr)
