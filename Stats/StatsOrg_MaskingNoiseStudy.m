@@ -140,7 +140,7 @@ for i = 1:numCond
     varName = measureSummaryStrs(i).varName;
 end
 
-boxplot(collData, 'Labels', cond, 'Whisker', 30)
+boxplot(collData, 'Labels', cond)
 xlabel('AudFB')
 ylabel([varName ' (' units{pA.k} ')'])
 title(varName)
