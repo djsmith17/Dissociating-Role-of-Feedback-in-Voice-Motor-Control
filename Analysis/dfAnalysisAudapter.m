@@ -63,6 +63,8 @@ if isfield(expParam, 'incTrialInfo')
     auAn.incTrialInfo = expParam.incTrialInfo;
 end
 
+% Is there a field for SEQAudFB. We use this when AudFB changs from
+% trial-to-trial
 if isfield(expParam, 'SeqAudFB')
     auAn.SeqAudFB   = expParam.SeqAudFB;
     auAn.SeqAudFBSw = expParam.SeqAudFBSw;
@@ -78,10 +80,10 @@ for ii = 1:auAn.numTrial
     Mraw     = data.signalIn;     % Microphone
     Hraw     = data.signalOut;    % Headphones
     rms      = data.rms(:,1);     % RMS recording
-    anaTrigs = auAn.anaTrigs(ii,:);
-    AudFBSw  = auAn.SeqAudFBSw(ii);
-    typeIdx  = auAn.trialType(ii);
-    type     = auAn.types{typeIdx + 1};
+    anaTrigs = auAn.anaTrigs(ii,:);     % Perturbation Triggers (in Audapter points)
+    AudFBSw  = auAn.SeqAudFBSw(ii);     % Auditory Feedback Used
+    typeIdx  = auAn.trialType(ii);      % Trial Type 0(Control), 1 (Perturbed)
+    type     = auAn.types{typeIdx + 1}; % Trial Type (Words)
     
     if isfield(niAn, 'audioM')
         MrawNi = niAn.audioM(:,ii);          % Microphone (NIDAQ) 
