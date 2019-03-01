@@ -110,7 +110,7 @@ for ii = 1:auAn.numTrial
 end
 
 % The Audio Analysis
-f0Flag = 1;
+f0Flag = 0;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 auAn.audioMinc = auAn.audioM(:, auAn.svf0Idx);
