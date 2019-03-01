@@ -8,8 +8,8 @@ plotDim = [dim*16 dim*9];
 
 fontN        = 'Arial';
 lineThick    = 3;
-axisLSize    = 14;
-legAnnoFSize = 14;
+axisLSize    = 20;
+legAnnoFSize = 20;
 
 onsetC = [252,141,89]/255;
 minC   = [145,191,219]/255;
@@ -42,21 +42,22 @@ set(gca,'FontName', fontN,...
         'Color', bColor)
 
 SMArrowX = [0.33 0.33];
-SMArrowY = [0.8 0.21];
-
-annotation('arrow', SMArrowX, SMArrowY)
-annotation('textbox', [0.22 0.43 0.1 0.1],...
+SMArrowY = [0.8 0.24];
+annotation('arrow', SMArrowX, SMArrowY, 'LineWidth', 2)
+annotation('textbox', [0.175 0.38 0.1 0.1],...
                      'string', 'StimMag',...
                      'LineStyle', 'none',...
                      'FontName', fontN,...
+                     'FontWeight','bold',...
                      'FontSize',legAnnoFSize)
 
 RMArrowX = [0.905 0.905];
-RMArrowY = [0.21 0.635];
-annotation('arrow', RMArrowX, RMArrowY)
-annotation('textbox', [0.79 0.35 0.1 0.1],...
+RMArrowY = [0.24 0.65];
+annotation('arrow', RMArrowX, RMArrowY, 'LineWidth', 2)
+annotation('textbox', [0.74 0.3 0.1 0.1],...
                      'string', 'RespMag',...
                      'LineStyle', 'none',...
+                     'FontWeight','bold',...
                      'FontName', fontN,...
                      'FontSize',legAnnoFSize)
 
@@ -77,9 +78,9 @@ annoRP = ['RP: ' num2str(respPer) '%'];
 %                          'LineStyle', 'none',...
 %                          'FontWeight','bold');
                      
-% path = 'E:\Desktop';
-path  = 'C:\Users\djsmith\Desktop';
+path = 'E:\Desktop';
+% path  = 'C:\Users\djsmith\Desktop';
 fileName = 'DependentVariablesManuscript.jpg';
 fullpath = fullfile(path, fileName);
-export_fig(fullpath)
+export_fig(fullpath, '-nocrop')
 end

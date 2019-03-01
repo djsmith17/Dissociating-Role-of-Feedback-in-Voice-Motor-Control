@@ -541,7 +541,7 @@ respVarM  = mean(respVar, 1);
 respVarSD = std(respVar, 0, 1);
 
 InflaStimVar = [respVarM(1) respVarM(2)];
-drawInflationResultMetrics(irAll, 8);
+% drawInflationResultMetrics(irAll, 8);
 end
 
 function ir = initInflationResponseStruct()
