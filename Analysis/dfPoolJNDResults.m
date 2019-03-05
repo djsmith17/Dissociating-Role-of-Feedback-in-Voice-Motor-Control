@@ -43,7 +43,7 @@ for ii = 1:pA.numPart
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
         if exist(dirs.SavFile, 'file') == 0
-            error('ERROR: The Results file for Run %s does not exist yet\n', run)
+            error('ERROR: The Results file for Run %s %s does not exist yet\n', participant, run)
         else   
             load(dirs.SavFile)
             % Returns a results struture of 'res'
@@ -138,7 +138,6 @@ title('Mean JND Score Distribution')
 figure
 hist(cell2mat(JNDStatTable.lastSetAccuracyMean))
 title('Mean Last 4 Reversals Accuracy Distribution')
-
 
 JNDTableCSV = fullfile(dirs.SavResultsDir, 'JNDStatTable.csv');
 writetable(JNDStatTable, JNDTableCSV);
