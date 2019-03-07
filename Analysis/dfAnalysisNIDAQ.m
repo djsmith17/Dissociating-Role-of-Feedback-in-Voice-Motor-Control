@@ -818,11 +818,13 @@ function res = packResults(niAn, lims)
 % between other analysis methods. This makes it easy to switch back and
 % forth between different result structures for plotting. 
 
-% Information about the experiment/subject
-res.expType = niAn.expType;
+% Identifying Subject Information
 res.subject = niAn.subject;
 res.run     = niAn.run;
 res.curSess = niAn.curSess;
+
+% Identifying Experimental Settings
+res.expType = niAn.expType;
 res.AudFB   = niAn.AudFB;
 res.balloon = niAn.balloon;
 
@@ -838,14 +840,16 @@ res.pertTrig      = niAn.pertTrig;
 res.alignResponseTriggers = niAn.alignResponseTriggers;
 
 res.timeS         = niAn.time_DN;
-res.sensorP       = niAn.sensorP_p; %Individual Processed perturbed trials. 
-res.presSD        = niAn.presSD;
-res.limitsP       = lims.pressure;
+% Pressure Results
+res.sensorP       = niAn.sensorP_p; % Individual Processed Perturbed trials. 
+res.presSD        = niAn.presSD;    % Sensor Dynamics Structure
+res.limitsP       = lims.pressure;  % Limits for collection of individual trials
 
-res.fSNSD         = niAn.fSNSD;
+% Force Sensor (Neck) Results
+res.fSNSD         = niAn.fSNSD;     % Sensor Dynamics Structure
 
-% Sectioned and Aligned Pressure recordings 
-res.limitsPAl = lims.pressureAl;
+% Limits for Aligned and Meaned Pressure Recordings
+res.limitsPAl   = lims.pressureAl;
 res.limitsPMean = lims.pressureMean;
 
 % Audio f0 analysis
