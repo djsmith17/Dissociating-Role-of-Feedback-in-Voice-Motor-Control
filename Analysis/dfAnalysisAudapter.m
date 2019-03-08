@@ -619,11 +619,8 @@ res.audioHf0MeanCont = auAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
-%Inflation Response
-res.respVar      = auAn.respVar;
-res.respVarM     = auAn.respVarM;
-res.respVarSD    = auAn.respVarSD;
-res.InflaStimVar = auAn.InflaStimVar;
+% Dynamics of the Participant's Vocal Response
+res.audioDynamics = auAn.audioDynamics;
 
 %Some Final Output time series data
 res.audioMinc = auAn.audioMinc;

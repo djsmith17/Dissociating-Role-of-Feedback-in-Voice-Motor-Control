@@ -18,10 +18,10 @@ close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 AVar.participants  = {'DRF1'}; % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF1'}; %    List of multiple runs.
+AVar.runs          = {'SF1'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
-AVar.debug         = 1;
+AVar.debug         = 0;
 
 dirs               = dfDirs(AVar.project);
 dirs.LoadData      = dirs.SavData;
@@ -165,11 +165,10 @@ res.audioHf0MeanCont = auRes.audioHf0MeanCont;
 res.limitsAmean      = auRes.limitsAmean;
 res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicXHead
 
-%Inflation Response
-res.respVar      = auRes.respVar;
-res.respVarM     = auRes.respVarM;
-res.respVarSD    = auRes.respVarSD;
-res.InflaStimVar = auRes.InflaStimVar;
+% Dynamics of the Participant's Vocal Response
+% This can be the response to the laryngeal pert
+% This can be the response to the auditory pert
+res.audioDynamics = auRes.audioDynamics;
 
 %NIAu Delay
 res.AuNiDelaysinc = auRes.AuNiDelaysinc;

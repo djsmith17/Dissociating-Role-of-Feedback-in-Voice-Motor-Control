@@ -883,9 +883,6 @@ res.audioHf0MeanCont = niAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
-%Inflation Response
-res.respVar      = niAn.respVar;
-res.respVarM     = niAn.respVarM;
-res.respVarSD    = niAn.respVarSD;
-res.InflaStimVar = niAn.InflaStimVar;
+% Dynamics of the Participant's Vocal Response
+res.audioDynamics = niAn.audioDynamics;
 end

@@ -171,10 +171,11 @@ if AudFlag == 1
     An.audioHf0_meanp = meanAudioData(An.audioHf0_Secp);
     An.audioMf0_meanc = meanAudioData(An.audioMf0_Secc);
     An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc); 
-
-    %The Inflation Response
+    
     if iRF == 1
-        [An.respVar, An.respVarM, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
+        An.audioDynamics = InflationResponse(An.secTime, An.audioMf0_Secp); % Audio Response to Somatosensory Pert
+    elseif aD == 2
+        An.audioDynamics = InflationResponse(An.secTime, An.audioMf0_Secp); % Audio Response to Somatosensory Pert
     end
 end
 end
@@ -231,10 +232,7 @@ An.audioHf0_meanp = [];
 An.audioMf0_meanc = []; 
 An.audioHf0_meanc = [];
 
-An.respVar        = []; 
-An.respVarM       = [];
-An.respVarSD      = [];
-An.InflaStimVar   = [];
+An.audioDynamics  = [];
 end
 
 function fV = setFreqAnalVar(sRate, numSamp, f0b, gender)
@@ -355,7 +353,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 50);   % 10 sample length smoothing
+    audioSmooth = smooth(audio(:,ii), 50);   % 50 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end
@@ -470,7 +468,7 @@ SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
-function [respVar, respVarM, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+function audioDynamics_Somato = InflationResponse(secTime, secAudio)
 % [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
 % Identifies the relevant pitch contour characteristics that are important
 % for deciding how a participant responded to the inflation of the balloon
@@ -546,8 +544,11 @@ respVar   = [tAtMin stimMag respMag respPer];
 respVarM  = mean(respVar, 1);
 respVarSD = std(respVar, 0, 1);
 
-InflaStimVar = [respVarM(1) respVarM(2)];
-% drawInflationResultMetrics(irAll, 8);
+% Add to the audioDynamics struct
+audioDynamics_Somato.respVar   = respVar;
+audioDynamics_Somato.respVarM  = respVarM;
+audioDynamics_Somato.respVarSD = respVarSD;
+% drawInflationResultMetrics(irAll, 8); % Generates useful manuscript Fig
 end
 
 function ir = initInflationResponseStruct()
