@@ -71,7 +71,7 @@ if AudFlag == 1
         anaFlag = 2;
     end
         
-    % Pitch contour analysis can be time consuiming. 
+    % Pitch contour analysis can be time consuming. 
     % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
@@ -100,25 +100,28 @@ if AudFlag == 1
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
     An.trialf0   = mean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
-    An.trialf0M  = mean(An.trialf0);                      % Mean trial baseline f0
+    An.trialf0M  = mean(An.trialf0);                       % Mean trial baseline f0
     
     % Normalize f0 traces by individual f0b and convert to cents
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
     
+    % Identify trials (mic) where participant had vocal fry
+    % aka: f0 pitch miscalculation
     for ii = 1:An.numTrialSvt
         
         expTrig = An.expTrigsf0(ii, :);
         svIdc   = An.allIdxPreProc(ii);
         
-        preSt = expTrig(1) - 0.5;
-        posSp = expTrig(2) + 1.0;
+        preSt = expTrig(1) - 0.5; % Pre-Start
+        posSp = expTrig(2) + 1.0; % Post-Stop
         
+        % Only consider points around where the action happens
+        % Ignore the fringes of the recording
         timeInd = (An.timef0 > preSt & An.timef0 < posSp);
         mic     = An.audioMf0_norm(timeInd, ii);
 
-        % Are there any points where the value of pitch goes above 500
-        % cents or below -500 cents?
+        % Any points where pitch is > 500 // < -500 cents?
         MisCalcf0 = find(mic >= 500 | mic <=  -500);
 
         if ~isempty(MisCalcf0)
@@ -132,9 +135,11 @@ if AudFlag == 1
             removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
             An.removedTrialTracker = cat(1, An.removedTrialTracker, removedTrial);
         else
-            An.subSvIdx      = cat(1, An.subSvIdx, ii);    
+            An.subSvIdx = cat(1, An.subSvIdx, ii); % Keep the index of the trials that are not removed
         end
     end
+    
+    % Parse out the trials we are saving (not removed)
     An.svf0Idx       = An.allIdxPreProc(An.subSvIdx);
     An.expTrigsf0Sv  = An.expTrigsf0(An.subSvIdx, :);
     An.trialTypef0Sv = An.trialTypeSvt(An.subSvIdx);
@@ -149,11 +154,11 @@ if AudFlag == 1
 
     %Find the Perturbed Trials
     An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
-    An.audioMf0p = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
-    An.audioHf0p = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);
+    An.audioMf0p   = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
+    An.audioHf0p   = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);
     An.contTrigsR  = An.expTrigsf0Sv(An.contf0Idx,:);
-    An.audioMf0c = parseTrialTypes(An.audioMf0sv, An.contf0Idx);
-    An.audioHf0c = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
+    An.audioMf0c   = parseTrialTypes(An.audioMf0sv, An.contf0Idx);
+    An.audioHf0c   = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
     
     %Section the data around onset and offset
     [An.secTime, An.audioMf0_Secp] = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR);
@@ -175,7 +180,8 @@ end
 end
 
 function An = initAudVar(An)
-%Initialize some variables to keep track of them
+% Initialize variables used in analysis of recorded audio (Mic and Head)
+% This is a good place to view comments for variable names/uses
 
 An.timef0         = []; %time vector of audio samples recorded
 An.audioMf0       = []; %Raw Microphone Audio Data
@@ -191,10 +197,10 @@ An.secTime        = [];
 An.audioMf0SecAll = [];
 An.audioHf0SecAll = [];
 
-An.trialf0        = []; %Per-Trial f0 from the period pre-perturbation
-An.trialf0M       = []; %Mean-Trial f0 from the period per-perturbation
-An.audioMf0_norm  = []; %Normalized mic data
-An.audioHf0_norm  = []; %Normalized head data
+An.trialf0        = []; % Per-Trial f0 from the period pre-perturbation
+An.trialf0M       = []; % Mean-Trial f0 from the period per-perturbation
+An.audioMf0_norm  = []; % Normalized mic data (cents)
+An.audioHf0_norm  = []; % Normalized head data (cents)
 
 An.subSvIdx       = [];
 An.svf0Idx        = [];
@@ -240,7 +246,7 @@ fV.f0Bounds   = identifyf0Bounds(f0b, gender);
 
 fV.sRate      = sRate;
 fV.numSamp    = numSamp;
-fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; %Time vector for full mic
+fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; % Time vector for full mic
 
 fV.freqCutOff = 400;
 fV.win        = 0.010;      % seconds
@@ -458,10 +464,10 @@ stdOffset  = std(OffsetSecs, 0, 2); % across columns
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 
-NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+% NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+% NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
 function [respVar, respVarM, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)

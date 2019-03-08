@@ -63,7 +63,7 @@ if isfield(expParam, 'incTrialInfo')
     auAn.incTrialInfo = expParam.incTrialInfo;
 end
 
-% Is there a field for SEQAudFB. We use this when AudFB changs from
+% Is there a field for SEQAudFB. We use this when AudFB changes from
 % trial-to-trial
 if isfield(expParam, 'SeqAudFB')
     auAn.SeqAudFB   = expParam.SeqAudFB;
@@ -91,14 +91,16 @@ for ii = 1:auAn.numTrial
         MrawNi = resample(Mraw, 8000, auAn.sRate);
     end
     
-    % Preprocessing step identifies time-series errors in production/recording
+    % Preprocessing step identifies time-series errors in recording/vocalization
     [mic, head, preProSt] = preProcAudio(auAn, Mraw, Hraw, rms, MrawNi, anaTrigs, AudFBSw);
     
-    auAn.audioM = cat(2, auAn.audioM, mic);  % Save all trials, regardless of eventual exclusion
-    auAn.audioH = cat(2, auAn.audioH, head); % Save all trials, regardless of eventual exclusion
-
+    % Save all trials (and delay calcs), regardless of eventual exclusion
+    auAn.audioM        = cat(2, auAn.audioM, mic);
+    auAn.audioH        = cat(2, auAn.audioH, head);
     auAn.allAuMHDelays = cat(1, auAn.allAuMHDelays, preProSt.AuMHdelay);
     auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, preProSt.AuNidelay);
+    
+    % Identify if trial should be tossed
     if preProSt.saveT == 0     % Don't save the trial :(
         fprintf('%s Trial %d (%s) excluded due to %s\n', auAn.curSess, ii, type, preProSt.saveTmsg)
         removedTrial = {['Trial ' num2str(ii)], preProSt.saveTmsg};
@@ -110,11 +112,12 @@ for ii = 1:auAn.numTrial
 end
 
 % The Audio Analysis
-f0Flag = 0;
+f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
-auAn.audioMinc = auAn.audioM(:, auAn.svf0Idx);
-auAn.audioHinc = auAn.audioH(:, auAn.svf0Idx);
+% (inc)luded trials following Audio Analysis
+auAn.audioMinc     = auAn.audioM(:, auAn.svf0Idx);
+auAn.audioHinc     = auAn.audioH(:, auAn.svf0Idx);
 auAn.AuMHDelaysinc = auAn.allAuMHDelays(auAn.svf0Idx);
 auAn.AuNiDelaysinc = auAn.allAuNiDelays(auAn.svf0Idx);
 
