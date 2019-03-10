@@ -305,7 +305,7 @@ end
 expTrigsR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
-% fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+fprintf('f0 Analysis Elapsed Time: %f (min)\n', elapsed_time)
 end
 
 function bounds = identifyf0Bounds(f0b, gender)
@@ -353,7 +353,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 50);   % 50 sample length smoothing
+    audioSmooth = smooth(audio(:,ii), 10);   % 10 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end

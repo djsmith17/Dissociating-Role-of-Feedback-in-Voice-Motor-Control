@@ -9,7 +9,7 @@ txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
 
 pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 
-tStep = 0.001; % seconds; hard set
+tStep = 0.005; % seconds; hard set
 fsA   = 1/tStep;
 
 lwPitchBnd = f0Bounds(1);
