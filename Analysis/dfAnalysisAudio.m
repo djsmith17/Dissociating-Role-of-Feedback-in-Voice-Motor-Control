@@ -35,15 +35,14 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % -An.trialType
 
 if isempty(varargin)
-    iRF    = 0; 
+    aDF    = 0; 
     f0Flag = 0;
 elseif length(varargin) == 1
-    iRF    = varargin{1};
+    aDF    = varargin{1};
     f0Flag = 0;
 else
-    iRF    = varargin{1};
+    aDF    = varargin{1};
     f0Flag = varargin{2};
-    aD     = 2;
 end
 
 % Instatiate the variables we intend to create 
@@ -173,9 +172,9 @@ if AudFlag == 1
     An.audioMf0_meanc = meanAudioData(An.audioMf0_Secc);
     An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc); 
     
-    if iRF == 1
+    if aDF == 1 % Set in RunSubjAnalysis
         An.audioDynamics = InflationResponse(An.secTime, An.audioMf0_Secp); % Audio Response to Somatosensory Pert
-    elseif aD == 2
+    elseif aDF == 2 % Set in RunSubjAnalysis
         An.audioDynamics = PitchShiftReflexResponse(An.secTime, An.audioMf0_Secp); % Audio Response to Auditory Pert
     end
 end

@@ -1,4 +1,4 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, aDF, PresFlag)
 % [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
 % This function analyzes the raw audio data that was recorded by Audapter 
 % in the experiments measuring changes in f0. It first does a
@@ -134,7 +134,7 @@ if PresFlag == 1 && niAn.numPertTrials > 0
 end
 
 %The Audio Analysis
-niAn = dfAnalysisAudio(dirs, niAn, AudFlag, iRF);
+niAn = dfAnalysisAudio(dirs, niAn, AudFlag, aDF);
     
 lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);

@@ -79,13 +79,13 @@ for i = 1:AVar.numPart
         % Identify the type of experiment and decide what types of analyzes
         % we need. pF: Pressure Flag; iRF: Inflation Response Flag
         
-        [DRF, pF, iRF] = preAnalysisCheck(DRF, f0b);
+        [DRF, pF, aDF] = preAnalysisCheck(DRF, f0b);
         aFn = 0; aFa = 1; %Audio Analysis Flag
         
         % Analysis on the NIDAQ raw data
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, iRF, pF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, aDF, pF);
         % Analysis on the Audapter raw data
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, iRF, niAn);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, aDF, niAn);
 
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
@@ -209,26 +209,30 @@ if res.numPertTrialsFin < res.numPertTrialsNi && strcmp(res.expType, 'Somatosens
 end
 end
 
-function [DRF, pF, iRF] = preAnalysisCheck(DRF, f0b)
+function [DRF, pF, aDF] = preAnalysisCheck(DRF, f0b)
 % preAnalysisCheck(DRF) returns flags for different analyses to be 
 % performed. expType will be the name of the experiment, and will likely be
 % either 'Somatosensory Perturbation_Perceptual' or 'Auditory
 % Perturbation_Perceptual. 
 %
-% This returns answers for pF (Pressure Flag) and iRF (Inflation Response
-% Flag)
+% This returns
+% -pF (Pressure Flag)
+% -aDF (Audio Dynamics Flag)
 
 expType = DRF.expParam.expType;
-
 if strcmp(expType, 'Somatosensory Perturbation_Perceptual') == 1
     % Laryngeal perturbations. AKA, we want to analyze the pressure, and 
     % the behavioral response to the inflation!
     pF  = 1;      %Pressure Analysis Flag
-    iRF = 1;      %Inflation Response Flag
+    aDF = 1;      %Audio Dynamics Flag
+elseif strcmp(expType, 'Auditory Perturbation_Perceptual') == 1
+    % Auditory perturbations. AKA, no pressure, but also behavioral response to the pitch shifted stimuli
+    pF  = 0;      %Pressure Analysis Flag
+    aDF = 2;      %Audio Dynamics Flag
 else
     % No laryngeal perturbations
     pF  = 0;      %Pressure Analysis Flag
-    iRF = 0;      %Inflation Response Flag
+    aDF = 0;      %Audio Dynamics Flag
 end
 
 if ~isfield(DRF.expParam, 'age')
