@@ -285,6 +285,9 @@ postOff = 1.0*pp.fs;
 % Audio points on either side of the perturbation period.
 pp.analysisSec(1) = auTrigsAuNi(1) - preOn;   % Where to start the Analysis period
 pp.analysisSec(2) = auTrigsAuNi(2) + postOff; % Where to end the Analysis period
+if pp.analysisSec(2) > pp.trialLen
+    pp.analysisSec(2) = pp.trialLen;
+end    
 pp.analysisPoints = pp.analysisSec(1):pp.analysisSec(2);
 pp.analysisFrames = round(pp.analysisSec(1)/pp.frameLen):round(pp.analysisSec(2)/pp.frameLen);
 
