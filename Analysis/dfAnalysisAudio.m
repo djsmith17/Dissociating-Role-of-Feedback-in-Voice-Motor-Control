@@ -305,7 +305,7 @@ end
 expTrigsR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
-fprintf('f0 Analysis Elapsed Time: %f (min)\n', elapsed_time)
+% fprintf('f0 Analysis Elapsed Time: %f (min)\n', elapsed_time)
 end
 
 function bounds = identifyf0Bounds(f0b, gender)
