@@ -116,7 +116,7 @@ for ii = 1:auAn.numTrial
 end
 
 % The Audio Analysis
-f0Flag = 0;
+f0Flag = 1;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 % (inc)luded trials following Audio Analysis

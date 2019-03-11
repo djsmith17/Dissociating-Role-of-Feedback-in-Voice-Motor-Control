@@ -41,7 +41,7 @@ elseif length(varargin) == 1
     iRF    = varargin{1};
     f0Flag = 0;
 else
-    iRF    = 0; %varargin{1};
+    iRF    = varargin{1};
     f0Flag = varargin{2};
     aD     = 2;
 end
