@@ -109,10 +109,14 @@ for ii = 1:auAn.numTrial
     elseif preProSt.saveT == 1 % Save the Trial        
         auAn.allIdxPreProc = cat(1, auAn.allIdxPreProc, ii); % Save the experimental index
     end
+    
+    if preProSt.oddXCorr == 1 && typeIdx == 1
+        fprintf('Odd xCorr for perturbed trial (%d)\n', ii)
+    end
 end
 
 % The Audio Analysis
-f0Flag = 1;
+f0Flag = 0;
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, iRF, f0Flag);
 
 % (inc)luded trials following Audio Analysis
@@ -300,11 +304,12 @@ end
 pp.AuMHdelayP = pp.AuMHdelay*pp.fs; % Convert to points
 
 % Align the Microphone and Headphones
+pp.oddXCorr = 0; %did something weird happen with the xcorr??
 if pp.AuMHdelayP >= 0
     micAuAl  = pp.rawMic(1:(end-pp.AuMHdelayP));
     headAuAl = pp.rawHead((pp.AuMHdelayP+1):end);
 else
-    fprintf('Odd xCorr Here\n')
+    pp.oddXCorr = 1;
     micAuAl  = pp.rawMic;
     headAuAl = pp.rawHead;
 end
@@ -342,6 +347,8 @@ headP   = headAuNi(1:pp.numSamp);
 
 pp.saveT    = saveT;    % Save trial or no?
 pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
+
+% drawPreProcessDiagnostic(pp, 1); pause; close all
 end
 
 function [timeSet, delaySet] = MHdelayChunked(sig1, sig2, fs)
@@ -366,9 +373,15 @@ for ii = 1:numChunk
 end
 end
 
-function drawPreProcessDiagnostic(pp)
+function drawPreProcessDiagnostic(pp, varargin)
 
-plotPos = [1800 10];
+if ~isempty(varargin)
+    check = 1;
+else
+    check = 0;
+end
+
+plotPos = [10 10];
 plotDim = [1200 900];
 
 ppDiag = figure('Color', [1 1 1]);
@@ -389,11 +402,25 @@ plot([pp.t(pp.auTrigs(2)) pp.t(pp.auTrigs(2))], [-0.2 0.2], 'k--')
 box off
 axis([0 6 -0.25 0.25])
 
-axes(ha(2))
-plot(pp.tNi, pp.micRNi)
-title(num2str(pp.AuNidelay))
-axis([0 4 -0.25 0.25])
-box off
+if check == 1
+    axes(ha(2))
+    plot(pp.t, pp.rawHead)
+    hold on
+    plot([pp.voiceOnsetT pp.voiceOnsetT ], [-0.2 0.2])
+    hold on
+    plot([pp.t(pp.auTrigs(1)) pp.t(pp.auTrigs(1))], [-0.2 0.2], 'k--')
+    hold on
+    plot([pp.t(pp.auTrigs(2)) pp.t(pp.auTrigs(2))], [-0.2 0.2], 'k--')
+    box off
+    axis([0 6 -0.25 0.25])
+    title(num2str(pp.AuMHdelay))
+else
+    axes(ha(2))
+    plot(pp.tNi, pp.micRNi)
+    title(num2str(pp.AuNidelay))
+    axis([0 4 -0.25 0.25])
+    box off
+end
 
 end
 

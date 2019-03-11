@@ -41,8 +41,9 @@ elseif length(varargin) == 1
     iRF    = varargin{1};
     f0Flag = 0;
 else
-    iRF    = varargin{1};
+    iRF    = 0; %varargin{1};
     f0Flag = varargin{2};
+    aD     = 2;
 end
 
 % Instatiate the variables we intend to create 
@@ -175,7 +176,7 @@ if AudFlag == 1
     if iRF == 1
         An.audioDynamics = InflationResponse(An.secTime, An.audioMf0_Secp); % Audio Response to Somatosensory Pert
     elseif aD == 2
-        An.audioDynamics = InflationResponse(An.secTime, An.audioMf0_Secp); % Audio Response to Somatosensory Pert
+        An.audioDynamics = PitchShiftReflexResponse(An.secTime, An.audioMf0_Secp); % Audio Response to Auditory Pert
     end
 end
 end
@@ -573,4 +574,87 @@ ir.tAtResp = []; % Time at f0 value when participant 'fully' responded
 ir.vAtResp = []; % f0 value when participant 'fully' responded 
 ir.respMag = []; % vAtResp - vAtMin   ...distance traveled
 ir.respPer = []; % Percent change from stimMag to respMag
+end
+
+function audioDynamics_Audio = PitchShiftReflexResponse(secTime, secAudio)
+% [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+% Identifies the relevant pitch contour characteristics that are important
+% for deciding how a participant responded to the inflation of the balloon
+% during production. iR is a structure representing the result variables
+% from studying the inflation response (iR). The prefix letter denotes
+% whether the variable is a index (i), a time (t), or a value (v). 
+%
+% secTime:  Vector of time points corresponding to the sectioned data (numSamp)
+% secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
+%           The 1st 3D layer are Onset Sections
+%           The 2nd 3D later are Offset Sections
+%
+% respVar: Matrix of per trial iR results (numTrial x 4)
+%          respVar(:,1) = Time of the minimum f0 value in the sec
+%          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
+%          respVar(:,3) = Value of f0 at end of sec (response magnitude)
+%          respVar(:,4) = ABS percent change of stim and response
+%          magnitude (response percentage)
+% respVarM:    Vector of mean trial values from respVarm (1x4)
+% respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
+% InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
+
+[numSamp, numTrial, ~] = size(secAudio); % Size of the data we are dealing with
+
+% Variables to be concatenated and saved as outputs 
+tAtMin  = []; stimMag = [];
+respMag = []; respPer = [];
+irAll   = [];
+for i = 1:numTrial
+    ir = initInflationResponseStruct();
+    ir.numSamp  = numSamp;
+    ir.numTrial = numTrial;
+    ir.time     = secTime;
+    ir.onset    = secAudio(:,i,1); % Go trial by trial; First 3D layer is Onset
+    
+    ir.iAtOnset = find(ir.time == 0);
+    ir.tAtOnset = 0; %duh
+    ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
+    
+    ir.iPostOnsetR = find(0 <= ir.time & .20 >= ir.time); % Range of indices between t = 0ms and t = 200ms;
+    [minOn, minIdx] = min(ir.onset(ir.iPostOnsetR)); % Minimum f0 in PostOnsetR
+    
+    %StimMag
+    ir.iAtMin  = ir.iPostOnsetR(minIdx); % Indice of the min f0 value
+    ir.tAtMin  = ir.time(ir.iAtMin);     % Time at min f0 value in PostOnsetR
+    ir.vAtMin  = minOn;                  % Min f0 value in PostOnsetR
+    ir.stimMag = -100; %ir.vAtMin - ir.vAtOnset;% Distance traveled from onset to min value
+    
+    %RespMag
+    ir.iAtResp = ir.numSamp;             % Last value in section
+    ir.tAtResp = ir.time(ir.numSamp);
+    ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully' responded 
+    ir.respMag = ir.vAtResp - ir.vAtOnset; % Distance traveled from min f0 value to response f0 value
+    
+    %RespPer
+    ir.respPer = 100*(ir.respMag/abs(ir.stimMag)); % Percent change from stimMag to respMag 
+    
+    if ir.stimMag == 0
+        ir.respPer = 0.0;
+    end
+    
+    % Concatenate the results from this trial 
+    tAtMin   = cat(1, tAtMin, ir.tAtMin);
+    stimMag  = cat(1, stimMag, ir.stimMag); 
+    respMag  = cat(1, respMag, ir.respMag); 
+    respPer  = cat(1, respPer, ir.respPer);
+    
+    irAll = cat(1, irAll, ir);
+end
+
+% Organize the results
+respVar   = [tAtMin stimMag respMag respPer];
+respVarM  = mean(respVar, 1);
+respVarSD = std(respVar, 0, 1);
+
+% Add to the audioDynamics struct
+audioDynamics_Audio.respVar   = respVar;
+audioDynamics_Audio.respVarM  = respVarM;
+audioDynamics_Audio.respVarSD = respVarSD;
+% drawInflationResultMetrics(irAll, 8); % Generates useful manuscript Fig
 end
