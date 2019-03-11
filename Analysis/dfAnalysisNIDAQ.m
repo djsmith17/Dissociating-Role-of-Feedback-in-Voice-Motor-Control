@@ -130,7 +130,7 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     % Pressure Sensor Dynamics
     [niAn.presSD] = analyzeSensorDynamics(niAn.presSD, niAn.pertSD);
     
-    [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
+%     [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
 end
 
 %The Audio Analysis
@@ -574,8 +574,8 @@ function [timeAl, sensorAl] = alignSensorData(sensor, fs, idx)
 % sensorAl: sectioned and aligned sensor data 
 
 [~, numTrial] = size(sensor);
-preEve = 1.0; % time preEvent Seconds 
-posEve = 2.5; % time posEvent Seconds
+preEve = 0.5; % time preEvent Seconds 
+posEve = 2.0; % time posEvent Seconds
 
 % At the moment only aligning by Onset. 
 % This could eventually become an input to toggle between Onset/Offset
