@@ -277,7 +277,7 @@ if strcmp(pp.expType(1:3), 'Som')
     pp.adjustedDelay = pp.AuNidelayP;
     auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
 else
-    pp.adjustedDelay = pp.voiceOnsetInd;
+    pp.adjustedDelay = pp.AuNidelayP;
     auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
 end
 
@@ -401,7 +401,7 @@ plot(pp.t, pp.rawMic)
 hold on
 plot(pp.t, pp.env, 'y')
 hold on
-plot([pp.voiceOnsetT pp.voiceOnsetT ], [-0.2 0.2])
+plot([pp.voiceOnsetT pp.voiceOnsetT], [-0.2 0.2])
 hold on
 plot([pp.t(pp.auTrigs(1)) pp.t(pp.auTrigs(1))], [-0.2 0.2], 'k--')
 hold on
@@ -413,7 +413,7 @@ if check == 1
     axes(ha(2))
     plot(pp.t, pp.rawHead)
     hold on
-    plot([pp.voiceOnsetT pp.voiceOnsetT ], [-0.2 0.2])
+    plot([pp.voiceOnsetT pp.voiceOnsetT], [-0.2 0.2])
     hold on
     plot([pp.t(pp.auTrigs(1)) pp.t(pp.auTrigs(1))], [-0.2 0.2], 'k--')
     hold on
