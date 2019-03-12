@@ -268,7 +268,7 @@ end
 
 % Find the delay between NIDAQ recording and Audapter recording
 pp.micRds     = resample(pp.rawMic, pp.fsNI, pp.fs);         % Downsample the Audapter recording
-pp.AuNidelay  = xCorrTimeLag(pp.micRNi, pp.micRds, pp.fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
+pp.AuNidelay  = xCorrTimeLag(pp.micRds, pp.micRNi, pp.fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
 pp.AuNidelayP = pp.AuNidelay*pp.fs;                          % Convert to points
 
 % Adjust Triggers against NIDAQ only if we are using Laryngeal Pert Exp.
@@ -305,7 +305,8 @@ pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*pp.fs/pp.frameLen; % Last longe
 if pp.AudFBSw == 2 % No Headphone Out
     pp.AuMHdelay = (pp.frameLen*(pp.frameDel-1))/pp.fs;
 else
-    pp.AuMHdelay = xCorrTimeLag(pp.rawMic(pp.analysisPoints), pp.rawHead(pp.analysisPoints), pp.fs);   % Expect Mic leads Head
+    prePertPer = pp.analysisSec(1): auTrigsAuNi(1); % 500ms preperturbation
+    pp.AuMHdelay = xCorrTimeLag(pp.rawHead(prePertPer), pp.rawMic(prePertPer), pp.fs);   % Expect Mic leads Head
 end
 pp.AuMHdelayP = pp.AuMHdelay*pp.fs; % Convert to points
 
@@ -434,16 +435,16 @@ function timeLag = xCorrTimeLag(sig1, sig2, fs)
 % xCorrTimeLag(sig1, sig2, fs) calculates the lag between two (seemingly) 
 % identical time based signals. 
 %
-% if timeLag is positive, then sig1 leads sig2. 
-% if timeLag is negative, then sig1 lags sig2.
+% if timeLag is negative, then sig1 leads sig2. 
+% if timeLag is positive, then sig1 lags sig2.
 
 % Simple crosscorrelation between two signals
 % Finds the largest peak of the result
 [r, lags]    = xcorr(sig1, sig2);
+r(lags<0) = 0;
 [~, peakInd] = max(r);
 maxLag       = lags(peakInd);
 timeLag      = maxLag/fs;
-timeLag      = -timeLag;
 end
 
 function lims = identifyLimits(An)
