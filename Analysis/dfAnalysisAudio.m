@@ -515,7 +515,7 @@ for i = 1:numTrial
     ir.iAtMin  = ir.iPostOnsetR(minIdx); % Indice of the min f0 value
     ir.tAtMin  = ir.time(ir.iAtMin);     % Time at min f0 value in PostOnsetR
     ir.vAtMin  = minOn;                  % Min f0 value in PostOnsetR
-    ir.stimMag = ir.vAtMin - ir.vAtOnset;% Distance traveled from onset to min value
+    ir.stimMag = abs(ir.vAtMin - ir.vAtOnset);% Distance traveled from onset to min value
     
     %RespMag
     ir.iAtResp = ir.numSamp;             % Last value in section
@@ -524,7 +524,7 @@ for i = 1:numTrial
     ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
     
     %RespPer
-    ir.respPer = 100*(ir.respMag/abs(ir.stimMag)); % Percent change from stimMag to respMag 
+    ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respMag 
     
     if ir.stimMag == 0
         ir.respPer = 0.0;
