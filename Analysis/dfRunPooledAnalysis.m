@@ -203,6 +203,8 @@ tVN = {'CurSess', 'AutoExcluded', 'ManuallyExcluded', 'MissedByAuto', 'PercentCa
 end
 
 function polRes = combineCondTrials(pA, curRes, polRes, tossT)
+AD = curRes.audioDynamics; % Audio Dynamics
+PD = curRes.presSDsv;      % Pressure Dynamics
 
 whichCondAr = strcmp(pA.cond, eval(pA.condVar));
 wC          = find(whichCondAr == 1);            % Which Condition?
@@ -218,10 +220,10 @@ polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrials
 polRes.secTime             = curRes.secTime;
 polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
-polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, curRes.respVar);
+polRes.respVar{wC}         = cat(1, polRes.respVar{wC}, AD.respVar);
 
-polRes.secTimeP            = curRes.secTimeP;
-polRes.sensorPSec          = cat(2, polRes.sensorPSec, curRes.sensorPSec);
+polRes.secTimeP            = PD.timeSec;
+polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
 
 polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
 polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
@@ -230,15 +232,15 @@ polRes.tossedMisCalc  = polRes.tossedMisCalc + tossT.C;   % f0 Miscalc
 polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Excluded Trials
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
 
-[respVar, respVarM, ~] = InflationResponse(curRes.secTime, curRes.audioMf0SecPert);
-polRes.respVar{wC}     = respVar;
-polRes.respVarM{wC}    = respVarM;
+polRes.audioDynamics   = InflationResponse(curRes.secTime, curRes.audioMf0SecPert);
+polRes.respVar{wC}     = polRes.audioDynamics.respVar;
+polRes.respVarM{wC}    = polRes.audioDynamics.respVarM;
 
 polRes.obvSubj         = cat(1, polRes.obvSubj, curRes.subject);
 polRes.obvAge          = cat(1, polRes.obvAge, curRes.age);
 polRes.obvGender       = cat(1, polRes.obvGender, curRes.gender);
 polRes.obvAudFB        = cat(1, polRes.obvAudFB, curRes.AudFB);
-polRes.obvRespVar      = cat(1, polRes.obvRespVar, respVarM);
+polRes.obvRespVar      = cat(1, polRes.obvRespVar, polRes.audioDynamics.respVarM);
 end
 
 function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
@@ -360,7 +362,7 @@ keptElementsPert = curRes.allIdxFin(curRes.pertIdxFin);
 %Re-Adjust curRes for those extra trials we threw away.
 curRes.audioMf0SecCont(:, contIdx2Remove,:) = [];
 curRes.audioMf0SecPert(:, pertIdx2Remove,:) = [];
-curRes.sensorPSec(:, pertIdx2Remove,:)      = [];
+curRes.presSDsv.sensorSec(:, pertIdx2Remove,:)      = [];
 
 [~, curRes.numContTrialsFin, ~] = size(curRes.audioMf0SecCont);
 [~, curRes.numPertTrialsFin, ~] = size(curRes.audioMf0SecPert);
@@ -457,18 +459,19 @@ stdOffset  = std(OffsetSecs, 0, 2);
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 
-NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+% NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+% NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-meanData   = [meanOnset NCIOnset meanOffset NCIOffset];
+meanData   = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
-function [respVar, respVarM, respVarSD] = InflationResponse(secTime, secAudio)
+function audioDynamics_Somato = InflationResponse(secTime, secAudio)
 % [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
 % Identifies the relevant pitch contour characteristics that are important
 % for deciding how a participant responded to the inflation of the balloon
 % during production. iR is a structure representing the result variables
-% from studying the inflation response (iR). 
+% from studying the inflation response (iR). The prefix letter denotes
+% whether the variable is a index (i), a time (t), or a value (v). 
 %
 % secTime:  Vector of time points corresponding to the sectioned data (numSamp)
 % secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
@@ -487,43 +490,38 @@ function [respVar, respVarM, respVarSD] = InflationResponse(secTime, secAudio)
 
 [numSamp, numTrial, ~] = size(secAudio); % Size of the data we are dealing with
 
-ir.numSamp  = numSamp;
-ir.numTrial = numTrial;
-ir.time     = secTime;
-
-ir.iAtOnset = find(secTime == 0); % Index where t = 0
-ir.tAtOnset = 0;                  % Time at t = 0 ...duh
-ir.vAtOnset = [];                 % f0 value at t = 0
-
-ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); % Range of indices between t = 0ms and t = 200ms;
-ir.iAtMin  = [];                  % Index at min f0 value in PostOnsetR
-ir.tAtMin  = [];                  % Time at min f0 value in PostOnsetR
-ir.vAtMin  = [];                  % Min f0 value in PostOnsetR
-ir.stimMag = [];                  % ir.vAtMin - ir.vAtOnset ..in a perfect world vAtOnset = 0
-
-ir.iAtResp = ir.numSamp;          % Index of f0 value when participant 'fully' responded...right now = last value in section
-ir.tAtResp = ir.time(ir.numSamp); % Time at f0 value when participant 'fully' responded
-ir.vAtResp = [];                  % f0 value when participant 'fully' responded 
-ir.respMag = [];                  % vAtResp - vAtMin   ...distance traveled
-ir.respPer = [];                  % Percent change from stimMag to respMag
-
 % Variables to be concatenated and saved as outputs 
 tAtMin  = []; stimMag = [];
 respMag = []; respPer = [];
+irAll   = [];
 for i = 1:numTrial
-    onset = secAudio(:,i,1); % Go trial by trial; First 3D layer is Onset
-    ir.vAtOnset = onset(ir.iAtOnset); % f0 value at t = 0
-
-    [minOn, minIdx] = min(onset(ir.iPostOnsetR)); % Minimum f0 in PostOnsetR
-    ir.iAtMin = ir.iPostOnsetR(minIdx);           % Indice of the min f0 value
-    ir.tAtMin = ir.time(ir.iAtMin);               % Time at min f0 value in PostOnsetR
-    ir.vAtMin = minOn;                            % Min f0 value in PostOnsetR
-    ir.stimMag = abs(ir.vAtMin - ir.vAtOnset);    % Distance traveled from onset to min value
+    ir = initInflationResponseStruct();
+    ir.numSamp  = numSamp;
+    ir.numTrial = numTrial;
+    ir.time     = secTime;
+    ir.onset    = secAudio(:,i,1); % Go trial by trial; First 3D layer is Onset
     
-    ir.vAtResp = onset(ir.iAtResp);               % f0 value when participant 'fully' responded 
-    ir.respMag = ir.vAtResp - ir.vAtMin;          % Distance traveled from min f0 value to response f0 value
+    ir.iAtOnset = find(ir.time == 0);
+    ir.tAtOnset = 0; %duh
+    ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
     
-    ir.respPer = 100*(ir.respMag/ir.stimMag);% Percent change from stimMag to respMag 
+    ir.iPostOnsetR = find(0 <= ir.time & .20 >= ir.time); % Range of indices between t = 0ms and t = 200ms;
+    [minOn, minIdx] = min(ir.onset(ir.iPostOnsetR)); % Minimum f0 in PostOnsetR
+    
+    %StimMag
+    ir.iAtMin  = ir.iPostOnsetR(minIdx); % Indice of the min f0 value
+    ir.tAtMin  = ir.time(ir.iAtMin);     % Time at min f0 value in PostOnsetR
+    ir.vAtMin  = minOn;                  % Min f0 value in PostOnsetR
+    ir.stimMag = abs(ir.vAtMin - ir.vAtOnset);% Distance traveled from onset to min value
+    
+    %RespMag
+    ir.iAtResp = ir.numSamp;             % Last value in section
+    ir.tAtResp = ir.time(ir.numSamp);
+    ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully' responded 
+    ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
+    
+    %RespPer
+    ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respMag 
     
     if ir.stimMag == 0
         ir.respPer = 0.0;
@@ -535,14 +533,42 @@ for i = 1:numTrial
     respMag  = cat(1, respMag, ir.respMag); 
     respPer  = cat(1, respPer, ir.respPer);
     
-%     drawInflationResultMetrics(onset, ir)
-%     pause(); close all;
+    irAll = cat(1, irAll, ir);
 end
 
-% Organize the results 
+% Organize the results
 respVar   = [tAtMin stimMag respMag respPer];
 respVarM  = mean(respVar, 1);
 respVarSD = std(respVar, 0, 1);
+
+% Add to the audioDynamics struct
+audioDynamics_Somato.respVar   = respVar;
+audioDynamics_Somato.respVarM  = respVarM;
+audioDynamics_Somato.respVarSD = respVarSD;
+end
+
+function ir = initInflationResponseStruct()
+
+ir.numSamp  = [];
+ir.numTrial = [];
+ir.time     = [];
+ir.onset    = [];
+
+ir.iAtOnset = []; % Index where t = 0
+ir.tAtOnset = []; % Time at t = 0
+ir.vAtOnset = []; % f0 value at t = 0
+
+ir.iPostOnsetR = []; % Range of indices between t = 0ms and t = 200ms;
+ir.iAtMin      = []; % Index at min f0 value in PostOnsetR
+ir.tAtMin      = []; % Time at min f0 value in PostOnsetR
+ir.vAtMin      = []; % Min f0 value in PostOnsetR
+ir.stimMag     = []; % ir.vAtMin - ir.vAtOnset ..in a perfect world vAtOnset = 0
+
+ir.iAtResp = []; % Index of f0 value when participant 'fully' responded...right now = last value in section
+ir.tAtResp = []; % Time at f0 value when participant 'fully' responded
+ir.vAtResp = []; % f0 value when participant 'fully' responded 
+ir.respMag = []; % vAtResp - vAtMin   ...distance traveled
+ir.respPer = []; % Percent change from stimMag to respMag
 end
 
 function lims = identifyLimits(ss)

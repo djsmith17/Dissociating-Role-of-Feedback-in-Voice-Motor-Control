@@ -51,7 +51,7 @@ for k = curTestingMeas
         else
             summaryStr.measureT   = summaryStr.measure;
             summaryStr.isTrans    = 0;
-            summaryStr.suffix     = '   noTrans';
+            summaryStr.suffix     = '';
             summaryStr.usedLambda = 'N/A';
         end
              
