@@ -206,6 +206,7 @@ An.audioHf0_norm  = []; % Normalized head data (cents)
 An.subSvIdx       = [];
 An.svf0Idx        = [];
 An.expTrigsf0Sv   = [];
+An.trialTypef0Sv  = [];
 An.pertf0Idx      = [];
 An.contf0Idx      = [];
 
