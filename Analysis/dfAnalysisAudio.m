@@ -506,8 +506,8 @@ for i = 1:numTrial
     ir.tAtOnset = 0;                     % duh
     ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
     
-    ir.iPostOnsetR = find(0 <= ir.time & .20 >= ir.time); % Range of indices between t => 0ms and t =< 200ms;
-    [minOn, minIdx] = min(ir.onset(ir.iPostOnsetR));      % Minimum f0 val within PostOnsetR
+    ir.iPostOnsetR = find(0 < ir.time & .20 >= ir.time); % Range of indices between t > 0ms and t =< 200ms;
+    [minOn, minIdx] = min(ir.onset(ir.iPostOnsetR));     % Minimum f0 val within PostOnsetR
     
     % StimMag
     ir.iAtMin  = ir.iPostOnsetR(minIdx);       % Indice of the min f0 value following trigger
@@ -611,7 +611,7 @@ for i = 1:numTrial
     ir.tAtOnset = 0; %duh
     ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
     
-    ir.iPostOnsetR = find(0 <= ir.time & .20 >= ir.time); % Range of indices between t = 0ms and t = 200ms;
+    ir.iPostOnsetR = find(0 < ir.time & .20 >= ir.time); % Range of indices between t = 0ms and t = 200ms;
     [minOn, minIdx] = min(ir.onset(ir.iPostOnsetR)); % Minimum f0 in PostOnsetR
     
     %StimMag
