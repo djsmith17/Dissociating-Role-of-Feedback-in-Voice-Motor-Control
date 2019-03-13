@@ -666,10 +666,10 @@ stdOffset  = std(OffsetSecs, 0, 2); % across columns
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 
-NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+% NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+% NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
 function lims = identifyLimits(An)
