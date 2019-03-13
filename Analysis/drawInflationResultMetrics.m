@@ -1,6 +1,4 @@
-function drawInflationResultMetrics(irAll, trial, arrows, vals)
-
-ir = irAll(trial);
+function drawInflationResultMetrics(ir, arrows, vals)
 
 dim     = 50;
 plotPos = [500 200];
@@ -61,8 +59,6 @@ if arrows == 1
                          'FontWeight','bold',...
                          'FontName', fontN,...
                          'FontSize',legAnnoFSize)
-else
-    title(['Trial ' num2str(trial)])
 end
 
 if vals == 1
