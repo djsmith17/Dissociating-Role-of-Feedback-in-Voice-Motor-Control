@@ -329,12 +329,17 @@ elseif pp.chk4Break
     saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
 elseif length(micAuNi) < pp.numSamp
-    saveT    = 0;
-    saveTmsg = 'Recording not long enough';
-    
     diffLen = pp.numSamp - length(micAuNi);
     micAuNi  = [micAuNi; zeros(diffLen, 1)];
     headAuNi = [headAuNi; zeros(diffLen, 1)];
+    
+    if strcmp(pp.expType(1:3), 'Aud')
+        saveT    = 1;
+        saveTmsg = 'Everything is ok, but recording should be longer';
+    else
+        saveT    = 0;
+        saveTmsg = 'Recording not long enough';
+    end
 else
     saveT    = 1;
     saveTmsg = 'Everything is good';
@@ -382,13 +387,7 @@ for ii = 1:numChunk
 end
 end
 
-function drawPreProcessDiagnostic(pp, varargin)
-
-if ~isempty(varargin)
-    check = 1;
-else
-    check = 0;
-end
+function drawPreProcessDiagnostic(pp, check)
 
 plotPos = [10 10];
 plotDim = [1200 900];
@@ -430,7 +429,6 @@ else
     axis([0 4 -0.25 0.25])
     box off
 end
-
 end
 
 function timeLag = xCorrTimeLag(sig1, sig2, fs)
