@@ -413,7 +413,7 @@ end
 function polRes = catStatTableObs(pA, polRes, sortStruc)
 
 for wC = 1:pA.numCond
-    polRes.obvSubj    = cat(1, polRes.obvSubj, sortStruc.subject);
+    polRes.obvSubj    = cat(1, polRes.obvSubj, sortStruc.studyID);
     polRes.obvAge     = cat(1, polRes.obvAge, sortStruc.age);
     polRes.obvGender  = cat(1, polRes.obvGender, sortStruc.gender);
     polRes.obvAudFB   = cat(1, polRes.obvAudFB, sortStruc.AudFB{wC});
