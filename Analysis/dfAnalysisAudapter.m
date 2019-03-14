@@ -240,7 +240,7 @@ if pp.voiceOnM == 1
     pp.voiceOnsetT   = pp.t(pp.voiceOnsetInd);
 else
     pp.rmsVoiceInd   = find(pp.rms > pp.rmsThresh);
-    pp.voiceOnsetInd = (pp.rmsVoiceInd - pp.frameDel)*pp.frameLen;
+    pp.voiceOnsetInd = (pp.rmsVoiceInd(1) - pp.frameDel)*pp.frameLen;
     if pp.voiceOnsetInd <= 0 % If they started speaking IMMEDIATELY...can't have index of 0
         pp.voiceOnsetInd = 1;
     end
