@@ -109,10 +109,6 @@ for ii = 1:auAn.numTrial
     elseif preProSt.saveT == 1 % Save the Trial        
         auAn.allIdxPreProc = cat(1, auAn.allIdxPreProc, ii); % Save the experimental index
     end
-    
-    if preProSt.oddXCorr == 1 && typeIdx == 1
-        fprintf('Odd xCorr for perturbed trial (%d)\n', ii)
-    end
 end
 
 % The Audio Analysis
@@ -174,7 +170,7 @@ auAn.trialTypeSvt  = []; % Key for identifying Control (0) & Perturbed (1) trial
 auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for further analyses
 end
 
-function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs, AudFBSw)
+function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs, AudFB)
 % [micP, headP, AuNidelay, pp] = preProcAudio(An, micR, headR, micRNi, auTrigs)
 % This function performs preprocessing on the time-series recorded audio 
 % data before frequency analysis methods are applied. This identifies
@@ -203,6 +199,7 @@ function [micP, headP, pp] = preProcAudio(An, micR, headR, rms, micRNi, auTrigs,
 %            if the participant started late, or has a voice break. 
 
 pp.expType     = An.expType;
+pp.AudFB       = AudFB;         % May change as a function of trial (EndoRecording)
 pp.rawMic      = double(micR);  % Convert to data type double
 pp.rawHead     = double(headR); % Convert to data type double
 pp.rms         = double(rms);   % Convert to data type double
@@ -212,7 +209,7 @@ pp.trialLen    = length(pp.rawMic);
 pp.trialTime   = pp.trialLen/pp.fs;
 pp.t           = linspace(0, pp.trialTime, pp.trialLen);
 pp.auTrigs     = auTrigs;
-pp.AudFBSw     = AudFBSw;
+pp.auTrigsAuNi = [];
 pp.frameDel    = 7;
 pp.rmsThresh   = 0.011;
 pp.voiceOnM    = 2;
@@ -225,15 +222,11 @@ pp.tNi         = linspace(0, pp.trialTimeNi, pp.trialLenNi);
 
 pp.numSamp     = pp.trialTimeNi*pp.fs;
 
-pp.envCutOff = 40;   % Cutoff frequency for enveloping the audio
 pp.thresh    = 0.30; % Threshold of Decimal amount of full peak height
 pp.breakTol  = 0.1;  % Voice Break Tolerance; Time (s)
 
-% 4th order low-pass butter filter settings
-[B, A] = butter(4, pp.envCutOff/(pp.fs/2));
-
-% Envelope the signal by low-pass filtering (change in amplitude/time ~RMS)
-pp.env = filter(B, A, abs(pp.rawMic));  
+% Find the envelope of the audio signal
+pp.env = calcEnvelope(pp.rawMic, pp.fs);
 
 % Largest peak in the envelope theoretically occurs during voicing
 pp.maxPeak = max(pp.env);
@@ -246,8 +239,8 @@ if pp.voiceOnM == 1
     pp.voiceOnsetInd = pp.threshIdx(1);
     pp.voiceOnsetT   = pp.t(pp.voiceOnsetInd);
 else
-    voicingInd = find(pp.rms > pp.rmsThresh);
-    pp.voiceOnsetInd = (voicingInd(1) - pp.frameDel)*pp.frameLen;
+    pp.rmsVoiceInd   = find(pp.rms > pp.rmsThresh);
+    pp.voiceOnsetInd = (pp.rmsVoiceInd - pp.frameDel)*pp.frameLen;
     if pp.voiceOnsetInd <= 0 % If they started speaking IMMEDIATELY...can't have index of 0
         pp.voiceOnsetInd = 1;
     end
@@ -275,19 +268,19 @@ pp.AuNidelayP = pp.AuNidelay*pp.fs;                          % Convert to points
 % Otherwise adjsut based on VoiceOnset, which is what Audapter does in PSR
 if strcmp(pp.expType(1:3), 'Som')
     pp.adjustedDelay = pp.AuNidelayP;
-    auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
+    pp.auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
 else
     pp.adjustedDelay = pp.voiceOnsetInd;
-    auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
+    pp.auTrigsAuNi = pp.auTrigs + pp.adjustedDelay;
 end
 
 % Aim to section audio at 0.5s pre-onset to 1.0s post-offset.
-preOn   = 0.5*pp.fs;
-postOff = 1.0*pp.fs;
+pp.preOn   = 0.5*pp.fs;
+pp.postOff = 1.0*pp.fs;
 
 % Audio points on either side of the perturbation period.
-pp.analysisSec(1) = auTrigsAuNi(1) - preOn;   % Where to start the Analysis period
-pp.analysisSec(2) = auTrigsAuNi(2) + postOff; % Where to end the Analysis period
+pp.analysisSec(1) = pp.auTrigsAuNi(1) - pp.preOn;   % Where to start the Analysis period
+pp.analysisSec(2) = pp.auTrigsAuNi(2) + pp.postOff; % Where to end the Analysis period
 if pp.analysisSec(2) > pp.trialLen
     pp.analysisSec(2) = pp.trialLen;
 end    
@@ -302,21 +295,20 @@ pp.fallOffLog = pp.rms(pp.analysisFrames) < pp.preVOnsetRMS;
 pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*pp.fs/pp.frameLen; % Last longer than break tolerance
 
 % Find the delay between Audapter Headphone and Microphone
-if pp.AudFBSw == 2 % No Headphone Out
+if pp.AudFB == 2 % No Headphone Out
     pp.AuMHdelay = (pp.frameLen*(pp.frameDel-1))/pp.fs;
 else
-    prePertPer = pp.analysisSec(1): auTrigsAuNi(1); % 500ms preperturbation
-    pp.AuMHdelay = xCorrTimeLag(pp.rawHead(prePertPer), pp.rawMic(prePertPer), pp.fs);   % Expect Mic leads Head
+    pp.prePertPer = pp.analysisSec(1): pp.auTrigsAuNi(1); % 500ms preperturbation
+    pp.AuMHdelay = xCorrTimeLag(pp.rawHead(pp.prePertPer), pp.rawMic(pp.prePertPer), pp.fs);   % Expect Mic leads Head
 end
 pp.AuMHdelayP = pp.AuMHdelay*pp.fs; % Convert to points
 
+%%%%%ADJUSTING LENGTHS OF MIC/HEAD BASED ON DELAYS
 % Align the Microphone and Headphones
-pp.oddXCorr = 0; %did something weird happen with the xcorr??
 if pp.AuMHdelayP >= 0
     micAuAl  = pp.rawMic(1:(end-pp.AuMHdelayP));
     headAuAl = pp.rawHead((pp.AuMHdelayP+1):end);
 else
-    pp.oddXCorr = 1;
     micAuAl  = pp.rawMic;
     headAuAl = pp.rawHead;
 end
@@ -356,6 +348,16 @@ pp.saveT    = saveT;    % Save trial or no?
 pp.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
 
 % drawPreProcessDiagnostic(pp, 1); pause; close all
+end
+
+function env = calcEnvelope(audio, fs)
+
+% 4th order low-pass butter filter settings
+cutoffF = 40;
+[B, A] = butter(4, cutoffF/(fs/2));
+
+% Envelope the signal by low-pass filtering (change in amplitude/time ~RMS)
+env = filter(B, A, abs(audio));  
 end
 
 function [timeSet, delaySet] = MHdelayChunked(sig1, sig2, fs)
