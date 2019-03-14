@@ -134,7 +134,7 @@ organizeAndPrintDemographicStats(allSubjRes);
 organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
 
 % Organize and Save the Table of Output Variables
-% StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);    
+StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);    
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);

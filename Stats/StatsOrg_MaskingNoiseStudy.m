@@ -200,6 +200,10 @@ for ii = 1:numCond
     maxBound = ceil(summaryStr.max/step)*step;
     distBin  = minBound:step:maxBound;
     nBins    = length(distBin)-1;
+    
+    if nBins < 6
+        nBins = 8;
+    end
 
     axes(ha(ii))
     if summaryStr.isTrans
