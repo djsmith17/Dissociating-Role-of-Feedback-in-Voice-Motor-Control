@@ -248,16 +248,8 @@ else
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-pp.preVOnsetTime   = 0.05; %50ms before voice onset
-pp.VOnsetFrame     = floor(pp.voiceOnsetInd/pp.frameLen);
-pp.preVOnsetFrames = floor(pp.preVOnsetTime*pp.fs/pp.frameLen);
-
-pp.preVoiceRange = (-pp.preVOnsetFrames:0)+pp.VOnsetFrame;
-if sum(pp.preVoiceRange <= 0) > 0
-    pp.preVOnsetRMS = 0;
-else
-    pp.preVOnsetRMS = mean(pp.rms(pp.preVoiceRange));
-end
+% Evaluate the pre-voice onset rms (used to identify voice breaks)
+pp.preVOnsetRMS = evalPreVoiceRMS(pp);
 
 % Find the delay between NIDAQ recording and Audapter recording
 pp.micRds     = resample(pp.rawMic, pp.fsNI, pp.fs);         % Downsample the Audapter recording
@@ -363,6 +355,26 @@ cutoffF = 40;
 
 % Envelope the signal by low-pass filtering (change in amplitude/time ~RMS)
 env = filter(B, A, abs(audio));  
+end
+
+function preVOnsetRMS = evalPreVoiceRMS(pp)
+
+fs            = pp.fs;
+frameLen      = pp.frameLen;
+rms           = pp.rms;
+rmsThresh     = pp.rmsThresh;
+voiceOnsetInd = pp.voiceOnsetInd;
+
+preVOnsetTime   = 0.05;            % 50ms before voice onset
+VOnsetFrame     = floor(voiceOnsetInd/frameLen);
+preVOnsetFrames = floor(preVOnsetTime*fs/frameLen);
+
+preVoiceRange = (-preVOnsetFrames:0)+VOnsetFrame;
+if sum(preVoiceRange <= 0) > 0
+    preVOnsetRMS = rmsThresh;
+else
+    preVOnsetRMS = mean(rms(preVoiceRange));
+end
 end
 
 function [timeSet, delaySet] = MHdelayChunked(sig1, sig2, fs)
