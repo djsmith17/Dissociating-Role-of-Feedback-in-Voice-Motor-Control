@@ -312,17 +312,22 @@ else
     headAuNi = headAuAl;
 end
 
+% If for whatever reason the audio signal is too short, zero-pad it
+pp.tooShort = 0;
+if length(micAuNi) < pp.numSamp
+    diffLen = pp.numSamp - length(micAuNi);
+    micAuNi  = [micAuNi; zeros(diffLen, 1)];
+    headAuNi = [headAuNi; zeros(diffLen, 1)];
+    pp.tooShort = 1;
+end
+
 if pp.voiceOnsetLate
     saveT    = 0;  
     saveTmsg = 'Participant started too late!!';
 elseif pp.breakOccured
     saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
-elseif length(micAuNi) < pp.numSamp
-    diffLen = pp.numSamp - length(micAuNi);
-    micAuNi  = [micAuNi; zeros(diffLen, 1)];
-    headAuNi = [headAuNi; zeros(diffLen, 1)];
-    
+elseif pp.tooShort
     if strcmp(pp.expType(1:3), 'Aud')
         saveT    = 1;
         saveTmsg = 'Everything is ok, but recording should be longer';
