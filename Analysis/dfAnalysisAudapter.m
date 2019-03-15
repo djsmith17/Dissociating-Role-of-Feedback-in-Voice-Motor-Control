@@ -384,14 +384,26 @@ rms            = pp.rms;
 preVOnsetRMS   = pp.preVOnsetRMS;
 analysisFrames = pp.analysisFrames;
 
-analysisPerFO  = rms(analysisFrames) < preVOnsetRMS;
+postVOnsetT     = 0.5; %500ms post VO
+postVOnsetFrame = postVOnsetT*fs/frameLen;
+voiceOnsetInd   = pp.voiceOnsetInd;
+voiceOnsetFrame = voiceOnsetInd/frameLen;
+postVOnsetFrames = (0:postVOnsetFrame) + voiceOnsetFrame;
 
-breakTol             = 0.1; % Voice Break Tolerance; Time (s)
-breakOccuredAnalysis = sum(analysisPerFO) > breakTol*fs/frameLen; % Last longer than break tolerance
+analysisPerFO  = rms(analysisFrames) < preVOnsetRMS;
+postVOnsetFO   = rms(postVOnsetFrames) < preVOnsetRMS;
+
+breakTol             = 0.1; % Voice Break Tolerance; 100ms
+breakTolFrame        = breakTol*fs/frameLen;
+breakOccuredAnalysis = sum(analysisPerFO) > breakTolFrame; % Last longer than break tolerance
+breakOccuredPostVO   = sum(postVOnsetFO) > breakTolFrame; % Last longer than break tolerance
 
 if breakOccuredAnalysis
     breakOccured = 1;
     breakMsg     = 'Break During Analysis';
+elseif breakOccuredPostVO
+    breakOccured = 1;
+    breakMsg     = 'Break Following VO, Possibly MisIdentified VO';
 else
     breakOccured = 0;
     breakMsg     = '';
