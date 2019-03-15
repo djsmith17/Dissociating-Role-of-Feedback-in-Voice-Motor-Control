@@ -223,7 +223,6 @@ pp.tNi         = linspace(0, pp.trialTimeNi, pp.trialLenNi);
 pp.numSamp     = pp.trialTimeNi*pp.fs;
 
 pp.thresh    = 0.30; % Threshold of Decimal amount of full peak height
-pp.breakTol  = 0.1;  % Voice Break Tolerance; Time (s)
 
 % Find the envelope of the audio signal
 pp.env = calcEnvelope(pp.rawMic, pp.fs);
@@ -282,9 +281,8 @@ pp.analysisFrames = round(pp.analysisSec(1)/pp.frameLen):round(pp.analysisSec(2)
 % Check the voice onset time against when we want to start analyzing data
 pp.voiceOnsetLate = pp.analysisSec(1) < pp.voiceOnsetInd;
 
-% Check the rest of the signal following the first analysis index...are there any dead zones??
-pp.fallOffLog = pp.rms(pp.analysisFrames) < pp.preVOnsetRMS;
-pp.chk4Break  = sum(pp.fallOffLog) > pp.breakTol*pp.fs/pp.frameLen; % Last longer than break tolerance
+% Identify if there were any Voice Breaks
+[pp.breakOccured, breakMsg] = identifyVoiceBreak(pp);
 
 % Find the delay between Audapter Headphone and Microphone
 if pp.AudFB == 2 % No Headphone Out
@@ -317,7 +315,7 @@ end
 if pp.voiceOnsetLate
     saveT    = 0;  
     saveTmsg = 'Participant started too late!!';
-elseif pp.chk4Break
+elseif pp.breakOccured
     saveT    = 0;
     saveTmsg = 'Participant had a voice break!!';
 elseif length(micAuNi) < pp.numSamp
@@ -374,6 +372,29 @@ if sum(preVoiceRange <= 0) > 0
     preVOnsetRMS = rmsThresh;
 else
     preVOnsetRMS = mean(rms(preVoiceRange));
+end
+end
+
+function [breakOccured, breakMsg] = identifyVoiceBreak(pp)
+
+fs       = pp.fs;
+frameLen = pp.frameLen;
+
+rms            = pp.rms;
+preVOnsetRMS   = pp.preVOnsetRMS;
+analysisFrames = pp.analysisFrames;
+
+analysisPerFO  = rms(analysisFrames) < preVOnsetRMS;
+
+breakTol             = 0.1; % Voice Break Tolerance; Time (s)
+breakOccuredAnalysis = sum(analysisPerFO) > breakTol*fs/frameLen; % Last longer than break tolerance
+
+if breakOccuredAnalysis
+    breakOccured = 1;
+    breakMsg     = 'Break During Analysis';
+else
+    breakOccured = 0;
+    breakMsg     = '';
 end
 end
 
