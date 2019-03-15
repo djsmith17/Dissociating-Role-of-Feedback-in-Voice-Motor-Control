@@ -371,7 +371,7 @@ preVoiceRange = (-preVOnsetFrames:0)+VOnsetFrame;
 if sum(preVoiceRange <= 0) > 0
     preVOnsetRMS = rmsThresh;
 else
-    preVOnsetRMS = mean(rms(preVoiceRange));
+    preVOnsetRMS = rmsThresh; %mean(rms(preVoiceRange));
 end
 end
 
