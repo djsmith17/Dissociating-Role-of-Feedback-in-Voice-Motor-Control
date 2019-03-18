@@ -392,7 +392,7 @@ analysisFrames = pp.analysisFrames;
 postVOnsetT     = 0.5; %500ms post VO
 postVOnsetFrame = postVOnsetT*fs/frameLen;
 voiceOnsetInd   = pp.voiceOnsetInd;
-voiceOnsetFrame = voiceOnsetInd/frameLen;
+voiceOnsetFrame = ceil(voiceOnsetInd/frameLen);
 postVOnsetFrames = (0:postVOnsetFrame) + voiceOnsetFrame;
 
 analysisPerFO  = rms(analysisFrames) < preVOnsetRMS;
