@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -128,18 +128,18 @@ allSubjRes.statTable = packStatTable(allSubjRes);
 % Organize and Print the Stats of the Demographics included in this study
 organizeAndPrintDemographicStats(allSubjRes);
 
-% organizePooledResultsForFrank(dirs, allSubjRes)
-
 % Organize and Save the Table of Excluded Trials
 organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
-
-% Organize and Save the Table of Output Variables
-StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);    
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
 fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
 save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
+
+%Apply Stats as appropriate
+if strcmp(pA.pAnalysis, 'MaskingStudy')
+    StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);    
+end
 end
 
 function sortStr = initSortedStruct(numCond)
@@ -380,8 +380,12 @@ for wC = 1:pA.numCond
     polRes.numPertTrialsFin(wC) = sum(polRes.allPertTrials{wC});
     polRes.audioMf0MeanPert{wC} = meanSecData(polRes.audioMf0SecPert{wC});
     
-    audioDynamics = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
-    polRes.respVarM{wC}   = audioDynamics.respVarM;
+    if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+        audioDynamics = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
+    elseif strcmp(polRes.expType, 'Auditory Perturbation_Perceptual')
+        audioDynamics = PitchShiftReflexResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
+    end
+    polRes.respVarM{wC} = audioDynamics.respVarM;
 end
 
 % Identify Limits of the newly meaned data
@@ -391,7 +395,7 @@ polRes.limitsPmean = lims.presMean;
 
 % Scale Pressure traces against the f0 traces
 if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
-    [sensorPAdjust, InflDeflT] = adjustPressureVals(polRes);
+    [sensorPAdjust, InflDeflT] = scalePressureVals(polRes);
 else
     sensorPAdjust = polRes.sensorPMean;
     InflDeflT     = [0.04 0.24 1.04 1.24];
@@ -416,7 +420,7 @@ for wC = 1:pA.numCond
     polRes.obvSubj    = cat(1, polRes.obvSubj, sortStruc.studyID);
     polRes.obvAge     = cat(1, polRes.obvAge, sortStruc.age);
     polRes.obvGender  = cat(1, polRes.obvGender, sortStruc.gender);
-    polRes.obvAudFB   = cat(1, polRes.obvAudFB, sortStruc.AudFB{wC});
+    polRes.obvAudFB   = cat(1, polRes.obvAudFB, sortStruc.AudFB{wC}{1});
     polRes.obvRespVar = cat(1, polRes.obvRespVar, sortStruc.respVarM{wC});
 end
 
@@ -551,6 +555,62 @@ ir.respMag = []; % vAtResp - vAtMin   ...distance traveled
 ir.respPer = []; % Percent change from stimMag to respMag
 end
 
+function audioDynamics_Audio = PitchShiftReflexResponse(secTime, secAudioMean)
+% [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+% Identifies the relevant pitch contour characteristics that are important
+% for deciding how a participant responded to the inflation of the balloon
+% during production. iR is a structure representing the result variables
+% from studying the inflation response (iR). The prefix letter denotes
+% whether the variable is a index (i), a time (t), or a value (v). 
+%
+% secTime:  Vector of time points corresponding to the sectioned data (numSamp)
+% secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
+%           The 1st 3D layer are Onset Sections
+%           The 2nd 3D later are Offset Sections
+%
+% respVar: Matrix of per trial iR results (numTrial x 4)
+%          respVar(:,1) = Time of the minimum f0 value in the sec
+%          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
+%          respVar(:,3) = Value of f0 at end of sec (response magnitude)
+%          respVar(:,4) = ABS percent change of stim and response
+%          magnitude (response percentage)
+% respVarM:    Vector of mean trial values from respVarm (1x4)
+% respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
+% InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
+
+[numSamp, ~] = size(secAudioMean); % Size of the data we are dealing with
+
+ir = initInflationResponseStruct(); % Initialize the structure that handles the variable calculations
+ir.time     = secTime;              % Time Interval for the sectioned trials (-0.5->1.0s)
+ir.onset    = secAudioMean(:, 1);   % f0 Trace sectioned around pert Onset.
+
+ir.iAtOnset = find(ir.time == 0);
+ir.tAtOnset = 0;                     % duh
+ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
+
+ir.iPostOnsetR = find(0 < ir.time & .20 >= ir.time); % Range of indices between t > 0ms and t =< 200ms;
+[minOn, minIdx] = min(ir.onset(ir.iPostOnsetR));     % Minimum f0 val within PostOnsetR
+
+% StimMag
+ir.iAtMin  = ir.iPostOnsetR(minIdx);       % Indice of the min f0 value following trigger
+ir.tAtMin  = ir.time(ir.iAtMin);           % Time at min f0 value following trigger
+ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
+ir.stimMag = abs(-100);                    % Distance traveled from onset to min value (default is 100 cents)
+
+% RespMag
+ir.iAtResp = numSamp;                % Last index in section
+ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
+ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
+
+% RespPer
+ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respMag 
+
+% Add to the audioDynamics struct
+respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
+audioDynamics_Audio.respVarM = respVarM;
+end
+
 function lims = identifyLimits(ss)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % f0 Traces Limits
@@ -600,7 +660,7 @@ minPres = min(ss.sensorPMean(:,1)) - 0.1;
 lims.presMean = [-0.5 1.0 minPres maxPres];
 end
 
-function [adjustPres, InflDeflT] = adjustPressureVals(ss)
+function [adjustPres, InflDeflT] = scalePressureVals(ss)
 
 time        = ss.secTimeP;
 presOnsetM  = ss.sensorPMean(:,1);
@@ -658,7 +718,7 @@ cond2 = ss.respVar{2};
 condM1 = ss.respVarM{1,:};
 condM2 = ss.respVarM{2,:};
 
-[~, pStim] = ttest2(cond1(:,2), cond2(:,2));
+[~, pStim] = ttest2(cond1(:,2), cond2(:,2)); 
 [~, pResp] = ttest2(cond1(:,3), cond2(:,3));
 [~, pPerc] = ttest2(cond1(:,4), cond2(:,4));
 
