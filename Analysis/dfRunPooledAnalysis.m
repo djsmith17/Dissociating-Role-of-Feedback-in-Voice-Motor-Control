@@ -410,8 +410,6 @@ if polRes.tossedManual > 0
 else
     polRes.autoSuccessPerc = 'N/A';
 end
-
-polRes.statLib = zeros(9,1); %packStatLib(polRes);
 end
 
 function polRes = catStatTableObs(pA, polRes, sortStruc)
@@ -708,29 +706,6 @@ SpDeflTime = time(bumpsSp(end));
 
 adjustPres = [adjPresOnsetM, adjPresOnsetE, adjPresOffsetM, adjPresOffsetE];
 InflDeflT  = [StInflTime SpInflTime StDeflTime SpDeflTime];
-end
-
-function statLib = packStatLib(ss)
-
-cond1 = ss.respVar{1};
-cond2 = ss.respVar{2};
-
-condM1 = ss.respVarM{1,:};
-condM2 = ss.respVarM{2,:};
-
-[~, pStim] = ttest2(cond1(:,2), cond2(:,2)); 
-[~, pResp] = ttest2(cond1(:,3), cond2(:,3));
-[~, pPerc] = ttest2(cond1(:,4), cond2(:,4));
-
-statLib(1) = condM1(2); % Condition 1 StimMag
-statLib(2) = condM2(2); % Condition 2 StimMag
-statLib(3) = condM1(3); % Condition 1 RespMag
-statLib(4) = condM2(3); % Condition 2 RespMag
-statLib(5) = condM1(4); % Condition 1 %
-statLib(6) = condM2(4); % Condition 2 %
-statLib(7) = pStim;     % p-value stimulus
-statLib(8) = pResp;     % p-value response
-statLib(9) = pPerc;     % p-value percent increase 
 end
 
 function statTable = packStatTable(ss)
