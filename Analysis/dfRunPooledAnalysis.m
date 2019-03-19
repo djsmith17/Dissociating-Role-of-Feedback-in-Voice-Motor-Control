@@ -69,7 +69,7 @@ for ii = 1:pA.numPart
     allDataStr = cat(1, allDataStr, subjRes);
 end
 
-allSubjRes         = initSortedStruct(pA.numCond);
+allSubjRes         = initSortedStruct(pA);
 allSubjRes.subject = 'Mean Participant Response';
 allSubjRes.curSess = allSubjRes.subject;
 allSubjRes.cond    = pA.cond;
@@ -80,7 +80,7 @@ for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Sorting task conditions for %s\n', participant)
     
-    sortStruc         = initSortedStruct(pA.numCond);
+    sortStruc         = initSortedStruct(pA);
     sortStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
     
     sortStruc.curSess = sortStruc.subject;
@@ -126,7 +126,7 @@ allSubjRes.pltName  = pA.pltNameMVm;
 allSubjRes.statTable = packStatTable(allSubjRes);
  
 % Organize and Print the Stats of the Demographics included in this study
-organizeAndPrintDemographicStats(allSubjRes);
+organizeAndPrintDemographicStats(dirs, allSubjRes);
 
 % Organize and Save the Table of Excluded Trials
 organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
@@ -142,7 +142,7 @@ if strcmp(pA.pAnalysis, 'MaskingStudy')
 end
 end
 
-function sortStr = initSortedStruct(numCond)
+function sortStr = initSortedStruct(pA)
 % sortStr = initSortedStruct(numCond) initializes the structure that will
 % store the pooled results for each subject, or group of subjects. It is
 % created to have different sizes, based on the number of conditions that
@@ -150,7 +150,11 @@ function sortStr = initSortedStruct(numCond)
 % of conditions, or two condition crossing, but I have not tested that, and
 % currently the above scripts only consider one condition to test against. 
 
+pAnalysis = pA.pAnalysis;
+numCond = pA.numCond;
+
 % Basic info about the session, the recordings, the subjects
+sortStr.pAnalysis = pAnalysis;
 sortStr.expType = [];
 sortStr.subject = [];
 sortStr.gender  = [];
@@ -714,8 +718,9 @@ varNames = {'SubjID', 'Age', 'Gender', 'AudFB', 'StimMag', 'RespMag', 'RespPer'}
 statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
 end
 
-function organizeAndPrintDemographicStats(allSubjRes)
+function organizeAndPrintDemographicStats(dirs, allSubjRes)
 
+pAnalysis = allSubjRes.pAnalysis;
 ages    = allSubjRes.age;
 genders = allSubjRes.gender;
 
@@ -728,6 +733,24 @@ numMales   = sum(strcmp(genders, 'male'));
 numFemales = sum(strcmp(genders, 'female'));
 
 genderRatio = [numMales numFemales];
+
+maleAges   = ages(strcmp(genders, 'male'));
+femaleAges = ages(strcmp(genders, 'female'));
+genderAges = [maleAges, femaleAges];
+gaGRP = [zeros(numMales, 1); ones(numFemales, 1)];
+boxPlotLabel = {['Males (n=' num2str(numMales) ')'], ['Females (n=' num2str(numFemales) ')']};
+
+measBox = figure('Color', [1 1 1]);
+plotpos = [30 30]; plotdim = [700 1000];
+set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+boxplot(genderAges, gaGRP, 'Labels', boxPlotLabel)
+xlabel('Gender')
+ylabel('Age (years)')
+box off
+
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis 'AgeGenderBoxPlot.jpg']);
+export_fig(dirs.BoxPlotFigureFile)
 
 fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f years (Mean: %.1f years)\n', rangeAge(1), rangeAge(2), meanAge)
 fprintf('This data set includes %d males, and %d females\n', genderRatio(1), genderRatio(2))
@@ -758,4 +781,3 @@ if svFile == 1
     writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
 end
 end
-
