@@ -40,7 +40,7 @@ pooledParticipants = {'DRF1',...
 pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4'};
            
 % Conditions to test against
-testingConditions = {'Voice Shifted', 'Masking Noise'};
+testingConditions = {'Voice Feedback', 'Masking Noise'};
 
 % The Recording Variable to check for the condition
 condVar = 'curRes.AudFB'; 
