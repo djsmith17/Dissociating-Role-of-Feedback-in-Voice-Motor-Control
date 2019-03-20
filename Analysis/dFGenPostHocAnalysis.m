@@ -1,4 +1,4 @@
-function DRF_PostHocAnalysis()
+function dFGenPostHocAnalysis()
 
 close all
 
