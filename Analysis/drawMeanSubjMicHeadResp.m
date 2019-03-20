@@ -1,18 +1,14 @@
 function drawMeanSubjMicHeadResp(poolRes, targPixDim, plotFolder, fLabel)
 
-curSess          = poolRes.curSess;
-
-numPerturb       = poolRes.numPertTrialsFin;
+curSess     = poolRes.curSess;
+numPT       = poolRes.numPertTrialsFin;
 
 time             = poolRes.secTime;
 micf0            = poolRes.audioMf0MeanPert{1};
-headf0           = poolRes.audioMf0MeanCont;
+headf0           = poolRes.audioHf0MeanPert{1};
 
-limits  = poolRes.limitsAmean;
+limits  = poolRes.limitsMHmean;
 pltName = poolRes.pltName;
-
-legLines = [];
-legNames = {};
 
 % Plotting Variables
 plotpos        = [10 100];
@@ -77,7 +73,7 @@ set(gca,'FontName', fontN,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
 
-sup = suptitle(curSess);
+sup = suptitle({curSess; [num2str(numPT) ' trial(s)']});
 set(sup, 'FontName', fontN,...
          'FontSize', titleFSize,...
          'FontWeight','bold')
@@ -92,13 +88,13 @@ if fLabel == 1
                             'FontWeight','bold');
 end
 
-legend(legLines, legNames,...
-       'Position', [0.83 0.75 0.1 0.1],...
-       'Box', 'off',...
-       'Edgecolor', [1 1 1],...
-       'FontName', fontN,...
-       'FontSize', legAnnoFSize,...
-       'FontWeight', 'bold');
+legend([fM.mainLine fH.mainLine],{'Microphone', 'Headphones'},...
+            'Position', [0.8 0.93 0.05 0.05],...
+            'Box', 'off',...
+            'Edgecolor', [1 1 1],...
+            'FontName', fontN,...
+            'FontSize', legAnnoFSize,...
+            'FontWeight', 'bold');
 
 plots = {'Figure'};
 for i = 1:length(plots)
@@ -106,12 +102,5 @@ for i = 1:length(plots)
 
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
-end
-end
-
-function anno = checkSig(stat, thresh, anno)
-
-if stat < thresh
-    anno = [anno '*'];
 end
 end

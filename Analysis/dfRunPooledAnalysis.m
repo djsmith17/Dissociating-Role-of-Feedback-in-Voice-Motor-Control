@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -175,12 +175,16 @@ sortStr.numPertTrialsFin = zeros(numCond, 1);
 sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
+sortStr.audioHf0SecPert = cell(numCond, 1);
+sortStr.audioHf0SecCont = [];
 
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
+sortStr.audioHf0MeanPert = cell(numCond, 1);
+sortStr.audioHf0MeanCont = [];
 sortStr.sensorPMean      = [];
 
 sortStr.tossedAll        = 0;
@@ -229,7 +233,9 @@ polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrials
 
 polRes.secTime             = curRes.secTime;
 polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
+polRes.audioHf0SecPert{wC} = cat(2, polRes.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
+polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCont);
 
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
@@ -371,6 +377,7 @@ function polRes = meanCondTrials(pA, polRes)
 
 polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
+polRes.audioHf0MeanCont = meanSecData(polRes.audioHf0SecCont);
 
 if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     polRes.sensorPMean = meanSecData(polRes.sensorPSec);
@@ -383,6 +390,7 @@ for wC = 1:pA.numCond
     
     polRes.numPertTrialsFin(wC) = sum(polRes.allPertTrials{wC});
     polRes.audioMf0MeanPert{wC} = meanSecData(polRes.audioMf0SecPert{wC});
+    polRes.audioHf0MeanPert{wC} = meanSecData(polRes.audioHf0SecPert{wC});
     
     if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
         audioDynamics = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
@@ -395,6 +403,7 @@ end
 % Identify Limits of the newly meaned data
 lims = identifyLimits(polRes);
 polRes.limitsAmean = lims.audioMean;
+polRes.limitsMHmean = lims.audioMHMean;
 polRes.limitsPmean = lims.presMean;
 
 % Scale Pressure traces against the f0 traces
@@ -434,6 +443,8 @@ numPartici = length(pooledRunStr);
 
 audioMf0SecContAllSubj = [];
 audioMf0SecPertAllSubj = cell(pA.numCond,1);
+audioHf0SecContAllSubj = [];
+audioHf0SecPertAllSubj = cell(pA.numCond,1);
 for nP = 1:numPartici
     curSubj = pooledRunStr(nP);
     
@@ -443,17 +454,31 @@ for nP = 1:numPartici
     secCont(:,:,2) = meanOffsetCont;
     audioMf0SecContAllSubj = cat(2, audioMf0SecContAllSubj, secCont);
     
+    meanOnsetCont   = curSubj.audioHf0MeanCont(:,1);
+    meanOffsetCont  = curSubj.audioHf0MeanCont(:,3);
+    secCont(:,:,1) = meanOnsetCont;
+    secCont(:,:,2) = meanOffsetCont;
+    audioHf0SecContAllSubj = cat(2, audioHf0SecContAllSubj, secCont);
+    
     for wC = 1:pA.numCond
         meanOnsetPert   = curSubj.audioMf0MeanPert{wC}(:,1);
         meanOffsetPert  = curSubj.audioMf0MeanPert{wC}(:,3);
         secPert(:,:,1) = meanOnsetPert;
         secPert(:,:,2) = meanOffsetPert;
         audioMf0SecPertAllSubj{wC} = cat(2, audioMf0SecPertAllSubj{wC}, secPert);
+        
+        meanOnsetPert   = curSubj.audioHf0MeanPert{wC}(:,1);
+        meanOffsetPert  = curSubj.audioHf0MeanPert{wC}(:,3);
+        secPert(:,:,1) = meanOnsetPert;
+        secPert(:,:,2) = meanOffsetPert;
+        audioHf0SecPertAllSubj{wC} = cat(2, audioHf0SecPertAllSubj{wC}, secPert);
     end
 end
 
 allSubjRes.audioMf0SecCont = audioMf0SecContAllSubj;
 allSubjRes.audioMf0SecPert = audioMf0SecPertAllSubj;
+allSubjRes.audioHf0SecCont = audioHf0SecContAllSubj;
+allSubjRes.audioHf0SecPert = audioHf0SecPertAllSubj;
 end
 
 function meanData = meanSecData(secData)
@@ -617,22 +642,26 @@ function lims = identifyLimits(ss)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % f0 Traces Limits
 mf0MeanPert = ss.audioMf0MeanPert;
+hf0MeanPert = ss.audioHf0MeanPert;
 numCond     = length(mf0MeanPert);
 
-setupBoundSec = zeros(numCond, 1);
-setlwBoundSec = zeros(numCond, 1);
+setMupBoundSec = zeros(numCond, 1);
+setMlwBoundSec = zeros(numCond, 1);
+setHupBoundSec = zeros(numCond, 1);
+setHlwBoundSec = zeros(numCond, 1);
 for ii = 1:numCond
-    audioMean = mf0MeanPert{ii};    
+    audioMMean = mf0MeanPert{ii};    
+    audioHMean = hf0MeanPert{ii};    
 
-    [~, Imax] = max(audioMean(:,1)); %Max Pert Onset
-    upBoundOn = round(audioMean(Imax,1) + audioMean(Imax,2) + 10);
-    [~, Imin] = min(audioMean(:,1)); %Min Pert Onset
-    lwBoundOn = round(audioMean(Imin,1) - audioMean(Imin,2) - 10);
+    [~, Imax] = max(audioMMean(:,1)); %Max Pert Onset
+    upBoundOn = round(audioMMean(Imax,1) + audioMMean(Imax,2) + 10);
+    [~, Imin] = min(audioMMean(:,1)); %Min Pert Onset
+    lwBoundOn = round(audioMMean(Imin,1) - audioMMean(Imin,2) - 10);
 
-    [~, Imax] = max(audioMean(:,3)); %Max Pert Offset
-    upBoundOf = round(audioMean(Imax,3) + audioMean(Imax,4) + 10);
-    [~, Imin] = min(audioMean(:,3)); %Min Pert Offset
-    lwBoundOf = round(audioMean(Imin,3) - audioMean(Imin,4) - 10);
+    [~, Imax] = max(audioMMean(:,3)); %Max Pert Offset
+    upBoundOf = round(audioMMean(Imax,3) + audioMMean(Imax,4) + 10);
+    [~, Imin] = min(audioMMean(:,3)); %Min Pert Offset
+    lwBoundOf = round(audioMMean(Imin,3) - audioMMean(Imin,4) - 10);
 
     if upBoundOn > upBoundOf
         upBoundSec = upBoundOn;
@@ -646,14 +675,48 @@ for ii = 1:numCond
         lwBoundSec = lwBoundOf;
     end
     
-    setupBoundSec(ii) = upBoundSec;
-    setlwBoundSec(ii) = lwBoundSec;  
+    setMupBoundSec(ii) = upBoundSec;
+    setMlwBoundSec(ii) = lwBoundSec;
+    
+    [~, Imax] = max(audioHMean(:,1)); %Max Pert Onset
+    upBoundOn = round(audioHMean(Imax,1) + audioHMean(Imax,2) + 10);
+    [~, Imin] = min(audioHMean(:,1)); %Min Pert Onset
+    lwBoundOn = round(audioHMean(Imin,1) - audioHMean(Imin,2) - 10);
+
+    [~, Imax] = max(audioHMean(:,3)); %Max Pert Offset
+    upBoundOf = round(audioHMean(Imax,3) + audioHMean(Imax,4) + 10);
+    [~, Imin] = min(audioHMean(:,3)); %Min Pert Offset
+    lwBoundOf = round(audioHMean(Imin,3) - audioHMean(Imin,4) - 10);
+
+    if upBoundOn > upBoundOf
+        upBoundSec = upBoundOn;
+    else
+        upBoundSec = upBoundOf;
+    end
+
+    if lwBoundOn < lwBoundOf
+        lwBoundSec = lwBoundOn;
+    else
+        lwBoundSec = lwBoundOf;
+    end
+    
+    setHupBoundSec(ii) = upBoundSec;
+    setHlwBoundSec(ii) = lwBoundSec;
 end
 
-maxUpBound = max(setupBoundSec); % Max f0 Bound
-minLwBound = min(setlwBoundSec); % Min f0 Bound 
+maxMUpBound = max(setMupBoundSec); % Max f0 Bound
+minMLwBound = min(setMlwBoundSec); % Min f0 Bound 
 
-lims.audioMean = [-0.5 1.0 minLwBound maxUpBound];
+maxHUpBound = max(setHupBoundSec); % Max f0 Bound
+minHLwBound = min(setHlwBoundSec); % Min f0 Bound 
+
+lims.audioMean = [-0.5 1.0 minMLwBound maxMUpBound];
+
+maxMHUpBound = max([maxMUpBound maxHUpBound]);
+minMHLwBound = min([minMLwBound minHLwBound]);
+
+lims.audioMHMean = [-0.5 1.0 minMHLwBound maxMHUpBound];
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pressure Traces Limits
 maxPres = max(ss.sensorPMean(:,1)) + 0.5;
