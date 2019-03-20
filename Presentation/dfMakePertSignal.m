@@ -49,9 +49,16 @@ for i = 1:numTrial
     Sp_p   = St_p + pLen_p;                       % Stop TIme Points
     span   = St_p:Sp_p;                           % Start to Stop Span
 
+    vSpan  =  1;
+    
     sig  = zeros(trialLenP,1);
     if trialType(i) == 1 % Only do this for perturbed trials
         sig(span) = 5;
+    end
+    
+    vSig = zeros(trialLenP, 1);
+    if trialType(i) == 2 % When TrialType is 2...open the valve, otherwise keep it in default position.
+        vSig(vSpan) = 5;
     end
     
     sigs(:,i)    = sig;
