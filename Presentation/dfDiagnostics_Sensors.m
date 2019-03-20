@@ -20,7 +20,7 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'null', 'DS1', '3', '1', 'GB4','yes'};
+defaultanswer = {'SpringNewBoxCalib', 'DS1', '3', '1', 'OP(PS3)_BoothSetup+25"TubePlugged','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
@@ -120,13 +120,48 @@ end
 
 f0b = 100;
 pF  = 1;
-iRF = 0;
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, iRF, pF);
+aD = 0;
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, aD, pF);
 
 niRes.numPertTrialsNi = niRes.numPertTrials;
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
+drawRawVoltagePressure(niAn, dirs.SavResultsDir)
 % drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
 % drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
+end
+
+function drawRawVoltagePressure(niAn, saveResultsDir)
+curSess = niAn.curSess;
+plotpos = [500 300];
+plotdim = [850 600];
+rawV = figure('Color', [1 1 1]);
+set(rawV, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+trialColors = distinguishable_colors(niAn.numTrial);
+maxVals = [];
+for i = 1:niAn.numTrial
+    plot(niAn.time, niAn.sensorP(:,i), 'Color', trialColors(i,:))
+    maxVal = max(niAn.sensorP(:,i));
+    maxVals = cat(1, maxVals, maxVal);
+    hold on
+end
+xlabel('Time(s)','FontSize', 12, 'FontWeight', 'bold')
+ylabel('Voltage (V)','FontSize', 12, 'FontWeight', 'bold')
+title({curSess; 'Raw Voltage'},'FontSize', 12, 'FontWeight', 'bold')
+axis([0 4 0 5])
+box off
+
+meanMaxVal = round(mean(maxVals), 2);
+annotation('TextBox', [0.65 0.8 0.1 0.1],...
+           'String', ['Mean Plateau Val: ' num2str(meanMaxVal) 'V'],...
+           'LineStyle','none',...
+            'FontWeight','bold',...
+            'FontSize',15,...
+            'FontName','Arial')
+        
+plTitle = [curSess  '_RawVoltageTrace.jpg'];     
+saveFileName = fullfile(saveResultsDir, plTitle);
+export_fig(saveFileName) 
 end
