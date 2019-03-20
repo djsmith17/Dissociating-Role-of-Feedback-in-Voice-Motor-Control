@@ -116,10 +116,10 @@ end
 statStr.participants = {pooledRunStr.subject}';
 statStr.genders      = {pooledRunStr.gender}';
 statStr.f0           = {pooledRunStr.f0}';
-statStr.JNDScoreMean = {pooledRunStr.JNDScoreMean}';
-statStr.JNDScoreSE   = {pooledRunStr.JNDScoreSE}';
-statStr.lastSetAccuracyMean = {pooledRunStr.lastSetAccuracyMean}';
-statStr.lastSetAccuracySE   = {pooledRunStr.lastSetAccuracySE}';
+statStr.JNDScoreMean = [pooledRunStr.JNDScoreMean]';
+statStr.JNDScoreSE   = [pooledRunStr.JNDScoreSE]';
+statStr.lastSetAccuracyMean = [pooledRunStr.lastSetAccuracyMean]';
+statStr.lastSetAccuracySE   = [pooledRunStr.lastSetAccuracySE]';
 
 JNDStatTable = table(statStr.participants,...
                      statStr.genders,...
