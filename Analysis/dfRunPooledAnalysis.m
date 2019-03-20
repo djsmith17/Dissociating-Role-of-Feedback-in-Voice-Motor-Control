@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -138,7 +138,11 @@ save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 
 %Apply Stats as appropriate
 if strcmp(pA.pAnalysis, 'MaskingStudy')
-    StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);    
+    StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);
+elseif strcmp(pA.pAnalysis, 'DRF_Som')
+    StatsOrg_DRF_Som(dirs, pA, allSubjRes); 
+elseif strcmp(pA.pAnalysis, 'DRF_Aud')
+    StatsOrg_DRF_Aud(dirs, pA, allSubjRes); 
 end
 end
 
