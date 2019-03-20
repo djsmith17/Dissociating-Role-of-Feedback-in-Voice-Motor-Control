@@ -20,7 +20,7 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'NewSensorTest_Winter18', 'DS61', '2', '1', 'NP(7Psi)','yes'};
+defaultanswer = {'SpringNewBoxCalib', 'DS6', '10', '1', 'BP(PS3+IS)_ThickDef+25"TubePlugged','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
