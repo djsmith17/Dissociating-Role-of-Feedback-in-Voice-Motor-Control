@@ -26,11 +26,11 @@ close all;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'null';   % Subject#, Pilot#, null
+subject    = 'DRF12';   % Subject#, Pilot#, null
 run        = 'SFL1';
 jitt       = 1;        % 0 Starts with Masking Noise, 1 Starts with Voice
 
-balloon    = '2E4';    % Which perturbation balloon?
+balloon    = 'GB2';    % Which perturbation balloon?
 baseV      = 'BVEndo';
 FBNames    = {'Voice Feedback'; 'AC Masking Noise'};
 FBTypes    = [0 2];
@@ -43,6 +43,7 @@ expParam.subject   = subject;
 expParam.run       = run;
 expParam.curSess   = [expParam.subject expParam.run];
 expParam.balloon   = balloon;
+expParam.niDev     = 'Dev1';
 expParam.numTrial  = 10; 
 expParam.perCatch   = 1; % 100% of Trials
 expParam.numMaskRep = 1;
@@ -102,7 +103,7 @@ for ii = 1:expParam.numTrial
     expParam.curTrial     = ['Trial' num2str(ii)];
     expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];    
     
-    curStimType      = mod(ii+jitt,2) + 1;
+    curStimType      = 2;
     expParam.AudFB   = FBNames{curStimType}; % Alternating trials
     expParam.AudFBSw = FBTypes(curStimType); % Alternating trials
     instrFB          = FBInstr(curStimType); % Alternating trials

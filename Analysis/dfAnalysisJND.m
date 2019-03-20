@@ -13,6 +13,7 @@ function dfAnalysisJND()
 %
 % This script has the following subfunctions:
 % -initJNDAnalysis()
+% -AnalyzeRawJNDData()
 tic
 close all
 
@@ -42,23 +43,24 @@ JNDa.numRuns      = length(JNDa.runs);
 dirs = dfDirs(JNDa.project);
 
 for jj = 1:JNDa.numPart
-    curPart = JNDa.participants{jj};
+    curPart = JNDa.participants{jj}; % Current Participant
     dirs.SavResultsDir = fullfile(dirs.Results, curPart, 'JND'); %Where to save results
 
     if exist(dirs.SavResultsDir, 'dir') == 0
-        mkdir(dirs.SavResultsDir)
+        mkdir(dirs.SavResultsDir) %If the folder we are saving does not exist, let's make it
     end
 
     for ii = 1:JNDa.numRuns
-        curRun     = JNDa.runs{ii};    
-        dirs.SavFileDir = fullfile(dirs.SavData, curPart, curRun, [curPart curRun 'DRF.mat']); %Where to find data
+        curRun     = JNDa.runs{ii}; % Current Run
+        dirs.SavFileDir = fullfile(dirs.SavData, curPart, curRun, [curPart curRun 'DRF.mat']); %Where to find raw data
 
         fprintf('****%s  %s****\n', curPart, curRun)
         fprintf('Loading Raw JND Data\n')
         load(dirs.SavFileDir) % Returns UD
-
+        
+        % Organize the raw data into a result structure named 'resJND'
         resJND = AnalyzeRawJNDData(UD);
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [curPart curRun 'ResultsDRF.mat']);
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [curPart curRun 'ResultsDRF.mat']); %What to name the organized results
         fprintf('Saving Individual JND Results\n\n')
         save(dirs.SavResultsFile, 'resJND')    
     end
