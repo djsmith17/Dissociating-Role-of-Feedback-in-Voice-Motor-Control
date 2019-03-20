@@ -1,4 +1,4 @@
-function drawDAQAlignedPressure(res, saveResultsDir, sv2F)
+function drawDAQAlignedPressure(res, saveResultsDir, sv2F, intFlag)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
@@ -7,7 +7,13 @@ numTrial = res.numPertTrialsNi; % Number of Catch Trials (Only relevant ones)
 AudFB    = res.AudFB;
 balloon  = res.balloon;
 
-presSD = res.presSD;
+if intFlag == 1
+    presSD = res.fSNSD;
+    suffix = '_Int';
+else
+    presSD = res.presSD;
+    suffix = '';
+end
 
 time     = presSD.timeAl;
 sensor   = presSD.sensorAl;
@@ -75,7 +81,7 @@ t = annotation('textbox',[0.64 0.83 0.9 0.1],...
                 'FontName','Arial');
 
 if sv2F == 1
-    plTitle = [curSess  '_AlignedPressureRecordings.jpg'];     
+    plTitle = [curSess  '_AlignedPressureRecordings' suffix '.jpg'];     
     saveFileName = fullfile(saveResultsDir, plTitle);
     export_fig(saveFileName) 
 end

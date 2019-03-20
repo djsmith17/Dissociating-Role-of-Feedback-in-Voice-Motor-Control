@@ -20,7 +20,7 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'SpringNewBoxCalib', 'DS1', '3', '1', 'OP(PS3)_BoothSetup+25"TubePlugged','yes'};
+defaultanswer = {'SpringNewBoxCalib', 'DS6', '10', '1', 'BP(PS3+IS)_ThickDef+25"TubePlugged','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
@@ -126,24 +126,35 @@ aD = 0;
 niRes.numPertTrialsNi = niRes.numPertTrials;
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
-drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F)
-drawRawVoltagePressure(niAn, dirs.SavResultsDir)
+drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 0)
+drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 1)
+drawRawVoltagePressure(niAn, dirs.SavResultsDir, 0)
+drawRawVoltagePressure(niAn, dirs.SavResultsDir, 1)
+CompareVoltagesInternalExternal()
 % drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
 % drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
 end
 
-function drawRawVoltagePressure(niAn, saveResultsDir)
+function drawRawVoltagePressure(niAn, saveResultsDir, intFlag)
 curSess = niAn.curSess;
 plotpos = [500 300];
 plotdim = [850 600];
 rawV = figure('Color', [1 1 1]);
 set(rawV, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
+if intFlag == 1
+    sensor = niAn.sensorFN;
+    suffix = '_Int';
+else
+    sensor = niAn.sensorP;
+    suffix = '';
+end
+
 trialColors = distinguishable_colors(niAn.numTrial);
 maxVals = [];
 for i = 1:niAn.numTrial
-    plot(niAn.time, niAn.sensorP(:,i), 'Color', trialColors(i,:))
-    maxVal = max(niAn.sensorP(:,i));
+    plot(niAn.time, sensor(:,i), 'Color', trialColors(i,:))
+    maxVal = max(sensor(:,i));
     maxVals = cat(1, maxVals, maxVal);
     hold on
 end
@@ -161,7 +172,7 @@ annotation('TextBox', [0.65 0.8 0.1 0.1],...
             'FontSize',15,...
             'FontName','Arial')
         
-plTitle = [curSess  '_RawVoltageTrace.jpg'];     
+plTitle = [curSess  '_RawVoltageTrace' suffix '.jpg'];     
 saveFileName = fullfile(saveResultsDir, plTitle);
 export_fig(saveFileName) 
 end
