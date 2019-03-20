@@ -52,7 +52,7 @@ for i = 1:numTrial
     vSpan  =  1;
     
     sig  = zeros(trialLenP,1);
-    if trialType(i) == 1 % Only do this for perturbed trials
+    if trialType(i) ~= 0 % Only do this for perturbed trials
         sig(span) = 5;
     end
     
