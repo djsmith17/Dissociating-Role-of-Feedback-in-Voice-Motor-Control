@@ -51,7 +51,7 @@ for i = 1:numTrial
 
     sig  = zeros(trialLenP,1);
     if trialType(i) == 1 % Only do this for perturbed trials
-        sig(span) = 3;
+        sig(span) = 5;
     end
     
     sigs(:,i)    = sig;
