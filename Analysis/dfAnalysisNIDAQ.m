@@ -130,7 +130,7 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     % Pressure Sensor Dynamics
     [niAn.presSD] = analyzeSensorDynamics(niAn.presSD, niAn.pertSD);
     
-%     [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
+    [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
 end
 
 %The Audio Analysis

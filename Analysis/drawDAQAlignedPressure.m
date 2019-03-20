@@ -33,7 +33,7 @@ curSess(strfind(curSess, '_')) = ' ';
 balloon(strfind(balloon, '_')) = '';
 
 plotpos = [500 300];
-plotdim = [800 600];
+plotdim = [850 600];
 trialColors = distinguishable_colors(numTrial);
 
 CombinedSensor = figure('Color', [1 1 1]);
@@ -49,8 +49,7 @@ end
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
 ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Mean Pressure Sensor Measurements aligned at Perturbation Onset';
-        curSess;
-        ['AudFB: ' AudFB]}, 'FontSize', 12, 'FontWeight', 'bold')
+        curSess}, 'FontSize', 12, 'FontWeight', 'bold')
 axis(limits);
 box off
 
@@ -64,7 +63,7 @@ pltlgd = legend(h, lgdNames);
 set(pltlgd, 'box', 'off',...
             'location', 'NorthWest'); 
 
-t = annotation('textbox',[0.66 0.80 0.9 0.1],...
+t = annotation('textbox',[0.64 0.83 0.9 0.1],...
                'string', {LagNote;...
                           RiseNote;...
                           PlatStNote;...
