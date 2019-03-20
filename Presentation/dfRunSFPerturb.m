@@ -189,7 +189,7 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
-    pause(expParam.buffPause)
+    pause(expParam.buffPause) %Let the participant start to speak
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
     %long as vector lasts. In this case, 4.0 seconds. 

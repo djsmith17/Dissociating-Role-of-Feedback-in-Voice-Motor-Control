@@ -1,5 +1,5 @@
-function drawInflationResultMetrics(ir, arrows, vals)
-% This has been optimized to diagram DRF_MN16 SF1 mean trace results.
+function drawAudPertResultMetrics(ir, arrows, vals)
+% This has been optimized to diagram DRF4 mean trace results.
 % Hopefully in the future, the arrows will 
 
 dim     = 50;
@@ -12,7 +12,6 @@ axisLSize    = 20;
 legAnnoFSize = 20;
 
 onsetC = [252,141,89]/255;
-minC   = [145,191,219]/255;
 respC  = [255,255,191]/255;
 figColor = [1 1 1];
 bColor = [0.8 0.8 0.8];
@@ -31,7 +30,6 @@ ylabel('f0 (Cents)')
 hold on
 
 plot(ir.tAtOnset, ir.vAtOnset, 'Color', onsetC, 'Marker', 'o', 'MarkerFaceColor',onsetC, 'MarkerSize', 10)
-plot(ir.tAtMin, ir.vAtMin, 'Color', minC, 'Marker', 'o','MarkerFaceColor', minC,  'MarkerSize', 10);
 plot(ir.tAtResp, ir.vAtResp, 'Color', respC, 'Marker', 'o', 'MarkerFaceColor', respC,'MarkerSize', 10);
 
 axis([ir.time(1) ir.time(end) (min(ir.onset) - 20) (max(ir.onset) + 20)])
@@ -43,20 +41,17 @@ set(gca,'FontName', fontN,...
         'Color', figColor)
 
 if arrows == 1
-    SMArrowX = [0.33 0.33];
-    SMArrowY = [0.83 0.245];
-    annotation('arrow', SMArrowX, SMArrowY, 'LineWidth', 2)
-    annotation('textbox', [0.175 0.38 0.1 0.1],...
-                         'string', 'StimMag',...
+    annotation('textbox', [0.415 0.8 0.1 0.1],...
+                         'string', 'StimMag = 100 cents',...
                          'LineStyle', 'none',...
                          'FontName', fontN,...
                          'FontWeight','bold',...
                          'FontSize',legAnnoFSize)
 
     RMArrowX = [0.905 0.905];
-    RMArrowY = [0.245 0.55];
+    RMArrowY = [0.30 0.80];
     annotation('arrow', RMArrowX, RMArrowY, 'LineWidth', 2)
-    annotation('textbox', [0.74 0.3 0.1 0.1],...
+    annotation('textbox', [0.74 0.35 0.1 0.1],...
                          'string', 'RespMag',...
                          'LineStyle', 'none',...
                          'FontWeight','bold',...
@@ -83,8 +78,8 @@ if vals == 1
                              'FontWeight','bold');
 end
                      
-% path = 'E:\Desktop';
-path  = 'C:\Users\djsmith\Desktop';
+path = 'E:\Desktop';
+% path  = 'C:\Users\djsmith\Desktop';
 fileName = 'DependentVariablesManuscript.jpg';
 fullpath = fullfile(path, fileName);
 export_fig(fullpath, '-nocrop')

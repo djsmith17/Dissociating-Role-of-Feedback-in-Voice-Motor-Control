@@ -1,4 +1,4 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, aDF, PresFlag)
 % [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
 % This function analyzes the raw audio data that was recorded by Audapter 
 % in the experiments measuring changes in f0. It first does a
@@ -134,7 +134,7 @@ if PresFlag == 1 && niAn.numPertTrials > 0
 end
 
 %The Audio Analysis
-niAn = dfAnalysisAudio(dirs, niAn, AudFlag, iRF);
+niAn = dfAnalysisAudio(dirs, niAn, AudFlag, aDF);
     
 lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
@@ -259,15 +259,16 @@ switch sensorType
         PMin      = 0;
         VMax      = 4.5;
         VMin      = 0.5;
-        Vsupply   = 5;
+        Vsupply   = 5.2;
     case 'Seven'
-        PMax      = 7;
+        PMax      = 7.25;
         PMin      = 0;
         VMax      = 4.5;
         VMin      = 0.5;
-        Vsupply   = 5;
+        Vsupply   = 5.2;
 end
 
+% sensorPres = (sensorV - 0.5)*PMax/4;
 sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
 % 
 % m = (PMax - PMin) / (VMax - VMin);
@@ -573,8 +574,8 @@ function [timeAl, sensorAl] = alignSensorData(sensor, fs, idx)
 % sensorAl: sectioned and aligned sensor data 
 
 [~, numTrial] = size(sensor);
-preEve = 1.0; % time preEvent Seconds 
-posEve = 2.5; % time posEvent Seconds
+preEve = 0.5; % time preEvent Seconds 
+posEve = 2.0; % time posEvent Seconds
 
 % At the moment only aligning by Onset. 
 % This could eventually become an input to toggle between Onset/Offset
@@ -665,10 +666,10 @@ stdOffset  = std(OffsetSecs, 0, 2); % across columns
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 
-NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+% NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+% NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
 function lims = identifyLimits(An)
@@ -817,11 +818,13 @@ function res = packResults(niAn, lims)
 % between other analysis methods. This makes it easy to switch back and
 % forth between different result structures for plotting. 
 
-% Information about the experiment/subject
-res.expType = niAn.expType;
+% Identifying Subject Information
 res.subject = niAn.subject;
 res.run     = niAn.run;
 res.curSess = niAn.curSess;
+
+% Identifying Experimental Settings
+res.expType = niAn.expType;
 res.AudFB   = niAn.AudFB;
 res.balloon = niAn.balloon;
 
@@ -837,14 +840,16 @@ res.pertTrig      = niAn.pertTrig;
 res.alignResponseTriggers = niAn.alignResponseTriggers;
 
 res.timeS         = niAn.time_DN;
-res.sensorP       = niAn.sensorP_p; %Individual Processed perturbed trials. 
-res.presSD        = niAn.presSD;
-res.limitsP       = lims.pressure;
+% Pressure Results
+res.sensorP       = niAn.sensorP_p; % Individual Processed Perturbed trials. 
+res.presSD        = niAn.presSD;    % Sensor Dynamics Structure
+res.limitsP       = lims.pressure;  % Limits for collection of individual trials
 
-res.fSNSD         = niAn.fSNSD;
+% Force Sensor (Neck) Results
+res.fSNSD         = niAn.fSNSD;     % Sensor Dynamics Structure
 
-% Sectioned and Aligned Pressure recordings 
-res.limitsPAl = lims.pressureAl;
+% Limits for Aligned and Meaned Pressure Recordings
+res.limitsPAl   = lims.pressureAl;
 res.limitsPMean = lims.pressureMean;
 
 % Audio f0 analysis
@@ -878,9 +883,6 @@ res.audioHf0MeanCont = niAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
-%Inflation Response
-res.respVar      = niAn.respVar;
-res.respVarM     = niAn.respVarM;
-res.respVarSD    = niAn.respVarSD;
-res.InflaStimVar = niAn.InflaStimVar;
+% Dynamics of the Participant's Vocal Response
+res.audioDynamics = niAn.audioDynamics;
 end

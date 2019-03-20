@@ -57,6 +57,8 @@ for i = 1:numTrial
     
     vSpan  = (St_p-valveBuffOnP):(Sp_p+valveBuffOfP); % Perturbation time with buffer for valve ON/OFF
 
+    vSpan  =  1;
+    
     sig  = zeros(trialLenP,1);
     if trialType(i) ~= 0 % Only do this for perturbed trials
         sig(span) = 5;

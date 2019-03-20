@@ -1,9 +1,9 @@
-function DRF_JNDGenConfig()
+function DRF_SomGenConfig()
 % Run this script to generate Pooled Analysis configuration files for 
 % Masking Noise piloting
 
 project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pAnalysis     = 'DRF_JND';
+pAnalysis     = 'DRF_Som';
 
 dirs               = dfDirs(project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pAnalysis);
@@ -37,13 +37,13 @@ pooledParticipants = {'DRF1',...
 
 % Runs for each participant. There should be an equal number of runs for
 % each participant. Each row will be the runs to 
-pooledRuns  = {'fAX1', 'fAX2', 'fAX3', 'fAX4'};
+pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4'};
            
 % Conditions to test against
-testingConditions = {'Diff'};
+testingConditions = {'Voice Feedback', 'Masking Noise'};
 
 % The Recording Variable to check for the condition
-condVar = 'curRes.instructions'; 
+condVar = 'curRes.AudFB'; 
 
 % How do you want to title the Result Plots?
 testExt    = '';

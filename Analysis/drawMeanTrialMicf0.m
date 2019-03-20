@@ -28,10 +28,11 @@ meanf0ContOffset = res.audioMf0MeanCont(:,3);
 CIf0ContOffset   = res.audioMf0MeanCont(:,4);
 limits           = res.limitsAmean;
 
-if ~isempty(res.respVarM)
-    statSM = round(res.respVarM(2), 1);
-    statRM = round(res.respVarM(3), 1);
-    statRP = round(res.respVarM(4));
+AD = res.audioDynamics;
+if ~isempty(AD)
+    statSM = round(AD.respVarM(2), 1);
+    statRM = round(AD.respVarM(3), 1);
+    statRP = round(AD.respVarM(4));
 else
     statSM = '';
     statRM = '';

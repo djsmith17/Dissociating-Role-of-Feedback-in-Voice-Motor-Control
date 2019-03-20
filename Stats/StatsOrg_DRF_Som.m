@@ -1,4 +1,4 @@
-function StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes)
+function StatsOrg_DRF_Som(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
 meas = {'StimMag', 'RespMag', 'RespPer'};
@@ -70,11 +70,11 @@ for k = curTestingMeas
     plotHistograms(measureSummaryStrs, dirs, pA)
     drawBoxPlot(measureSummaryStrs, dirs, pA)
     
-    if k == 2
-        [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
-    else
-        [tFried] = testNonParametric(curStatTable);
-    end
+%     if k == 2
+%         [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
+%     else
+%         [tFried] = testNonParametric(curStatTable);
+%     end
 
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
@@ -240,7 +240,7 @@ function [rAnovaRes, measSph] = testParametric(curStatTable, cond_table)
 
 condTable = table(cond_table');
 
-measFit = fitrm(curStatTable, 'VoiceFeedback-AC_BCMaskingNoise~1', 'WithinDesign', condTable, 'WithinModel', 'separatemeans');
+measFit = fitrm(curStatTable, 'VoiceFeedback-MaskingNoise~1', 'WithinDesign', condTable, 'WithinModel', 'separatemeans');
 measSph = mauchly(measFit);
     
 rAnovaRes = ranova(measFit);

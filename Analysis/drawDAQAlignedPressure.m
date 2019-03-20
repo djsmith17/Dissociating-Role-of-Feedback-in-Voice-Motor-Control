@@ -1,4 +1,4 @@
-function drawDAQAlignedPressure(res, saveResultsDir, sv2F)
+function drawDAQAlignedPressure(res, saveResultsDir, sv2F, intFlag)
 %Plots multiple trials on top of each other. Currently only plotting one 
 %sensor. Assumes the trials have been aligned.
 
@@ -7,7 +7,13 @@ numTrial = res.numPertTrialsNi; % Number of Catch Trials (Only relevant ones)
 AudFB    = res.AudFB;
 balloon  = res.balloon;
 
-presSD = res.presSD;
+if intFlag == 1
+    presSD = res.fSNSD;
+    suffix = '_Int';
+else
+    presSD = res.presSD;
+    suffix = '';
+end
 
 time     = presSD.timeAl;
 sensor   = presSD.sensorAl;
@@ -33,7 +39,7 @@ curSess(strfind(curSess, '_')) = ' ';
 balloon(strfind(balloon, '_')) = '';
 
 plotpos = [500 300];
-plotdim = [800 600];
+plotdim = [850 600];
 trialColors = distinguishable_colors(numTrial);
 
 CombinedSensor = figure('Color', [1 1 1]);
@@ -49,8 +55,7 @@ end
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold') 
 ylabel('Pressure (psi)', 'FontSize', 18, 'FontWeight', 'bold', 'Color', 'k') 
 title({'Mean Pressure Sensor Measurements aligned at Perturbation Onset';
-        curSess;
-        ['AudFB: ' AudFB]}, 'FontSize', 12, 'FontWeight', 'bold')
+        curSess}, 'FontSize', 12, 'FontWeight', 'bold')
 axis(limits);
 box off
 
@@ -64,7 +69,7 @@ pltlgd = legend(h, lgdNames);
 set(pltlgd, 'box', 'off',...
             'location', 'NorthWest'); 
 
-t = annotation('textbox',[0.66 0.80 0.9 0.1],...
+t = annotation('textbox',[0.64 0.83 0.9 0.1],...
                'string', {LagNote;...
                           RiseNote;...
                           PlatStNote;...
@@ -76,7 +81,7 @@ t = annotation('textbox',[0.66 0.80 0.9 0.1],...
                 'FontName','Arial');
 
 if sv2F == 1
-    plTitle = [curSess  '_AlignedPressureRecordings.jpg'];     
+    plTitle = [curSess  '_AlignedPressureRecordings' suffix '.jpg'];     
     saveFileName = fullfile(saveResultsDir, plTitle);
     export_fig(saveFileName) 
 end

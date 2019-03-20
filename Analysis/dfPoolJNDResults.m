@@ -43,7 +43,7 @@ for ii = 1:pA.numPart
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
         if exist(dirs.SavFile, 'file') == 0
-            error('ERROR: The Results file for Run %s does not exist yet\n', run)
+            error('ERROR: The Results file for Run %s %s does not exist yet\n', participant, run)
         else   
             load(dirs.SavFile)
             % Returns a results struture of 'res'
@@ -113,35 +113,37 @@ for ii = 1:pA.numPart
     close all
 end
 
-stat.participants = {pooledRunStr.subject}';
-stat.genders      = {pooledRunStr.gender}';
-stat.f0           = {pooledRunStr.f0}';
-stat.JNDScoreMean = {pooledRunStr.JNDScoreMean}';
-stat.JNDScoreSE   = {pooledRunStr.JNDScoreSE}';
-stat.lastSetAccuracyMean = {pooledRunStr.lastSetAccuracyMean}';
-stat.lastSetAccuracySE   = {pooledRunStr.lastSetAccuracySE}';
+statStr.participants = {pooledRunStr.subject}';
+statStr.genders      = {pooledRunStr.gender}';
+statStr.f0           = {pooledRunStr.f0}';
+statStr.JNDScoreMean = [pooledRunStr.JNDScoreMean]';
+statStr.JNDScoreSE   = [pooledRunStr.JNDScoreSE]';
+statStr.lastSetAccuracyMean = [pooledRunStr.lastSetAccuracyMean]';
+statStr.lastSetAccuracySE   = [pooledRunStr.lastSetAccuracySE]';
 
-JNDStatTable = table(stat.participants,...
-                     stat.genders,...
-                     stat.f0,...
-                     stat.JNDScoreMean,...
-                     stat.JNDScoreSE,...
-                     stat.lastSetAccuracyMean,...
-                     stat.lastSetAccuracySE,...
+JNDStatTable = table(statStr.participants,...
+                     statStr.genders,...
+                     statStr.f0,...
+                     statStr.JNDScoreMean,...
+                     statStr.JNDScoreSE,...
+                     statStr.lastSetAccuracyMean,...
+                     statStr.lastSetAccuracySE,...
                      'VariableNames',...
                      {'Participant', 'gender', 'f0', 'JNDScoreMean', 'JNDScoreSE', 'lastSetAccuracyMean', 'lastSetAccuracySE'});
-                 
-figure
-hist(cell2mat(JNDStatTable.JNDScoreMean))
-title('Mean JND Score Distribution')
 
-figure
-hist(cell2mat(JNDStatTable.lastSetAccuracyMean))
-title('Mean Last 4 Reversals Accuracy Distribution')
+allSubjRes.statTable = JNDStatTable;
 
 
-JNDTableCSV = fullfile(dirs.SavResultsDir, 'JNDStatTable.csv');
-writetable(JNDStatTable, JNDTableCSV);
+% drawHistogram(dirs, pA, cell2mat(JNDStatTable.JNDScoreMean), 'JNDScore')
+% drawHistogram(dirs, pA, cell2mat(JNDStatTable.lastSetAccuracyMean), 'Last 4 Reversals Accuracy')
+
+dirs.JNDTableCSV = fullfile(dirs.SavResultsDir, 'JNDStatTable.csv');
+writetable(JNDStatTable, dirs.JNDTableCSV);
+
+% Save the Pooled Results
+dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
+fprintf('Saving Pooled Analysis for %s\n', pA.pAnalysis)
+save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 end
 
 function sortStr = initSortedStruct(numCond, numRun)
@@ -225,6 +227,20 @@ sortStruc.JNDScoreMean        = round(mean(JNDScores), 2);
 sortStruc.JNDScoreSE          = std(JNDScores)/sqrt(numJNDScores);
 sortStruc.lastSetAccuracyMean = round(mean(Accuracies), 1);
 sortStruc.lastSetAccuracySE   = std(Accuracies)/sqrt(numJNDScores);
+end
+
+function drawHistogram(dirs, pA, vars, VarName)
+
+JNDHist = figure('Color', [1 1 1]);
+plotpos = [10 10]; plotdim = [1300 800];
+set(JNDHist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+hist(vars)
+title(['Mean ' VarName])
+box off
+
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis VarName 'Distribution.jpg']);
+export_fig(dirs.DistributionFigureFile)
 end
 
 function pA = identifyPooledJNDResultsSet()

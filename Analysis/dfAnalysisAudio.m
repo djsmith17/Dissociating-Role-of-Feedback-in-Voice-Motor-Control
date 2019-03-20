@@ -35,13 +35,13 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % -An.trialType
 
 if isempty(varargin)
-    iRF    = 0; 
+    aDF    = 0; 
     f0Flag = 0;
 elseif length(varargin) == 1
-    iRF    = varargin{1};
+    aDF    = varargin{1};
     f0Flag = 0;
 else
-    iRF    = varargin{1};
+    aDF    = varargin{1};
     f0Flag = varargin{2};
 end
 
@@ -71,7 +71,7 @@ if AudFlag == 1
         anaFlag = 2;
     end
         
-    % Pitch contour analysis can be time consuiming. 
+    % Pitch contour analysis can be time consuming. 
     % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
@@ -100,25 +100,28 @@ if AudFlag == 1
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
     An.trialf0   = mean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
-    An.trialf0M  = mean(An.trialf0);                      % Mean trial baseline f0
+    An.trialf0M  = mean(An.trialf0);                       % Mean trial baseline f0
     
     % Normalize f0 traces by individual f0b and convert to cents
     An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
     An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
     
+    % Identify trials (mic) where participant had vocal fry
+    % aka: f0 pitch miscalculation
     for ii = 1:An.numTrialSvt
         
         expTrig = An.expTrigsf0(ii, :);
         svIdc   = An.allIdxPreProc(ii);
         
-        preSt = expTrig(1) - 0.5;
-        posSp = expTrig(2) + 1.0;
+        preSt = expTrig(1) - 0.5; % Pre-Start
+        posSp = expTrig(2) + 1.0; % Post-Stop
         
+        % Only consider points around where the action happens
+        % Ignore the fringes of the recording
         timeInd = (An.timef0 > preSt & An.timef0 < posSp);
         mic     = An.audioMf0_norm(timeInd, ii);
 
-        % Are there any points where the value of pitch goes above 500
-        % cents or below -500 cents?
+        % Any points where pitch is > 500 // < -500 cents?
         MisCalcf0 = find(mic >= 500 | mic <=  -500);
 
         if ~isempty(MisCalcf0)
@@ -132,9 +135,11 @@ if AudFlag == 1
             removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
             An.removedTrialTracker = cat(1, An.removedTrialTracker, removedTrial);
         else
-            An.subSvIdx      = cat(1, An.subSvIdx, ii);    
+            An.subSvIdx = cat(1, An.subSvIdx, ii); % Keep the index of the trials that are not removed
         end
     end
+    
+    % Parse out the trials we are saving (not removed)
     An.svf0Idx       = An.allIdxPreProc(An.subSvIdx);
     An.expTrigsf0Sv  = An.expTrigsf0(An.subSvIdx, :);
     An.trialTypef0Sv = An.trialTypeSvt(An.subSvIdx);
@@ -149,11 +154,11 @@ if AudFlag == 1
 
     %Find the Perturbed Trials
     An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
-    An.audioMf0p = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
-    An.audioHf0p = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);
+    An.audioMf0p   = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
+    An.audioHf0p   = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);
     An.contTrigsR  = An.expTrigsf0Sv(An.contf0Idx,:);
-    An.audioMf0c = parseTrialTypes(An.audioMf0sv, An.contf0Idx);
-    An.audioHf0c = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
+    An.audioMf0c   = parseTrialTypes(An.audioMf0sv, An.contf0Idx);
+    An.audioHf0c   = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
     
     %Section the data around onset and offset
     [An.secTime, An.audioMf0_Secp] = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR);
@@ -166,16 +171,18 @@ if AudFlag == 1
     An.audioHf0_meanp = meanAudioData(An.audioHf0_Secp);
     An.audioMf0_meanc = meanAudioData(An.audioMf0_Secc);
     An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc); 
-
-    %The Inflation Response
-    if iRF == 1
-        [An.respVar, An.respVarM, An.respVarSD, An.InflaStimVar] = InflationResponse(An.secTime, An.audioMf0_Secp);
+    
+    if aDF == 1 % Set in RunSubjAnalysis
+        An.audioDynamics = InflationResponse(An.secTime, An.audioMf0_meanp); % Audio Response to Somatosensory Pert
+    elseif aDF == 2 % Set in RunSubjAnalysis
+        An.audioDynamics = PitchShiftReflexResponse(An.secTime, An.audioMf0_meanp); % Audio Response to Auditory Pert
     end
 end
 end
 
 function An = initAudVar(An)
-%Initialize some variables to keep track of them
+% Initialize variables used in analysis of recorded audio (Mic and Head)
+% This is a good place to view comments for variable names/uses
 
 An.timef0         = []; %time vector of audio samples recorded
 An.audioMf0       = []; %Raw Microphone Audio Data
@@ -191,14 +198,15 @@ An.secTime        = [];
 An.audioMf0SecAll = [];
 An.audioHf0SecAll = [];
 
-An.trialf0        = []; %Per-Trial f0 from the period pre-perturbation
-An.trialf0M       = []; %Mean-Trial f0 from the period per-perturbation
-An.audioMf0_norm  = []; %Normalized mic data
-An.audioHf0_norm  = []; %Normalized head data
+An.trialf0        = []; % Per-Trial f0 from the period pre-perturbation
+An.trialf0M       = []; % Mean-Trial f0 from the period per-perturbation
+An.audioMf0_norm  = []; % Normalized mic data (cents)
+An.audioHf0_norm  = []; % Normalized head data (cents)
 
 An.subSvIdx       = [];
 An.svf0Idx        = [];
 An.expTrigsf0Sv   = [];
+An.trialTypef0Sv  = [];
 An.pertf0Idx      = [];
 An.contf0Idx      = [];
 
@@ -225,10 +233,7 @@ An.audioHf0_meanp = [];
 An.audioMf0_meanc = []; 
 An.audioHf0_meanc = [];
 
-An.respVar        = []; 
-An.respVarM       = [];
-An.respVarSD      = [];
-An.InflaStimVar   = [];
+An.audioDynamics  = [];
 end
 
 function fV = setFreqAnalVar(sRate, numSamp, f0b, gender)
@@ -240,7 +245,7 @@ fV.f0Bounds   = identifyf0Bounds(f0b, gender);
 
 fV.sRate      = sRate;
 fV.numSamp    = numSamp;
-fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; %Time vector for full mic
+fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; % Time vector for full mic
 
 fV.freqCutOff = 400;
 fV.win        = 0.010;      % seconds
@@ -301,7 +306,7 @@ end
 expTrigsR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
 elapsed_time = toc(ET)/60;
-% fprintf('\nElapsed Time: %f (min)\n', elapsed_time)
+% fprintf('f0 Analysis Elapsed Time: %f (min)\n', elapsed_time)
 end
 
 function bounds = identifyf0Bounds(f0b, gender)
@@ -349,7 +354,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 50);   % 10 sample length smoothing
+    audioSmooth = smooth(audio(:,ii), 10);   % 10 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end
@@ -458,18 +463,19 @@ stdOffset  = std(OffsetSecs, 0, 2); % across columns
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
 
-NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+% NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+% NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-meanAudio = [meanOnset NCIOnset meanOffset NCIOffset];
+meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
-function [respVar, respVarM, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+function audioDynamics_Somato = InflationResponse(secTime, secAudioMean)
 % [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
 % Identifies the relevant pitch contour characteristics that are important
 % for deciding how a participant responded to the inflation of the balloon
 % during production. iR is a structure representing the result variables
-% from studying the inflation response (iR). 
+% from studying the inflation response (iR). The prefix letter denotes
+% whether the variable is a index (i), a time (t), or a value (v). 
 %
 % secTime:  Vector of time points corresponding to the sectioned data (numSamp)
 % secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
@@ -486,61 +492,114 @@ function [respVar, respVarM, respVarSD, InflaStimVar] = InflationResponse(secTim
 % respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
 % InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
 
-[numSamp, numTrial, ~] = size(secAudio); % Size of the data we are dealing with
+[numSamp, ~] = size(secAudioMean); % Size of the data we are dealing with
 
-ir.numSamp  = numSamp;
-ir.numTrial = numTrial;
-ir.time     = secTime;
+ir = initInflationResponseStruct(); % Initialize the structure that handles the variable calculations
+ir.time     = secTime;              % Time Interval for the sectioned trials (-0.5->1.0s)
+ir.onset    = secAudioMean(:, 1);   % f0 Trace sectioned around pert Onset.
 
-ir.iAtOnset = find(secTime == 0); % Index where t = 0
-ir.tAtOnset = 0;                  % Time at t = 0 ...duh
-ir.vAtOnset = [];                 % f0 value at t = 0
+ir.iAtOnset = find(ir.time == 0);
+ir.tAtOnset = 0;                     % duh
+ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
 
-ir.iPostOnsetR = find(0 <= secTime & .20 >= secTime); % Range of indices between t = 0ms and t = 200ms;
-ir.iAtMin  = [];                  % Index at min f0 value in PostOnsetR
-ir.tAtMin  = [];                  % Time at min f0 value in PostOnsetR
-ir.vAtMin  = [];                  % Min f0 value in PostOnsetR
-ir.stimMag = [];                  % ir.vAtMin - ir.vAtOnset ..in a perfect world vAtOnset = 0
+ir.iPostOnsetR = find(0 < ir.time & .20 >= ir.time); % Range of indices between t > 0ms and t =< 200ms;
+[minOn, minIdx] = min(ir.onset(ir.iPostOnsetR));     % Minimum f0 val within PostOnsetR
 
-ir.iAtResp = ir.numSamp;          % Index of f0 value when participant 'fully' responded...right now = last value in section
-ir.tAtResp = ir.time(ir.numSamp); % Time at f0 value when participant 'fully' responded
-ir.vAtResp = [];                  % f0 value when participant 'fully' responded 
-ir.respMag = [];                  % vAtResp - vAtMin   ...distance traveled
-ir.respPer = [];                  % Percent change from stimMag to respMag
+% StimMag
+ir.iAtMin  = ir.iPostOnsetR(minIdx);       % Indice of the min f0 value following trigger
+ir.tAtMin  = ir.time(ir.iAtMin);           % Time at min f0 value following trigger
+ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
+ir.stimMag = abs(ir.vAtMin - ir.vAtOnset); % Distance traveled from onset to min value
 
-% Variables to be concatenated and saved as outputs 
-tAtMin  = []; stimMag = [];
-respMag = []; respPer = [];
-for i = 1:numTrial
-    onset = secAudio(:,i,1); % Go trial by trial; First 3D layer is Onset
-    ir.vAtOnset = onset(ir.iAtOnset); % f0 value at t = 0
+% RespMag
+ir.iAtResp = numSamp;                % Last index in section
+ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
+ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
-    [minOn, minIdx] = min(onset(ir.iPostOnsetR)); % Minimum f0 in PostOnsetR
-    ir.iAtMin = ir.iPostOnsetR(minIdx);           % Indice of the min f0 value
-    ir.tAtMin = ir.time(ir.iAtMin);               % Time at min f0 value in PostOnsetR
-    ir.vAtMin = minOn;                            % Min f0 value in PostOnsetR
-    ir.stimMag = ir.vAtMin - ir.vAtOnset;         % Distance traveled from onset to min value
-    
-    ir.vAtResp = onset(ir.iAtResp);               % f0 value when participant 'fully' responded 
-    ir.respMag = ir.vAtResp - ir.vAtMin;          % Distance traveled from min f0 value to response f0 value
-    
-    ir.respPer = 100*(ir.respMag/abs(ir.stimMag));% Percent change from stimMag to respMag 
-    
-    if ir.stimMag == 0
-        ir.respPer = 0.0;
-    end
-    
-    % Concatenate the results from this trial 
-    tAtMin   = cat(1, tAtMin, ir.tAtMin);
-    stimMag  = cat(1, stimMag, ir.stimMag); 
-    respMag  = cat(1, respMag, ir.respMag); 
-    respPer  = cat(1, respPer, ir.respPer);
+% RespPer
+ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respMag 
+
+% Add to the audioDynamics struct
+respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
+audioDynamics_Somato.respVarM = respVarM;
+% drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
 end
 
-% Organize the results 
-respVar   = [tAtMin stimMag respMag respPer];
-respVarM  = mean(respVar, 1);
-respVarSD = std(respVar, 0, 1);
+function ir = initInflationResponseStruct()
 
-InflaStimVar = [respVarM(1) respVarM(2)];
+ir.time     = [];
+ir.onset    = [];
+
+ir.iAtOnset = []; % Index where t = 0
+ir.tAtOnset = []; % Time at t = 0
+ir.vAtOnset = []; % f0 value at t = 0
+
+ir.iPostOnsetR = []; % Range of indices between t = 0ms and t = 200ms;
+ir.iAtMin      = []; % Index at min f0 value in PostOnsetR
+ir.tAtMin      = []; % Time at min f0 value in PostOnsetR
+ir.vAtMin      = []; % Min f0 value in PostOnsetR
+ir.stimMag     = []; % ir.vAtMin - ir.vAtOnset ..in a perfect world vAtOnset = 0
+
+ir.iAtResp = []; % Index of f0 value when participant 'fully' responded...right now = last value in section
+ir.tAtResp = []; % Time at f0 value when participant 'fully' responded
+ir.vAtResp = []; % f0 value when participant 'fully' responded 
+ir.respMag = []; % vAtResp - vAtMin   ...distance traveled
+ir.respPer = []; % Percent change from stimMag to respMag
+end
+
+function audioDynamics_Audio = PitchShiftReflexResponse(secTime, secAudioMean)
+% [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+% Identifies the relevant pitch contour characteristics that are important
+% for deciding how a participant responded to the inflation of the balloon
+% during production. iR is a structure representing the result variables
+% from studying the inflation response (iR). The prefix letter denotes
+% whether the variable is a index (i), a time (t), or a value (v). 
+%
+% secTime:  Vector of time points corresponding to the sectioned data (numSamp)
+% secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
+%           The 1st 3D layer are Onset Sections
+%           The 2nd 3D later are Offset Sections
+%
+% respVar: Matrix of per trial iR results (numTrial x 4)
+%          respVar(:,1) = Time of the minimum f0 value in the sec
+%          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
+%          respVar(:,3) = Value of f0 at end of sec (response magnitude)
+%          respVar(:,4) = ABS percent change of stim and response
+%          magnitude (response percentage)
+% respVarM:    Vector of mean trial values from respVarm (1x4)
+% respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
+% InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
+
+[numSamp, ~] = size(secAudioMean); % Size of the data we are dealing with
+
+ir = initInflationResponseStruct(); % Initialize the structure that handles the variable calculations
+ir.time     = secTime;              % Time Interval for the sectioned trials (-0.5->1.0s)
+ir.onset    = secAudioMean(:, 1);   % f0 Trace sectioned around pert Onset.
+
+ir.iAtOnset = find(ir.time == 0);
+ir.tAtOnset = 0;                     % duh
+ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
+
+ir.iPostOnsetR = find(0 < ir.time & .20 >= ir.time); % Range of indices between t > 0ms and t =< 200ms;
+[minOn, minIdx] = min(ir.onset(ir.iPostOnsetR));     % Minimum f0 val within PostOnsetR
+
+% StimMag
+ir.iAtMin  = ir.iPostOnsetR(minIdx);       % Indice of the min f0 value following trigger
+ir.tAtMin  = ir.time(ir.iAtMin);           % Time at min f0 value following trigger
+ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
+ir.stimMag = abs(-100);                    % Distance traveled from onset to min value (default is 100 cents)
+
+% RespMag
+ir.iAtResp = numSamp;                % Last index in section
+ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
+ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
+
+% RespPer
+ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respMag 
+
+% Add to the audioDynamics struct
+respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
+audioDynamics_Audio.respVarM = respVarM;
 end
