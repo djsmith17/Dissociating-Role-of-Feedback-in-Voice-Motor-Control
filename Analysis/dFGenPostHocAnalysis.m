@@ -34,22 +34,21 @@ respPer_SomMN = StatTableSom.RespPer(somMN);
 respPer_Aud   = StatTableAud.RespPer;
 JNDScore      = StatTableJND.JNDScoreMean;
 
-pA.numObs = length(respPer_SomVF);
-
+% Ascending Order Compared against SomVF
 [~, I] = sort(respPer_SomVF);
 respPer_SomVF = respPer_SomVF(I);
 respPer_SomMN = respPer_SomMN(I);
 respPer_Aud   = respPer_Aud(I);
 JNDScore      = JNDScore(I);
 
-allRelation = [respPer_SomVF respPer_Aud JNDScore];
-[corrR, corrP] = corrcoef(allRelation);
+allRespPer = [respPer_SomMN respPer_Aud JNDScore];
+[corrR, corrP] = corrcoef(allRespPer);
 
 q3Sentence = sprintf('Weak positive correlation between RespPer and JND Score, R = %.2f, P = %.2f', corrR(1,3), corrP(1,3));
 q4Sentence = sprintf('Weak negative correlation between RespPer and JND Score, R = %.2f, P = %.2f', corrR(2,3), corrP(2,3));
 
 drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
-drawQuest3(dirs, respPer_SomVF, JNDScore, q3Sentence)
+drawQuest3(dirs, respPer_SomMN, JNDScore, q3Sentence)
 drawQuest4(dirs, respPer_Aud, JNDScore, q4Sentence)
 end
 
@@ -78,14 +77,14 @@ dirs.quest2FigFile = fullfile(dirs.SavResultsDir, 'Question2.jpg');
 export_fig(dirs.quest2FigFile)
 end
 
-function drawQuest3(dirs, respPer_SomVF, JNDScore, sentence)
+function drawQuest3(dirs, respPer_Som, JNDScore, sentence)
 
 plotpos = [10 100];
 plotdim = [900 500];
 q3Fig = figure('Color', [1 1 1]);
 set(q3Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
 
-plot(JNDScore, respPer_SomVF, 'ko')
+plot(JNDScore, respPer_Som, 'ko')
 xlabel('JND Score')
 ylabel('RespPer (%)')
 title('Relationship between Somato Pert RespPer and JND Score')
