@@ -19,20 +19,20 @@ dirs.SomResultsFile = fullfile(dirs.SomResultsDir, 'DRF_SomResultsDRF.mat');
 dirs.AudResultsFile = fullfile(dirs.AudResultsDir, 'DRF_AudResultsDRF.mat');
 dirs.JNDResultsFile = fullfile(dirs.JNDResultsDir, 'DRF_JNDResultsDRF.mat');
 
-load(dirs.SomResultsFile) %Returns allSubjRes pooledRunStr
-SomStatTable = allSubjRes.statTable;
-load(dirs.AudResultsFile) %Returns allSubjRes pooledRunStr
-AudStatTable = allSubjRes.statTable;
-load(dirs.JNDResultsFile) %Returns allSubjRes pooledRunStr
-JNDStatTable = allSubjRes.statTable;
+load(dirs.SomResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
+StatTableSom = allSubjRes.statTable;
+load(dirs.AudResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
+StatTableAud = allSubjRes.statTable;
+load(dirs.JNDResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
+StatTableJND = allSubjRes.statTable;
 
-somVF = strcmp(SomStatTable.AudFB, 'Voice Feedback');
-somMN = strcmp(SomStatTable.AudFB, 'Masking Noise');
+somVF = strcmp(StatTableSom.AudFB, 'Voice Feedback');
+somMN = strcmp(StatTableSom.AudFB, 'Masking Noise');
 
-respPer_SomVF = SomStatTable.RespPer(somVF);
-respPer_SomMN = SomStatTable.RespPer(somMN);
-respPer_Aud   = AudStatTable.RespPer;
-JNDScore      = JNDStatTable.JNDScoreMean;
+respPer_SomVF = StatTableSom.RespPer(somVF);
+respPer_SomMN = StatTableSom.RespPer(somMN);
+respPer_Aud   = StatTableAud.RespPer;
+JNDScore      = StatTableJND.JNDScoreMean;
 
 pA.numObs = length(respPer_SomVF);
 
