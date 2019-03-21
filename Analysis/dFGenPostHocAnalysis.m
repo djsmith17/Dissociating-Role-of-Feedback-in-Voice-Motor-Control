@@ -50,6 +50,15 @@ respPer_AudLs = respPer_AudLs(I);
 % Draw the progression
 drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
 
+% Question 2.1
+respPerDiff = respPer_SomVF - respPer_SomMN;
+q21AllResponse = [respPerDiff respPer_SomMN];
+[corrR, corrP] = corrcoef(q21AllResponse);
+q21Sentence = sprintf('Strong negative correlation between RespPer and JND Score, R = %.2f, P = %.4f', corrR(1,2), corrP(1,2));
+
+% Draw the scatter plot
+drawQuest21(dirs, respPer_SomMN, respPerDiff, q21Sentence)
+
 % Question 3 %%%
 % Currently Expecting Fewer 'Observations' from SomMN
 I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
@@ -112,6 +121,27 @@ legend({'Somato Feedback Pert (Voice Feedback)', 'Somato Feedback Pert (Masking 
 
 dirs.quest2FigFile = fullfile(dirs.SavResultsDir, 'Question2.jpg');
 export_fig(dirs.quest2FigFile)
+end
+
+function drawQuest21(dirs, respPer_Som, JNDScore, sentence)
+
+plotpos = [10 100];
+plotdim = [900 500];
+q21Fig = figure('Color', [1 1 1]);
+set(q21Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
+
+plot(JNDScore, respPer_Som, 'ko')
+xlabel('Diff RespPer (nMN-MN)')
+ylabel('RespPer (%)')
+title('Relationship between Somato Pert RespPer (Masking Noise) and Effect of Masking')
+box off
+
+annotation('Textbox', [0.15 0.84 0.1 0.1], ...
+           'String', sentence,...
+           'EdgeColor', 'none')
+
+dirs.quest21FigFile = fullfile(dirs.SavResultsDir, 'Question21.jpg');
+export_fig(dirs.quest21FigFile)
 end
 
 function drawQuest3(dirs, respPer_Som, JNDScore, sentence)
