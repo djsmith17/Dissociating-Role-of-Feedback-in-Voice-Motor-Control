@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -92,7 +92,7 @@ for ii = 1:pA.numPart
         sortStruc.studyID = curRes.subject; % Study ID
         sortStruc.expType = curRes.expType;
         sortStruc.gender  = curRes.gender;
-        sortStruc.age     = curRes.age;
+        sortStruc.age     = round(curRes.age, 1);
         
         [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker);
         
@@ -436,9 +436,8 @@ for wC = 1:pA.numCond
     polRes.obvAge     = cat(1, polRes.obvAge, sortStruc.age);
     polRes.obvGender  = cat(1, polRes.obvGender, sortStruc.gender);
     polRes.obvAudFB   = cat(1, polRes.obvAudFB, sortStruc.AudFB{wC}{1});
-    polRes.obvRespVar = cat(1, polRes.obvRespVar, sortStruc.respVarM{wC});
+    polRes.obvRespVar = cat(1, polRes.obvRespVar, round(sortStruc.respVarM{wC},2));
 end
-
 end
 
 function allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr)
