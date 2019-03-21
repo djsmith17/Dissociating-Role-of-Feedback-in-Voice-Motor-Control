@@ -29,26 +29,53 @@ StatTableJND = allSubjRes.statTable;
 somVF = strcmp(StatTableSom.AudFB, 'Voice Feedback');
 somMN = strcmp(StatTableSom.AudFB, 'Masking Noise');
 
-respPer_SomVF = StatTableSom.RespPer(somVF);
-respPer_SomMN = StatTableSom.RespPer(somMN);
-respPer_Aud   = StatTableAud.RespPer;
-JNDScore      = StatTableJND.JNDScoreMean;
+StatTableSomVF = StatTableSom(somVF, :);
+StatTableSomMN = StatTableSom(somMN, :);
+
+% Question 2 %%%
+% Currently Expecting Fewer 'Observations' from SomVF and SomMN
+I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
+StatTableAudLs = StatTableAud;
+StatTableAudLs(I,:) = [];
+respPer_SomVF = StatTableSomVF.RespPer;
+respPer_SomMN = StatTableSomMN.RespPer;
+respPer_AudLs = StatTableAudLs.RespPer;
 
 % Ascending Order Compared against SomVF
 [~, I] = sort(respPer_SomVF);
 respPer_SomVF = respPer_SomVF(I);
 respPer_SomMN = respPer_SomMN(I);
-respPer_Aud   = respPer_Aud(I);
-JNDScore      = JNDScore(I);
+respPer_AudLs = respPer_AudLs(I);
 
-allRespPer = [respPer_SomMN respPer_Aud JNDScore];
-[corrR, corrP] = corrcoef(allRespPer);
+% Draw the progression
+drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
 
-q3Sentence = sprintf('Weak positive correlation between RespPer and JND Score, R = %.2f, P = %.2f', corrR(1,3), corrP(1,3));
-q4Sentence = sprintf('Weak negative correlation between RespPer and JND Score, R = %.2f, P = %.2f', corrR(2,3), corrP(2,3));
+% Question 3 %%%
+% Currently Expecting Fewer 'Observations' from SomMN
+I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
+StatTableJNDLs = StatTableJND;
+StatTableJNDLs(I,:) = [];
+respPer_SomMN = StatTableSomMN.RespPer;
+JNDScoreLs    = StatTableJNDLs.JNDScoreMean;
 
-drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
-drawQuest3(dirs, respPer_SomMN, JNDScore, q3Sentence)
+% Perform the correlation
+q3AllResponse = [JNDScoreLs respPer_SomMN];
+[corrR, corrP] = corrcoef(q3AllResponse);
+q3Sentence = sprintf('Weak positive correlation between RespPer and JND Score, R = %.2f, P = %.2f', corrR(1,2), corrP(1,2));
+
+% Draw the scatter plot
+drawQuest3(dirs, respPer_SomMN, JNDScoreLs, q3Sentence)
+
+% Question 4 %%%
+respPer_Aud = StatTableAud.RespPer;
+JNDScore    = StatTableJND.JNDScoreMean;
+
+% Perform the correlation
+q4AllResponse = [JNDScore respPer_Aud];
+[corrR, corrP] = corrcoef(q4AllResponse);
+q4Sentence = sprintf('Weak negative correlation between RespPer and JND Score, R = %.2f, P = %.2f', corrR(1,2), corrP(1,2));
+
+% Draw the scatter plot
 drawQuest4(dirs, respPer_Aud, JNDScore, q4Sentence)
 end
 
