@@ -55,6 +55,11 @@ drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
 I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
 StatTableJNDLs = StatTableJND;
 StatTableJNDLs(I,:) = [];
+
+% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+% StatTableSomMN(I18,:) = [];
+% StatTableJNDLs(I18,:) = [];
+
 respPer_SomMN = StatTableSomMN.RespPer;
 JNDScoreLs    = StatTableJNDLs.JNDScoreMean;
 
@@ -67,6 +72,11 @@ q3Sentence = sprintf('Weak positive correlation between RespPer and JND Score, R
 drawQuest3(dirs, respPer_SomMN, JNDScoreLs, q3Sentence)
 
 % Question 4 %%%
+
+% I18 = strcmp(StatTableAud.SubjID, 'DRF18');
+% StatTableAud(I18,:) = [];
+% StatTableJND(I18,:) = [];
+
 respPer_Aud = StatTableAud.RespPer;
 JNDScore    = StatTableJND.JNDScoreMean;
 
