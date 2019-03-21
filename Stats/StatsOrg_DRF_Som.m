@@ -127,8 +127,12 @@ function drawBoxPlot(measureSummaryStrs, dirs, pA)
 units  = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
 
-cond    = pA.cond;
-numCond = pA.numCond;
+pAnalysis = pA.pAnalysis;
+cond      = pA.cond;
+numCond   = pA.numCond;
+
+pAnalysisFix = pAnalysis;
+pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
 
 measBox = figure('Color', [1 1 1]);
 plotpos = [30 30]; plotdim = [700 1000];
@@ -143,10 +147,10 @@ end
 boxplot(collData, 'Labels', cond)
 xlabel('AudFB')
 ylabel([varName ' (' units{pA.k} ')'])
-title(varName)
+title({pAnalysisFix, varName})
 box off
 
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName 'BoxPlot.jpg']);
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
 end
 
@@ -181,8 +185,12 @@ colors = ['b', 'r', 'g'];
 sigma  = '\sigma'; mu = '\mu';
 lambda = '\lambda';
 
-cond    = pA.cond;
-numCond = pA.numCond;
+pAnalysis = pA.pAnalysis;
+cond      = pA.cond;
+numCond   = pA.numCond;
+
+pAnalysisFix = pAnalysis;
+pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
 
 measDist = figure('Color', [1 1 1]);
 plotpos = [10 10]; plotdim = [1300 800];
@@ -223,7 +231,7 @@ for ii = 1:numCond
     plot(xValues, normcdf(xValues, 0, 1), 'r-')
     legend('Empirical CDF','Standard Normal CDF','Location','best') 
 end
-suptitle({pA.pAnalysis, [varName suffix]})
+suptitle({pAnalysisFix, [varName suffix]})
 
 annotation('textbox',[0.8 0.88 0.45 0.1],...
            'string', {[lambda ' = ' summaryStr.usedLambda]},...
@@ -232,7 +240,7 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
             'FontSize',14,...
             'FontName','Arial');
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName suffix 'DistributionPlot.jpg']);
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.jpg']);
 export_fig(dirs.DistributionFigureFile)
 end
 
