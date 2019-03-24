@@ -791,6 +791,7 @@ ages    = allSubjRes.age;
 genders = allSubjRes.gender;
 
 meanAge  = round(mean(ages), 1);
+sdAge    = round(std(ages), 1);
 minAge   = round(min(ages), 1);
 maxAge   = round(max(ages), 1);
 rangeAge = [minAge maxAge];
@@ -818,7 +819,7 @@ box off
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis 'AgeGenderBoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
 
-fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f years (Mean: %.1f years)\n', rangeAge(1), rangeAge(2), meanAge)
+fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f years (Mean: %.1f years, SD: %.1f years)\n', rangeAge(1), rangeAge(2), meanAge, sdAge)
 fprintf('This data set includes %d males, and %d females\n', genderRatio(1), genderRatio(2))
 end
 
