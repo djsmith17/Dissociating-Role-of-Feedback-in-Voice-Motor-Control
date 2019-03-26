@@ -20,10 +20,11 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'SpringNewBoxCalib', 'DS6', '10', '1', 'BP(PS3+IS)_ThickDef+25"TubePlugged','yes'};
+defaultanswer = {'SpringNewBoxCalib', 'DS2', '3', '1', 'OP(PS2)+25"TubePlugged','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
+doubleSens  = 0;
 
 if isempty(ExpPrompt)
     returns
@@ -127,10 +128,12 @@ niRes.numPertTrialsNi = niRes.numPertTrials;
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 0)
-drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 1)
 drawRawVoltagePressure(niAn, dirs.SavResultsDir, 0)
-drawRawVoltagePressure(niAn, dirs.SavResultsDir, 1)
-CompareVoltagesInternalExternal()
+if doubleSens == 1
+    drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 1)
+    drawRawVoltagePressure(niAn, dirs.SavResultsDir, 1)
+    CompareVoltagesInternalExternal()
+end
 % drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
 % drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
 end
