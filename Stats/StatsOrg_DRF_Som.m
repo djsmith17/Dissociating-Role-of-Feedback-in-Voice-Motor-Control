@@ -67,15 +67,9 @@ for k = curTestingMeas
         % Concatenate the Structure for Histogram and Transformed Values
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
-    plotHistograms(measureSummaryStrs, dirs, pA)
+%     plotHistograms(measureSummaryStrs, dirs, pA)
     drawBoxPlot(measureSummaryStrs, dirs, pA)
     
-%     if k == 2
-%         [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
-%     else
-%         [tFried] = testNonParametric(curStatTable);
-%     end
-
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
 end
@@ -126,6 +120,8 @@ function drawBoxPlot(measureSummaryStrs, dirs, pA)
 
 units  = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
+fontN = 'Arial';
+axisLSize = 25;
 
 pAnalysis = pA.pAnalysis;
 cond      = pA.cond;
@@ -135,7 +131,7 @@ pAnalysisFix = pAnalysis;
 pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
 
 measBox = figure('Color', [1 1 1]);
-plotpos = [30 30]; plotdim = [700 1000];
+plotpos = [30 0]; plotdim = [700 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 collData = [];
@@ -149,6 +145,10 @@ xlabel('AudFB')
 ylabel([varName ' (' units{pA.k} ')'])
 title({pAnalysisFix, varName})
 box off
+
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)

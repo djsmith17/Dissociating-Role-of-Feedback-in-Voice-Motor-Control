@@ -69,12 +69,6 @@ for k = curTestingMeas
     end
     plotHistograms(measureSummaryStrs, dirs, pA)
     drawBoxPlot(measureSummaryStrs, dirs, pA)
-    
-%     if k == 2
-%         [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
-%     else
-%         [tFried] = testNonParametric(curStatTable);
-%     end
 
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
