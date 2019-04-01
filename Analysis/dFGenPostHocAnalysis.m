@@ -1,13 +1,15 @@
 function dfGenPostHocAnalysis()
-
+% This function sets up the relationships between participant responses in
+% my dissertation project. Specifically, this looks at the responses from
+% DRF_Som, DRF_Aud, & DRF_JND
 close all
 
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
 pA.phExp         = 'DRF_PostHoc';
 
-pA.SomExp     = 'DRF_Som';
-pA.AudExp     = 'DRF_Aud';
-pA.JNDExp     = 'DRF_JND';
+pA.SomExp     = 'DRF_Som'; % Somatosensory Feedback Pert Pooled Analysis
+pA.AudExp     = 'DRF_Aud'; % Auditory Feedback Pert Pooled Analysis
+pA.JNDExp     = 'DRF_JND'; % f0 Acuity Pooled Analysis
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.phExp);
@@ -184,4 +186,28 @@ annotation('Textbox', [0.15 0.84 0.1 0.1], ...
 
 dirs.quest4FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
 export_fig(dirs.quest4FigFile)
+end
+
+function drawScatterCorr(dirs, respPer_Aud, JNDScore, sentence)
+% drawScatterCorr(dirs, respPer_Aud, JNDScore, sentence) draws a
+% scatterplot revealing the relationship between two independent variables.
+% This also shares the R statistic of the relationship, and the p-value.
+
+plotpos = [10 100];
+plotdim = [900 500];
+scatFig = figure('Color', [1 1 1]);
+set(scatFig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
+
+plot(JNDScore, respPer_Aud, 'ko')
+xlabel('JND Score')
+ylabel('RespPer (%)')
+title('Relationship between Audio Pert RespPer and JND Score')
+box off
+
+annotation('Textbox', [0.15 0.84 0.1 0.1], ...
+           'String', sentence,...
+           'EdgeColor', 'none')
+
+dirs.scatFigFile = fullfile(dirs.SavResultsDir, ['Question' 4 '.jpg']);
+export_fig(dirs.scatFigFile)
 end
