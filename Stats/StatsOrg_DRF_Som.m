@@ -67,8 +67,12 @@ for k = curTestingMeas
         % Concatenate the Structure for Histogram and Transformed Values
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
-%     plotHistograms(measureSummaryStrs, dirs, pA)
+    plotHistograms(measureSummaryStrs, dirs, pA)
     drawBoxPlot(measureSummaryStrs, dirs, pA)
+    
+    measDiff = measureSummaryStrs(1).measure - measureSummaryStrs(2).measure;
+    
+    [fH, fP] = ttest(measureSummaryStrs(1).measure, measureSummaryStrs(2).measure);
     
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
