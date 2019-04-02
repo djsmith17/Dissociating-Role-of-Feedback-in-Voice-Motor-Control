@@ -54,12 +54,12 @@ drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
 
 % Question 1.1
 respPerDiff = respPer_SomVF - respPer_SomMN;
-q11AllResponse = [respPerDiff respPer_SomMN];
+q11AllResponse = [respPerDiff JNDScoreLs];
 [corrR, corrP] = corrcoef(q11AllResponse);
 q11Sentence = sprintf('Strong negative correlation between RespPer and Effect of Masking, R = %.2f, n = %d, P = %.4f', corrR(1,2), length(respPerDiff), corrP(1,2));
 
 % Draw the scatter plot
-drawQuest11(dirs, respPer_SomMN, respPerDiff, q11Sentence)
+drawQuest11(dirs, JNDScoreLs, respPerDiff, q11Sentence)
 
 % Question 3 %%%
 % Currently Expecting Fewer 'Observations' from SomMN
