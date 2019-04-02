@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -811,10 +811,17 @@ measBox = figure('Color', [1 1 1]);
 plotpos = [30 30]; plotdim = [700 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
+fontN = 'Arial';
+axisLSize = 25;
+
 boxplot(genderAges, gaGRP, 'Labels', boxPlotLabel)
 xlabel('Gender')
 ylabel('Age (years)')
 box off
+
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis 'AgeGenderBoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
