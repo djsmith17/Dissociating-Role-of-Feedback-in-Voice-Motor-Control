@@ -141,7 +141,8 @@ save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 if strcmp(pA.pAnalysis, 'MaskingStudy')
     StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);
 elseif strcmp(pA.pAnalysis, 'DRF_Som')
-    StatsOrg_DRF_Som(dirs, pA, allSubjRes); 
+    StatsOrg_DRF_Som(dirs, pA, allSubjRes);
+    timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
     StatsOrg_DRF_Aud(dirs, pA, allSubjRes); 
 end
