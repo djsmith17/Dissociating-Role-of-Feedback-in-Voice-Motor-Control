@@ -50,57 +50,19 @@ respPer_SomMN = respPer_SomMN(I);
 respPer_AudLs = respPer_AudLs(I);
 
 % Draw the progression
-drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
-
-% Question 1.1
-respPerDiff = respPer_SomVF - respPer_SomMN;
-q11AllResponse = [respPerDiff JNDScoreLs];
-[corrR, corrP] = corrcoef(q11AllResponse);
-q11Sentence = sprintf('Strong negative correlation between RespPer and Effect of Masking, R = %.2f, n = %d, P = %.4f', corrR(1,2), length(respPerDiff), corrP(1,2));
-
-% Draw the scatter plot
-drawQuest11(dirs, JNDScoreLs, respPerDiff, q11Sentence)
+addressQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
 
 % Question 3 %%%
-% Currently Expecting Fewer 'Observations' from SomMN
-I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
-StatTableJNDLs = StatTableJND;
-StatTableJNDLs(I,:) = [];
-
-% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
-% StatTableSomMN(I18,:) = [];
-% StatTableJNDLs(I18,:) = [];
-
-respPer_SomMN = StatTableSomMN.RespPer;
-JNDScoreLs    = StatTableJNDLs.JNDScoreMean;
-
-% Perform the correlation
-q3AllResponse = [JNDScoreLs respPer_SomMN];
-[corrR, corrP] = corrcoef(q3AllResponse);
-q3Sentence = sprintf('Weak positive correlation between RespPer and JND Score, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScoreLs), corrP(1,2));
-
-% Draw the scatter plot
-drawQuest3(dirs, respPer_SomMN, JNDScoreLs, q3Sentence)
+addressQuest3(dirs, StatTableJND, StatTableSomMN)
 
 % Question 4 %%%
+addressQuest4(dirs, StatTableJND, StatTableAud)
 
-% I18 = strcmp(StatTableAud.SubjID, 'DRF18');
-% StatTableAud(I18,:) = [];
-% StatTableJND(I18,:) = [];
-
-respPer_Aud = StatTableAud.RespPer;
-JNDScore    = StatTableJND.JNDScoreMean;
-
-% Perform the correlation
-q4AllResponse = [JNDScore respPer_Aud];
-[corrR, corrP] = corrcoef(q4AllResponse);
-q4Sentence = sprintf('Weak negative correlation between RespPer and JND Score, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScore), corrP(1,2));
-
-% Draw the scatter plot
-drawQuest4(dirs, respPer_Aud, JNDScore, q4Sentence)
+% Question 5 %%%
+addressQuest5(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
 end
 
-function drawQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
+function addressQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
 
 plotpos = [10 100];
 plotdim = [1200 500];
@@ -125,70 +87,93 @@ dirs.quest2FigFile = fullfile(dirs.SavResultsDir, 'Question2.jpg');
 export_fig(dirs.quest2FigFile)
 end
 
-function drawQuest11(dirs, respPer_Som, JNDScore, sentence)
+function addressQuest3(dirs, StatTableJND, StatTableSomMN)
 
-plotpos = [10 100];
-plotdim = [900 500];
-q11Fig = figure('Color', [1 1 1]);
-set(q11Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
+% Currently Expecting Fewer 'Observations' from SomMN
+I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
+StatTableJNDLs = StatTableJND;
+StatTableJNDLs(I,:) = [];
 
-plot(JNDScore, respPer_Som, 'ko')
-xlabel('Diff RespPer (nMN-MN)')
-ylabel('RespPer (%)')
-title('Relationship between Somato Pert RespPer (Masking Noise) and Effect of Masking')
-box off
+% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+% StatTableSomMN(I18,:) = [];
+% StatTableJNDLs(I18,:) = [];
 
-annotation('Textbox', [0.15 0.84 0.1 0.1], ...
-           'String', sentence,...
-           'EdgeColor', 'none')
+respPer_SomMN = StatTableSomMN.RespPer;
+JNDScore    = StatTableJNDLs.JNDScoreMean;
 
-dirs.quest11FigFile = fullfile(dirs.SavResultsDir, 'Question11.jpg');
-export_fig(dirs.quest11FigFile)
+% Perform the correlation
+q3AllResponse = [JNDScore respPer_SomMN];
+[corrR, corrP] = corrcoef(q3AllResponse);
+q3Sentence = sprintf('Weak positive correlation between RespPer and JND Score, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScore), corrP(1,2));
+
+scatStr.x      = JNDScore;
+scatStr.y      = respPer_SomMN;
+scatStr.xLabel = 'JND Score (cents)';
+scatStr.yLabel = 'RespPer (%)';
+scatStr.title  = 'Relationship between Response to Laryngeal Displacement and and Auditory Acuity';
+scatStr.sent   = q3Sentence;
+scatStr.qNum   = 3;
+scatStr.minY   = min(scatStr.y) - 20;
+scatStr.maxY   = max(scatStr.y) + 20;
+
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
 end
 
-function drawQuest3(dirs, respPer_Som, JNDScore, sentence)
+function addressQuest4(dirs, StatTableJND, StatTableAud)
 
-plotpos = [10 100];
-plotdim = [900 500];
-q3Fig = figure('Color', [1 1 1]);
-set(q3Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
+respPer_Aud = StatTableAud.RespPer;
+JNDScore    = StatTableJND.JNDScoreMean;
 
-plot(JNDScore, respPer_Som, 'ko')
-xlabel('JND Score')
-ylabel('RespPer (%)')
-title('Relationship between Somato Pert RespPer and JND Score')
-box off
+% Perform the correlation
+q4AllResponse = [JNDScore respPer_Aud];
+[corrR, corrP] = corrcoef(q4AllResponse);
+q4Sentence = sprintf('Weak negative correlation between RespPer and JND Score, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScore), corrP(1,2));
 
-annotation('Textbox', [0.15 0.84 0.1 0.1], ...
-           'String', sentence,...
-           'EdgeColor', 'none')
+scatStr.x      = JNDScore;
+scatStr.y      = respPer_Aud;
+scatStr.xLabel = 'JND Score (cents)';
+scatStr.yLabel = 'RespPer (%)';
+scatStr.title  = 'Relationship between Response to Auditory Pitch-Shift and and Auditory Acuity';
+scatStr.sent   = q4Sentence;
+scatStr.qNum   = 4;
+scatStr.minY   = min(scatStr.y) - 20;
+scatStr.maxY   = max(scatStr.y) + 20;
 
-dirs.quest3FigFile = fullfile(dirs.SavResultsDir, 'Question3.jpg');
-export_fig(dirs.quest3FigFile)
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
 end
 
-function drawQuest4(dirs, respPer_Aud, JNDScore, sentence)
+function addressQuest5(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+% Currently Expecting Fewer 'Observations' from SomVF and SomMN
+I = ismember(StatTableJND.SubjID, StatTableSomVF.SubjID) == 0;
+StatTableJNDLs = StatTableJND;
+StatTableJNDLs(I,:) = [];
 
-plotpos = [10 100];
-plotdim = [900 500];
-q4Fig = figure('Color', [1 1 1]);
-set(q4Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
+respPer_SomVF = StatTableSomVF.RespPer;
+respPer_SomMN = StatTableSomMN.RespPer;
+respPer_Diff  = respPer_SomMN - respPer_SomVF;
+JNDScore      = StatTableJNDLs.JNDScoreMean;
 
-plot(JNDScore, respPer_Aud, 'ko')
-xlabel('JND Score')
-ylabel('RespPer (%)')
-title('Relationship between Audio Pert RespPer and JND Score')
-box off
+q11AllResponse = [JNDScore respPer_Diff];
+[corrR, corrP] = corrcoef(q11AllResponse);
+q5Sentence = sprintf('Weak positive correlation between RespPer Diff and JND, R = %.2f, n = %d, P = %.4f', corrR(1,2), length(respPer_Diff), corrP(1,2));
 
-annotation('Textbox', [0.15 0.84 0.1 0.1], ...
-           'String', sentence,...
-           'EdgeColor', 'none')
+scatStr.x      = JNDScore;
+scatStr.y      = respPer_Diff;
+scatStr.xLabel = 'JND Score (cents)';
+scatStr.yLabel = 'RespPer Diff(%) (M-nM)';
+scatStr.title  = sprintf('Relationship between Effect of Masking on Response to\nLaryngeal Displacement and Auditory Acuity');
+scatStr.sent   = q5Sentence;
+scatStr.qNum   = 5;
+scatStr.minY   = min(scatStr.y) - 20;
+scatStr.maxY   = max(scatStr.y) + 20;
 
-dirs.quest4FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
-export_fig(dirs.quest4FigFile)
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
 end
 
-function drawScatterCorr(dirs, respPer_Aud, JNDScore, sentence)
+function drawScatterCorr(dirs, scatStr)
 % drawScatterCorr(dirs, respPer_Aud, JNDScore, sentence) draws a
 % scatterplot revealing the relationship between two independent variables.
 % This also shares the R statistic of the relationship, and the p-value.
@@ -198,16 +183,27 @@ plotdim = [900 500];
 scatFig = figure('Color', [1 1 1]);
 set(scatFig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
 
-plot(JNDScore, respPer_Aud, 'ko')
-xlabel('JND Score')
-ylabel('RespPer (%)')
-title('Relationship between Audio Pert RespPer and JND Score')
+fontN = 'Arial';
+axisLSize = 14;
+
+plot(scatStr.x, scatStr.y, 'ko', 'MarkerSize', 10)
+xlabel(scatStr.xLabel)
+ylabel(scatStr.yLabel)
+title(scatStr.title)
+axis([0 70 scatStr.minY scatStr.maxY])
 box off
 
-annotation('Textbox', [0.15 0.84 0.1 0.1], ...
-           'String', sentence,...
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
+
+annotation('Textbox', [0.15 0.815 0.1 0.1], ...
+           'String', scatStr.sent,...
+           'FontName', fontN,...
+           'FontSize', 12,...
+           'FontWeight','bold',...
            'EdgeColor', 'none')
 
-dirs.scatFigFile = fullfile(dirs.SavResultsDir, ['Question' 4 '.jpg']);
+dirs.scatFigFile = fullfile(dirs.SavResultsDir, ['Question' num2str(scatStr.qNum) '.jpg']);
 export_fig(dirs.scatFigFile)
 end
