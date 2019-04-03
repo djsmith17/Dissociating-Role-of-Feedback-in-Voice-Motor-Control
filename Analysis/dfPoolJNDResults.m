@@ -114,8 +114,8 @@ end
 % Set up the stats table to be used in further Post Hoc Analysis
 allSubjRes.statTable = packStatTable(pooledRunStr);
 
-% drawHistogram(dirs, pA, cell2mat(JNDStatTable.JNDScoreMean), 'JNDScore')
-% drawHistogram(dirs, pA, cell2mat(JNDStatTable.lastSetAccuracyMean), 'Last 4 Reversals Accuracy')
+drawHistoBoxCombo(dirs, pA, allSubjRes.statTable.JNDScoreMean, 'JNDScore')
+drawHistoBoxCombo(dirs, pA, allSubjRes.statTable.lastSetAccuracyMean, 'Last 4 Reversals Accuracy')
 
 dirs.JNDTableCSV = fullfile(dirs.SavResultsDir, 'JNDStatTable.csv');
 writetable(allSubjRes.statTable, dirs.JNDTableCSV);
@@ -208,17 +208,31 @@ sortStruc.lastSetAccuracyMean = round(mean(Accuracies), 1);
 sortStruc.lastSetAccuracySE   = std(Accuracies)/sqrt(numJNDScores);
 end
 
-function drawHistogram(dirs, pA, vars, VarName)
+function drawHistoBoxCombo(dirs, pA, vars, varName)
+
+% swH = summaryStr.swH; swP = summaryStr.swPValue; swW = summaryStr.swTest;
+
+pAnalysis = pA.pAnalysis;
+% lambda = '\lambda';
 
 JNDHist = figure('Color', [1 1 1]);
-plotpos = [10 10]; plotdim = [1300 800];
+plotpos = [30 0]; plotdim = [800 300];
 set(JNDHist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-hist(vars)
-title(['Mean ' VarName])
-box off
+subplot(1,2,1); histogram(vars, 10); box off
+% title(['H=' num2str(swH) ', p=' num2str(round(swP,4)) ', W=' num2str(round(swW,3))])
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis VarName 'Distribution.jpg']);
+subplot(1,2,2); boxplot(vars); box off
+suptitle(varName)
+
+% annotation('textbox',[0.8 0.88 0.45 0.1],...
+%            'string', {[lambda ' = ' summaryStr.usedLambda]},...
+%            'LineStyle','none',...
+%             'FontWeight','bold',...
+%             'FontSize',14,...
+%             'FontName','Arial');
+
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'Distribution.jpg']);
 export_fig(dirs.DistributionFigureFile)
 end
 
