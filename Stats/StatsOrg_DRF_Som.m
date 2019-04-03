@@ -32,28 +32,7 @@ for k = curTestingMeas
         measure   = curStatTable.(cond_table{i});
         
         % Perform Standard Sumamry Stats
-        [summaryStr, variableStat] = RawSummaryStats(meas{k}, measure);
-        
-        summaryStr.idealLambda = lambdas(i);
-        
-        if k == 1 && ApplyTrans
-            usedLambda = lambdas(1);
-            summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
-            summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransVF';
-            summaryStr.usedLambda = num2str(usedLambda);
-        elseif k == 3 && ApplyTrans
-            usedLambda = lambdas(3);
-            summaryStr.measureT   = boxcox(usedLambda, [summaryStr.measure + 1 - min(summaryStr.measure)]);
-            summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransACBC';
-            summaryStr.usedLambda = num2str(usedLambda);
-        else
-            summaryStr.measureT   = summaryStr.measure;
-            summaryStr.isTrans    = 0;
-            summaryStr.suffix     = '';
-            summaryStr.usedLambda = 'N/A';
-        end
+        [summaryStr, variableStat] = RawSummaryStats(meas{k}, measure, lambdas(i));
              
         % Use some function to describe the normality
         summaryStr = testNormality(summaryStr);
@@ -67,13 +46,35 @@ for k = curTestingMeas
         % Concatenate the Structure for Histogram and Transformed Values
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
-    plotHistograms(measureSummaryStrs, dirs, pA)
-    drawBoxPlot(measureSummaryStrs, dirs, pA)
     
+    % Find the difference between the two conditions and place in Struct
     measDiff = measureSummaryStrs(1).measure - measureSummaryStrs(2).measure;
+    [summaryStrDiff, ~] = RawSummaryStats([meas{k} 'Diff'], measDiff, 0);
     
-    [fH, fP] = ttest(measureSummaryStrs(1).measure, measureSummaryStrs(2).measure);
+    if k == 3 
+        [summaryStrDiff.measureT, l] = boxcox(summaryStrDiff.measure + 1 - min(summaryStrDiff.measure));
+        summaryStrDiff.isTrans    = 1;
+        summaryStrDiff.suffix     = 'Trans';
+        summaryStrDiff.usedLambda = num2str(round(l,2));
+    end
     
+    % Test for Normality
+    summaryStrDiff = testNormality(summaryStrDiff);
+    
+    % Perform a One-Sample T-Test on the difference between the measures
+    [summaryStrDiff.fH, summaryStrDiff.fP] = ttest(summaryStrDiff.measureT);
+    summaryStrDiff.fPround = sprintf('%0.6f', summaryStrDiff.fP);
+    if summaryStrDiff.fP < (0.05/3)
+        summaryStrDiff.isSig = 1;
+    else
+        summaryStrDiff.isSig = 0;
+    end
+    
+    drawHistoBoxCombo(summaryStrDiff, dirs, pA) % Visualize the Normality/Outliers of 
+
+    drawHistograms(measureSummaryStrs, dirs, pA)
+    drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
+        
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
 end
@@ -92,23 +93,27 @@ curStatTable = unstack(curStatTable, meas, 'AudFB');
 curStatTable = curStatTable(:, condSubj);
 end
 
-function [summaryStr, variableStat] = RawSummaryStats(variableName, measure)
+function [summaryStr, variableStat] = RawSummaryStats(variableName, measure, idealLambda)
 
 numObs    = length(measure);
 
 % Calculate the Descriptive Stats
 summaryStr.varName  = variableName;
 summaryStr.measure  = measure;        % Raw Data Values
-summaryStr.measureT = [];             % Transformed Data Values
-summaryStr.measureZ = [];             % Z-Scored Data Values
-summaryStr.idealLambda = [];
-summaryStr.usedLambda  = [];
+
 summaryStr.mean     = round(mean(measure), 2);
 summaryStr.median   = round(median(measure), 2);
 summaryStr.min      = round(min(measure), 2);
 summaryStr.max      = round(max(measure), 2);
 summaryStr.SD       = round(std(measure), 2);
 summaryStr.SE       = round(summaryStr.SD/sqrt(numObs), 2);
+
+summaryStr.isTrans     = 0;       % Default is not transformed
+summaryStr.measureT    = measure; % Transformed Data Values (Default is the same)
+summaryStr.measureZ    = [];      % Z-Scored Data Values
+summaryStr.idealLambda = idealLambda;
+summaryStr.usedLambda  = 'N/A';   % Default is not transformed
+summaryStr.suffix      = '';      % Default is not transformed
 
 variableStat = {summaryStr.mean;...
                 summaryStr.min;...
@@ -118,44 +123,6 @@ variableStat = {summaryStr.mean;...
                 summaryStr.SE};
                   
 
-end
-
-function drawBoxPlot(measureSummaryStrs, dirs, pA)
-
-units  = {'cents', 'cents', '%'};
-colors = ['b', 'r', 'g'];
-fontN = 'Arial';
-axisLSize = 25;
-
-pAnalysis = pA.pAnalysis;
-cond      = pA.cond;
-numCond   = pA.numCond;
-
-pAnalysisFix = pAnalysis;
-pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
-
-measBox = figure('Color', [1 1 1]);
-plotpos = [30 0]; plotdim = [700 1000];
-set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-collData = [];
-for i = 1:numCond
-    collData(:,i) = measureSummaryStrs(i).measure;
-    varName = measureSummaryStrs(i).varName;
-end
-
-boxplot(collData, 'Labels', cond)
-xlabel('AudFB')
-ylabel([varName ' (' units{pA.k} ')'])
-title({pAnalysisFix, varName})
-box off
-
-set(gca,'FontName', fontN,...
-        'FontSize', axisLSize,...
-        'FontWeight','bold')
-
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
-export_fig(dirs.BoxPlotFigureFile)
 end
 
 function summaryStr = testNormality(summaryStr)
@@ -182,7 +149,7 @@ variableStat = cat(1, variableStat, summaryStr.swPValue);
 variableStat = cat(1, variableStat, summaryStr.swTest);
 end
 
-function plotHistograms(measureSummaryStrs, dirs, pA)
+function drawHistograms(measureSummaryStrs, dirs, pA)
 
 units  = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
@@ -248,20 +215,83 @@ dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName su
 export_fig(dirs.DistributionFigureFile)
 end
 
-function [rAnovaRes, measSph] = testParametric(curStatTable, cond_table)
+function drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
 
-condTable = table(cond_table');
+units  = {'cents', 'cents', '%'};
+fontN = 'Arial';
+axisLSize = 25;
 
-measFit = fitrm(curStatTable, 'VoiceFeedback-MaskingNoise~1', 'WithinDesign', condTable, 'WithinModel', 'separatemeans');
-measSph = mauchly(measFit);
-    
-rAnovaRes = ranova(measFit);
+pAnalysis = pA.pAnalysis;
+cond      = pA.pubCond;
+numCond   = pA.numCond;
+
+isSig = summaryStrDiff.isSig;
+
+pAnalysisFix = pAnalysis;
+pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
+
+measBox = figure('Color', [1 1 1]);
+plotpos = [30 0]; plotdim = [700 1000];
+set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+collData = [];
+for i = 1:numCond
+    collData(:,i) = measureSummaryStrs(i).measure;
+    varName = measureSummaryStrs(i).varName;
 end
 
-function [tFried] = testNonParametric(curStatTable)
+boxplot(collData, 'Labels', cond)
+ylabel([varName ' (' units{pA.k} ')'])
+title({pAnalysisFix, varName})
+box off
 
-matVer = curStatTable{:,2:4};
+yt = get(gca, 'YTick');
+axis([xlim    0  ceil(max(yt)*1.2)])
+xt = get(gca, 'XTick');
 
-[pFried,tFried, stats] = friedman(matVer);
+if isSig
+    hold on
+    plot(xt([1 2]), [1 1]*max(yt)*1.1, '-k')
+    plot(mean(xt([1 2])), max(yt)*1.12, '*k', 'MarkerSize', 10)
+    hold off
+end
+text(mean(xt([1 2]))-0.25, max(yt)*1.15, ['p = ' summaryStrDiff.fPround], 'FontSize',18)
 
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
+
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
+export_fig(dirs.BoxPlotFigureFile)
+end
+
+function drawHistoBoxCombo(summaryStr, dirs, pA)
+
+measure = summaryStr.measureT;
+varName = summaryStr.varName;
+suffix  = summaryStr.suffix;
+swH = summaryStr.swH; swP = summaryStr.swPValue; swW = summaryStr.swTest;
+
+pAnalysis = pA.pAnalysis;
+lambda = '\lambda';
+
+diffBox = figure('Color', [1 1 1]);
+plotpos = [30 0]; plotdim = [800 300];
+set(diffBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+subplot(1,2,1); histogram(measure, 10); box off
+title(['H=' num2str(swH) ', p=' num2str(round(swP,4)) ', W=' num2str(round(swW,3))])
+
+subplot(1,2,2); boxplot(measure); box off
+suptitle(varName)
+
+annotation('textbox',[0.8 0.88 0.45 0.1],...
+           'string', {[lambda ' = ' summaryStr.usedLambda]},...
+           'LineStyle','none',...
+            'FontWeight','bold',...
+            'FontSize',14,...
+            'FontName','Arial');
+
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'BoxPlotCombo.jpg']);
+export_fig(dirs.BoxPlotFigureFile)
 end

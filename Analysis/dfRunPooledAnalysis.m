@@ -40,6 +40,7 @@ pA.cond          = cF.cond;         % Conditions to test against
 pA.numCond       = length(pA.cond); 
 pA.condVar       = cF.condVar;      % Variable to test the condition
 pA.testExt       = cF.testExt;
+pA.pubCond       = cF.pubCond;
 
 pA.pltNameMVi    = cell(pA.numPart, 1);
 pA.pltNameMVm    = [pA.pAnalysis 'MeanSubj' pA.testExt];

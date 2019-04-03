@@ -39,6 +39,7 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4'};
            
 % Conditions to test against
 testingConditions = {'Voice Feedback', 'Masking Noise'};
+pubConditions     = {'notMasked', 'Masked'};
 
 % The Recording Variable to check for the condition
 condVar = 'curRes.AudFB'; 
@@ -53,6 +54,7 @@ cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 cF.condVar      = condVar;
 cF.testExt      = testExt;
+cF.pubCond      = pubConditions;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)

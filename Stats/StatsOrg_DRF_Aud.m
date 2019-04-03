@@ -67,7 +67,7 @@ for k = curTestingMeas
         % Concatenate the Structure for Histogram and Transformed Values
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
-    plotHistograms(measureSummaryStrs, dirs, pA)
+    drawHistograms(measureSummaryStrs, dirs, pA)
     drawBoxPlot(measureSummaryStrs, dirs, pA)
 
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
@@ -119,7 +119,8 @@ end
 function drawBoxPlot(measureSummaryStrs, dirs, pA)
 
 units  = {'cents', 'cents', '%'};
-colors = ['b', 'r', 'g'];
+fontN = 'Arial';
+axisLSize = 25;
 
 pAnalysis = pA.pAnalysis;
 cond      = pA.cond;
@@ -144,6 +145,10 @@ ylabel([varName ' (' units{pA.k} ')'])
 title({pAnalysisFix, varName})
 box off
 
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
+    
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
 end
@@ -172,7 +177,7 @@ variableStat = cat(1, variableStat, summaryStr.swPValue);
 variableStat = cat(1, variableStat, summaryStr.swTest);
 end
 
-function plotHistograms(measureSummaryStrs, dirs, pA)
+function drawHistograms(measureSummaryStrs, dirs, pA)
 
 units  = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
@@ -236,22 +241,4 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
 
 dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.jpg']);
 export_fig(dirs.DistributionFigureFile)
-end
-
-function [rAnovaRes, measSph] = testParametric(curStatTable, cond_table)
-
-condTable = table(cond_table');
-
-measFit = fitrm(curStatTable, 'VoiceFeedback-AC_BCMaskingNoise~1', 'WithinDesign', condTable, 'WithinModel', 'separatemeans');
-measSph = mauchly(measFit);
-    
-rAnovaRes = ranova(measFit);
-end
-
-function [tFried] = testNonParametric(curStatTable)
-
-matVer = curStatTable{:,2:4};
-
-[pFried,tFried, stats] = friedman(matVer);
-
 end
