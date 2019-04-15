@@ -7,7 +7,7 @@ else
 end
 
 curSess          = poolRes.curSess;
-cond             = poolRes.cond;
+cond             = poolRes.pubCond;
 numCond          = length(cond);
 numControl       = poolRes.numContTrialsFin;
 numPerturb       = poolRes.numPertTrialsFin;
@@ -15,17 +15,6 @@ numPerturb       = poolRes.numPertTrialsFin;
 time             = poolRes.secTime;
 contf0           = poolRes.audioMf0MeanCont;  
 pertf0           = poolRes.audioMf0MeanPert;
-
-statLib = poolRes.statLib;      % Stats Library
-statSMM = round(statLib(1), 1); % Mean Stimulus Magnitude (Masked)
-statSMV = round(statLib(2), 1); % Mean Stimulus Magnitude (Voice)
-statRMM = round(statLib(3), 1); % Mean Response Magnitude (Masked)
-statRMV = round(statLib(4), 1); % Mean Response Magnitude (Voice)
-statRPM = round(statLib(5));    % Mean Response Percentage (Masked)
-statRPV = round(statLib(6));    % Mean Response Percentage (Voice)
-statSP  = statLib(7);           % p-value of Stimulus Magnitude t-test
-statRP  = statLib(8);           % p-value of Response Magnitude t-test
-statPP  = statLib(9);           % p-value of Response Percentage t-test
 
 limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
@@ -93,16 +82,16 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
-% Done plotting, now to add some annotations
-annoStim = ['SM (M/NM): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];
-annoResp = ['RM (M/NM): ' num2str(statRMM) ' cents / ' num2str(statRMV) ' cents'];
-annoPerc = ['RP (M/NM): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
-
-annoStim = checkSig(statSP, pValueThresh, annoStim);
-annoResp = checkSig(statRP, pValueThresh, annoResp);
-annoPerc = checkSig(statPP, pValueThresh, annoPerc);
-
 if fStat == 1
+    % Done plotting, now to add some annotations
+    annoStim = ['SM (M/NM): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];
+    annoResp = ['RM (M/NM): ' num2str(statRMM) ' cents / ' num2str(statRMV) ' cents'];
+    annoPerc = ['RP (M/NM): ' num2str(statRPM) '% / ' num2str(statRPV) '%'];
+
+    annoStim = checkSig(statSP, pValueThresh, annoStim);
+    annoResp = checkSig(statRP, pValueThresh, annoResp);
+    annoPerc = checkSig(statPP, pValueThresh, annoPerc);
+    
     statBox = annotation('textbox',[.30 .75 0.45 0.1],...
                          'string', {annoStim;
                                     annoResp

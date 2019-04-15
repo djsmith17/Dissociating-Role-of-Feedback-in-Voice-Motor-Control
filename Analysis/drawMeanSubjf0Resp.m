@@ -7,7 +7,7 @@ else
 end
 
 curSess          = poolRes.curSess;
-cond             = poolRes.cond;
+cond             = poolRes.pubCond;
 numCond          = length(cond);
 numControl       = poolRes.numContTrialsFin;
 numPerturb       = poolRes.numPertTrialsFin;

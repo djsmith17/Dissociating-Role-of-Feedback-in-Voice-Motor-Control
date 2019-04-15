@@ -125,9 +125,10 @@ end
 function drawBoxPlot(measureSummaryStrs, dirs, pA)
 
 units  = {'cents', 'cents', '%'};
-colors = ['b', 'r', 'g'];
+fontN = 'Arial';
+axisLSize = 15;
 
-cond    = pA.cond;
+cond    = pA.pubCond;
 numCond = pA.numCond;
 
 measBox = figure('Color', [1 1 1]);
@@ -141,10 +142,13 @@ for i = 1:numCond
 end
 
 boxplot(collData, 'Labels', cond)
-xlabel('AudFB')
 ylabel([varName ' (' units{pA.k} ')'])
 title(varName)
 box off
+
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis varName 'BoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
@@ -181,7 +185,7 @@ colors = ['b', 'r', 'g'];
 sigma  = '\sigma'; mu = '\mu';
 lambda = '\lambda';
 
-cond    = pA.cond;
+cond    = pA.pubCond;
 numCond = pA.numCond;
 
 measDist = figure('Color', [1 1 1]);
