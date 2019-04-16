@@ -99,19 +99,26 @@ StatTableJNDLs(I,:) = [];
 % StatTableJNDLs(I18,:) = [];
 
 respPer_SomMN = StatTableSomMN.RespPer;
-JNDScore    = StatTableJNDLs.JNDScoreMean;
+JNDScore      = StatTableJNDLs.JNDScoreMean;
+f0            = cell2mat(StatTableJNDLs.f0);
 
 % Perform the correlation
 q3AllResponse = [JNDScore respPer_SomMN];
 [corrR, corrP] = corrcoef(q3AllResponse);
 q3Sentence = sprintf('Weak positive correlation between RespPer and JND Score, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScore), corrP(1,2));
 
+% Perform the correltion controlling for f0
+[corrR, corrP] = partialcorr(q3AllResponse, f0);
+q3Sentence2 = sprintf('Weak positive partial correlation between RespPer and JND Score \nwhile controlling for f0, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScore), corrP(1,2));
+
+% Organize the output
 scatStr.x      = JNDScore;
 scatStr.y      = respPer_SomMN;
 scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'RespPer (%)';
 scatStr.title  = 'Relationship between Response to Laryngeal Displacement and and Auditory Acuity';
 scatStr.sent   = q3Sentence;
+scatStr.sent2  = q3Sentence2;
 scatStr.qNum   = 3;
 scatStr.minY   = min(scatStr.y) - 20;
 scatStr.maxY   = max(scatStr.y) + 20;
@@ -124,18 +131,25 @@ function addressQuest4(dirs, StatTableJND, StatTableAud)
 
 respPer_Aud = StatTableAud.RespPer;
 JNDScore    = StatTableJND.JNDScoreMean;
+f0          = cell2mat(StatTableJND.f0);
 
 % Perform the correlation
 q4AllResponse = [JNDScore respPer_Aud];
 [corrR, corrP] = corrcoef(q4AllResponse);
 q4Sentence = sprintf('Weak negative correlation between RespPer and JND Score, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScore), corrP(1,2));
 
+% Perform the correltion controlling for f0
+[corrR, corrP] = partialcorr(q4AllResponse, f0);
+q4Sentence2 = sprintf('Weak negative partial correlation between RespPer and JND Score \nwhile controlling for f0, R = %.2f, n = %d, P = %.2f', corrR(1,2), length(JNDScore), corrP(1,2));
+
+% Organize the output
 scatStr.x      = JNDScore;
 scatStr.y      = respPer_Aud;
 scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'RespPer (%)';
 scatStr.title  = 'Relationship between Response to Auditory Pitch-Shift and and Auditory Acuity';
 scatStr.sent   = q4Sentence;
+scatStr.sent2  = q4Sentence2;
 scatStr.qNum   = 4;
 scatStr.minY   = min(scatStr.y) - 20;
 scatStr.maxY   = max(scatStr.y) + 20;
@@ -154,6 +168,7 @@ respPer_SomVF = StatTableSomVF.RespPer;
 respPer_SomMN = StatTableSomMN.RespPer;
 respPer_Diff  = respPer_SomMN - respPer_SomVF;
 JNDScore      = StatTableJNDLs.JNDScoreMean;
+f0            = cell2mat(StatTableJNDLs.f0);
 
 q11AllResponse = [JNDScore respPer_Diff];
 [corrR, corrP] = corrcoef(q11AllResponse);
@@ -197,8 +212,15 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
-annotation('Textbox', [0.15 0.815 0.1 0.1], ...
+annotation('Textbox', [0.15 0.825 0.1 0.1], ...
            'String', scatStr.sent,...
+           'FontName', fontN,...
+           'FontSize', 12,...
+           'FontWeight','bold',...
+           'EdgeColor', 'none')
+       
+annotation('Textbox', [0.15 0.785 0.1 0.1], ...
+           'String', scatStr.sent2,...
            'FontName', fontN,...
            'FontSize', 12,...
            'FontWeight','bold',...

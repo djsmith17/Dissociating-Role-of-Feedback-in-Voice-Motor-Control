@@ -74,6 +74,7 @@ allSubjRes         = initSortedStruct(pA);
 allSubjRes.subject = 'Mean Participant Response';
 allSubjRes.curSess = allSubjRes.subject;
 allSubjRes.cond    = pA.cond;
+allSubjRes.pubCond = pA.pubCond;
 
 [tossTrialTracker, tVN] = initTossedTrialTracker();
 
@@ -86,6 +87,7 @@ for ii = 1:pA.numPart
     
     sortStruc.curSess = sortStruc.subject;
     sortStruc.cond    = pA.cond;
+    sortStruc.pubCond = pA.pubCond;
  
     for jj = 1:pA.numRuns
         curRes = allDataStr(ii, jj);
@@ -164,6 +166,7 @@ sortStr.pAnalysis = pAnalysis;
 sortStr.expType = [];
 sortStr.subject = [];
 sortStr.gender  = [];
+sortStr.f0      = [];
 sortStr.age     = [];
 sortStr.curSess = [];
 sortStr.studyID = [];
@@ -437,6 +440,7 @@ for wC = 1:pA.numCond
     polRes.obvSubj    = cat(1, polRes.obvSubj, sortStruc.studyID);
     polRes.obvAge     = cat(1, polRes.obvAge, sortStruc.age);
     polRes.obvGender  = cat(1, polRes.obvGender, sortStruc.gender);
+    polRes.f0         = cat(1, polRes.f0, sortStruc.f0b(wC));
     polRes.obvAudFB   = cat(1, polRes.obvAudFB, sortStruc.AudFB{wC}{1});
     polRes.obvRespVar = cat(1, polRes.obvRespVar, round(sortStruc.respVarM{wC},2));
 end
@@ -782,8 +786,8 @@ end
 
 function statTable = packStatTable(ss)
 
-varNames = {'SubjID', 'Age', 'Gender', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
-statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
+varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
+statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.f0, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
 end
 
 function organizeAndPrintDemographicStats(dirs, allSubjRes)
