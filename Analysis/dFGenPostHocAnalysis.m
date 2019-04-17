@@ -62,6 +62,10 @@ addressQuest4(dirs, StatTableJND, StatTableAud)
 addressQuest5(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
 
 % Question 6 %%%
+addressQuest6(dirs, StatTableJND, StatTableSomMN)
+
+% Question 7 %%%
+addressQuest7(dirs, StatTableAud, StatTableSomMN, StatTableJND)
 end
 
 function addressQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
@@ -128,6 +132,8 @@ scatStr.sent   = q3Sentence;
 scatStr.color  = 'r';
 scatStr.Table  = T;
 scatStr.qNum   = 3;
+scatStr.minX   = 0;
+scatStr.maxX   = 70;
 scatStr.minY   = min(scatStr.y) - 10;
 scatStr.maxY   = max(scatStr.y) + 10;
 scatStr.winPos = [0.52 0.23];
@@ -166,6 +172,8 @@ scatStr.sent   = q4Sentence;
 scatStr.color  = 'g';
 scatStr.Table  = T;
 scatStr.qNum   = 4;
+scatStr.minX   = 0;
+scatStr.maxX   = 70;
 scatStr.minY   = min(scatStr.y) - 10;
 scatStr.maxY   = max(scatStr.y) + 10;
 scatStr.winPos = [0.50 0.69];
@@ -209,9 +217,111 @@ scatStr.sent   = q5Sentence;
 scatStr.color  = 'm';
 scatStr.Table  = T;
 scatStr.qNum   = 5;
+scatStr.minX   = 0;
+scatStr.maxX   = 70;
 scatStr.minY   = min(scatStr.y) - 10;
 scatStr.maxY   = max(scatStr.y) + 10;
 scatStr.winPos = [0.42 0.26];
+
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
+end
+
+function addressQuest6(dirs, StatTableJND, StatTableSomMN)
+
+% Currently Expecting Fewer 'Observations' from SomMN
+I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
+StatTableJNDLs = StatTableJND;
+StatTableJNDLs(I,:) = [];
+
+% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+% StatTableSomMN(I18,:) = [];
+% StatTableJNDLs(I18,:) = [];
+
+stimMag_SomMN = StatTableSomMN.StimMag;
+JNDScore      = StatTableJNDLs.JNDScoreMean;
+f0            = cell2mat(StatTableJNDLs.f0);
+
+% Perform the correlation
+q6AllResponse = [JNDScore stimMag_SomMN];
+[corrR, corrP] = corrcoef(q6AllResponse);
+q6Sentence = sprintf('Weak positive correlation between StimMag and JND (n = %d)', length(JNDScore));
+
+% Perform the correltion controlling for f0
+[corrR2, corrP2] = partialcorr(q6AllResponse, f0);
+
+columnNames = {'rho'; 'p_Value'};
+rowNames = {'Corr'; 'Partial Corr (f0)'};
+allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
+allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
+T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
+
+% Organize the output
+scatStr.x      = JNDScore;
+scatStr.y      = stimMag_SomMN;
+scatStr.xLabel = 'JND Score (cents)';
+scatStr.yLabel = 'StimMag (cents)';
+scatStr.title  = 'Relationship between Magnitude of Laryngeal Perturbation and Auditory Acuity';
+scatStr.sent   = q6Sentence;
+scatStr.color  = 'b';
+scatStr.Table  = T;
+scatStr.qNum   = 6;
+scatStr.minX   = 0;
+scatStr.maxX   = 70;
+scatStr.minY   = min(scatStr.y) - 10;
+scatStr.maxY   = max(scatStr.y) + 10;
+scatStr.winPos = [0.48 0.73];
+
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
+end
+
+function addressQuest7(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+
+% Currently Expecting Fewer 'Observations' from SomMN
+I = ismember(StatTableAud.SubjID, StatTableSomMN.SubjID) == 0;
+StatTableAudLs = StatTableAud;
+StatTableAudLs(I,:) = [];
+StatTableJNDLs = StatTableJND;
+StatTableJNDLs(I,:) = [];
+
+% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+% StatTableSomMN(I18,:) = [];
+% StatTableJNDLs(I18,:) = [];
+
+RespPer_SomMN = StatTableSomMN.RespPer;
+RespPer_Aud   = StatTableAudLs.RespPer;
+f0            = cell2mat(StatTableJNDLs.f0);
+
+% Perform the correlation
+q7AllResponse = [RespPer_Aud RespPer_SomMN];
+[corrR, corrP] = corrcoef(q7AllResponse);
+q7Sentence = sprintf('Weak positive correlation between Som RespPer and Aud RespPer (n = %d)', length(RespPer_Aud));
+
+% Perform the correltion controlling for f0
+[corrR2, corrP2] = partialcorr(q7AllResponse, f0);
+
+columnNames = {'rho'; 'p_Value'};
+rowNames = {'Corr'; 'Partial Corr (f0)'};
+allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
+allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
+T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
+
+% Organize the output
+scatStr.x      = RespPer_Aud;
+scatStr.y      = RespPer_SomMN;
+scatStr.xLabel = 'Aud RespPer (%)';
+scatStr.yLabel = 'SomMN RespPer (%)';
+scatStr.title  = 'Relationship between Responses to Somatosensory and Auditory Perts';
+scatStr.sent   = q7Sentence;
+scatStr.color  = [0.2 0.7 1.0];
+scatStr.Table  = T;
+scatStr.qNum   = 7;
+scatStr.minX   = min(scatStr.x) - 10;
+scatStr.maxX   = max(scatStr.x) + 10;
+scatStr.minY   = min(scatStr.y) - 10;
+scatStr.maxY   = max(scatStr.y) + 10;
+scatStr.winPos = [0.38 0.23];
 
 % Draw the scatter plot
 drawScatterCorr(dirs, scatStr)
@@ -234,7 +344,7 @@ plot(scatStr.x, scatStr.y, 'o', 'MarkerSize', 10, 'Color', scatStr.color)
 xlabel(scatStr.xLabel)
 ylabel(scatStr.yLabel)
 title(scatStr.title)
-axis([0 70 scatStr.minY scatStr.maxY])
+axis([scatStr.minX scatStr.maxX scatStr.minY scatStr.maxY])
 box off
 
 corrSentX  = scatStr.winPos(1);
@@ -261,5 +371,5 @@ ScatT = uitable('Data', scatStr.Table{:,:},'ColumnName',scatStr.Table.Properties
         'FontWeight', 'Bold');
 
 dirs.scatFigFile = fullfile(dirs.SavResultsDir, ['Question' num2str(scatStr.qNum) '.jpg']);
-export_fig(dirs.scatFigFile)
+export_fig(dirs.scatFigFile, '-nocrop')
 end
