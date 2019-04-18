@@ -220,6 +220,7 @@ plotpos = [30 0]; plotdim = [800 300];
 set(JNDHist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 subplot(1,2,1); histogram(vars, 10); box off
+% xlabel({'JND Score (cents)', ['(n = ' num2str(pA.numPart) ')']})
 % title(['H=' num2str(swH) ', p=' num2str(round(swP,4)) ', W=' num2str(round(swW,3))])
 
 subplot(1,2,2); boxplot(vars); box off
