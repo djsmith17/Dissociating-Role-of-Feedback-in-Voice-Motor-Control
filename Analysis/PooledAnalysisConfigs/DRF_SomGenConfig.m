@@ -39,7 +39,7 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4'};
            
 % Conditions to test against
 testingConditions = {'Voice Feedback', 'Masking Noise'};
-pubConditions     = {'notMasked', 'Masked'};
+pubConditions     = {'Not Masked', 'Masked'};
 
 % The Recording Variable to check for the condition
 condVar = 'curRes.AudFB'; 
