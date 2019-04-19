@@ -129,7 +129,7 @@ scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'RespPer (%)';
 scatStr.title  = 'Relationship between Response to Laryngeal Displacement and and Auditory Acuity';
 scatStr.sent   = q3Sentence;
-scatStr.color  = 'r';
+scatStr.color  = 'k';
 scatStr.Table  = T;
 scatStr.qNum   = 3;
 scatStr.minX   = 0;
@@ -169,7 +169,7 @@ scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'RespPer (%)';
 scatStr.title  = 'Relationship between Response to Auditory Pitch-Shift and and Auditory Acuity';
 scatStr.sent   = q4Sentence;
-scatStr.color  = 'g';
+scatStr.color  = 'k';
 scatStr.Table  = T;
 scatStr.qNum   = 4;
 scatStr.minX   = 0;
@@ -214,7 +214,7 @@ scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'RespPer Diff(%) (M-NM)';
 scatStr.title  = sprintf('Relationship between Effect of Masking on Response to\nLaryngeal Displacement and Auditory Acuity');
 scatStr.sent   = q5Sentence;
-scatStr.color  = 'm';
+scatStr.color  = 'k';
 scatStr.Table  = T;
 scatStr.qNum   = 5;
 scatStr.minX   = 0;
@@ -263,7 +263,7 @@ scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'StimMag (cents)';
 scatStr.title  = 'Relationship between Magnitude of Laryngeal Perturbation and Auditory Acuity';
 scatStr.sent   = q6Sentence;
-scatStr.color  = 'b';
+scatStr.color  = 'k';
 scatStr.Table  = T;
 scatStr.qNum   = 6;
 scatStr.minX   = 0;
@@ -314,7 +314,7 @@ scatStr.xLabel = 'Aud RespPer (%)';
 scatStr.yLabel = 'SomMN RespPer (%)';
 scatStr.title  = 'Relationship between Responses to Somatosensory and Auditory Perts';
 scatStr.sent   = q7Sentence;
-scatStr.color  = [0.2 0.7 1.0];
+scatStr.color  = 'k';
 scatStr.Table  = T;
 scatStr.qNum   = 7;
 scatStr.minX   = min(scatStr.x) - 10;
@@ -358,17 +358,17 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
-annotation('Textbox', [corrSentX corrSentY1 0.1 0.1], ...
-           'String', scatStr.sent,...
-           'FontName', fontN,...
-           'FontSize', 10,...
-           'FontWeight','bold',...
-           'EdgeColor', 'none',...
-           'Color', scatStr.color)
+% annotation('Textbox', [corrSentX corrSentY1 0.1 0.1], ...
+%            'String', scatStr.sent,...
+%            'FontName', fontN,...
+%            'FontSize', 10,...
+%            'FontWeight','bold',...
+%            'EdgeColor', 'none',...
+%            'Color', scatStr.color)
        
-ScatT = uitable('Data', scatStr.Table{:,:},'ColumnName',scatStr.Table.Properties.VariableNames,...
-        'RowName',scatStr.Table.Properties.RowNames, 'Units', 'Normalized', 'Position',[tableX, tableY, tableW, tableH],...
-        'FontWeight', 'Bold');
+% ScatT = uitable('Data', scatStr.Table{:,:},'ColumnName',scatStr.Table.Properties.VariableNames,...
+%         'RowName',scatStr.Table.Properties.RowNames, 'Units', 'Normalized', 'Position',[tableX, tableY, tableW, tableH],...
+%         'FontWeight', 'Bold');
 
 dirs.scatFigFile = fullfile(dirs.SavResultsDir, ['Question' num2str(scatStr.qNum) '.jpg']);
 export_fig(dirs.scatFigFile, '-nocrop')
