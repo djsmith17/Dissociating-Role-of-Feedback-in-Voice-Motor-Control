@@ -50,38 +50,48 @@ respPer_SomMN = respPer_SomMN(I);
 respPer_AudLs = respPer_AudLs(I);
 
 % Draw the progression
-addressQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
-
-% Question 3 %%%
-addressQuest3(dirs, StatTableJND, StatTableSomMN)
-
-% Question 4 %%%
-addressQuest4(dirs, StatTableJND, StatTableAud)
+addressQuest4(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
 
 % Question 5 %%%
-addressQuest5(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
 
 % Question 6 %%%
-addressQuest6(dirs, StatTableJND, StatTableSomMN)
+addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
 
 % Question 7 %%%
-addressQuest7(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+addressQuest7(dirs, StatTableJND, StatTableAud)
+
+% % Question E1 %%%
+% addressQuestE1(dirs, StatTableJND, StatTableSomMN)
+% 
+% % Question E2 %%%
+% addressQuestE2(dirs, StatTableJND, StatTableSomMN)
 end
 
-function addressQuest2(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
-
+function addressQuest4(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
+% q4: Do participants show similar compensatory respones when only Auditory
+% feedback is perturbed? 
 plotpos = [10 100];
 plotdim = [1200 500];
 q2Fig = figure('Color', [1 1 1]);
 set(q2Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
 
-plot(respPer_SomVF, 'bo-'); hold on
-plot(respPer_SomMN, 'ro-'); 
-plot(respPer_Aud, 'go-');
+fontN = 'Arial';
+axisLSize = 12;
+
+color3 = [44 162 95]/255;
+
+plot(respPer_SomVF, 'bo-', 'MarkerFaceColor', 'b'); hold on
+plot(respPer_SomMN, 'ro-', 'MarkerFaceColor', 'r'); 
+plot(respPer_Aud, 'o-', 'Color', color3, 'MarkerFaceColor', color3);
 xlabel('Participant')
 ylabel('RespPer (%)')
 title('Comparison of Response Percentage between Experimental Conditions')
 box off
+
+set(gca,'FontName', fontN,...
+    'FontSize', axisLSize,...
+    'FontWeight','bold')
 
 legend({'Somato Feedback Pert (No Masking Noise)', 'Somato Feedback Pert (Masking Noise)', 'Aud Feedback Pert'},...
         'Box', 'off',...
@@ -89,11 +99,165 @@ legend({'Somato Feedback Pert (No Masking Noise)', 'Somato Feedback Pert (Maskin
         'FontSize', 12,...
         'FontWeight', 'bold')
 
-dirs.quest2FigFile = fullfile(dirs.SavResultsDir, 'Question2.jpg');
+dirs.quest2FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
 export_fig(dirs.quest2FigFile)
 end
 
-function addressQuest3(dirs, StatTableJND, StatTableSomMN)
+function addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+% q5: Is there a relationship between individual response magnitudes to
+% somatosensory and auditory perturbations?
+
+% Currently Expecting Fewer 'Observations' from SomMN
+I = ismember(StatTableAud.SubjID, StatTableSomMN.SubjID) == 0;
+StatTableAudLs = StatTableAud;
+StatTableAudLs(I,:) = [];
+StatTableJNDLs = StatTableJND;
+StatTableJNDLs(I,:) = [];
+
+% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+% StatTableSomMN(I18,:) = [];
+% StatTableJNDLs(I18,:) = [];
+
+RespPer_SomMN = StatTableSomMN.RespPer;
+RespPer_Aud   = StatTableAudLs.RespPer;
+f0            = cell2mat(StatTableJNDLs.f0);
+
+% Perform the correlation
+q5AllResponse = [RespPer_Aud RespPer_SomMN];
+[corrR, corrP] = corrcoef(q5AllResponse);
+q5Sentence = sprintf('Weak positive correlation between Som RespPer and Aud RespPer (n = %d)', length(RespPer_Aud));
+
+% Perform the correltion controlling for f0
+[corrR2, corrP2] = partialcorr(q5AllResponse, f0);
+
+columnNames = {'rho'; 'p_Value'};
+rowNames = {'Corr'; 'Partial Corr (f0)'};
+allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
+allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
+T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
+
+% Organize the output
+scatStr.x      = RespPer_Aud;
+scatStr.y      = RespPer_SomMN;
+scatStr.xLabel = 'Aud RespPer (%)';
+scatStr.yLabel = 'SomMN RespPer (%)';
+scatStr.title  = 'Relationship between Responses to Somatosensory and Auditory Perts';
+scatStr.sent   = q5Sentence;
+scatStr.color  = 'k';
+scatStr.Table  = T;
+scatStr.qNum   = 5;
+scatStr.minX   = min(scatStr.x) - 10;
+scatStr.maxX   = max(scatStr.x) + 10;
+scatStr.minY   = min(scatStr.y) - 10;
+scatStr.maxY   = max(scatStr.y) + 10;
+scatStr.winPos = [0.38 0.23];
+
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
+end
+
+function addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+% q6: Is there a relationship between auditory f0 acuity and contribution
+% of auditory feedback in the laryngeal perturbation task?
+
+% Currently Expecting Fewer 'Observations' from SomVF and SomMN
+I = ismember(StatTableJND.SubjID, StatTableSomVF.SubjID) == 0;
+StatTableJNDLs = StatTableJND;
+StatTableJNDLs(I,:) = [];
+
+% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+% StatTableSomMN(I18,:) = [];
+% StatTableSomVF(I18,:) = [];
+% StatTableJNDLs(I18,:) = [];
+
+respPer_SomVF = StatTableSomVF.RespPer;
+respPer_SomMN = StatTableSomMN.RespPer;
+respPer_Diff  = respPer_SomMN - respPer_SomVF;
+JNDScore      = StatTableJNDLs.JNDScoreMean;
+f0            = cell2mat(StatTableJNDLs.f0);
+
+q6AllResponse  = [JNDScore respPer_Diff];
+[corrR, corrP] = corrcoef(q6AllResponse);
+q6Sentence = sprintf('Weak positive correlation between RespPer Diff and JND, (n = %d)', length(respPer_Diff));
+
+% Perform the correltion controlling for f0
+[corrR2, corrP2] = partialcorr(q6AllResponse, f0);
+
+columnNames = {'rho'; 'p_Value'};
+rowNames = {'Corr'; 'Partial Corr (f0)'};
+allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
+allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
+T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
+
+% Organize the output
+scatStr.x      = JNDScore;
+scatStr.y      = respPer_Diff;
+scatStr.xLabel = 'JND Score (cents)';
+scatStr.yLabel = 'RespPer Diff(%) (M-NM)';
+scatStr.title  = sprintf('Relationship between Effect of Masking on Response to\nLaryngeal Displacement and Auditory Acuity');
+scatStr.sent   = q6Sentence;
+scatStr.color  = 'k';
+scatStr.Table  = T;
+scatStr.qNum   = 6;
+scatStr.minX   = 0;
+scatStr.maxX   = 70;
+scatStr.minY   = min(scatStr.y) - 10;
+scatStr.maxY   = max(scatStr.y) + 10;
+scatStr.winPos = [0.42 0.26];
+
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
+end
+
+function addressQuest7(dirs, StatTableJND, StatTableAud)
+% q7: Is there a relationship between the auditory f0 acuity and their
+% response to auditory feedback perturbation?
+
+% I18 = strcmp(StatTableAud.SubjID, 'DRF18');
+% StatTableAud(I18,:) = [];
+% StatTableJND(I18,:) = [];
+
+respPer_Aud = StatTableAud.RespPer;
+JNDScore    = StatTableJND.JNDScoreMean;
+f0          = cell2mat(StatTableJND.f0);
+
+% Perform the correlation
+q7AllResponse = [JNDScore respPer_Aud];
+[corrR, corrP] = corrcoef(q7AllResponse);
+q7Sentence = sprintf('Weak negative correlation between RespPer and JND (n = %d)', length(JNDScore));
+
+% Perform the correltion controlling for f0
+[corrR2, corrP2] = partialcorr(q7AllResponse, f0);
+
+columnNames = {'rho'; 'p_Value'};
+rowNames = {'Corr'; 'Partial Corr (f0)'};
+allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
+allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
+T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
+
+% Organize the output
+scatStr.x      = JNDScore;
+scatStr.y      = respPer_Aud;
+scatStr.xLabel = 'JND Score (cents)';
+scatStr.yLabel = 'RespPer (%)';
+scatStr.title  = 'Relationship between Response to Auditory Pitch-Shift and and Auditory Acuity';
+scatStr.sent   = q7Sentence;
+scatStr.color  = 'k';
+scatStr.Table  = T;
+scatStr.qNum   = 7;
+scatStr.minX   = 0;
+scatStr.maxX   = 70;
+scatStr.minY   = min(scatStr.y) - 10;
+scatStr.maxY   = max(scatStr.y) + 10;
+scatStr.winPos = [0.50 0.69];
+
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
+end
+
+function addressQuestE1(dirs, StatTableJND, StatTableSomMN)
+% qE1: Relationship between Response to Laryngeal Displacement and Auditory
+% Acuity
 
 % Currently Expecting Fewer 'Observations' from SomMN
 I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
@@ -127,11 +291,11 @@ scatStr.x      = JNDScore;
 scatStr.y      = respPer_SomMN;
 scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'RespPer (%)';
-scatStr.title  = 'Relationship between Response to Laryngeal Displacement and and Auditory Acuity';
+scatStr.title  = 'Relationship between Response to Laryngeal Displacement and Auditory Acuity';
 scatStr.sent   = q3Sentence;
 scatStr.color  = 'k';
 scatStr.Table  = T;
-scatStr.qNum   = 3;
+scatStr.qNum   = 11;
 scatStr.minX   = 0;
 scatStr.maxX   = 70;
 scatStr.minY   = min(scatStr.y) - 10;
@@ -142,92 +306,7 @@ scatStr.winPos = [0.52 0.23];
 drawScatterCorr(dirs, scatStr)
 end
 
-function addressQuest4(dirs, StatTableJND, StatTableAud)
-
-respPer_Aud = StatTableAud.RespPer;
-JNDScore    = StatTableJND.JNDScoreMean;
-f0          = cell2mat(StatTableJND.f0);
-
-% Perform the correlation
-q4AllResponse = [JNDScore respPer_Aud];
-[corrR, corrP] = corrcoef(q4AllResponse);
-q4Sentence = sprintf('Weak negative correlation between RespPer and JND (n = %d)', length(JNDScore));
-
-% Perform the correltion controlling for f0
-[corrR2, corrP2] = partialcorr(q4AllResponse, f0);
-
-columnNames = {'rho'; 'p_Value'};
-rowNames = {'Corr'; 'Partial Corr (f0)'};
-allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
-allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
-T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
-
-% Organize the output
-scatStr.x      = JNDScore;
-scatStr.y      = respPer_Aud;
-scatStr.xLabel = 'JND Score (cents)';
-scatStr.yLabel = 'RespPer (%)';
-scatStr.title  = 'Relationship between Response to Auditory Pitch-Shift and and Auditory Acuity';
-scatStr.sent   = q4Sentence;
-scatStr.color  = 'k';
-scatStr.Table  = T;
-scatStr.qNum   = 4;
-scatStr.minX   = 0;
-scatStr.maxX   = 70;
-scatStr.minY   = min(scatStr.y) - 10;
-scatStr.maxY   = max(scatStr.y) + 10;
-scatStr.winPos = [0.50 0.69];
-
-% Draw the scatter plot
-drawScatterCorr(dirs, scatStr)
-end
-
-function addressQuest5(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
-% Currently Expecting Fewer 'Observations' from SomVF and SomMN
-I = ismember(StatTableJND.SubjID, StatTableSomVF.SubjID) == 0;
-StatTableJNDLs = StatTableJND;
-StatTableJNDLs(I,:) = [];
-
-respPer_SomVF = StatTableSomVF.RespPer;
-respPer_SomMN = StatTableSomMN.RespPer;
-respPer_Diff  = respPer_SomMN - respPer_SomVF;
-JNDScore      = StatTableJNDLs.JNDScoreMean;
-f0            = cell2mat(StatTableJNDLs.f0);
-
-q5AllResponse  = [JNDScore respPer_Diff];
-[corrR, corrP] = corrcoef(q5AllResponse);
-q5Sentence = sprintf('Weak positive correlation between RespPer Diff and JND, (n = %d)', length(respPer_Diff));
-
-% Perform the correltion controlling for f0
-[corrR2, corrP2] = partialcorr(q5AllResponse, f0);
-
-columnNames = {'rho'; 'p_Value'};
-rowNames = {'Corr'; 'Partial Corr (f0)'};
-allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
-allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
-T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
-
-% Organize the output
-scatStr.x      = JNDScore;
-scatStr.y      = respPer_Diff;
-scatStr.xLabel = 'JND Score (cents)';
-scatStr.yLabel = 'RespPer Diff(%) (M-NM)';
-scatStr.title  = sprintf('Relationship between Effect of Masking on Response to\nLaryngeal Displacement and Auditory Acuity');
-scatStr.sent   = q5Sentence;
-scatStr.color  = 'k';
-scatStr.Table  = T;
-scatStr.qNum   = 5;
-scatStr.minX   = 0;
-scatStr.maxX   = 70;
-scatStr.minY   = min(scatStr.y) - 10;
-scatStr.maxY   = max(scatStr.y) + 10;
-scatStr.winPos = [0.42 0.26];
-
-% Draw the scatter plot
-drawScatterCorr(dirs, scatStr)
-end
-
-function addressQuest6(dirs, StatTableJND, StatTableSomMN)
+function addressQuestE2(dirs, StatTableJND, StatTableSomMN)
 
 % Currently Expecting Fewer 'Observations' from SomMN
 I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
@@ -276,57 +355,6 @@ scatStr.winPos = [0.48 0.73];
 drawScatterCorr(dirs, scatStr)
 end
 
-function addressQuest7(dirs, StatTableAud, StatTableSomMN, StatTableJND)
-
-% Currently Expecting Fewer 'Observations' from SomMN
-I = ismember(StatTableAud.SubjID, StatTableSomMN.SubjID) == 0;
-StatTableAudLs = StatTableAud;
-StatTableAudLs(I,:) = [];
-StatTableJNDLs = StatTableJND;
-StatTableJNDLs(I,:) = [];
-
-% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
-% StatTableSomMN(I18,:) = [];
-% StatTableJNDLs(I18,:) = [];
-
-RespPer_SomMN = StatTableSomMN.RespPer;
-RespPer_Aud   = StatTableAudLs.RespPer;
-f0            = cell2mat(StatTableJNDLs.f0);
-
-% Perform the correlation
-q7AllResponse = [RespPer_Aud RespPer_SomMN];
-[corrR, corrP] = corrcoef(q7AllResponse);
-q7Sentence = sprintf('Weak positive correlation between Som RespPer and Aud RespPer (n = %d)', length(RespPer_Aud));
-
-% Perform the correltion controlling for f0
-[corrR2, corrP2] = partialcorr(q7AllResponse, f0);
-
-columnNames = {'rho'; 'p_Value'};
-rowNames = {'Corr'; 'Partial Corr (f0)'};
-allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
-allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
-T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
-
-% Organize the output
-scatStr.x      = RespPer_Aud;
-scatStr.y      = RespPer_SomMN;
-scatStr.xLabel = 'Aud RespPer (%)';
-scatStr.yLabel = 'SomMN RespPer (%)';
-scatStr.title  = 'Relationship between Responses to Somatosensory and Auditory Perts';
-scatStr.sent   = q7Sentence;
-scatStr.color  = 'k';
-scatStr.Table  = T;
-scatStr.qNum   = 7;
-scatStr.minX   = min(scatStr.x) - 10;
-scatStr.maxX   = max(scatStr.x) + 10;
-scatStr.minY   = min(scatStr.y) - 10;
-scatStr.maxY   = max(scatStr.y) + 10;
-scatStr.winPos = [0.38 0.23];
-
-% Draw the scatter plot
-drawScatterCorr(dirs, scatStr)
-end
-
 function drawScatterCorr(dirs, scatStr)
 % drawScatterCorr(dirs, respPer_Aud, JNDScore, sentence) draws a
 % scatterplot revealing the relationship between two independent variables.
@@ -340,7 +368,7 @@ set(scatFig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
 fontN = 'Arial';
 axisLSize = 14;
 
-plot(scatStr.x, scatStr.y, 'o', 'MarkerSize', 10, 'Color', scatStr.color)
+plot(scatStr.x, scatStr.y, 'o', 'MarkerSize', 10, 'Color', scatStr.color, 'MarkerFaceColor', scatStr.color)
 xlabel(scatStr.xLabel)
 ylabel(scatStr.yLabel)
 title(scatStr.title)
@@ -365,7 +393,7 @@ set(gca,'FontName', fontN,...
 %            'FontWeight','bold',...
 %            'EdgeColor', 'none',...
 %            'Color', scatStr.color)
-       
+%        
 % ScatT = uitable('Data', scatStr.Table{:,:},'ColumnName',scatStr.Table.Properties.VariableNames,...
 %         'RowName',scatStr.Table.Properties.RowNames, 'Units', 'Normalized', 'Position',[tableX, tableY, tableW, tableH],...
 %         'FontWeight', 'Bold');
