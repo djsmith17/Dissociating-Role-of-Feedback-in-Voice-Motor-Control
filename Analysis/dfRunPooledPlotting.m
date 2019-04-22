@@ -10,7 +10,7 @@ function dfRunPooledPlotting()
 
 close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.analyses = 'DRF_Aud';
+PolPlt.analyses = 'DRF_Som';
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses);       % Analyzed Results Folder
@@ -19,9 +19,9 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
 PolPlt.MaskVVoice        = 0;
-PolPlt.AllSubjMaskvVoice = 0;
+PolPlt.AllSubjMaskvVoice = 1;
 PolPlt.MicVHead          = 0;
-PolPlt.AllSubjMicVHead   = 1;
+PolPlt.AllSubjMicVHead   = 0;
 
 fStat    = 0;
 fPres    = 0;
@@ -29,7 +29,7 @@ fPres    = 0;
 ppi        = 300;
 scRes      = [2560 1440];
 scDim      = [18.625 11.75];
-targFigDim = [15 4];
+targFigDim = [15 4]; % [8 4]
 
 targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim);
 
