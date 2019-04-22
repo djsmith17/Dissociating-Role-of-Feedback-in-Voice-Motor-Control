@@ -61,11 +61,11 @@ addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
 % Question 7 %%%
 addressQuest7(dirs, StatTableJND, StatTableAud)
 
-% % Question E1 %%%
-% addressQuestE1(dirs, StatTableJND, StatTableSomMN)
-% 
-% % Question E2 %%%
-% addressQuestE2(dirs, StatTableJND, StatTableSomMN)
+% Question E1 %%%
+addressQuestE1(dirs, StatTableJND, StatTableSomMN)
+
+% Question E2 %%%
+addressQuestE2(dirs, StatTableJND, StatTableSomMN)
 end
 
 function addressQuest4(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
@@ -273,12 +273,12 @@ JNDScore      = StatTableJNDLs.JNDScoreMean;
 f0            = cell2mat(StatTableJNDLs.f0);
 
 % Perform the correlation
-q3AllResponse = [JNDScore respPer_SomMN];
-[corrR, corrP] = corrcoef(q3AllResponse);
-q3Sentence = sprintf('Weak positive correlation between RespPer and JND (n = %d)', length(JNDScore));
+qE1AllResponse = [JNDScore respPer_SomMN];
+[corrR, corrP] = corrcoef(qE1AllResponse);
+qE1Sentence = sprintf('Weak positive correlation between RespPer and JND (n = %d)', length(JNDScore));
 
 % Perform the correltion controlling for f0
-[corrR2, corrP2] = partialcorr(q3AllResponse, f0);
+[corrR2, corrP2] = partialcorr(qE1AllResponse, f0);
 
 columnNames = {'rho'; 'p_Value'};
 rowNames = {'Corr'; 'Partial Corr (f0)'};
@@ -292,7 +292,7 @@ scatStr.y      = respPer_SomMN;
 scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'RespPer (%)';
 scatStr.title  = 'Relationship between Response to Laryngeal Displacement and Auditory Acuity';
-scatStr.sent   = q3Sentence;
+scatStr.sent   = qE1Sentence;
 scatStr.color  = 'k';
 scatStr.Table  = T;
 scatStr.qNum   = 11;
@@ -322,12 +322,12 @@ JNDScore      = StatTableJNDLs.JNDScoreMean;
 f0            = cell2mat(StatTableJNDLs.f0);
 
 % Perform the correlation
-q6AllResponse = [JNDScore stimMag_SomMN];
-[corrR, corrP] = corrcoef(q6AllResponse);
-q6Sentence = sprintf('Weak positive correlation between StimMag and JND (n = %d)', length(JNDScore));
+qE2AllResponse = [JNDScore stimMag_SomMN];
+[corrR, corrP] = corrcoef(qE2AllResponse);
+qE2Sentence = sprintf('Weak positive correlation between StimMag and JND (n = %d)', length(JNDScore));
 
 % Perform the correltion controlling for f0
-[corrR2, corrP2] = partialcorr(q6AllResponse, f0);
+[corrR2, corrP2] = partialcorr(qE2AllResponse, f0);
 
 columnNames = {'rho'; 'p_Value'};
 rowNames = {'Corr'; 'Partial Corr (f0)'};
@@ -341,10 +341,10 @@ scatStr.y      = stimMag_SomMN;
 scatStr.xLabel = 'JND Score (cents)';
 scatStr.yLabel = 'StimMag (cents)';
 scatStr.title  = 'Relationship between Magnitude of Laryngeal Perturbation and Auditory Acuity';
-scatStr.sent   = q6Sentence;
+scatStr.sent   = qE2Sentence;
 scatStr.color  = 'k';
 scatStr.Table  = T;
-scatStr.qNum   = 6;
+scatStr.qNum   = 22;
 scatStr.minX   = 0;
 scatStr.maxX   = 70;
 scatStr.minY   = min(scatStr.y) - 10;
