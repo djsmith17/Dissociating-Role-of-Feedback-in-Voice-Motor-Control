@@ -34,23 +34,8 @@ somMN = strcmp(StatTableSom.AudFB, 'Masking Noise');
 StatTableSomVF = StatTableSom(somVF, :);
 StatTableSomMN = StatTableSom(somMN, :);
 
-% Question 2 %%%
-% Currently Expecting Fewer 'Observations' from SomVF and SomMN
-I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
-StatTableAudLs = StatTableAud;
-StatTableAudLs(I,:) = [];
-respPer_SomVF = StatTableSomVF.RespPer;
-respPer_SomMN = StatTableSomMN.RespPer;
-respPer_AudLs = StatTableAudLs.RespPer;
-
-% Ascending Order Compared against SomVF
-[~, I] = sort(respPer_SomVF);
-respPer_SomVF = respPer_SomVF(I);
-respPer_SomMN = respPer_SomMN(I);
-respPer_AudLs = respPer_AudLs(I);
-
-% Draw the progression
-addressQuest4(dirs, respPer_SomVF, respPer_SomMN, respPer_AudLs)
+% Question 4 %%%
+addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
 addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
@@ -68,9 +53,26 @@ addressQuestE1(dirs, StatTableJND, StatTableSomMN)
 addressQuestE2(dirs, StatTableJND, StatTableSomMN)
 end
 
-function addressQuest4(dirs, respPer_SomVF, respPer_SomMN, respPer_Aud)
+function addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 % q4: Do participants show similar compensatory respones when only Auditory
 % feedback is perturbed? 
+
+% Question 4 %%%
+% Currently Expecting Fewer 'Observations' from SomVF and SomMN
+I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
+StatTableAudLs = StatTableAud;
+StatTableAudLs(I,:) = [];
+
+respPer_SomVF = StatTableSomVF.RespPer;
+respPer_SomMN = StatTableSomMN.RespPer;
+respPer_AudLs = StatTableAudLs.RespPer;
+
+% Ascending Order Compared against SomVF
+[~, I] = sort(respPer_SomVF);
+respPer_SomVF = respPer_SomVF(I);
+respPer_SomMN = respPer_SomMN(I);
+respPer_AudLs = respPer_AudLs(I);
+
 plotpos = [10 100];
 plotdim = [1200 500];
 q2Fig = figure('Color', [1 1 1]);
@@ -83,7 +85,7 @@ color3 = [44 162 95]/255;
 
 plot(respPer_SomVF, 'bo-', 'MarkerFaceColor', 'b'); hold on
 plot(respPer_SomMN, 'ro-', 'MarkerFaceColor', 'r'); 
-plot(respPer_Aud, 'o-', 'Color', color3, 'MarkerFaceColor', color3);
+plot(respPer_AudLs, 'o-', 'Color', color3, 'MarkerFaceColor', color3);
 xlabel('Participant')
 ylabel('RespPer (%)')
 title('Comparison of Response Percentage between Experimental Conditions')
@@ -99,8 +101,8 @@ legend({'Somato Feedback Pert (No Masking Noise)', 'Somato Feedback Pert (Maskin
         'FontSize', 12,...
         'FontWeight', 'bold')
 
-dirs.quest2FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
-export_fig(dirs.quest2FigFile)
+dirs.quest4FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
+export_fig(dirs.quest4FigFile)
 end
 
 function addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
