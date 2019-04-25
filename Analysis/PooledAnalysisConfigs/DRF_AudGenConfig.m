@@ -41,6 +41,7 @@ pooledRuns  = {'AF1', 'AF2'};
            
 % Conditions to test against
 testingConditions = {'Voice Shifted'};
+pubConditions     = {''};
 
 % The Recording Variable to check for the condition
 condVar = 'curRes.AudFB'; 
@@ -55,6 +56,7 @@ cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 cF.condVar      = condVar;
 cF.testExt      = testExt;
+cF.pubCond      = pubConditions;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)
