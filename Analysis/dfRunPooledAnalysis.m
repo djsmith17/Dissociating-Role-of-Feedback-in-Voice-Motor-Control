@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -129,10 +129,12 @@ allSubjRes.pltName  = pA.pltNameMVm;
 allSubjRes.statTable = packStatTable(allSubjRes);
  
 % Organize and Print the Stats of the Demographics included in this study
-organizeAndPrintDemographicStats(dirs, allSubjRes);
+% organizeAndPrintDemographicStats(dirs, allSubjRes);
 
 % Organize and Save the Table of Excluded Trials
-organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
+% organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
+
+organizePooledResultsForFrank(dirs, allSubjRes)
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
@@ -146,7 +148,7 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
-    StatsOrg_DRF_Aud(dirs, pA, allSubjRes); 
+%     StatsOrg_DRF_Aud(dirs, pA, allSubjRes); 
 end
 end
 
