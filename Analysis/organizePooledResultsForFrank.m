@@ -9,6 +9,7 @@ onsets        = pertResponses(:, :, 1);
 offsets       = pertResponses(:, :, 2);
 
 % recreate the stimulus
+tStep = '5ms';
 t0  = 0;
 tRD = 0.110; % 110ms down
 tRU = 0.150; % 150ms up
@@ -37,8 +38,8 @@ stimOffset = stimOffset -1;
 onsetSet  = [stimOnset, onsets];
 offsetSet = [stimOffset, offsets];
 
-dirs.alignedMicResponsesFile_Onset  = fullfile(dirs.SavResultsDir, 'Pitch-Shift Reflex Aligned Mic Recordings_Onset.csv');
-dirs.alignedMicResponsesFile_Offset = fullfile(dirs.SavResultsDir, 'Pitch-Shift Reflex Aligned Mic Recordings_Offset.csv');
+dirs.alignedMicResponsesFile_Onset  = fullfile(dirs.SavResultsDir, ['Pitch-Shift Reflex Aligned Mic Recordings_Onset' tStep '.csv']);
+dirs.alignedMicResponsesFile_Offset = fullfile(dirs.SavResultsDir, ['Pitch-Shift Reflex Aligned Mic Recordings_Offset' tStep '.csv']);
 csvwrite(dirs.alignedMicResponsesFile_Onset, onsetSet);
 csvwrite(dirs.alignedMicResponsesFile_Offset, offsetSet);
 end

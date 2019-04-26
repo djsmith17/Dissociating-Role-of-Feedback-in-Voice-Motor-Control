@@ -132,9 +132,9 @@ allSubjRes.statTable = packStatTable(allSubjRes);
 % organizeAndPrintDemographicStats(dirs, allSubjRes);
 
 % Organize and Save the Table of Excluded Trials
-% organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
+organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
 
-organizePooledResultsForFrank(dirs, allSubjRes)
+% organizePooledResultsForFrank(dirs, allSubjRes)
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
