@@ -81,8 +81,8 @@ for ii = 1:recLen
         f0_str{ii} = 'NaN';
     end
 end
-time = str2double(time_str);
-f0   = str2double(f0_str);
+time = round(str2double(time_str), 3);
+f0   = round(str2double(f0_str), 3);
 
 meanf0 = mean(f0);
 end
