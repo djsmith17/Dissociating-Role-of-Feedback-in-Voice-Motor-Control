@@ -46,7 +46,7 @@ for ii = 1:numTrial
                         curTrial, ...
                         numTrial ...
                         );
-    tic
+
     [s, r] = dos(call2);
     if s ~= 0
         dos([p_fn ' &']);
@@ -56,10 +56,9 @@ for ii = 1:numTrial
             error('ERROR: something went wrong')
         end
     end
-    fprintf('Trial %d took %.2f s\n', ii, toc)
 
     praatResult = fopen(txtFileLoc);
-    praatScan   = textscan(praatResult, '%s %s');
+    praatScan   = textscan(praatResult, '%f %s');
     fclose(praatResult);
     delete(wavFileLoc);
     delete(txtFileLoc);
@@ -71,7 +70,7 @@ end
 
 function [time, f0, meanf0] = PraatPostProcessing(praatScan)
 %Expects the table is 2 columns, and the f0 values are in column 2
-time_str   = praatScan{1,1};
+time   = praatScan{1,1};
 f0_str = praatScan{1,2};
 recLen = length(f0_str);
 
@@ -81,7 +80,6 @@ for ii = 1:recLen
         f0_str{ii} = 'NaN';
     end
 end
-time = str2double(time_str);
 f0   = str2double(f0_str);
 
 meanf0 = mean(f0);
