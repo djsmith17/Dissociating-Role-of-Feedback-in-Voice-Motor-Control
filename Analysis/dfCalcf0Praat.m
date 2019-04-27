@@ -46,7 +46,6 @@ for ii = 1:numTrial
                         curTrial, ...
                         numTrial ...
                         );
-    tic
     [s, r] = dos(call2);
     if s ~= 0
         dos([p_fn ' &']);
@@ -56,7 +55,6 @@ for ii = 1:numTrial
             error('ERROR: something went wrong')
         end
     end
-    fprintf('Trial %d took %.2f s\n', ii, toc)
 
     praatResult = fopen(txtFileLoc);
     praatScan   = textscan(praatResult, '%s %s');
