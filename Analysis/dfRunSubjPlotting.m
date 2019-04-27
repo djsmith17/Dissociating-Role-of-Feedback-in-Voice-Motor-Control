@@ -13,7 +13,7 @@ close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 sPlt.participants  = {'DRF1'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'SF1', 'SF2', 'SF3', 'SF4'}; %All runs to consider 
+sPlt.runs          = {'AF1', 'AF2'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 ext                = '';
@@ -25,7 +25,7 @@ sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 
 sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawPertMicResponse     = 0; % All Perturbed Trials Microphone input
-sPlt.drawMicHeadResponse     = 0; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawMicHeadResponse     = 1; % Mean Perturbed Trials. Microphone vs Headphones
 
 presFlag = 1;
  
@@ -33,7 +33,7 @@ for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run ext 'ResultsDRF.mat']); %The Analyzed Results File
+        dirs.SavResultsFile = fullfile(dirs.Results, participant, run, [participant run ext 'ResultsDRF.mat']); %The Analyzed Results File
         
         dirs.PlotResultsDir = fullfile(dirs.Results, participant, run); % Analyzed Results Folder...Where Plots will go
         

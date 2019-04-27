@@ -9,7 +9,7 @@ onsets        = pertResponses(:, :, 1);
 offsets       = pertResponses(:, :, 2);
 
 % recreate the stimulus
-tStep = '5ms';
+tStep = '1ms';
 t0  = 0;
 tRD = 0.110; % 110ms down
 tRU = 0.150; % 150ms up

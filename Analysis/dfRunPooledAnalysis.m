@@ -55,7 +55,7 @@ for ii = 1:pA.numPart
     subjRes  = [];
     for jj = 1:pA.numRuns
         run              = pA.runs{jj};
-        dirs.SavFileDir  = fullfile(dirs.Results, participant, run);                      % Where results are saved
+        dirs.SavFileDir  = fullfile(dirs.Results, 'Frank1ms', participant, run);                      % Where results are saved
         dirs.SavFile     = fullfile(dirs.SavFileDir, [participant run 'ResultsDRF.mat']); % Run Results file to load
 
         if exist(dirs.SavFile, 'file') == 0
@@ -134,7 +134,7 @@ allSubjRes.statTable = packStatTable(allSubjRes);
 % Organize and Save the Table of Excluded Trials
 organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
 
-% organizePooledResultsForFrank(dirs, allSubjRes)
+organizePooledResultsForFrank(dirs, allSubjRes)
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
