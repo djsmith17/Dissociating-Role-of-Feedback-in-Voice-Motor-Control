@@ -146,8 +146,8 @@ if AudFlag == 1
     An.contf0Idx     = An.trialTypef0Sv == 0;
     An.pertf0Idx     = An.trialTypef0Sv == 1;
     
-    An.audioMf0sv      = An.audioMf0S(:, An.subSvIdx);
-    An.audioHf0sv      = An.audioHf0S(:, An.subSvIdx); 
+    An.audioMf0sv      = An.audioMf0_norm(:, An.subSvIdx);
+    An.audioHf0sv      = An.audioHf0_norm(:, An.subSvIdx); 
     An.numTrialsPP     = length(An.subSvIdx);
     An.numPertTrialsPP = sum(An.pertf0Idx);
     An.numContTrialsPP = sum(An.contf0Idx);
@@ -354,7 +354,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 50);   % 10 sample length smoothing
+    audioSmooth = smooth(audio(:,ii), 10);   % 10 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end

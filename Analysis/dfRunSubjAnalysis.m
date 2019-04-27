@@ -64,7 +64,7 @@ for i = 1:AVar.numPart
         
         % Define where to load raw data and save analyzed results
         dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);  % Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, 'Frank1ms', participant, run);                                % Where to save results
+        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                % Where to save results
         
         % Make sure there is a place to save results
         if exist(dirs.SavResultsDir, 'dir') == 0

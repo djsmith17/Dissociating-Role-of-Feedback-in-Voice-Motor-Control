@@ -9,7 +9,7 @@ txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
 
 pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
 
-tStep = 0.001; % seconds (how to sample the time-series f0 trace)
+tStep = 0.005; % seconds (how to sample the time-series f0 trace)
 fsA   = 1/tStep;
 
 lwPitchBnd = f0Bounds(1);
