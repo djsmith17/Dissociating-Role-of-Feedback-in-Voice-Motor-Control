@@ -64,7 +64,7 @@ for i = 1:AVar.numPart
         
         % Define where to load raw data and save analyzed results
         dirs.SavFileDir    = fullfile(dirs.LoadData, participant, run, [participant run 'DRF.mat']);  % Where to find data
-        dirs.SavResultsDir = fullfile(dirs.Results, participant, run);                                % Where to save results
+        dirs.SavResultsDir = fullfile(dirs.Results, 'Frank5ms', participant, run);                                % Where to save results
         
         % Make sure there is a place to save results
         if exist(dirs.SavResultsDir, 'dir') == 0
@@ -77,6 +77,7 @@ for i = 1:AVar.numPart
             fprintf('ERROR: Could not find saved data set at %s\n', dirs.SavFileDir)
             return
         else
+            tic
             fprintf('Loading saved data set for %s %s\n', participant, run)
             load(dirs.SavFileDir) % Returns DRF
         end
@@ -100,6 +101,7 @@ for i = 1:AVar.numPart
             % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')
+            fprintf('Time Elapsed: %0.2f s\n', toc)
         end
     end
 end
