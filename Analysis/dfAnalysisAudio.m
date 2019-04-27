@@ -146,8 +146,8 @@ if AudFlag == 1
     An.contf0Idx     = An.trialTypef0Sv == 0;
     An.pertf0Idx     = An.trialTypef0Sv == 1;
     
-    An.audioMf0sv      = An.audioMf0_norm(:, An.subSvIdx);
-    An.audioHf0sv      = An.audioHf0_norm(:, An.subSvIdx); 
+    An.audioMf0sv      = An.audioMf0S(:, An.subSvIdx);
+    An.audioHf0sv      = An.audioHf0S(:, An.subSvIdx); 
     An.numTrialsPP     = length(An.subSvIdx);
     An.numPertTrialsPP = sum(An.pertf0Idx);
     An.numContTrialsPP = sum(An.contf0Idx);
