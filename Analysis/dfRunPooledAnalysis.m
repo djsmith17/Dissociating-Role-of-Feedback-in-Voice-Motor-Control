@@ -148,7 +148,8 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
-    StatsOrg_DRF_Aud(dirs, pA, allSubjRes); 
+    drawSubjRespVarDists(dirs, pooledRunStr)
+%     StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
 end
 end
 
@@ -410,7 +411,7 @@ for wC = 1:pA.numCond
         audioDynamicsAllTraces = PitchShiftReflexResponseSingle(polRes.secTime, polRes.audioMf0SecPert{wC});
         audioDynamicsMeanTrace = PitchShiftReflexResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
     end
-    polRes.respVarSingle{wC} = audioDynamicsAllTraces.respVar;
+    polRes.respVarSingle{wC} = audioDynamicsAllTraces;
     polRes.respVarM{wC} = audioDynamicsMeanTrace.respVarM;
 end
 
@@ -712,9 +713,12 @@ for ii = 1:numTrial
     audioDynamics_Audio.respPer = cat(1, audioDynamics_Audio.respPer, ir.respPer);
 end
 
-% Add to the audioDynamics struct
-respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
-audioDynamics_Audio.respVarM = respVarM;
+audioDynamics_Audio.stimMagM  = mean(audioDynamics_Audio.stimMag);
+audioDynamics_Audio.stimMagSD = std(audioDynamics_Audio.stimMag);
+audioDynamics_Audio.respMagM  = mean(audioDynamics_Audio.respMag);
+audioDynamics_Audio.respMagSD = std(audioDynamics_Audio.respMag);
+audioDynamics_Audio.respPerM  = mean(audioDynamics_Audio.respPer);
+audioDynamics_Audio.respPerSD = std(audioDynamics_Audio.respPer);
 end
 
 function lims = identifyLimits(ss)
