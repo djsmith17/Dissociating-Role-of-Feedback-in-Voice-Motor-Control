@@ -23,11 +23,10 @@ dirs.JNDResultsFile = fullfile(dirs.JNDResultsDir, 'DRF_JNDResultsDRF.mat');
 
 load(dirs.SomResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
 StatTableSom = allSubjRes.statTable;
-ITSomVF = allSubjRes.respVarSingle{1,1};
-ITSomMN = allSubjRes.respVarSingle{2,1};
+StatTableSomSingle = allSubjRes.statTableSingle;
 load(dirs.AudResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
 StatTableAud = allSubjRes.statTable;
-ITAud = allSubjRes.respVarSingle{1,1};
+StatTableAudSingle = allSubjRes.statTableSingle;
 load(dirs.JNDResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
 StatTableJND = allSubjRes.statTable;
 
@@ -37,9 +36,12 @@ somMN = strcmp(StatTableSom.AudFB, 'Masking Noise');
 StatTableSomVF = StatTableSom(somVF, :);
 StatTableSomMN = StatTableSom(somMN, :);
 
+StatTableSinSomVF = StatTableSomSingle(somVF, :);
+StatTableSinSomMN = StatTableSomSingle(somMN, :);
+
 % Question 4 %%%
-% addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
-addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud, ITSomVF, ITSomMN, ITAud)
+addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
+% addressQuest4(dirs, StatTableSinSomVF, StatTableSinSomMN, StatTableAudSingle)
 
 % Question 5 %%%
 addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
@@ -109,7 +111,7 @@ dirs.quest4FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
 export_fig(dirs.quest4FigFile)
 end
 
-function addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud, ITSomVF, ITSomMN, ITAud)
+function addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 % q4: Do participants show similar compensatory respones when only Auditory
 % feedback is perturbed? 
 
@@ -119,9 +121,13 @@ I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
 StatTableAudLs = StatTableAud;
 StatTableAudLs(I,:) = [];
 
-respPer_SomVF = round(ITSomVF.respPer, 2);
-respPer_SomMN = round(ITSomMN.respPer, 2);
-respPer_AudLs = round(ITAud.respPer(~I), 2);
+respPer_SomVF = StatTableSomVF.RespPer;
+respPer_SomMN = StatTableSomMN.RespPer;
+respPer_AudLs = StatTableAudLs.RespPer;
+
+respPerSD_SomVF = StatTableSomVF.RespPerSD;
+respPerSD_SomMN = StatTableSomMN.RespPerSD;
+respPerSD_AudLs = StatTableAudLS.RespPerSD;
 
 % Ascending Order Compared against SomVF
 [~, I] = sort(respPer_SomVF);

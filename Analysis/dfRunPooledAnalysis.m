@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -126,8 +126,9 @@ allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName  = pA.pltNameMVm;
 
-allSubjRes.statTable = packStatTable(allSubjRes);
- 
+allSubjRes.statTable       = packStatTable(allSubjRes);
+allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
+
 % Organize and Print the Stats of the Demographics included in this study
 organizeAndPrintDemographicStats(dirs, allSubjRes);
 
@@ -637,14 +638,14 @@ for ii = 1:numTrial
     audioDynamics_Somato.respPer = cat(1, audioDynamics_Somato.respPer, ir.respPer);
 end
 
-audioDynamics_Somato.tAtMinM   = mean(audioDynamics_Somato.tAtMin);
-audioDynamics_Somato.tAtMinSD  = std(audioDynamics_Somato.tAtMin);
-audioDynamics_Somato.stimMagM  = mean(audioDynamics_Somato.stimMag);
-audioDynamics_Somato.stimMagSD = std(audioDynamics_Somato.stimMag);
-audioDynamics_Somato.respMagM  = mean(audioDynamics_Somato.respMag);
-audioDynamics_Somato.respMagSD = std(audioDynamics_Somato.respMag);
-audioDynamics_Somato.respPerM  = mean(audioDynamics_Somato.respPer);
-audioDynamics_Somato.respPerSD = std(audioDynamics_Somato.respPer);
+audioDynamics_Somato.tAtMinM   = round(mean(audioDynamics_Somato.tAtMin),3);
+audioDynamics_Somato.tAtMinSD  = round(std(audioDynamics_Somato.tAtMin),3);
+audioDynamics_Somato.stimMagM  = round(mean(audioDynamics_Somato.stimMag),2);
+audioDynamics_Somato.stimMagSD = round(std(audioDynamics_Somato.stimMag),2);
+audioDynamics_Somato.respMagM  = round(mean(audioDynamics_Somato.respMag),2);
+audioDynamics_Somato.respMagSD = round(std(audioDynamics_Somato.respMag),2);
+audioDynamics_Somato.respPerM  = round(mean(audioDynamics_Somato.respPer),2);
+audioDynamics_Somato.respPerSD = round(std(audioDynamics_Somato.respPer),2);
 end
 
 function ir = initInflationResponseStruct()
@@ -787,12 +788,12 @@ for ii = 1:numTrial
     audioDynamics_Audio.respPer = cat(1, audioDynamics_Audio.respPer, ir.respPer);
 end
 
-audioDynamics_Audio.stimMagM  = mean(audioDynamics_Audio.stimMag);
-audioDynamics_Audio.stimMagSD = std(audioDynamics_Audio.stimMag);
-audioDynamics_Audio.respMagM  = mean(audioDynamics_Audio.respMag);
-audioDynamics_Audio.respMagSD = std(audioDynamics_Audio.respMag);
-audioDynamics_Audio.respPerM  = mean(audioDynamics_Audio.respPer);
-audioDynamics_Audio.respPerSD = std(audioDynamics_Audio.respPer);
+audioDynamics_Audio.stimMagM  = round(mean(audioDynamics_Audio.stimMag),2);
+audioDynamics_Audio.stimMagSD = round(std(audioDynamics_Audio.stimMag),2);
+audioDynamics_Audio.respMagM  = round(mean(audioDynamics_Audio.respMag),2);
+audioDynamics_Audio.respMagSD = round(std(audioDynamics_Audio.respMag),2);
+audioDynamics_Audio.respPerM  = round(mean(audioDynamics_Audio.respPer),2);
+audioDynamics_Audio.respPerSD = round(std(audioDynamics_Audio.respPer),2);
 end
 
 function lims = identifyLimits(ss)
@@ -936,6 +937,42 @@ function statTable = packStatTable(ss)
 
 varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
 statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.f0, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
+end
+
+function statTable = packStatTableSingle(pooledRunStr)
+
+numSubj = length(pooledRunStr);
+ss.obvSubj = {};
+ss.obvAge  = {};
+ss.obvGender = {};
+ss.f0        = {};
+ss.obvAudFB  = {};
+ss.StimMag   = {};
+ss.StimMagSD = {};
+ss.RespMag   = {};
+ss.RespMagSD = {};
+ss.RespPer   = {};
+ss.RespPerSD = {};
+for ii = 1:numSubj
+    curRes = pooledRunStr(ii);
+    numRun = length(curRes.runs);
+    for jj = 1:numRun
+        ss.obvSubj   = cat(1, ss.obvSubj, curRes.studyID);
+        ss.obvAge    = cat(1, ss.obvAge, curRes.age);
+        ss.obvGender = cat(1, ss.obvGender, curRes.gender);
+        ss.f0        = cat(1, ss.f0, curRes.f0(jj));
+        ss.obvAudFB  = cat(1, ss.obvAudFB, curRes.AudFB{jj}{1});
+        ss.StimMag   = cat(1, ss.StimMag, curRes.respVarSingle{jj, 1}.stimMagM);
+        ss.StimMagSD = cat(1, ss.StimMagSD, curRes.respVarSingle{jj, 1}.stimMagSD);
+        ss.RespMag   = cat(1, ss.RespMag, curRes.respVarSingle{jj, 1}.respMagM);
+        ss.RespMagSD = cat(1, ss.RespMagSD, curRes.respVarSingle{jj, 1}.respMagSD);
+        ss.RespPer   = cat(1, ss.RespPer, curRes.respVarSingle{jj, 1}.respPerM);
+        ss.RespPerSD = cat(1, ss.RespPerSD, curRes.respVarSingle{jj, 1}.respPerSD);   
+    end
+end
+
+varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'StimMag', 'StimMagSD', 'RespMag', 'RespMagSD', 'RespPer', 'RespPerSD',};
+statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.f0, ss.obvAudFB, ss.StimMag, ss.StimMagSD, ss.RespMag, ss.RespMagSD, ss.RespPer, ss.RespPerSD,'VariableNames', varNames);
 end
 
 function organizeAndPrintDemographicStats(dirs, allSubjRes)
