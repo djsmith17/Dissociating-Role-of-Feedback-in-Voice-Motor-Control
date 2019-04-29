@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -943,16 +943,16 @@ function statTable = packStatTableSingle(pooledRunStr)
 
 numSubj = length(pooledRunStr);
 ss.obvSubj = {};
-ss.obvAge  = {};
+ss.obvAge  = [];
 ss.obvGender = {};
-ss.f0        = {};
+ss.f0        = [];
 ss.obvAudFB  = {};
-ss.StimMag   = {};
-ss.StimMagSD = {};
-ss.RespMag   = {};
-ss.RespMagSD = {};
-ss.RespPer   = {};
-ss.RespPerSD = {};
+ss.StimMag   = [];
+ss.StimMagSD = [];
+ss.RespMag   = [];
+ss.RespMagSD = [];
+ss.RespPer   = [];
+ss.RespPerSD = [];
 for ii = 1:numSubj
     curRes = pooledRunStr(ii);
     numRun = length(curRes.runs);

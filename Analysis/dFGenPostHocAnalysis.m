@@ -40,7 +40,7 @@ StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
 % Question 4 %%%
-addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
+addressQuest4old(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 % addressQuest4(dirs, StatTableSinSomVF, StatTableSinSomMN, StatTableAudSingle)
 
 % Question 5 %%%
@@ -127,7 +127,7 @@ respPer_AudLs = StatTableAudLs.RespPer;
 
 respPerSD_SomVF = StatTableSomVF.RespPerSD;
 respPerSD_SomMN = StatTableSomMN.RespPerSD;
-respPerSD_AudLs = StatTableAudLS.RespPerSD;
+respPerSD_AudLs = StatTableAudLs.RespPerSD;
 
 % Ascending Order Compared against SomVF
 [~, I] = sort(respPer_SomVF);
