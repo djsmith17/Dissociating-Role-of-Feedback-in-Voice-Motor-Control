@@ -40,23 +40,24 @@ StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
 % Question 4 %%%
-addressQuest4old(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
+% addressQuest4old(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 % addressQuest4(dirs, StatTableSinSomVF, StatTableSinSomMN, StatTableAudSingle)
+addressQuest4BoxPlot(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
-addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+% addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
 
 % Question 6 %%%
-addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+% addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
 
 % Question 7 %%%
-addressQuest7(dirs, StatTableJND, StatTableAud)
+% addressQuest7(dirs, StatTableJND, StatTableAud)
 
 % Question E1 %%%
-addressQuestE1(dirs, StatTableJND, StatTableSomMN)
+% addressQuestE1(dirs, StatTableJND, StatTableSomMN)
 
 % Question E2 %%%
-addressQuestE2(dirs, StatTableJND, StatTableSomMN)
+% addressQuestE2(dirs, StatTableJND, StatTableSomMN)
 end
 
 function addressQuest4old(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
@@ -133,9 +134,9 @@ axisLSize = 12;
 
 color3 = [44 162 95]/255;
 
-plot(respPer_SomVF, 'bo-', 'MarkerFaceColor', 'b'); hold on
-plot(respPer_SomMN, 'ro-', 'MarkerFaceColor', 'r'); 
-plot(respPer_AudLs, 'o-', 'Color', color3, 'MarkerFaceColor', color3);
+errorbar(respPer_SomVF, respPerSD_SomVF, 'bo', 'MarkerFaceColor', 'b'); hold on
+errorbar(respPer_SomMN, respPerSD_SomMN, 'ro', 'MarkerFaceColor', 'r'); 
+errorbar(respPer_AudLs, respPerSD_AudLs, 'o', 'Color', color3, 'MarkerFaceColor', color3);
 xlabel('Participant')
 ylabel('RespPer (%)')
 title('Comparison of Response Percentage between Experimental Conditions')
@@ -153,6 +154,53 @@ legend({'Somato Feedback Pert (No Masking Noise)', 'Somato Feedback Pert (Maskin
 
 dirs.quest4FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
 export_fig(dirs.quest4FigFile)
+end
+
+function addressQuest4BoxPlot(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
+% q4: Do participants show similar compensatory respones when only Auditory
+% feedback is perturbed? 
+
+% Question 4 %%%
+% Currently Expecting Fewer 'Observations' from SomVF and SomMN
+I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
+StatTableAudLs = StatTableAud;
+StatTableAudLs(I,:) = [];
+
+respPer_SomVF = StatTableSomVF.RespPer;
+respPer_SomMN = StatTableSomMN.RespPer;
+respPer_AudLs = StatTableAudLs.RespPer;
+
+respPerCol = [respPer_SomVF, respPer_SomMN, respPer_AudLs];
+varName    = {'SomPert Not Masked', 'SomPert Masked', 'AudPert'};
+
+varCmp = [1 2; 1 3; 2 3];
+varH   = [1.04, 1.12, 0.82];
+
+for ii = 1:3
+    isSig(ii).vars = varCmp(ii,:);
+    isSig(ii).h    = varH(ii);
+    
+    diffVar = respPerCol(:, varCmp(ii,1)) - respPerCol(:, varCmp(ii,2));
+    
+    % Apply Transformation
+    if ii == 1
+        [diffVarT, l] = boxcox(diffVar + 1 - min(diffVar));
+    else
+        diffVarT = diffVar;
+    end    
+    
+    [~, P] = ttest(diffVarT);
+    
+    if P < (0.05/3)
+        isSig(ii).res  = 1;
+    else
+        isSig(ii).res  = 0;
+    end
+    
+    isSig(ii).pVal = sprintf('%0.6f', P);
+end
+
+drawBoxPlot(dirs, respPerCol, varName, isSig)
 end
 
 function addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
@@ -452,4 +500,42 @@ set(gca,'FontName', fontN,...
 
 dirs.scatFigFile = fullfile(dirs.SavResultsDir, ['Question' num2str(scatStr.qNum) '.jpg']);
 export_fig(dirs.scatFigFile, '-nocrop')
+end
+
+function drawBoxPlot(dirs, respPerCol, varName, isSig)
+
+fontN = 'Arial';
+axisLSize = 15;
+
+measBox = figure('Color', [1 1 1]);
+plotpos = [30 0]; plotdim = [800 1000];
+set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+boxplot(respPerCol, 'Labels', varName)
+ylabel('RespPer (%)')
+title('Comparison of Response Percentage between Experimental Conditions')
+box off
+
+yt = get(gca, 'YTick');
+axis([xlim  0 ceil(max(yt)*1.2)])
+xt = get(gca, 'XTick');
+
+numComp = length(isSig);
+for ii = 1:numComp
+    cS = isSig(ii);
+    barR = xt(cS.vars);
+    barM = mean(barR);
+    if cS.res == 1
+        hold on
+        plot(barR, [1 1]*max(yt)*(cS.h+.01), '-k')
+        plot(barM, max(yt)*(cS.h+.02), '*k', 'MarkerSize', 10)
+    end
+    text(barM-0.35, max(yt)*(cS.h+.05), ['p = ' cS.pVal], 'FontSize',18)
+end
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
+
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, 'Question4BoxPlot.jpg');
+export_fig(dirs.BoxPlotFigureFile)
 end
