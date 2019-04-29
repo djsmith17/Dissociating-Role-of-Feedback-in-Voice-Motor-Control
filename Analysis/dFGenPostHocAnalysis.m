@@ -73,12 +73,6 @@ respPer_SomVF = StatTableSomVF.RespPer;
 respPer_SomMN = StatTableSomMN.RespPer;
 respPer_AudLs = StatTableAudLs.RespPer;
 
-% Ascending Order Compared against SomVF
-[~, I] = sort(respPer_SomVF);
-respPer_SomVF = respPer_SomVF(I);
-respPer_SomMN = respPer_SomMN(I);
-respPer_AudLs = respPer_AudLs(I);
-
 plotpos = [10 100];
 plotdim = [1200 500];
 q2Fig = figure('Color', [1 1 1]);
@@ -128,12 +122,6 @@ respPer_AudLs = StatTableAudLs.RespPer;
 respPerSD_SomVF = StatTableSomVF.RespPerSD;
 respPerSD_SomMN = StatTableSomMN.RespPerSD;
 respPerSD_AudLs = StatTableAudLs.RespPerSD;
-
-% Ascending Order Compared against SomVF
-[~, I] = sort(respPer_SomVF);
-respPer_SomVF = respPer_SomVF(I);
-respPer_SomMN = respPer_SomMN(I);
-respPer_AudLs = respPer_AudLs(I);
 
 plotpos = [10 100];
 plotdim = [1200 500];
