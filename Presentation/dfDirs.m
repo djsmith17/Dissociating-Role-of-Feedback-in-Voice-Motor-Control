@@ -60,7 +60,7 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
-    case 'CNS-WS5'
+    case '677-GUE-WD-0006'
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project);   % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments\', project);                   % Dir to open raw Data from
