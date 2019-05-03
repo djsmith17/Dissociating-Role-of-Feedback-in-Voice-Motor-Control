@@ -13,7 +13,7 @@ enA.monSize     = monitorSize(1, 3:4);
 
 dirs           = dfDirs(enA.project);
 
-dirs.parsedVideoDir  = fullfile(dirs.SavData, enA.participant, 'parsedVideo');
+dirs.parsedVideoDir  = fullfile(dirs.SavDataEndo, enA.participant, 'parsedVideo');
 dirs.parsedVideoFile = fullfile(dirs.parsedVideoDir, [enA.curSess '.avi']);
 dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run enA.ext 'ResultsDRF.mat']);
 

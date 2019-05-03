@@ -64,6 +64,7 @@ switch host
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project);   % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments\', project);                   % Dir to open raw Data from
+        dirs.SavDataEndo    = fullfile('S:\SteppLab2\SPEECHDATA\Voice', project);
         
         dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project); % The full code base
         dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
