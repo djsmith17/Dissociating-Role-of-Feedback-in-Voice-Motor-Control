@@ -206,6 +206,10 @@ res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicX
 % This can be the response to the auditory pert
 res.audioDynamics = auRes.audioDynamics;
 
+%Some Final Output time series data
+res.audioMinc = auRes.audioMinc;
+res.audioHinc = auRes.audioHinc;
+
 %NIAu Delay
 res.AuNiDelaysinc = auRes.AuNiDelaysinc;
 
