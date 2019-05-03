@@ -3,7 +3,7 @@ matlab.video.read.UseHardwareAcceleration('off')
 
 % close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-enA.participant = 'DRF_ENP3';    % List of multiple participants.
+enA.participant = 'DRF12';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
 enA.trial       = 2;

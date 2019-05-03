@@ -3,15 +3,15 @@ matlab.video.read.UseHardwareAcceleration('off')
 
 close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-enA.participant = 'DRF_ENP4';    % List of multiple participants.
+enA.participant = 'DRF12';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
 
 dirs           = dfDirs(enA.project);
 
-dirs.rawVideoFile = fullfile(dirs.SavData, enA.participant, 'rawVideo', [enA.participant ' rawVideo.avi']);  % Where to find data
-dirs.rawAudioFile = fullfile(dirs.SavData, enA.participant, 'rawVideo', [enA.participant ' rawAudio.wav']);  % Where to find data
-dirs.parsedVideoDir = fullfile(dirs.SavData, enA.participant, 'parsedVideo');
+dirs.rawVideoFile = fullfile(dirs.SavDataEndo, enA.participant, 'rawVideo', [enA.participant ' rawVideo.avi']);  % Where to find data
+dirs.rawAudioFile = fullfile(dirs.SavDataEndo, enA.participant, 'rawVideo', [enA.participant ' rawAudio.wav']);  % Where to find data
+dirs.parsedVideoDir = fullfile(dirs.SavDataEndo, enA.participant, 'parsedVideo');
 
 if ~exist(dirs.parsedVideoDir, 'dir')
     mkdir(dirs.parsedVideoDir)
