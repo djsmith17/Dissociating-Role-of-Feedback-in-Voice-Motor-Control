@@ -9,9 +9,11 @@ enA.ext         = 'All';
 
 dirs           = dfDirs(enA.project);
 
-dirs.rawVideoFile = fullfile(dirs.SavDataEndo, enA.participant, 'rawVideo', [enA.participant ' rawVideo.avi']);  % Where to find data
-dirs.rawAudioFile = fullfile(dirs.SavDataEndo, enA.participant, 'rawVideo', [enA.participant ' rawAudio.wav']);  % Where to find data
-dirs.parsedVideoDir = fullfile(dirs.SavDataEndo, enA.participant, 'parsedVideo');
+dirs.savDirEndo = fullfile(dirs.SavDataEndo, enA.participant);
+
+dirs.rawVideoFile = fullfile(dirs.savDirEndo, 'rawVideo', [enA.participant ' rawVideo.avi']);  % Where to find data
+dirs.rawAudioFile = fullfile(dirs.savDirEndo, 'rawVideo', [enA.participant ' rawAudio.wav']);  % Where to find data
+dirs.parsedVideoDir = fullfile(dirs.savDirEndo, 'parsedVideo');
 
 if ~exist(dirs.parsedVideoDir, 'dir')
     mkdir(dirs.parsedVideoDir)
@@ -79,7 +81,7 @@ for ii = 1:enA.numTrials
 end
 parseTrialT = table(enA.trialRecStTimes, enA.videoFrameSeg(:, 1), 'VariableNames',{'Time', 'Frame'});
 
-dirs.rawVideoParseNoteFile = fullfile(dirs.SavData, enA.participant, 'rawVideo', [enA.participant ' parseNotes.txt']);
+dirs.rawVideoParseNoteFile = fullfile(dirs.savDirEndo, 'rawVideo', [enA.participant ' parseNotes.txt']);
 writetable(parseTrialT, dirs.rawVideoParseNoteFile)
 % fullVid = rawVStr;
 % playRawVideo(enA, fullVid)
