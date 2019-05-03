@@ -16,7 +16,7 @@ function dfRunSubjAnalysisEndo()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF12'};    % List of multiple participants.
+AVar.participants  = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
 AVar.run           = 'SFL1';
 AVar.trials        = 10;
