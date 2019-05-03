@@ -16,17 +16,17 @@ function dfRunSubjAnalysisEndo()
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-AVar.participants  = {'DRF_ENP3'};    % List of multiple participants.
+AVar.participants  = {'DRF12'};    % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
 AVar.run           = 'SFL1';
 AVar.trials        = 10;
-AVar.baselineFile  = 'BV1';            % Baseline Voice information
+AVar.baselineFile  = 'BVEndo';            % Baseline Voice information
 AVar.debug         = 0;
 AVar.cond          = {'All'};
 AVar.numCond       = length(AVar.cond);
 
 dirs               = dfDirs(AVar.project);
-dirs.LoadData      = dirs.SavData;
+dirs.LoadData      = dirs.SavDataEndo;
 
 for i = 1:AVar.numPart
     participant = AVar.participants{i};
@@ -150,34 +150,19 @@ res.incTrialInfo        = auRes.incTrialInfo;
 res.allAuMHDelays       = auRes.allAuMHDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 res.allAuNiDelays       = auRes.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 
+%NIDAQ RESULTS Collection
 res.balloon         = niRes.balloon;
 res.numPertTrialsNi = niRes.numPertTrials;
 res.numContTrialsNi = niRes.numContTrials;
 res.pertIdxNi       = niRes.pertIdx;
 
 res.timeS           = niRes.timeS;
-res.sensorP         = niRes.sensorP;        % Individual Processed perturbed trials. 
-res.lagTimeP        = niRes.lagTimeP;
-res.lagTimePm       = niRes.lagTimePm;
-res.riseTimeP       = niRes.riseTimeP;
-res.riseTimePm      = niRes.riseTimePm;
-res.riseTimePSE     = niRes.riseTimePSE;
-res.OnOfValP        = niRes.OnOfValP;
-res.OnOfValPm       = niRes.OnOfValPm;
-res.OnOfValPSE      = niRes.OnOfValPSE;
-res.pTrialLossP     = niRes.pTrialLossP;
-res.pTrialLossPm    = niRes.pTrialLossPm; 
-res.pTrialLossPSE   = niRes.pTrialLossPSE;
-res.limitsP         = niRes.limitsP;
+res.sensorP         = niRes.sensorP; % Individual Processed perturbed trials. 
+res.presSD          = niRes.presSD;  % Sensor Dynamics Structure
+res.limitsP         = niRes.limitsP; % Limits for collection of individual trials
 
-% Sectioned and Aligned Pressure recordings 
-res.timeSAl       = niRes.timeSAl;
-res.sensorPAl     = niRes.sensorPAl;  
-res.limitsPAl     = niRes.limitsPAl;
-
-res.secTimeP    = niRes.secTimeP;
-res.sensorPSec  = niRes.sensorPSec;
-res.sensorPMean = niRes.sensorPMean;
+% Limits for Aligned and Meaned Pressure Recordings
+res.limitsPAl   = niRes.limitsPAl;
 res.limitsPMean = niRes.limitsPMean;
 
 % Audio f0 analysis
@@ -216,20 +201,21 @@ res.audioHf0MeanCont = auRes.audioHf0MeanCont;
 res.limitsAmean      = auRes.limitsAmean;
 res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicXHead
 
-%Inflation Response
-res.respVar      = auRes.respVar;
-res.respVarM     = auRes.respVarM;
-res.respVarSD    = auRes.respVarSD;
-res.InflaStimVar = auRes.InflaStimVar;
+% Dynamics of the Participant's Vocal Response
+% This can be the response to the laryngeal pert
+% This can be the response to the auditory pert
+res.audioDynamics = auRes.audioDynamics;
 
-%Some Final Output time series data
-res.audioMinc = auRes.audioMinc;
-res.audioHinc = auRes.audioHinc;
+%NIAu Delay
 res.AuNiDelaysinc = auRes.AuNiDelaysinc;
+
+%Result variables to be plotted after accounting for tossed trials
+res.sensorPsv    = res.sensorP;
+res.presSDsv     = res.presSD;
 
 %Check the Ni trials against the Au trials
 presInd = [];
-if res.numPertTrialsFin < res.numPertTrialsNi
+if res.numPertTrialsFin < res.numPertTrialsNi && strcmp(res.expType, 'Somatosensory Perturbation_Perceptual')
     setPertTrials = res.allIdxFin(res.pertIdxFin);
     for ii = 1:length(res.pertIdxNi)
 
@@ -239,17 +225,11 @@ if res.numPertTrialsFin < res.numPertTrialsNi
         end
     end
     
-    res.sensorPsv    = res.sensorP(:, presInd);
-    res.sensorPSecsv = res.sensorPSec(:, presInd, :);
-    res.lagTimePsv   = res.lagTimeP(presInd, :);
-    res.riseTimePsv  = res.riseTimeP(presInd);
-    res.OnOfValPsv   = res.OnOfValP(presInd, :);
-else
-    res.sensorPsv    = res.sensorP;
-    res.sensorPSecsv = res.sensorPSec;
-    res.lagTimePsv   = res.lagTimeP;
-    res.riseTimePsv  = res.riseTimeP;
-    res.OnOfValPsv   = res.OnOfValP;   
+    res.sensorPsv          = res.sensorPsv(:, presInd);
+    res.presSDsv.sensorSec = res.presSDsv.sensorSec(:, presInd, :);
+    res.presSDsv.lagTimes  = res.presSDsv.lagTimes(presInd, :);
+    res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd);
+    res.presSDsv.OnOffVal  = res.presSDsv.OnOffVal(presInd, :);
 end
 end
 
