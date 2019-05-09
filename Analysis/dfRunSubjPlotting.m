@@ -11,9 +11,9 @@ function dfRunSubjPlotting()
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'DRF1'}; %List of multiple participants.
+sPlt.participants  = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'AF1', 'AF2'}; %All runs to consider 
+sPlt.runs          = {'SFL1'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 ext                = '';
@@ -23,9 +23,9 @@ sv2File                      = 1;
 sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
 sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 
-sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
-sPlt.drawPertMicResponse     = 0; % All Perturbed Trials Microphone input
-sPlt.drawMicHeadResponse     = 1; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawDAQAlignedPressure  = 1; % Superimposed Pressure recordings from perturbed trials
+sPlt.drawPertMicResponse     = 1; % All Perturbed Trials Microphone input
+sPlt.drawMicHeadResponse     = 0; % Mean Perturbed Trials. Microphone vs Headphones
 
 presFlag = 1;
  
@@ -54,7 +54,7 @@ for ii = 1:sPlt.numPart
         end
         
         if sPlt.drawDAQAlignedPressure == 1
-            drawDAQAlignedPressure(res, dirs.PlotResultsDir, sv2File)
+            drawDAQAlignedPressure(res, dirs.PlotResultsDir, sv2File, 0)
         end
         
         if sPlt.drawPertMicResponse == 1
