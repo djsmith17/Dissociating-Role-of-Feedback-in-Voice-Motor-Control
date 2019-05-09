@@ -113,7 +113,7 @@ for i = 1:AVar.numPart
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
 
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run ext 'ResultsDRF.mat']);
+        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run 'ResultsDRF.mat']);
         if AVar.debug == 0
             % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
