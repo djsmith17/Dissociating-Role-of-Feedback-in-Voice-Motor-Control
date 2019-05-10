@@ -19,7 +19,7 @@ if ~exist(dirs.parsedVideoDir, 'dir')
     mkdir(dirs.parsedVideoDir)
 end
 
-dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run enA.ext 'ResultsDRF.mat']);
+dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run 'ResultsDRF.mat']);
 
 if isfile(dirs.rawVideoFile)
     disp('Loading...')
