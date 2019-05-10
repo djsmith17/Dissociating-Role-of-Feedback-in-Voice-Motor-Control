@@ -219,7 +219,7 @@ res.presSDsv     = res.presSD;
 
 %Check the Ni trials against the Au trials
 presInd = [];
-if res.numPertTrialsFin < res.numPertTrialsNi && strcmp(res.expType, 'Somatosensory Perturbation_Perceptual')
+if res.numPertTrialsFin < res.numPertTrialsNi
     setPertTrials = res.allIdxFin(res.pertIdxFin);
     for ii = 1:length(res.pertIdxNi)
 

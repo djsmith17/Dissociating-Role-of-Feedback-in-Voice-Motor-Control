@@ -11,6 +11,7 @@ curSess          = res.curSess;
 f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
 numPT            = res.numPertTrialsFin;
+trialNums        = res.allIdxFin(res.pertIdxFin);
 pertTrig         = res.pertTrigsFin;
 
 time             = res.timef0;
@@ -55,7 +56,7 @@ for ii = 1:numPT
     plot(time, sigs(:,ii), 'b', 'LineWidth', 2)
     xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
     ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-    title(['Perturbed Trial ' num2str(ii)], 'FontSize', 18, 'FontWeight', 'bold')
+    title(['Trial ' num2str(trialNums(ii))], 'FontSize', 18, 'FontWeight', 'bold')
     axis(limits); box off
     
     set(gca,'FontSize', 14,...
