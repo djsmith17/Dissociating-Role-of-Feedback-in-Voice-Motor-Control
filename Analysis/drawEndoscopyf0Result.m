@@ -2,7 +2,7 @@ function drawEndoscopyf0Result()
 
 close all
 resultDir = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results';
-participant = 'DRF9';
+participant = 'DRF19';
 run = 'SFL1';
 
 resultParticipantDir = fullfile(resultDir, participant, run);
@@ -24,7 +24,8 @@ pressureLim      = res.limitsP;
 
 pertColor = [0.8 0.8 0.8];
 
-ii = 10;
+curTrial = 8;
+ii = find(trialNums == curTrial);
 
 plotpos = [10 0];
 plotdim = [1000 1000];
@@ -73,7 +74,7 @@ hold on
 pt1XLn = plot(timeFrames, pt1X, 'm');
 hold on
 pt2XLn = plot(timeFrames, pt2X, 'g');
-axis([0 4 200 400]); box off
+axis([0 4 180 480]); box off
 ylabel('X Position (Pixel)')
 title('X Component over time')
 legend([pt1XLn, pt2XLn], 'Point1', 'Point2', 'box', 'off', 'Orientation', 'horizontal')
@@ -87,7 +88,7 @@ hold on
 pt1YLn = plot(timeFrames, pt1Y, 'm');
 hold on
 pt2YLn = plot(timeFrames, pt2Y, 'g');
-axis([0 4 0 500]); box off
+axis([0 4 150 350]); box off
 set(gca,'Ydir','reverse')
 ylabel('Y Position (Pixel)')
 title('Y Component over time')
@@ -100,7 +101,7 @@ subplot(4,1,4)
 pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
 hold on
 ptDistLn = plot(timeFrames, dist, 'b');
-axis([0 4 100 400]); box off
+axis([0 4 220 260]); box off
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
 ylabel('Distance (Pixels)')
 title('Euclidian Distance Between Points')
