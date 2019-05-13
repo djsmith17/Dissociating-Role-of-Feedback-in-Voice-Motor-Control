@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -133,7 +133,7 @@ allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
 organizeAndPrintDemographicStats(dirs, allSubjRes);
 
 % Organize and Save the Table of Excluded Trials
-organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 0)
+organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 1)
 
 % organizePooledResultsForFrank(dirs, allSubjRes)
 
@@ -150,8 +150,8 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
     drawSubjRespVarDists(dirs, pooledRunStr)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
-    drawSubjRespVarDists(dirs, pooledRunStr)
-    StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
+%     drawSubjRespVarDists(dirs, pooledRunStr)
+%     StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
 end
 end
 
@@ -1042,7 +1042,7 @@ if svFile == 1
             'Units', 'Normalized',...
             'Position', [0, 0, 1, 1]);
         
-    dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.xlsx']);
+    dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.csv']);
     writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
 end
 end
