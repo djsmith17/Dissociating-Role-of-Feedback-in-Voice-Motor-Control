@@ -37,7 +37,7 @@ for ii = 1:numPT
     axes(ha(ii))
         
     pertAx  = [pertTrig(ii,1), pertTrig(ii,2)];
-    pertAy  = [200 200];
+    pertAy  = [500 500];
     
     area(pertAx, pertAy, -600, 'FaceColor', pertBoxC, 'EdgeColor', pertBoxC)
     hold on
