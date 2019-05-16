@@ -12,7 +12,7 @@ AuNiDelays       = round(res.allAuNiDelays, 3);
 time             = res.timef0;
 micf0Trials      = res.audioMf0TrialPert;
 heaf0Trials      = res.audioHf0TrialPert;
-limits           = res.limitsAudRes;
+limits           = res.limitsA;
 
 plotpos = [10 10];
 plotdim = [1600 800];

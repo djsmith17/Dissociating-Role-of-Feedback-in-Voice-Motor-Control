@@ -17,7 +17,7 @@ meanf0HeadOnset  = res.audioHf0MeanPert(:,1);
 CIf0HeadOnset    = res.audioHf0MeanPert(:,2);
 meanf0HeadOffset = res.audioHf0MeanPert(:,3);
 CIf0HeadOffset   = res.audioHf0MeanPert(:,4);
-limits           = res.limitsAMH;
+limits           = res.limitsAmean;
 
 plotpos = [10 100];
 plotdim = [1600 600];

@@ -121,7 +121,7 @@ auAn.audioHinc     = auAn.audioH(:, auAn.svf0Idx);
 auAn.AuMHDelaysinc = auAn.allAuMHDelays(auAn.svf0Idx);
 auAn.AuNiDelaysinc = auAn.allAuNiDelays(auAn.svf0Idx);
 
-lims  = identifyLimits(auAn);
+lims  = dfIdentifyAudioLims(auAn);
 auRes = packResults(auAn, lims);
 end
 
@@ -685,8 +685,7 @@ res.audioMf0TrialPert = auAn.audioMf0p;
 res.audioMf0TrialCont = auAn.audioMf0c;
 res.audioHf0TrialPert = auAn.audioHf0p;
 res.audioHf0TrialCont = auAn.audioHf0c;
-res.limitsA           = lims.audioM;
-res.limitsAudRes      = lims.audioAudRespMH;
+res.limitsA           = lims.audio;
 
 %Individual Sectioned Trials: Mic/Head f0 Trace
 res.secTime          = auAn.secTime;
@@ -701,7 +700,6 @@ res.audioMf0MeanCont = auAn.audioMf0_meanc;
 res.audioHf0MeanPert = auAn.audioHf0_meanp;
 res.audioHf0MeanCont = auAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
-res.limitsAMH        = lims.audioMH;
 
 % Dynamics of the Participant's Vocal Response
 res.audioDynamics = auAn.audioDynamics;
