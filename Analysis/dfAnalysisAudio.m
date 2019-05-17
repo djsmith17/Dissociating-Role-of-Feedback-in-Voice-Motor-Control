@@ -94,8 +94,8 @@ if AudFlag == 1
     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0S, An.expTrigsf0);
-    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0S, An.expTrigsf0);
+    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0, An.expTrigsf0);
+    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0, An.expTrigsf0);
    
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
@@ -103,8 +103,8 @@ if AudFlag == 1
     An.trialf0M  = mean(An.trialf0);                       % Mean trial baseline f0
     
     % Normalize f0 traces by trial f0b and convert to cents
-    An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
-    An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
+    An.audioMf0_norm = normf0(An.audioMf0, An.trialf0);
+    An.audioHf0_norm = normf0(An.audioHf0, An.trialf0);
     
     % Identify trials (mic) where participant had vocal fry
     % aka: f0 pitch miscalculation
@@ -454,11 +454,11 @@ OnsetSecs  = secAudio(:,:,1);
 OffsetSecs = secAudio(:,:,2);
 [~, numTrial] = size(OnsetSecs);
 
-meanOnset  = mean(OnsetSecs, 2);  % across columns
-meanOffset = mean(OffsetSecs, 2); % across columns
+meanOnset  = nanmean(OnsetSecs, 2);  % across columns
+meanOffset = nanmean(OffsetSecs, 2); % across columns
 
-stdOnset   = std(OnsetSecs, 0, 2);  % across columns
-stdOffset  = std(OffsetSecs, 0, 2); % across columns
+stdOnset   = nanstd(OnsetSecs, 0, 2);  % across columns
+stdOffset  = nanstd(OffsetSecs, 0, 2); % across columns
 
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
