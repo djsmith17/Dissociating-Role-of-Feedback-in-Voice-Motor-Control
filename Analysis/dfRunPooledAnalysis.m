@@ -150,8 +150,8 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
     drawSubjRespVarDists(dirs, pooledRunStr)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
-%     drawSubjRespVarDists(dirs, pooledRunStr)
-%     StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
+    drawSubjRespVarDists(dirs, pooledRunStr)
+    StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
 end
 end
 
