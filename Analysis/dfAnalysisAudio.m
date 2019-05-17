@@ -90,12 +90,12 @@ if AudFlag == 1
     An.fV         = f0A.fV;
 
     % Smooth the f0 data
-%     An.audioMf0S   = smoothf0(An.audioMf0);
-%     An.audioHf0S   = smoothf0(An.audioHf0);
+    An.audioMf0S   = smoothf0(An.audioMf0);
+    An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0, An.expTrigsf0);
-    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0, An.expTrigsf0);
+    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0S, An.expTrigsf0);
+    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0S, An.expTrigsf0);
    
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
@@ -103,8 +103,8 @@ if AudFlag == 1
     An.trialf0M  = mean(An.trialf0);                       % Mean trial baseline f0
     
     % Normalize f0 traces by trial f0b and convert to cents
-    An.audioMf0_norm = normf0(An.audioMf0, An.trialf0);
-    An.audioHf0_norm = normf0(An.audioHf0, An.trialf0);
+    An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
+    An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
     
     % Identify trials (mic) where participant had vocal fry
     % aka: f0 pitch miscalculation
@@ -354,7 +354,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 10);   % 10 sample length smoothing
+    audioSmooth = smooth(audio(:,ii), 50);   % 10 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end
