@@ -505,11 +505,11 @@ OnsetSecs  = secData(:,:,1);
 OffsetSecs = secData(:,:,2);
 [~, numTrial] = size(OnsetSecs);
 
-meanOnset  = mean(OnsetSecs, 2);
-meanOffset = mean(OffsetSecs, 2);
+meanOnset  = nanmean(OnsetSecs, 2);
+meanOffset = nanmean(OffsetSecs, 2);
 
-stdOnset   = std(OnsetSecs, 0, 2);
-stdOffset  = std(OffsetSecs, 0, 2);
+stdOnset   = nanstd(OnsetSecs, 0, 2);
+stdOffset  = nanstd(OffsetSecs, 0, 2);
 
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
