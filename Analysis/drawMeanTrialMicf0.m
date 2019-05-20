@@ -10,8 +10,6 @@ end
 
 curSess          = res.curSess;
 f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
-% f0Type           = res.f0Type;
-% etMH             = res.etMH;
 AudFB            = res.AudFB;
 numCT            = res.numContTrialsFin;
 numPT            = res.numPertTrialsFin;
@@ -28,6 +26,11 @@ meanf0ContOffset = res.audioMf0MeanCont(:,3);
 CIf0ContOffset   = res.audioMf0MeanCont(:,4);
 limits           = res.limitsAmean;
 
+plotpos = [10 100];
+plotdim = [1600 600];
+InterTrialf0 = figure('Color', [1 1 1]);
+set(InterTrialf0, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
+
 AD = res.audioDynamics;
 if ~isempty(AD)
     statSM = round(AD.respVarM(2), 1);
@@ -43,21 +46,23 @@ curSess(strfind(curSess, '_')) = ' ';
 lgdCurv = [];
 lgdLabl = {};
 
-controlColor   = [0 0 0];
-perturbedColor = [0 0 1];
+dottedStartx   = [0 0];
+dottedy        = [-300 300];
+controlColor   = 'k';
+perturbedColor = 'b';
+pertLineC      = [0.3 0.3 0.3];
+fontN          = 'Arial';
+legAnnoFSize   = 12;
+titleFSize     = 14;
+axisLSize      = 14;
 lineThick      = 4;
 
-plotpos = [10 100];
-plotdim = [1600 600];
-InterTrialf0 = figure('Color', [1 1 1]);
-set(InterTrialf0, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
+ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
-dottedStartx = [0 0];
-dottedy      = [-300 300];
-
-ha = tight_subplot(1,2,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
 %Onset of Perturbation
 axes(ha(1))
+plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
+hold on
 if ~isempty(meanf0ContOnset)
     cH = shadedErrorBar(time, meanf0ContOnset, CIf0ContOnset, 'lineprops', {'color', controlColor}, 'transparent', 1); %Unperturbed
     lgdCurv = [lgdCurv cH.mainLine];
@@ -68,22 +73,21 @@ end
 pH = shadedErrorBar(time, meanf0PertOnset, CIf0PertOnset, 'lineprops', {'color', perturbedColor}, 'transparent', 1); %Perturbed
 lgdCurv = [lgdCurv pH.mainLine];
 lgdLabl = [lgdLabl, [num2str(numPT) ' Perturbed Trials']];
-hold on
-plot(dottedStartx, dottedy, 'k', 'LineWidth', 4)
 
 set(pH.mainLine, 'LineWidth', lineThick)
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-
-title('Onset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
+xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
+title('Onset of Perturbation', 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
-set(gca,'YTickLabelMode', 'auto',...
-        'XTickLabel',{'-0.5' '0' '0.5' '1.0'},...
-        'FontSize', 16,...
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
         'FontWeight','bold')
 
 %Offset of Perturbation
 axes(ha(2))
+plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
+hold on
 if ~isempty(meanf0ContOffset)
     cH2 = shadedErrorBar(time, meanf0ContOffset, CIf0ContOffset, 'lineprops', {'color', controlColor}, 'transparent', 1); %Unperturbed
     set(cH2.mainLine, 'LineWidth', lineThick)
@@ -91,19 +95,22 @@ if ~isempty(meanf0ContOffset)
 end
 pH2 = shadedErrorBar(time, meanf0PertOffset, CIf0PertOffset, 'lineprops', {'color', perturbedColor}, 'transparent', 1); %Perturbed
 hold on
-plot(dottedStartx, dottedy,'k','LineWidth',4)
-set(pH2.mainLine, 'LineWidth', lineThick)
-xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold'); ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
 
+set(pH2.mainLine, 'LineWidth', lineThick)
+xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
 axis(limits); box off
-set(gca,'YTickLabelMode', 'auto',...
-        'XTickLabel', {'-0.5' '0' '0.5' '1.0'},...
-        'FontSize', 16,...
+
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
 
-suptitle({curSess; ['AudFB: ' AudFB]; ['f0: ' num2str(f0b) 'Hz']})
+sup = suptitle({curSess; ['AudFB: ' AudFB]; ['f0: ' num2str(f0b) 'Hz']});
+set(sup, 'FontName', fontN,...
+         'FontSize', titleFSize,...
+         'FontWeight','bold')
 
 annoStim = ['SM: ' num2str(statSM) ' cents'];
 annoResp = ['RM: ' num2str(statRM) ' cents'];
@@ -123,16 +130,7 @@ legend(lgdCurv, lgdLabl,...
             'Edgecolor', [1 1 1],...
             'FontSize', 12,...
             'FontWeight', 'bold',...
-            'Position', [0.8 0.93 0.05 0.05]);
-        
-% timeBox = annotation('textbox',[.80 .88 0.45 0.1],...
-%                      'string', {f0Type;
-%                             ['Analysis Time: ' num2str(etMH) ' min']},...
-%                         'LineStyle','none',...
-%                         'FontWeight','bold',...
-%                         'FontSize',8,...
-%                         'FontName','Arial');
-         
+            'Position', [0.8 0.93 0.05 0.05]);         
                     
 plots = {'InterTrialf0'};
 for i = 1:length(plots)
