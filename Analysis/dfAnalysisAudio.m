@@ -99,8 +99,8 @@ if AudFlag == 1
    
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
-    An.trialf0   = mean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
-    An.trialf0M  = mean(An.trialf0);                       % Mean trial baseline f0
+    An.trialf0   = nanmean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
+    An.trialf0M  = nanmean(An.trialf0);                       % Mean trial baseline f0
     
     % Normalize f0 traces by trial f0b and convert to cents
     An.audioMf0_norm = normf0(An.audioMf0, An.trialf0);
