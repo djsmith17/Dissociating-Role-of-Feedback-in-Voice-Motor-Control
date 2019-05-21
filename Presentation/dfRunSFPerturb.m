@@ -27,7 +27,7 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF12';   % Subject#, Pilot#, null
+subject    = 'test';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
 balloon    = 'GB3';     % Which perturbation balloon?
