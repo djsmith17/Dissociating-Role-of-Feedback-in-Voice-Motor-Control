@@ -1,11 +1,13 @@
 function drawEndoscopyf0Result()
 
 close all
-resultDir = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results';
-participant = 'DRF19';
-run = 'SFL1';
+dirs = dfDirs('Dissociating-Role-of-Feedback-in-Voice-Motor-Control');
 
-resultParticipantDir = fullfile(resultDir, participant, run);
+participant = 'DRF19';
+run         = 'SFL1';
+curTrial    = 8;
+
+resultParticipantDir = fullfile(dirs.Results, participant, run);
 behavResultsFile     = fullfile(resultParticipantDir, [participant run 'ResultsDRF.mat']);
 videoCodResultsFile  = fullfile(resultParticipantDir, [participant run 'EndoFrameMeasuresDJS.mat']);
 
@@ -24,7 +26,6 @@ pressureLim      = res.limitsP;
 
 pertColor = [0.8 0.8 0.8];
 
-curTrial = 8;
 ii = find(trialNums == curTrial);
 
 plotpos = [10 0];
