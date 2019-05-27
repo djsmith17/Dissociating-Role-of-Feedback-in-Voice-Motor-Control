@@ -5,6 +5,9 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
+pubCond = pA.pubCond;
+
+pubTable = initPubTable(meas, pubCond);
 
 curTestingMeas = 1:3;
 ApplyTrans = 0;
@@ -67,6 +70,8 @@ for k = curTestingMeas
         % Concatenate the Structure for Histogram and Transformed Values
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
     end
+    
+    % Visualizations
     plotHistograms(measureSummaryStrs, dirs, pA)
     drawBoxPlot(measureSummaryStrs, dirs, pA)
     
@@ -75,11 +80,19 @@ for k = curTestingMeas
     else
         [tFried] = testNonParametric(curStatTable);
     end
-
+    
+            
+    % Save Behavioral Result Table: Values ready for inclusion in manuscript
     dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
+    
+    % Add to the Table for publication
+    pubTable = popPubTable(pubTable, k, variableStatAcrossCond);
 end
 
+writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
+
+% Save All Variable Table: Easy access excel file to check analysis
 fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
 end
@@ -256,4 +269,29 @@ matVer = curStatTable{:,2:4};
 
 [pFried,tFried, stats] = friedman(matVer);
 
+end
+
+function pubTable = initPubTable(meas, pubCond)
+
+numMeas = length(meas);
+numVar  = length(pubCond);
+
+genVar = {''; ''; ''};
+
+pubTable = table(genVar, genVar, genVar);
+pubTable.Properties.VariableNames = meas;
+pubTable.Properties.RowNames = pubCond;
+end
+
+function pubTable = popPubTable(pubTable, curCol, variableStatAcrossCond)
+
+[~, numCond] = size(variableStatAcrossCond);
+
+for ii = 1:numCond
+   curMean = variableStatAcrossCond{1, ii};
+   curSE   = variableStatAcrossCond{6, ii};
+   
+   curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curSE));
+   pubTable(ii, curCol) = {curPubPrint};
+end
 end

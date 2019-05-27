@@ -5,6 +5,10 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
+pubCond = pA.pubCond;
+
+pubTable = initPubTable(meas, pubCond);
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
 curTestingMeas = 1:3;
 ApplyTrans = 0;
@@ -70,17 +74,23 @@ for k = curTestingMeas
         summaryStrDiff.isSig = 0;
     end
     
-    drawHistoBoxCombo(summaryStrDiff, dirs, pA) % Visualize the Normality/Outliers of 
-
-    drawHistograms(measureSummaryStrs, dirs, pA)
-    drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
+    % Visualizations
+    drawHistograms(measureSummaryStrs, dirs, pA)             % Visualize Distribution/Normality
+    drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)% Visualize Distribution/Outliers
+    drawHistoBoxCombo(summaryStrDiff, dirs, pA)              % Visualize Normality/Outliers
         
-    dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
+    % Save Behavioral Result Table: Values ready for inclusion in manuscript 
     xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
+    
+    % Add to the Table for publication
+    pubTable = popPubTable(pubTable, k, variableStatAcrossCond);
 end
 
+writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
+
+% Save All Variable Table: Easy access excel file to check analysis
 fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
-writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
+writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames', true)
 end
 
 function [curStatTable, cond_Table] = organizeVarByCond(allSubjStatTable, meas, cond)
@@ -211,7 +221,7 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
             'FontSize',14,...
             'FontName','Arial');
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.jpg']);
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.png']);
 export_fig(dirs.DistributionFigureFile)
 end
 
@@ -261,7 +271,7 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.png']);
 export_fig(dirs.BoxPlotFigureFile)
 end
 
@@ -294,4 +304,29 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'BoxPlotCombo.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
+end
+
+function pubTable = initPubTable(meas, pubCond)
+
+numMeas = length(meas);
+numVar  = length(pubCond);
+
+genVar = {''; ''};
+
+pubTable = table(genVar, genVar, genVar);
+pubTable.Properties.VariableNames = meas;
+pubTable.Properties.RowNames = pubCond;
+end
+
+function pubTable = popPubTable(pubTable, curCol, variableStatAcrossCond)
+
+[~, numCond] = size(variableStatAcrossCond);
+
+for ii = 1:numCond
+   curMean = variableStatAcrossCond{1, ii};
+   curSE   = variableStatAcrossCond{6, ii};
+   
+   curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curSE));
+   pubTable(ii, curCol) = {curPubPrint};
+end
 end
