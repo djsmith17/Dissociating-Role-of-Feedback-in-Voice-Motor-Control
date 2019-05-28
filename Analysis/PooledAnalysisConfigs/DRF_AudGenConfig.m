@@ -41,7 +41,7 @@ pooledRuns  = {'AF1', 'AF2'};
            
 % Conditions to test against
 testingConditions = {'Voice Shifted'};
-pubConditions     = {''};
+pubConditions     = {'Auditory Feedback Shifted'};
 
 % The Recording Variable to check for the condition
 condVar = 'curRes.AudFB'; 
