@@ -147,6 +147,7 @@ save(dirs.SavResultsFile, 'pooledRunStr', 'allSubjRes')
 
 %Apply Stats as appropriate
 if strcmp(pA.pAnalysis, 'MaskingStudy')
+    drawExpPressureDist(dirs, pA, pooledRunStr)
     StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);
 elseif strcmp(pA.pAnalysis, 'DRF_Som')
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
@@ -197,13 +198,14 @@ sortStr.audioHf0SecCont = [];
 
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
-sortStr.sensorPOnOff    = cell(numCond, 1);
+sortStr.sensorPOnOff    = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
 sortStr.audioHf0MeanPert = cell(numCond, 1);
 sortStr.audioHf0MeanCont = [];
 sortStr.sensorPMean      = [];
+sortStr.sensorPOnOffMean = [];
 
 sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
@@ -256,7 +258,7 @@ polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCo
 
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
-polRes.sensorPOnOff{wC}    = cat(1, polRes.sensorPOnOff{wC}, curRes.presSD.OnOffVal);
+polRes.sensorPOnOff        = cat(1, polRes.sensorPOnOff, PD.OnOffVal);
 
 polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
 polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
@@ -409,8 +411,10 @@ polRes.audioHf0MeanCont = meanSecData(polRes.audioHf0SecCont);
 
 if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     polRes.sensorPMean = meanSecData(polRes.sensorPSec);
+    polRes.sensorPOnOffMean = mean(polRes.sensorPOnOff, 2);
 else
     polRes.sensorPMean = zeros(size(polRes.audioMf0SecPert{1}));
+    polRes.sensorPOnOffMean = [0 0];
 end
 
 for wC = 1:pA.numCond
