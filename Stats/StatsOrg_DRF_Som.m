@@ -29,31 +29,32 @@ for k = curTestingMeas
         lambdas = [0 0 0];
     end
      
-    measureSummaryStrs     = [];
-    variableStatAcrossCond = [];
+    measureSummaryStrs        = [];
+    summaryVarTableAcrossCond = table();
     for i = 1:numCond
         % Identify the Variable and Condition
-        measure   = curStatTable.(cond_table{i});
+        curCond = cond_table{i};
+        measure   = curStatTable.(curCond);
         
         % Perform Standard Sumamry Stats
-        [summaryStr, variableStat] = RawSummaryStats(meas{k}, measure, lambdas(i));
+        [summaryVarStr, summaryVarTable] = RawSummaryStats(meas{k}, curCond, measure, lambdas(i));
              
         % Use some function to describe the normality
-        summaryStr = testNormality(summaryStr);
+        summaryVarStr = testNormality(summaryVarStr);
         
         % Add the Normality results to the variableStat Array
-        variableStat = concateAdditionalStat(summaryStr, variableStat);
+        summaryVarTable = concateAdditionalStat(summaryVarStr, summaryVarTable);
         
         % Concatenate the Summary Stat Arrays across condition
-        variableStatAcrossCond = cat(2, variableStatAcrossCond, variableStat);
+        summaryVarTableAcrossCond = [summaryVarTableAcrossCond; summaryVarTable];
 
         % Concatenate the Structure for Histogram and Transformed Values
-        measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
+        measureSummaryStrs = cat(1, measureSummaryStrs, summaryVarStr);      
     end
     
     % Find the difference between the two conditions and place in Struct
     measDiff = measureSummaryStrs(1).measure - measureSummaryStrs(2).measure;
-    [summaryStrDiff, ~] = RawSummaryStats([meas{k} 'Diff'], measDiff, 0);
+    [summaryStrDiff, ~] = RawSummaryStats([meas{k} 'Diff'], 'Diff', measDiff, 0);
     
     if k == 3 
         [summaryStrDiff.measureT, l] = boxcox(summaryStrDiff.measure + 1 - min(summaryStrDiff.measure));
@@ -80,10 +81,10 @@ for k = curTestingMeas
     drawHistoBoxCombo(summaryStrDiff, dirs, pA)              % Visualize Normality/Outliers
         
     % Save Behavioral Result Table: Values ready for inclusion in manuscript 
-    xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
+    writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
     
     % Add to the Table for publication
-    pubTable = popPubTable(pubTable, k, variableStatAcrossCond);
+    pubTable = popPubTable(pubTable, k, summaryVarTableAcrossCond);
 end
 
 writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
@@ -103,36 +104,37 @@ curStatTable = unstack(curStatTable, meas, 'AudFB');
 curStatTable = curStatTable(:, condSubj);
 end
 
-function [summaryStr, variableStat] = RawSummaryStats(variableName, measure, idealLambda)
+function [summaryVarStr, summaryVarTable] = RawSummaryStats(variableName, cond, measure, idealLambda)
 
 numObs    = length(measure);
 
 % Calculate the Descriptive Stats
-summaryStr.varName  = variableName;
-summaryStr.measure  = measure;        % Raw Data Values
+summaryVarStr.varName  = variableName;
+summaryVarStr.cond     = cond;
+summaryVarStr.measure  = measure;        % Raw Data Values
 
-summaryStr.mean     = round(mean(measure), 2);
-summaryStr.median   = round(median(measure), 2);
-summaryStr.min      = round(min(measure), 2);
-summaryStr.max      = round(max(measure), 2);
-summaryStr.SD       = round(std(measure), 2);
-summaryStr.SE       = round(summaryStr.SD/sqrt(numObs), 2);
+summaryVarStr.mean     = round(mean(measure), 2);
+summaryVarStr.median   = round(median(measure), 2);
+summaryVarStr.min      = round(min(measure), 2);
+summaryVarStr.max      = round(max(measure), 2);
+summaryVarStr.SD       = round(std(measure), 2);
+summaryVarStr.SE       = round(summaryVarStr.SD/sqrt(numObs), 2);
 
-summaryStr.isTrans     = 0;       % Default is not transformed
-summaryStr.measureT    = measure; % Transformed Data Values (Default is the same)
-summaryStr.measureZ    = [];      % Z-Scored Data Values
-summaryStr.idealLambda = idealLambda;
-summaryStr.usedLambda  = 'N/A';   % Default is not transformed
-summaryStr.suffix      = '';      % Default is not transformed
+summaryVarStr.isTrans     = 0;       % Default is not transformed
+summaryVarStr.measureT    = measure; % Transformed Data Values (Default is the same)
+summaryVarStr.measureZ    = [];      % Z-Scored Data Values
+summaryVarStr.idealLambda = idealLambda;
+summaryVarStr.usedLambda  = 'N/A';   % Default is not transformed
+summaryVarStr.suffix      = '';      % Default is not transformed
 
-variableStat = {summaryStr.mean;...
-                summaryStr.min;...
-                summaryStr.median;...
-                summaryStr.max;...
-                summaryStr.SD;...
-                summaryStr.SE};
-                  
-
+summaryVarTable        = table();
+summaryVarTable.mean   = summaryVarStr.mean;
+summaryVarTable.min    = summaryVarStr.min;
+summaryVarTable.median = summaryVarStr.median;
+summaryVarTable.max    = summaryVarStr.max;
+summaryVarTable.SD     = summaryVarStr.SD;
+summaryVarTable.SE     = summaryVarStr.SE;
+summaryVarTable.Properties.RowNames = {cond};
 end
 
 function summaryStr = testNormality(summaryStr)
@@ -150,13 +152,13 @@ summaryStr.swPValue = round(swPValue, 3);
 summaryStr.swTest   = round(swTest, 3);
 end
 
-function variableStat = concateAdditionalStat(summaryStr, variableStat)
+function summaryVarTable = concateAdditionalStat(summaryStr, summaryVarTable)
 
-variableStat = cat(1, variableStat, summaryStr.measureSkew);
-variableStat = cat(1, variableStat, summaryStr.measureKurtosis);
-variableStat = cat(1, variableStat, summaryStr.swH);
-variableStat = cat(1, variableStat, summaryStr.swPValue);
-variableStat = cat(1, variableStat, summaryStr.swTest);
+summaryVarTable.Skew     = summaryStr.measureSkew;
+summaryVarTable.Kurtosis = summaryStr.measureKurtosis;
+summaryVarTable.swH      = summaryStr.swH;
+summaryVarTable.swPValue = summaryStr.swPValue;
+summaryVarTable.swTest   = summaryStr.swTest;
 end
 
 function drawHistograms(measureSummaryStrs, dirs, pA)
@@ -318,13 +320,13 @@ pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end
 
-function pubTable = popPubTable(pubTable, curCol, variableStatAcrossCond)
+function pubTable = popPubTable(pubTable, curCol, summaryVarTableAcrossCond)
 
-[~, numCond] = size(variableStatAcrossCond);
+[numCond, ~] = size(summaryVarTableAcrossCond);
 
 for ii = 1:numCond
-   curMean = variableStatAcrossCond{1, ii};
-   curSE   = variableStatAcrossCond{6, ii};
+   curMean = summaryVarTableAcrossCond.mean(ii);
+   curSE   = summaryVarTableAcrossCond.SE(ii);
    
    curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curSE));
    pubTable(ii, curCol) = {curPubPrint};
