@@ -5,6 +5,10 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
+pubCond = pA.pubCond;
+
+pubTable = initPubTable(meas, pubCond);
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
 curTestingMeas = 1:3;
 ApplyTrans = 0;
@@ -25,55 +29,40 @@ for k = curTestingMeas
         lambdas = [0 0 0];
     end
      
-    measureSummaryStrs     = [];
-    variableStatAcrossCond = [];
+    measureSummaryStrs        = [];
+    summaryVarTableAcrossCond = table();
     for i = 1:numCond
         % Identify the Variable and Condition
-        measure   = curStatTable.(cond_table{i});
+        curCond = cond_table{i};
+        measure = curStatTable.(curCond);
         
         % Perform Standard Sumamry Stats
-        [summaryStr, variableStat] = RawSummaryStats(meas{k}, measure);
-        
-        summaryStr.idealLambda = lambdas(i);
-        
-        if k == 1 && ApplyTrans
-            usedLambda = lambdas(1);
-            summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
-            summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransVF';
-            summaryStr.usedLambda = num2str(usedLambda);
-        elseif k == 3 && ApplyTrans
-            usedLambda = lambdas(3);
-            summaryStr.measureT   = boxcox(usedLambda, [summaryStr.measure + 1 - min(summaryStr.measure)]);
-            summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransACBC';
-            summaryStr.usedLambda = num2str(usedLambda);
-        else
-            summaryStr.measureT   = summaryStr.measure;
-            summaryStr.isTrans    = 0;
-            summaryStr.suffix     = '';
-            summaryStr.usedLambda = 'N/A';
-        end
+        [summaryVarStr, summaryVarTable] = RawSummaryStats(meas{k}, curCond, measure, lambdas(i));
              
-        % Use some function to describe the normality
-        summaryStr = testNormality(summaryStr);
-        
-        % Add the Normality results to the variableStat Array
-        variableStat = concateAdditionalStat(summaryStr, variableStat);
-        
+        % Describe the normality
+        [summaryVarStr, summaryVarTable] = testNormality(summaryVarStr, summaryVarTable);
+
         % Concatenate the Summary Stat Arrays across condition
-        variableStatAcrossCond = cat(2, variableStatAcrossCond, variableStat);
+        summaryVarTableAcrossCond = [summaryVarTableAcrossCond; summaryVarTable];
 
         % Concatenate the Structure for Histogram and Transformed Values
-        measureSummaryStrs = cat(1, measureSummaryStrs, summaryStr);      
+        measureSummaryStrs = cat(1, measureSummaryStrs, summaryVarStr);      
     end
-    drawHistograms(measureSummaryStrs, dirs, pA)
-    drawBoxPlot(measureSummaryStrs, dirs, pA)
-
-    dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable' summaryStr.suffix '.xlsx']);
-    xlswrite(dirs.behavioralResultTable, variableStatAcrossCond, meas{k})
+    
+    % Visualizations
+    drawHistograms(measureSummaryStrs, dirs, pA) % Visualize Distribution/Normality
+    drawBoxPlot(measureSummaryStrs, dirs, pA)    % Visualize Distribution/Outliers
+    
+    % Save Behavioral Result Table: Values ready for inclusion in manuscript 
+    writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
+    
+    % Add to the Table for publication
+    pubTable = popPubTable(pubTable, k, summaryVarTableAcrossCond);
 end
 
+writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
+
+% Save All Variable Table: Easy access excel file to check analysis
 fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
 end
@@ -88,100 +77,65 @@ curStatTable = unstack(curStatTable, meas, 'AudFB');
 curStatTable = curStatTable(:, condSubj);
 end
 
-function [summaryStr, variableStat] = RawSummaryStats(variableName, measure)
+function [summaryVarStr, summaryVarTable] = RawSummaryStats(variableName, cond, measure, idealLambda)
 
 numObs    = length(measure);
 
 % Calculate the Descriptive Stats
-summaryStr.varName  = variableName;
-summaryStr.measure  = measure;        % Raw Data Values
-summaryStr.measureT = [];             % Transformed Data Values
-summaryStr.measureZ = [];             % Z-Scored Data Values
-summaryStr.idealLambda = [];
-summaryStr.usedLambda  = [];
-summaryStr.mean     = round(mean(measure), 2);
-summaryStr.median   = round(median(measure), 2);
-summaryStr.min      = round(min(measure), 2);
-summaryStr.max      = round(max(measure), 2);
-summaryStr.SD       = round(std(measure), 2);
-summaryStr.SE       = round(summaryStr.SD/sqrt(numObs), 2);
+summaryVarStr.varName  = variableName;
+summaryVarStr.cond     = cond;
+summaryVarStr.measure  = measure;        % Raw Data Values
 
-variableStat = {summaryStr.mean;...
-                summaryStr.min;...
-                summaryStr.median;...
-                summaryStr.max;...
-                summaryStr.SD;...
-                summaryStr.SE};
-                  
+summaryVarStr.mean     = round(mean(measure), 2);
+summaryVarStr.median   = round(median(measure), 2);
+summaryVarStr.min      = round(min(measure), 2);
+summaryVarStr.max      = round(max(measure), 2);
+summaryVarStr.SD       = round(std(measure), 2);
+summaryVarStr.SE       = round(summaryVarStr.SD/sqrt(numObs), 2);
 
+summaryVarStr.isTrans     = 0;       % Default is not transformed
+summaryVarStr.measureT    = measure; % Transformed Data Values (Default is the same)
+summaryVarStr.measureZ    = [];      % Z-Scored Data Values
+summaryVarStr.idealLambda = idealLambda;
+summaryVarStr.usedLambda  = 'N/A';   % Default is not transformed
+summaryVarStr.suffix      = '';      % Default is not transformed
+
+summaryVarTable        = table();
+summaryVarTable.mean   = summaryVarStr.mean;
+summaryVarTable.min    = summaryVarStr.min;
+summaryVarTable.median = summaryVarStr.median;
+summaryVarTable.max    = summaryVarStr.max;
+summaryVarTable.SD     = summaryVarStr.SD;
+summaryVarTable.SE     = summaryVarStr.SE;
+summaryVarTable.Properties.RowNames = {cond};
 end
 
-function drawBoxPlot(measureSummaryStrs, dirs, pA)
-
-units  = {'cents', 'cents', '%'};
-fontN = 'Arial';
-axisLSize = 25;
-
-pAnalysis = pA.pAnalysis;
-cond      = pA.cond;
-numCond   = pA.numCond;
-
-pAnalysisFix = pAnalysis;
-pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
-
-measBox = figure('Color', [1 1 1]);
-plotpos = [30 30]; plotdim = [700 1000];
-set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-collData = [];
-for i = 1:numCond
-    collData(:,i) = measureSummaryStrs(i).measure;
-    varName = measureSummaryStrs(i).varName;
-end
-
-boxplot(collData, 'Labels', cond)
-xlabel('AudFB')
-ylabel([varName ' (' units{pA.k} ')'])
-title({pAnalysisFix, varName})
-box off
-
-set(gca,'FontName', fontN,...
-        'FontSize', axisLSize,...
-        'FontWeight','bold')
-    
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
-export_fig(dirs.BoxPlotFigureFile)
-end
-
-function summaryStr = testNormality(summaryStr)
+function [summaryVarStr, summaryVarTable] = testNormality(summaryVarStr, summaryVarTable)
 
 % Skew and Kurtosis
-summaryStr.measureSkew     = round(skewness(summaryStr.measureT), 4);
-summaryStr.measureKurtosis = round(kurtosis(summaryStr.measureT), 2);
+summaryVarStr.measureSkew     = round(skewness(summaryVarStr.measureT), 4);
+summaryVarStr.measureKurtosis = round(kurtosis(summaryVarStr.measureT), 2);
 
 % Z-Score and Shapiro-Wilk Test
-summaryStr.measureZ        = zscore(summaryStr.measureT);
-[swH, swPValue, swTest]    = swtest(summaryStr.measureZ);
+summaryVarStr.measureZ        = zscore(summaryVarStr.measureT);
+[swH, swPValue, swTest]    = swtest(summaryVarStr.measureZ);
 
-summaryStr.swH      = double(swH);
-summaryStr.swPValue = round(swPValue, 3);
-summaryStr.swTest   = round(swTest, 3);
-end
+% Add to the Summmary Var Data Structure
+summaryVarStr.swH      = double(swH);
+summaryVarStr.swPValue = round(swPValue, 3);
+summaryVarStr.swTest   = round(swTest, 3);
 
-function variableStat = concateAdditionalStat(summaryStr, variableStat)
-
-variableStat = cat(1, variableStat, summaryStr.measureSkew);
-variableStat = cat(1, variableStat, summaryStr.measureKurtosis);
-variableStat = cat(1, variableStat, summaryStr.swH);
-variableStat = cat(1, variableStat, summaryStr.swPValue);
-variableStat = cat(1, variableStat, summaryStr.swTest);
+% Populate Summary Var Table
+summaryVarTable.Skew     = summaryVarStr.measureSkew;
+summaryVarTable.Kurtosis = summaryVarStr.measureKurtosis;
+summaryVarTable.swH      = summaryVarStr.swH;
+summaryVarTable.swPValue = summaryVarStr.swPValue;
+summaryVarTable.swTest   = summaryVarStr.swTest;
 end
 
 function drawHistograms(measureSummaryStrs, dirs, pA)
 
-units  = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
-sigma  = '\sigma'; mu = '\mu';
 lambda = '\lambda';
 
 pAnalysis = pA.pAnalysis;
@@ -239,6 +193,65 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
             'FontSize',14,...
             'FontName','Arial');
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.jpg']);
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.png']);
 export_fig(dirs.DistributionFigureFile)
+end
+
+function drawBoxPlot(measureSummaryStrs, dirs, pA)
+
+units  = {'cents', 'cents', '%'};
+fontN = 'Arial';
+axisLSize = 25;
+
+pAnalysis = pA.pAnalysis;
+cond      = pA.cond;
+
+pAnalysisFix = pAnalysis;
+pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
+
+measBox = figure('Color', [1 1 1]);
+plotpos = [30 30]; plotdim = [700 1000];
+set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+varName     = measureSummaryStrs.varName;
+measureData = [measureSummaryStrs.measure];
+
+boxplot(measureData, 'Labels', cond)
+xlabel('AudFB')
+ylabel([varName ' (' units{pA.k} ')'])
+title({pAnalysisFix, varName})
+box off
+
+set(gca,'FontName', fontN,...
+        'FontSize', axisLSize,...
+        'FontWeight','bold')
+    
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.png']);
+export_fig(dirs.BoxPlotFigureFile)
+end
+
+function pubTable = initPubTable(meas, pubCond)
+
+numMeas = length(meas);
+numCond = length(pubCond);
+
+genVar = cell(numCond, 1);
+genVar(:) = {''};
+
+pubTable = table(genVar, genVar, genVar); %Three times for numMeas
+pubTable.Properties.VariableNames = meas;
+pubTable.Properties.RowNames = pubCond;
+end
+
+function pubTable = popPubTable(pubTable, curCol, summaryVarTableAcrossCond)
+
+[numCond, ~] = size(summaryVarTableAcrossCond);
+
+for ii = 1:numCond
+   curMean  = summaryVarTableAcrossCond.mean(ii); % Mean
+   curError = summaryVarTableAcrossCond.SE(ii);   % Standard Error of the Mean
+   
+   curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curError));
+   pubTable(ii, curCol) = {curPubPrint};
+end
 end
