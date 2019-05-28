@@ -227,9 +227,9 @@ function [tossTrialTable] = initTossedTrialTable(totnumRuns)
 genVar = cell(totnumRuns, 1);
 
 % Tossed Trials Table Variable Names
-tVN = {'CurSess', 'AutoRemoved', 'ManuallyRemoved', 'MissedByAuto', 'PercentCaught'};
+tVN = {'CurSess', 'AutoRemoved', 'ManuallyRemoved', 'MissedByAuto', 'PercentCaught', 'TotalRemoved', 'TotalTrials', 'PercentRemoved'};
 
-tossTrialTable = table(genVar, genVar, genVar, genVar, genVar);
+tossTrialTable = table(genVar, genVar, genVar, genVar, genVar, genVar, genVar, genVar);
 tossTrialTable.Properties.VariableNames = tVN;
 end
 
@@ -281,11 +281,21 @@ numMissed = length(autoMiss);
 tossCounts.M  = numManual;
 tossCounts.aM = numMissed;
 
+%Correct the Total
+tossCounts.A = tossCounts.A + tossCounts.aM;
+
+%Percent of Trials Removed from this run
+perRem = round(100*((tossCounts.A)/(curRes.numTrial)),1);
+
 tossTrialTable.CurSess(runItr)          = {curRes.curSess};
 tossTrialTable.AutoRemoved(runItr)      = {aTossDetails};
 tossTrialTable.ManuallyRemoved(runItr)  = {mTossDetails};
 tossTrialTable.MissedByAuto(runItr)     = {num2str(autoMiss)};
-tossTrialTable.PercentCaught(runItr)    = {perCaught}; 
+tossTrialTable.PercentCaught(runItr)    = {perCaught};
+
+tossTrialTable.TotalRemoved(runItr)     = {num2str(tossCounts.A)};
+tossTrialTable.TotalTrials(runItr)      = {num2str(curRes.numTrial)};
+tossTrialTable.PercentRemoved(runItr)   = {num2str(perRem)};
 end
 
 function [tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes)
