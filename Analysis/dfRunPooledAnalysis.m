@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -36,6 +36,7 @@ pA.participants  = cF.participants; % List of multiple participants.
 pA.numPart       = length(pA.participants);
 pA.runs          = cF.runs;         % All runs to consider 
 pA.numRuns       = length(pA.runs);
+pA.totnumRuns    = pA.numPart*pA.numRuns; % How many total runs do we care about?
 pA.cond          = cF.cond;         % Conditions to test against
 pA.numCond       = length(pA.cond); 
 pA.condVar       = cF.condVar;      % Variable to test the condition
@@ -76,8 +77,9 @@ allSubjRes.curSess = allSubjRes.subject;
 allSubjRes.cond    = pA.cond;
 allSubjRes.pubCond = pA.pubCond;
 
-[tossTrialTracker, tVN] = initTossedTrialTracker();
+tossTrialTable = initTossedTrialTable(pA.totnumRuns);
 
+runItr = 0;
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Sorting task conditions for %s\n', participant)
@@ -97,7 +99,8 @@ for ii = 1:pA.numPart
         sortStruc.gender  = curRes.gender;
         sortStruc.age     = round(curRes.age, 1);
         
-        [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker);
+        runItr = runItr + 1;
+        [tossCounts, tossTrialTable, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTable, runItr);
         
         if ~isempty(autoMiss)
             curRes = adjustCurRes(curRes, autoMiss);
@@ -133,7 +136,7 @@ allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
 organizeAndPrintDemographicStats(dirs, allSubjRes);
 
 % Organize and Save the Table of Excluded Trials
-organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, 1)
+organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, 1)
 
 % organizePooledResultsForFrank(dirs, allSubjRes)
 
@@ -194,6 +197,7 @@ sortStr.audioHf0SecCont = [];
 
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
+sortStr.sensorPOnOff    = cell(numCond, 1);
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
@@ -218,17 +222,15 @@ sortStr.obvAudFB         = {};
 sortStr.obvRespVar       = [];
 end
 
-function [tossTrialTracker, tVN] = initTossedTrialTracker()
+function [tossTrialTable] = initTossedTrialTable(totnumRuns)
 
-tossTrialTracker              = []; %structure of keeping of which trials and when
-tossTrialTracker.curSess      = {};
-tossTrialTracker.tossedTrials = {};
-tossTrialTracker.manuallyExcl = {};
-tossTrialTracker.autoMiss     = {};
-tossTrialTracker.perCaught    = {};
+genVar = cell(totnumRuns, 1);
 
 % Tossed Trials Table Variable Names
-tVN = {'CurSess', 'AutoExcluded', 'ManuallyExcluded', 'MissedByAuto', 'PercentCaught'};
+tVN = {'CurSess', 'AutoRemoved', 'ManuallyRemoved', 'MissedByAuto', 'PercentCaught'};
+
+tossTrialTable = table(genVar, genVar, genVar, genVar, genVar);
+tossTrialTable.Properties.VariableNames = tVN;
 end
 
 function polRes = combineCondTrials(pA, curRes, polRes, tossT)
@@ -254,6 +256,7 @@ polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCo
 
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
+polRes.sensorPOnOff{wC}    = cat(1, polRes.sensorPOnOff{wC}, curRes.presSD.OnOffVal);
 
 polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
 polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
@@ -263,7 +266,7 @@ polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Exclude
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
 end
 
-function [tossCounts, tossTrialTracker, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTracker)
+function [tossCounts, tossTrialTable, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTable, runItr)
 
 % AUTO: Identify trials that were excluded by automated methods 
 [tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes);
@@ -278,11 +281,11 @@ numMissed = length(autoMiss);
 tossCounts.M  = numManual;
 tossCounts.aM = numMissed;
 
-tossTrialTracker.curSess      = cat(1, tossTrialTracker.curSess, curRes.curSess);
-tossTrialTracker.tossedTrials = cat(1, tossTrialTracker.tossedTrials, {aTossDetails});
-tossTrialTracker.manuallyExcl = cat(1, tossTrialTracker.manuallyExcl, {mTossDetails});
-tossTrialTracker.autoMiss     = cat(1, tossTrialTracker.autoMiss, {num2str(autoMiss)});
-tossTrialTracker.perCaught    = cat(1, tossTrialTracker.perCaught, {perCaught}); 
+tossTrialTable.CurSess(runItr)          = {curRes.curSess};
+tossTrialTable.AutoRemoved(runItr)      = {aTossDetails};
+tossTrialTable.ManuallyRemoved(runItr)  = {mTossDetails};
+tossTrialTable.MissedByAuto(runItr)     = {num2str(autoMiss)};
+tossTrialTable.PercentCaught(runItr)    = {perCaught}; 
 end
 
 function [tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes)
@@ -1021,7 +1024,7 @@ fprintf('\nSubjects in this data set are between the ages of %.1f and %.1f years
 fprintf('This data set includes %d males, and %d females\n', genderRatio(1), genderRatio(2))
 end
 
-function organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTracker, tVN, svFile)
+function organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, svFile)
 
 fprintf('\nAcross all subjects, %d trials were excluded Automatically:\n', allSubjRes.tossedAll);
 fprintf('%d trials due to late starts\n', allSubjRes.tossedLate);
@@ -1030,19 +1033,14 @@ fprintf('%d trials due to pitch miscalc\n', allSubjRes.tossedMisCalc);
 fprintf('An additional %d trials were excluded Manually, of the %d trials Manually selected\n', allSubjRes.tossedAutoMiss, allSubjRes.tossedManual);
 fprintf('Automatic trial exclusion methods accounted for %s%% of trials selected Manually\n', allSubjRes.autoSuccessPerc)
 fprintf('\n')
-tossedTable = table(tossTrialTracker.curSess,... 
-                    tossTrialTracker.tossedTrials,...
-                    tossTrialTracker.manuallyExcl,...
-                    tossTrialTracker.autoMiss,...
-                    tossTrialTracker.perCaught,...
-                    'VariableNames', tVN);
+
 if svFile == 1                
-    uitable('Data', tossedTable{:,:},...
-            'ColumnName', tossedTable.Properties.VariableNames,...
+    uitable('Data', tossTrialTable{:,:},...
+            'ColumnName', tossTrialTable.Properties.VariableNames,...
             'Units', 'Normalized',...
             'Position', [0, 0, 1, 1]);
         
     dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.csv']);
-    writetable(tossedTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
+    writetable(tossTrialTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
 end
 end
