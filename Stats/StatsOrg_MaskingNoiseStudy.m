@@ -41,16 +41,16 @@ for k = curTestingMeas
         
         if k == 1 && ApplyTrans
             usedLambda = lambdas(1);
-            summaryStr.measureT   = boxcox(usedLambda, summaryStr.measure);
-            summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransVF';
-            summaryStr.usedLambda = num2str(usedLambda);
+            summaryStat.SummaryStruct.measureT   = boxcox(usedLambda, summaryStat.SummaryStruct.measure);
+            summaryStat.SummaryStruct.isTrans    = 1;
+            summaryStat.SummaryStruct.suffix     = 'TransVF';
+            summaryStat.SummaryStruct.usedLambda = num2str(usedLambda);
         elseif k == 3 && ApplyTrans
             usedLambda = lambdas(3);
-            summaryStr.measureT   = boxcox(usedLambda, [summaryStr.measure + 1 - min(summaryStr.measure)]);
-            summaryStr.isTrans    = 1;
-            summaryStr.suffix     = 'TransACBC';
-            summaryStr.usedLambda = num2str(usedLambda);
+            summaryStat.SummaryStruct.measureT   = boxcox(usedLambda, [summaryStat.SummaryStruct.measure + 1 - summaryStat.SummaryStruct.min]);
+            summaryStat.SummaryStruct.isTrans    = 1;
+            summaryStat.SummaryStruct.suffix     = 'TransACBC';
+            summaryStat.SummaryStruct.usedLambda = num2str(usedLambda);
         end
              
         % Describe the normality
