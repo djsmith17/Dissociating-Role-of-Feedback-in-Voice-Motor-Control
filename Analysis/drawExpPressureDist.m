@@ -60,7 +60,7 @@ set(bigTit, 'FontName', fontN,...
               'FontSize', axisLSize,...
               'FontWeight','bold')
 
-pltTitle = 'ExpPressureDistAllSubj.png';
+pltTitle = 'ExpPressureDistAllSubj.jpg';
 plotFileName = fullfile(dirs.SavResultsDir, pltTitle);
 export_fig(plotFileName)
 
@@ -138,6 +138,6 @@ annotation('textbox',[0.80 0.48 0.45 0.1],...
             'FontSize',14,...
             'FontName','Arial');
 
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'BoxPlotCombo.png']);
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'BoxPlotCombo.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
 end
