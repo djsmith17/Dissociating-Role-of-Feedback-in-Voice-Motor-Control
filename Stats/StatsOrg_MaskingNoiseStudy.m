@@ -6,6 +6,7 @@ meas = {'StimMag', 'RespMag', 'RespPer'};
 cond    = pA.cond;
 numCond = pA.numCond;
 pubCond = pA.pubCond;
+alphaLevel    = 0.05/3;
 
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
@@ -68,13 +69,14 @@ for k = curTestingMeas
     drawBoxPlot(measureSummaryStrs, dirs, pA)
     
     if k == 2
-        [rAnovaRes, measSph] = testParametric(curStatTable, cond_table);
+        statSentTable = testParametric(curStatTable, cond_table, meas{k}, alphaLevel);
     else
-        [tFried] = testNonParametric(curStatTable);
+        statSentTable = testNonParametric(curStatTable, meas{k}, alphaLevel);
     end
     
     % Save Behavioral Result Table: Values ready for inclusion in manuscript
     writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
+    writetable(statSentTable, dirs.behavioralResultTable, 'Range', 'A7', 'WriteRowNames', 1, 'Sheet', meas{k})
     
     % Add to the Table for publication
     pubTable = popPubTable(pubTable, k, summaryVarTableAcrossCond);
@@ -188,7 +190,7 @@ dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlo
 export_fig(dirs.BoxPlotFigureFile)
 end
 
-function [rAnovaRes, measSph] = testParametric(curStatTable, cond_table)
+function statSentTable = testParametric(curStatTable, cond_table, varName, alpha)
 
 condTable = table(cond_table');
 
@@ -196,14 +198,53 @@ measFit = fitrm(curStatTable, 'VoiceFeedback-AC_BCMaskingNoise~1', 'WithinDesign
 measSph = mauchly(measFit);
     
 rAnovaRes = ranova(measFit);
+pVal = rAnovaRes.pValue(1);
+
+if pVal < alpha
+    sigNote = '';
+else
+    sigNote = ' not';
 end
 
-function [tFried] = testNonParametric(curStatTable)
+if measSph.pValue < alpha
+    sphNote = ' not';
+else
+    sphNote = '';
+end
+
+statSentence = sprintf('Statistical analyses revealed that there was%s a significant effect of auditory feedback condition on %s (F(%d,%d) = %0.2f, p = %0.3f)\n',...
+                       sigNote,...
+                       varName,...
+                       rAnovaRes.DF(1),...
+                       rAnovaRes.DF(2),...
+                       rAnovaRes.F(1),...
+                       pVal);
+
+spherSentence = sprintf('%s did%s met the assumption of sphericity (chisq(%d) = %0.4f, p = %0.2f)\n', varName, sphNote, measSph.DF, measSph.ChiStat, measSph.pValue);
+
+statSentTable = table({statSentence}, {spherSentence}, 'VariableNames', {'StatSentence', 'SphericitySentence'});
+end
+
+function statSentTable = testNonParametric(curStatTable, varName, alpha)
 
 matVer = curStatTable{:,2:4};
 
-[pFried,tFried, stats] = friedman(matVer);
+[pFried, Ftable, ~] = friedman(matVer, 1, 'off');
 
+if pFried < alpha
+    sigNote = '';
+else
+    sigNote = ' not';
+end
+
+statSentence = sprintf('Statistical analyses revealed that there was%s a significant effect of auditory feedback condition on %s (chiSq(%d) = %0.2f, p = %0.3f)\n',...
+                       sigNote,...
+                       varName,...
+                       Ftable{2,3},...
+                       Ftable{2,2},...
+                       pFried);
+
+statSentTable = table({statSentence}, 'VariableNames', {'StatSentence'});
 end
 
 function pubTable = initPubTable(meas, pubCond)
