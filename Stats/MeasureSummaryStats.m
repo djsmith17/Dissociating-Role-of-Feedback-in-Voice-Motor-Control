@@ -8,6 +8,7 @@ classdef MeasureSummaryStats
         alphaLevel
         SummaryStruct
         SummaryTable
+        statSentTable
     end
     
     methods
@@ -88,19 +89,31 @@ classdef MeasureSummaryStats
         function obj = performTTest(obj)
             % Perform a One-Sample T-Test on the difference between the measures
             
-            [H, P] = ttest(obj.SummaryStruct.measureT);
+            [~, P, ~, STATS] = ttest(obj.SummaryStruct.measureT);
             Pstr   = sprintf('%0.6f', P);
             
             if P < obj.alphaLevel
                 isSig = 1;
+                sigNote = '';
             else
                 isSig = 0;
+                sigNote = ' not';
             end
             
-            obj.SummaryStruct.ttestH      = H;
+            statSentence = sprintf('The variable %s was%s significantly different between the two conditions t(%d) = %0.2f, p = %0.6f\n',...
+                                   obj.SummaryStruct.varName,...
+                                   sigNote,...
+                                   STATS.df,...
+                                   STATS.tstat,...
+                                   P);
+            
+            obj.SummaryStruct.ttestStat   = STATS.tstat;
             obj.SummaryStruct.ttestP      = P;
             obj.SummaryStruct.ttestPstr   = Pstr;
             obj.SummaryStruct.isSig       = isSig;
+            obj.SummaryStruct.statSentence = statSentence;
+            obj.statSentTable = table({statSentence}, 'VariableNames', {'StatSentence'});
+            
         end
         
         function drawHistoBoxCombo(obj)

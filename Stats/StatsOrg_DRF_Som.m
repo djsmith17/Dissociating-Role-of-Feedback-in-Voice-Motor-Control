@@ -67,6 +67,7 @@ for k = curTestingMeas
         
     % Save Behavioral Result Table: Values ready for inclusion in manuscript 
     writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
+    writetable(summaryStatDiff.statSentTable, dirs.behavioralResultTable, 'Range', 'A7', 'WriteRowNames', 1, 'Sheet', meas{k})
     
     % Add to the Table for publication
     pubTable = popPubTable(pubTable, k, summaryVarTableAcrossCond);
