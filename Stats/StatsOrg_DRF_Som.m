@@ -149,7 +149,7 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
             'FontSize',14,...
             'FontName','Arial');
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.png']);
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.jpg']);
 export_fig(dirs.DistributionFigureFile)
 end
 
@@ -195,7 +195,7 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.png']);
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
 end
 

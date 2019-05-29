@@ -64,7 +64,7 @@ end
 AllPerLess0   = round(100*allTrialsLess0/allTrials,2);
 suptitle({'Auditory Feedback Perturbation Experiment', ['Total Following Response Trials: ' num2str(AllPerLess0) '%']})
 
-pltTitle = 'InvestRespAudPertExp.png';
+pltTitle = 'InvestRespAudPertExp.jpg';
 plotFileName = fullfile(dirs.SavResultsDir, pltTitle);
 export_fig(plotFileName)
 end

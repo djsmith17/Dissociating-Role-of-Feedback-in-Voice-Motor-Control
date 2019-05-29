@@ -133,7 +133,7 @@ classdef MeasureSummaryStats
                        'FontSize',14,...
                        'FontName','Arial');
 
-            BoxPlotFigureFile = fullfile(obj.SavResultsDir, [obj.pAnalysis varName suffix 'BoxPlotCombo.png']);
+            BoxPlotFigureFile = fullfile(obj.SavResultsDir, [obj.pAnalysis varName suffix 'BoxPlotCombo.jpg']);
             export_fig(BoxPlotFigureFile)
         end
     end
