@@ -36,17 +36,17 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
-        % Perform Standard Sumamry Stats
-        [summaryVarStr, summaryVarTable] = RawSummaryStats(meas{k}, curCond, measure, lambdas(i));
+        % Perform Standard Summary Stats
+        summaryStat = MeasureSummaryStats(dirs, pA, meas{k}, curCond, measure, lambdas(i));
              
         % Describe the normality
-        [summaryVarStr, summaryVarTable] = testNormality(summaryVarStr, summaryVarTable);
+        summaryStat = summaryStat.testNormality();
 
         % Concatenate the Summary Stat Arrays across condition
-        summaryVarTableAcrossCond = [summaryVarTableAcrossCond; summaryVarTable];
+        summaryVarTableAcrossCond = [summaryVarTableAcrossCond; summaryStat.SummaryTable];
 
         % Concatenate the Structure for Histogram and Transformed Values
-        measureSummaryStrs = cat(1, measureSummaryStrs, summaryVarStr);      
+        measureSummaryStrs = cat(1, measureSummaryStrs, summaryStat.SummaryStruct);      
     end
     
     % Visualizations
@@ -75,62 +75,6 @@ condSubj = ['SubjID' cond_Table];
 curStatTable = allSubjStatTable(:, {'SubjID', 'AudFB', meas});
 curStatTable = unstack(curStatTable, meas, 'AudFB');
 curStatTable = curStatTable(:, condSubj);
-end
-
-function [summaryVarStr, summaryVarTable] = RawSummaryStats(variableName, cond, measure, idealLambda)
-
-numObs    = length(measure);
-
-% Calculate the Descriptive Stats
-summaryVarStr.varName  = variableName;
-summaryVarStr.cond     = cond;
-summaryVarStr.measure  = measure;        % Raw Data Values
-
-summaryVarStr.mean     = round(mean(measure), 2);
-summaryVarStr.median   = round(median(measure), 2);
-summaryVarStr.min      = round(min(measure), 2);
-summaryVarStr.max      = round(max(measure), 2);
-summaryVarStr.SD       = round(std(measure), 2);
-summaryVarStr.SE       = round(summaryVarStr.SD/sqrt(numObs), 2);
-
-summaryVarStr.isTrans     = 0;       % Default is not transformed
-summaryVarStr.measureT    = measure; % Transformed Data Values (Default is the same)
-summaryVarStr.measureZ    = [];      % Z-Scored Data Values
-summaryVarStr.idealLambda = idealLambda;
-summaryVarStr.usedLambda  = 'N/A';   % Default is not transformed
-summaryVarStr.suffix      = '';      % Default is not transformed
-
-summaryVarTable        = table();
-summaryVarTable.mean   = summaryVarStr.mean;
-summaryVarTable.min    = summaryVarStr.min;
-summaryVarTable.median = summaryVarStr.median;
-summaryVarTable.max    = summaryVarStr.max;
-summaryVarTable.SD     = summaryVarStr.SD;
-summaryVarTable.SE     = summaryVarStr.SE;
-summaryVarTable.Properties.RowNames = {cond};
-end
-
-function [summaryVarStr, summaryVarTable] = testNormality(summaryVarStr, summaryVarTable)
-
-% Skew and Kurtosis
-summaryVarStr.measureSkew     = round(skewness(summaryVarStr.measureT), 4);
-summaryVarStr.measureKurtosis = round(kurtosis(summaryVarStr.measureT), 2);
-
-% Z-Score and Shapiro-Wilk Test
-summaryVarStr.measureZ        = zscore(summaryVarStr.measureT);
-[swH, swPValue, swTest]    = swtest(summaryVarStr.measureZ);
-
-% Add to the Summmary Var Data Structure
-summaryVarStr.swH      = double(swH);
-summaryVarStr.swPValue = round(swPValue, 3);
-summaryVarStr.swTest   = round(swTest, 3);
-
-% Populate Summary Var Table
-summaryVarTable.Skew     = summaryVarStr.measureSkew;
-summaryVarTable.Kurtosis = summaryVarStr.measureKurtosis;
-summaryVarTable.swH      = summaryVarStr.swH;
-summaryVarTable.swPValue = summaryVarStr.swPValue;
-summaryVarTable.swTest   = summaryVarStr.swTest;
 end
 
 function drawHistograms(measureSummaryStrs, dirs, pA)
@@ -193,7 +137,7 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
             'FontSize',14,...
             'FontName','Arial');
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.png']);
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.jpg']);
 export_fig(dirs.DistributionFigureFile)
 end
 
@@ -226,7 +170,7 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
     
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.png']);
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName 'BoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile)
 end
 
