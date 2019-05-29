@@ -64,80 +64,9 @@ pltTitle = 'ExpPressureDistAllSubj.jpg';
 plotFileName = fullfile(dirs.SavResultsDir, pltTitle);
 export_fig(plotFileName)
 
-summaryVarTable = RawSummaryStats('Mean Pressure Levels', allMeanPress, 0);
-drawHistoBoxCombo(summaryVarTable, dirs, pA)
-end
+% Perform Standard Summary Stats
+summaryStat = MeasureSummaryStats(dirs, pA, 'MeanPressureLevels', 'AllConditions', allMeanPress, 0);
 
-function summaryVarTable = RawSummaryStats(variableName, measureVals, idealLambda)
-
-numObs    = length(measureVals);
-
-% Calculate the Descriptive Stats
-summaryVarTable = table();
-summaryVarTable.varName = variableName;
-summaryVarTable.measure = {measureVals};        % Raw Data Values
-
-summaryVarTable.mean     = round(mean(measureVals), 2);
-summaryVarTable.median   = round(median(measureVals), 2);
-summaryVarTable.min      = round(min(measureVals), 2);
-summaryVarTable.max      = round(max(measureVals), 2);
-summaryVarTable.SD       = round(std(measureVals), 2);
-summaryVarTable.SE       = round(summaryVarTable.SD/sqrt(numObs), 2);
-
-summaryVarTable.isTrans     = 0;             % Default is not transformed
-summaryVarTable.measureT    = {measureVals}; % Transformed Data Values (Default is the same)
-summaryVarTable.measureZ    = {measureVals}; % Z-Scored Data Values
-summaryVarTable.idealLambda = idealLambda;
-summaryVarTable.usedLambda  = 'N/A';   % Default is not transformed
-summaryVarTable.suffix      = ' ';      % Default is not transformed
-
-summaryVarTable = testNormality(summaryVarTable);
-end
-
-function summaryVarTable = testNormality(summaryVarTable)
-
-% Skew and Kurtosis
-summaryVarTable.measureSkew     = round(skewness(summaryVarTable.measureT{1}), 4);
-summaryVarTable.measureKurtosis = round(kurtosis(summaryVarTable.measureT{1}), 2);
-
-% Z-Score and Shapiro-Wilk Test
-summaryVarTable.measureZ   = {zscore(summaryVarTable.measureT{1})};
-[swH, swPValue, swTest]    = swtest(summaryVarTable.measureZ{1});
-
-summaryVarTable.swH      = double(swH);
-summaryVarTable.swPValue = round(swPValue, 3);
-summaryVarTable.swTest   = round(swTest, 3);
-end
-
-function drawHistoBoxCombo(summaryVarTable, dirs, pA)
-
-measure = summaryVarTable.measureT{1};
-varName = summaryVarTable.varName;
-suffix  = summaryVarTable.suffix;
-swH = summaryVarTable.swH; swP = summaryVarTable.swPValue; swW = summaryVarTable.swTest;
-
-pAnalysis = pA.pAnalysis;
-mu = '\mu';
-sigma  = '\sigma'; 
-
-diffBox = figure('Color', [1 1 1]);
-plotpos = [30 0]; plotdim = [800 300];
-set(diffBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
-
-subplot(1,2,1); histogram(measure, 10); box off
-title(['H=' num2str(swH) ', p=' num2str(round(swP,4)) ', W=' num2str(round(swW,3))])
-
-subplot(1,2,2); boxplot(measure); box off
-suptitle(varName)
-
-annotation('textbox',[0.80 0.48 0.45 0.1],...
-           'string', {[mu ' = ' num2str(summaryVarTable.mean) 'psi'],...
-                      [sigma ' = ' num2str(summaryVarTable.SD) 'psi']},...
-           'LineStyle','none',...
-            'FontWeight','bold',...
-            'FontSize',14,...
-            'FontName','Arial');
-
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'BoxPlotCombo.jpg']);
-export_fig(dirs.BoxPlotFigureFile)
+summaryStat = summaryStat.testNormality(); % Describe the normality  
+summaryStat.drawHistoBoxCombo()            % Visualize Normality/Outliers
 end
