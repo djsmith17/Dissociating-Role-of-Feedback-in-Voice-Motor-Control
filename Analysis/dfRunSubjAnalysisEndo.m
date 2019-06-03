@@ -184,7 +184,6 @@ res.audioMf0TrialCont = auRes.audioMf0TrialCont;
 res.audioHf0TrialPert = auRes.audioHf0TrialPert;
 res.audioHf0TrialCont = auRes.audioHf0TrialCont;
 res.limitsA           = auRes.limitsA;
-res.limitsAudRes      = auRes.limitsAudRes;
 
 %Sections Trials: Mic/Head f0
 res.secTime          = auRes.secTime;
@@ -199,7 +198,6 @@ res.audioMf0MeanCont = auRes.audioMf0MeanCont;
 res.audioHf0MeanPert = auRes.audioHf0MeanPert;
 res.audioHf0MeanCont = auRes.audioHf0MeanCont;
 res.limitsAmean      = auRes.limitsAmean;
-res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicXHead
 
 % Dynamics of the Participant's Vocal Response
 % This can be the response to the laryngeal pert
@@ -231,6 +229,8 @@ if res.numPertTrialsFin < res.numPertTrialsNi
     
     res.sensorPsv          = res.sensorPsv(:, presInd);
     res.presSDsv.sensorSec = res.presSDsv.sensorSec(:, presInd, :);
+    res.presSDsv.TrigIdx   = res.presSDsv.TrigIdx(presInd, :);
+    res.presSDsv.TrigTime  = res.presSDsv.TrigTime(presInd, :);
     res.presSDsv.lagTimes  = res.presSDsv.lagTimes(presInd, :);
     res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd);
     res.presSDsv.OnOffVal  = res.presSDsv.OnOffVal(presInd, :);
