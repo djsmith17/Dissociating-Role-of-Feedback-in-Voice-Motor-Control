@@ -219,7 +219,7 @@ function pubTable = popPubTable(pubTable, curCol, summaryVarTableAcrossCond)
 
 for ii = 1:numCond
    curMean  = summaryVarTableAcrossCond.mean(ii); % Mean
-   curError = summaryVarTableAcrossCond.SE(ii);   % Standard Error of the Mean
+   curError = summaryVarTableAcrossCond.SD(ii);   % Standard Error of the Mean
    
    curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curError));
    pubTable(ii, curCol) = {curPubPrint};
