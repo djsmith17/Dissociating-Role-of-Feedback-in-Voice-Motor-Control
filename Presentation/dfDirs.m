@@ -19,18 +19,18 @@ host     = deblank(host);
 
 %% Set appropriate directories for code, data input and output, based on system hostname.
 switch host
-    case 'SAR-D-635-1528'
+    case '677-GUE-WD-0013'
         % RecData must be moved to SavData for backup and local disk space consolidation
-        dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to
+        dirs.RecData        = fullfile('E:\DATA', project);        % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
       
-        dirs.Code           = fullfile('C:\GitHub', project);             % The full code base
+        dirs.Code           = fullfile('E:\GitHub', project);             % The full code base
         dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
         dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
         dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
         
-        dirs.Results        = 'C:\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
+        dirs.Results        = 'E:\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.helpers        = 'E:\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
         dirs.RecWaveDir     = '';
