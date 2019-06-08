@@ -22,7 +22,7 @@ classdef MeasureSummaryStats
     end
     
     methods
-        function obj = MeasureSummaryStats(dirs, pA, varName, cond, measure, idealLambda)
+        function obj = MeasureSummaryStats(dirs, pA, measVar, measure, idealLambda)
             % MeasureSummaryStats(dirs, pA, varName, cond, measure, idealLambda) is a class
             % for organizing the resultant stats of a measure. The input
             % dirs is the current directory you are working in and
@@ -37,7 +37,6 @@ classdef MeasureSummaryStats
             % possible.
             
             %   Detailed explanation goes here
-            numObs    = length(measure);
 
             % Load necessary identifiers
             obj.pAnalysis     = pA.pAnalysis;
@@ -45,17 +44,19 @@ classdef MeasureSummaryStats
             obj.alphaLevel    = 0.05/3;
             
             % Unpack the measure into a structure
-            str.varName  = varName;
-            str.cond     = cond;
+            str.varName  = measVar.varName;
+            str.cond     = measVar.condition;
+            str.units    = measVar.units;
             str.measure  = measure;        % Raw Data Values
             
             % Calculate the Descriptive Stats
+            str.numObvs  = length(measure);
             str.mean     = round(mean(measure), 2);
             str.median   = round(median(measure), 2);
             str.min      = round(min(measure), 2);
             str.max      = round(max(measure), 2);
             str.SD       = round(std(measure), 2);
-            str.SE       = round(str.SD/sqrt(numObs), 2);
+            str.SE       = round(str.SD/sqrt(str.numObvs), 2);
 
             str.isTrans     = 0;       % Default is not transformed
             str.measureT    = measure; % Transformed Data Values (Default is the same)
@@ -71,7 +72,7 @@ classdef MeasureSummaryStats
             tbl.max    = str.max;
             tbl.SD     = str.SD;
             tbl.SE     = str.SE;
-            tbl.Properties.RowNames = {cond};
+            tbl.Properties.RowNames = {str.cond};
             
             obj.SummaryStruct = str;
             obj.SummaryTable  = tbl;
@@ -144,10 +145,45 @@ classdef MeasureSummaryStats
             
         end
         
+        function drawHistogram(obj)
+            
+            measure    = obj.SummaryStruct.measureT;
+            varName    = obj.SummaryStruct.varName;
+            units      = obj.SummaryStruct.units;
+            suffix     = obj.SummaryStruct.suffix;
+            
+            numObvs    = num2str(obj.SummaryStruct.numObvs);
+            measureM   = num2str(obj.SummaryStruct.mean);
+            measureSD  = num2str(obj.SummaryStruct.SD);
+            
+            mu = '\mu';
+            sigma  = '\sigma';
+            
+            diffBox = figure('Color', [1 1 1]);
+            plotpos = [30 0]; plotdim = [400 300];
+            set(diffBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+            histogram(measure, 10); box off
+            
+            xlabel({[varName ' (' units ')'], ['(n = ' numObvs ')']})
+
+            annotation('textbox',[0.62 0.75 0.45 0.1],...
+                       'string', {[mu ' = ' measureM units],...
+                                  [sigma ' = ' measureSD units]},...
+                       'LineStyle','none',...
+                       'FontWeight','bold',...
+                       'FontSize',12,...
+                       'FontName','Arial');
+
+            dirs.DistributionFigureFile = fullfile(obj.SavResultsDir, [obj.pAnalysis varName suffix 'Histogram.jpg']);
+            export_fig(dirs.DistributionFigureFile)
+        end
+        
         function drawHistoBoxCombo(obj)
 
             measure    = obj.SummaryStruct.measureT;
             varName    = obj.SummaryStruct.varName;
+            units      = obj.SummaryStruct.units;
             suffix     = obj.SummaryStruct.suffix;
             usedLambda = obj.SummaryStruct.usedLambda;
             swH        = num2str(obj.SummaryStruct.swH); 
@@ -179,8 +215,8 @@ classdef MeasureSummaryStats
                        'FontName','Arial');
                    
             annotation('textbox',[0.80 0.48 0.45 0.1],...
-                       'string', {[mu ' = ' measureM 'psi'],...
-                                  [sigma ' = ' measureSD 'psi']},...
+                       'string', {[mu ' = ' measureM units],...
+                                  [sigma ' = ' measureSD units]},...
                        'LineStyle','none',...
                        'FontWeight','bold',...
                        'FontSize',14,...
