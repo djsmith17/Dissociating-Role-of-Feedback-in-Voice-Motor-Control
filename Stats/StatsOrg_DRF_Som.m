@@ -53,7 +53,8 @@ for k = curTestingMeas
     measDiff = measureSummaryStrs(1).measure - measureSummaryStrs(2).measure;
     summaryStatDiff = MeasureSummaryStats(dirs, pA, [meas{k} 'Diff'], 'Diff', measDiff, 0);
     
-    if k == 3 
+    if k == 3
+        % Apply a Box Cox transform with the default (best) lambda
         summaryStatDiff = performSimpleBoxCoxTrans(summaryStatDiff);
     end
     

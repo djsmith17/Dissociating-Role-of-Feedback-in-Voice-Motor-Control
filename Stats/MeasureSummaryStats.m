@@ -1,6 +1,16 @@
 classdef MeasureSummaryStats
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    % MeasureSummaryStats(dirs, pA, varName, cond, measure, idealLambda) 
+    % is a class for organizing the resultant stats of a measure. The input
+    % dirs is the current directory you are working in and
+    % specifically is looking for the the results folder you are
+    % writing to. pA is a structure describing the pooled analysis
+    % conditions we are testing over. varName is the name of the
+    % measure we are testing. Cond is the name of the condition
+    % that this variable was tested on. Measure is a vector of the
+    % actual measured values. idealLambda is a value of lambda such
+    % that when measure is transformed using a box-cox transform 
+    % with this lambda, the transformed measure is as normal is
+    % possible.
     
     properties
         pAnalysis
@@ -13,7 +23,19 @@ classdef MeasureSummaryStats
     
     methods
         function obj = MeasureSummaryStats(dirs, pA, varName, cond, measure, idealLambda)
-            %METHOD1 Summary of this method goes here
+            % MeasureSummaryStats(dirs, pA, varName, cond, measure, idealLambda) is a class
+            % for organizing the resultant stats of a measure. The input
+            % dirs is the current directory you are working in and
+            % specifically is looking for the the results folder you are
+            % writing to. pA is a structure describing the pooled analysis
+            % conditions we are testing over. varName is the name of the
+            % measure we are testing. Cond is the name of the condition
+            % that this variable was tested on. Measure is a vector of the
+            % actual measured values. idealLambda is a value of lambda such
+            % that when measure is transformed using a box-cox transform 
+            % with this lambda, the transformed measure is as normal is
+            % possible.
+            
             %   Detailed explanation goes here
             numObs    = length(measure);
 
@@ -83,7 +105,13 @@ classdef MeasureSummaryStats
             obj.SummaryStruct.isTrans    = 1;
             obj.SummaryStruct.suffix     = 'Trans';
             obj.SummaryStruct.usedLambda = num2str(round(l,2));
-            
+        end
+        
+        function obj = performSpecificBoxCoxTrans(obj, l)
+            obj.SummaryStruct.measureT   = boxcox(l, obj.SummaryStruct.measure + 1 - obj.SummaryStruct.min);
+            obj.SummaryStruct.isTrans    = 1;
+            obj.SummaryStruct.suffix     = 'Trans';
+            obj.SummaryStruct.usedLambda = num2str(round(l,2));
         end
         
         function obj = performTTest(obj)

@@ -20,7 +20,7 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'SpringNewBoxCalib', 'DS2', '3', '1', 'OP(PS2)+25"TubePlugged','yes'};
+defaultanswer = {'Test', 'DS1', '3', '1', 'DefaultBalloon','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
@@ -37,7 +37,7 @@ expParam.subject       = ExpPrompt{1}; %Subject#, Pilot#, null
 expParam.run           = ExpPrompt{2};
 expParam.curSess       = [expParam.subject ' ' expParam.run];
 expParam.gender        = 'N/A';
-expParam.niDev         = 'Dev2';                  % NIDAQ Device Name. For more information, see dfInitNIDAQ
+expParam.niDev         = 'Dev1';                  % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen      = 4;                       % Seconds
 expParam.numTrial      = str2double(ExpPrompt{3});
 expParam.curTrial      = [];
