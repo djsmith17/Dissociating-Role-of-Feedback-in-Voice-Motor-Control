@@ -40,12 +40,10 @@ StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
 % Question 4 %%%
-% addressQuest4old(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
-% addressQuest4(dirs, StatTableSinSomVF, StatTableSinSomMN, StatTableAudSingle)
 StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
-% addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
 
 % Question 6 %%%
 % addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
@@ -58,102 +56,6 @@ StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question E2 %%%
 % addressQuestE2(dirs, StatTableJND, StatTableSomMN)
-end
-
-function addressQuest4old(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
-% q4: Do participants show similar compensatory respones when only Auditory
-% feedback is perturbed? 
-
-% Question 4 %%%
-% Currently Expecting Fewer 'Observations' from SomVF and SomMN
-I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
-StatTableAudLs = StatTableAud;
-StatTableAudLs(I,:) = [];
-
-respPer_SomVF = StatTableSomVF.RespPer;
-respPer_SomMN = StatTableSomMN.RespPer;
-respPer_AudLs = StatTableAudLs.RespPer;
-
-plotpos = [10 100];
-plotdim = [1200 500];
-q2Fig = figure('Color', [1 1 1]);
-set(q2Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
-
-fontN = 'Arial';
-axisLSize = 12;
-
-color3 = [44 162 95]/255;
-
-plot(respPer_SomVF, 'bo-', 'MarkerFaceColor', 'b'); hold on
-plot(respPer_SomMN, 'ro-', 'MarkerFaceColor', 'r'); 
-plot(respPer_AudLs, 'o-', 'Color', color3, 'MarkerFaceColor', color3);
-xlabel('Participant')
-ylabel('RespPer (%)')
-title('Comparison of Response Percentage between Experimental Conditions')
-box off
-
-set(gca,'FontName', fontN,...
-    'FontSize', axisLSize,...
-    'FontWeight','bold')
-
-legend({'Somato Feedback Pert (No Masking Noise)', 'Somato Feedback Pert (Masking Noise)', 'Aud Feedback Pert'},...
-        'Box', 'off',...
-        'Edgecolor', [1 1 1],...
-        'FontSize', 12,...
-        'FontWeight', 'bold')
-
-dirs.quest4FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
-export_fig(dirs.quest4FigFile)
-end
-
-function addressQuest4(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
-% q4: Do participants show similar compensatory respones when only Auditory
-% feedback is perturbed? 
-
-% Question 4 %%%
-% Currently Expecting Fewer 'Observations' from SomVF and SomMN
-I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
-StatTableAudLs = StatTableAud;
-StatTableAudLs(I,:) = [];
-
-respPer_SomVF = StatTableSomVF.RespPer;
-respPer_SomMN = StatTableSomMN.RespPer;
-respPer_AudLs = StatTableAudLs.RespPer;
-
-respPerSD_SomVF = StatTableSomVF.RespPerSD;
-respPerSD_SomMN = StatTableSomMN.RespPerSD;
-respPerSD_AudLs = StatTableAudLs.RespPerSD;
-
-plotpos = [10 100];
-plotdim = [1200 500];
-q2Fig = figure('Color', [1 1 1]);
-set(q2Fig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
-
-fontN = 'Arial';
-axisLSize = 12;
-
-color3 = [44 162 95]/255;
-
-errorbar(respPer_SomVF, respPerSD_SomVF, 'bo', 'MarkerFaceColor', 'b'); hold on
-errorbar(respPer_SomMN, respPerSD_SomMN, 'ro', 'MarkerFaceColor', 'r'); 
-errorbar(respPer_AudLs, respPerSD_AudLs, 'o', 'Color', color3, 'MarkerFaceColor', color3);
-xlabel('Participant')
-ylabel('RespPer (%)')
-title('Comparison of Response Percentage between Experimental Conditions')
-box off
-
-set(gca,'FontName', fontN,...
-    'FontSize', axisLSize,...
-    'FontWeight','bold')
-
-legend({'Somato Feedback Pert (No Masking Noise)', 'Somato Feedback Pert (Masking Noise)', 'Aud Feedback Pert'},...
-        'Box', 'off',...
-        'Edgecolor', [1 1 1],...
-        'FontSize', 12,...
-        'FontWeight', 'bold')
-
-dirs.quest4FigFile = fullfile(dirs.SavResultsDir, 'Question4.jpg');
-export_fig(dirs.quest4FigFile)
 end
 
 function addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
