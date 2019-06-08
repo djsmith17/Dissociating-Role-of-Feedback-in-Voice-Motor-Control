@@ -163,9 +163,11 @@ classdef MeasureSummaryStats
             plotpos = [30 0]; plotdim = [400 300];
             set(diffBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-            histogram(measure, 10); box off
-            
+            histogram(measure, 10); box off        
             xlabel({[varName ' (' units ')'], ['(n = ' numObvs ')']})
+            
+            set(gca, 'FontSize', 12,...
+                     'FontWeight', 'bold')
 
             annotation('textbox',[0.62 0.75 0.45 0.1],...
                        'string', {[mu ' = ' measureM units],...
@@ -203,9 +205,15 @@ classdef MeasureSummaryStats
 
             subplot(1,2,1); histogram(measure, 10); box off
             title(['H=' swH ', p=' swP ', W=' swW])
+            
+            set(gca, 'FontSize', 12,...
+                     'FontWeight', 'bold')
 
             subplot(1,2,2); boxplot(measure); box off
             suptitle(varName)
+            
+            set(gca, 'FontSize', 12,...
+                     'FontWeight', 'bold')
 
             annotation('textbox',[0.8 0.88 0.45 0.1],...
                        'string', {[lambda ' = ' usedLambda]},...
