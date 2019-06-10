@@ -150,6 +150,7 @@ if strcmp(pA.pAnalysis, 'MaskingStudy')
     drawExpPressureDist(dirs, pA, pooledRunStr)
     StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);
 elseif strcmp(pA.pAnalysis, 'DRF_Som')
+    drawExpPressureDist(dirs, pA, pooledRunStr)
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')

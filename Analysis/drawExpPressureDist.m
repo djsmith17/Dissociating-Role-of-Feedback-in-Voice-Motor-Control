@@ -13,7 +13,7 @@ plotdim = [1600 800];
 IndivTrialAudResp = figure('Color', [1 1 1]);
 set(IndivTrialAudResp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
-ha = tight_subplot(2, 6, [0.13 0.03],[0.12 0.18],[0.05 0.03]);
+ha = tight_subplot(3, 6, [0.13 0.03],[0.12 0.18],[0.05 0.03]);
 
 allMeanPress = [];
 for ii = 1:numSubj
@@ -40,7 +40,7 @@ for ii = 1:numSubj
      histogram(pressureOn, 10)
      box off
      
-     if ii == 7
+     if ii == 13
          xlabel('Pressure (psi)')
      end
      
@@ -51,7 +51,7 @@ for ii = 1:numSubj
      
      title({[curSubj ' (n=' num2str(numTrial) ')'],[mu '=' num2str(pressureOnM) ', ' sigma '=' num2str(pressureOnSD)]})
 
-     axis([lB rB 0 5])
+     axis([lB rB 0 15])
 end
 
 bigTit = suptitle({'Masking Study', 'Distributions of pressure readings at the appex of the pressure step function', [mu '= Mean, ' sigma '= Standard Deviation']});
@@ -65,7 +65,10 @@ plotFileName = fullfile(dirs.SavResultsDir, pltTitle);
 export_fig(plotFileName)
 
 % Perform Standard Summary Stats
-summaryStat = MeasureSummaryStats(dirs, pA, 'MeanPressureLevels', 'AllConditions', allMeanPress, 0);
+measureVar.varName = 'MeanPressureLevels';
+measureVar.condition = 'AllConditions';
+measureVar.units = 'psi';
+summaryStat = MeasureSummaryStats(dirs, pA, measureVar, allMeanPress, 0);
 
 summaryStat = summaryStat.testNormality(); % Describe the normality  
 summaryStat.drawHistoBoxCombo()            % Visualize Normality/Outliers
