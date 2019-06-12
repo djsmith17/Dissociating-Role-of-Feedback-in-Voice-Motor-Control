@@ -15,7 +15,7 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % An:      Analysis variables used to analyze data set
 % AudFlag: Do we want to do analysis on the audio data? Useful for when
 %          analyzing just perturbatron data
-% iRF:     Inflation response flag. Do we want to analyze the response to
+% aDF:     Audio Dynamics Flag. Do we want to analyze the response to
 %          inflation?
 % f0F:     f0 Flag. Do we want to reanalyze data and receive new pitch
 %          traces?

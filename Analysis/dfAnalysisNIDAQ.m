@@ -1,5 +1,5 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, aDF, PresFlag)
-% [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, f0b, AudFlag, iRF, PresFlag)
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, PresFlag)
+% [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, PresFlag)
 % This function analyzes the raw audio data that was recorded by Audapter 
 % in the experiments measuring changes in f0. It first does a
 % pre-processing step where it identifies any experimental errors in
@@ -35,7 +35,7 @@ niAn.f0AnaFile = [niAn.subject niAn.run 'f0Analysis.mat'];
 niAn.gender    = expParam.gender;
 niAn.AudFB     = expParam.AudFB;
 niAn.AudFBSw   = expParam.AudFBSw;
-niAn.bTf0b     = f0b;
+niAn.bTf0b     = expParam.f0b;
 
 if isfield(expParam, 'balloon')
     niAn.balloon = expParam.balloon;

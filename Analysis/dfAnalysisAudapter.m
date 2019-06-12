@@ -1,4 +1,4 @@
-function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, aDF, niAn)
+function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, AudFlag, aDF, f0CalcF)
 % [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
 % This function analyzes the raw audio data that was recorded by Audapter 
 % in the experiments measuring changes in f0. It first does a
@@ -112,8 +112,7 @@ for ii = 1:auAn.numTrial
 end
 
 % The Audio Analysis
-f0Flag = 1;
-auAn = dfAnalysisAudio(dirs, auAn, AudFlag, aDF, f0Flag);
+auAn = dfAnalysisAudio(dirs, auAn, AudFlag, aDF, f0CalcF);
 
 % (inc)luded trials following Audio Analysis
 auAn.audioMinc     = auAn.audioM(:, auAn.svf0Idx);

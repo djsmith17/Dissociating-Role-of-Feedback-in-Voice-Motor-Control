@@ -86,12 +86,14 @@ for i = 1:AVar.numPart
         % we need. pF: Pressure Flag; iRF: Inflation Response Flag
         
         [DRF, pF, aDF] = preAnalysisCheck(DRF, f0b);
-        aFn = 0; aFa = 1; %Audio Analysis Flag
+        audioFlagN = 0; % Audio Analysis Flag
+        audioFlagA = 1; % Audio Analysis Flag
+        f0CalcF    = 0;
         
         % Analysis on the NIDAQ raw data
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, aDF, pF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, audioFlagN, aDF, pF);
         % Analysis on the Audapter raw data
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, aDF, niAn);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, niAn, audioFlagA, aDF, f0CalcF);
 
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
