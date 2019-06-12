@@ -21,6 +21,9 @@ classdef dfSectionDataOrg
         
         sigsBase
         sigsBaseM
+        
+        sigsNorm
+        sigsNormSec
     end
     
     methods
@@ -44,11 +47,15 @@ classdef dfSectionDataOrg
             % Time vector correspnding to the sectioned signals
             obj.timeSec = linspace(obj.preEveT, obj.posEveT, obj.numSampSec);
             
-            obj = obj.sectionData;
-            obj = obj.meanData;
+            % Section raw f0 around onset and offset
+            obj.sigsSec  = obj.sectionData(obj.sigs);
+            
+            % Identify baseline values 
+            
+            obj.sigsSecM = obj.meanData(obj.sigsSec);
         end
         
-        function obj = sectionData(obj)
+        function sigsSec = sectionData(obj, sigs)
 
             OnsetSecs  = [];
             OffsetSecs = [];
@@ -65,19 +72,19 @@ classdef dfSectionDataOrg
                     OffsetTStLeast = find(obj.time <= OffsetTSt);                  
                     OffsetSpan = OffsetTStLeast(end) + obj.pVec; % Indices corresponding to Onset peri
 
-                    OnsetSec  = obj.sigs(OnsetSpan, ii);  % Data sectioned around Onset
-                    OffsetSec = obj.sigs(OffsetSpan, ii); % Data sectioned around Offset
+                    OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
+                    OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
 
                     OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
                     OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
                 end
             end
 
-            obj.sigsSec(:,:,1) = OnsetSecs;  % 1st 3D layer
-            obj.sigsSec(:,:,2) = OffsetSecs; % 2nd 3D layer
+            sigsSec(:,:,1) = OnsetSecs;  % 1st 3D layer
+            sigsSec(:,:,2) = OffsetSecs; % 2nd 3D layer
         end
         
-        function obj = meanData(obj)
+        function sigsSecM = meanData(obj, sigsSec)
             % Some simple statistics on the sectioned audio data. 
             % meanAudio is a vector containing the following information
             % meanAudio(1) = mean Onset pitch contour
@@ -85,8 +92,8 @@ classdef dfSectionDataOrg
             % meanAudio(3) = mean Offset pitch contour
             % meanAudio(4) = 95% CI of the mean Offset Pitch Contour
 
-            OnsetSecs  = obj.sigsSec(:,:,1);
-            OffsetSecs = obj.sigsSec(:,:,2);
+            OnsetSecs  = sigsSec(:,:,1);
+            OffsetSecs = sigsSec(:,:,2);
 
             meanOnset  = nanmean(OnsetSecs, 2);  % across columns
             meanOffset = nanmean(OffsetSecs, 2); % across columns
@@ -100,13 +107,48 @@ classdef dfSectionDataOrg
             % NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
             % NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
 
-            obj.sigsSecM = [meanOnset SEMOnset meanOffset SEMOffset];
+            sigsSecM = [meanOnset SEMOnset meanOffset SEMOffset];
         end
         
-        function obj = identifyBaselineValues(obj)
+        function obj = identifyBaselineValues(obj, sigsSec)
             prePertT      = obj.timeSec <= 0;                      % timeSec is aligned for timeSec = 0 to be Onset of pert
-            obj.sigsBase  = nanmean(obj.sigsSec(prePertT,:,1), 1); % Per-trial baseline value  
+            obj.sigsBase  = nanmean(sigsSec(prePertT,:,1), 1); % Per-trial baseline value  
             obj.sigsBaseM = nanmean(obj.sigsBase);                 % Mean trial baseline value
+        end
+        
+        function obj = convertCentsData(obj)
+            obj.sigsNorm = [];
+            for ii = 1:obj.numTrial
+                norm = 1200*log2(obj.sigs(:,ii)./obj.sigsBase(ii));
+                obj.sigsNorm  = cat(2, obj.sigsNorm, norm);
+            end
+        end
+        
+        function obj = qualityCheckData(obj)
+            % Identify trials (mic) where participant had vocal fry
+            % aka: f0 pitch miscalculation
+            
+            for ii = 1:obj.numTrial
+
+                mic     = obj.audioMf0_norm(timeInd, ii);
+
+                % objy points where pitch is > 500 // < -500 cents?
+                MisCalcf0 = find(mic >= 500 | mic <=  -500);
+
+                if ~isempty(MisCalcf0)
+                    if obj.trialTypeSvt(ii) == 0
+                        type = 'Control';
+                    else
+                        type = 'Perturbed';
+                    end       
+                    fprintf('%s Trial %d (%s) excluded due to Miscalculated Pitch Trace\n', obj.curSess, svIdc, type)
+
+                    removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
+                    obj.removedTrialTracker = cat(1, obj.removedTrialTracker, removedTrial);
+                else
+                    obj.subSvIdx = cat(1, obj.subSvIdx, ii); % Keep the index of the trials that are not removed
+                end
+            end
         end
     end
 end
