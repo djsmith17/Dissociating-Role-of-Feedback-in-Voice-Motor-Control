@@ -14,6 +14,20 @@ for ii = [1 4 5]
     run         = 'SFL1';
     curTrial    = eachTrial(ii);
     curRes = analyzeAndDrawResult(dirs, participant, run, curTrial);
+
+    
+    dataInfo.curSess = curRes.curSess;
+    dataInfo.sigType = 'Euclidian Distance';
+    dataInfo.units   = 'pixels';
+    dMeasObj = dfSectionDataOrg(curRes.timeFrames, curRes.dist, curRes.curPertTrig, 30, dataInfo);
+    % Perform the mean on the sectioned trials
+    dMeasObj.sigsSecM = dMeasObj.meanData(dMeasObj.sigsSec);
+    % Identify the bounds for these data
+    dMeasObj.sigsSecMLims = dMeasObj.identifyBounds;
+    % Draw the mean-trial Onset and Offset traces
+    dMeasObj.drawSigsSecM
+    
+    
     
     if ii == 5 %This should be fixed in the future
         curRes.curPertTrig(2) = curRes.curPertTrig(2) - 1/30;
@@ -60,6 +74,7 @@ load(dirs.ResultsCodedVid) % returns CodedEndoFrameDataSet
 curRes.participant      = participant;
 curRes.run              = run;
 curRes.curTrial         = curTrial;
+curRes.curSess          = res.curSess;
 curRes.trialNums        = res.allIdxFin(res.pertIdxFin);
 ii = find(curRes.trialNums == curTrial);
 

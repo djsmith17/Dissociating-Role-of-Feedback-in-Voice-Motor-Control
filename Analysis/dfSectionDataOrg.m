@@ -65,21 +65,21 @@ classdef dfSectionDataOrg
             obj.sigsSec  = obj.sectionData(obj.sigs);
             
             % Identify baseline values
-            obj = obj.identifyBaselineValues(obj.sigsSec);
+%             obj = obj.identifyBaselineValues(obj.sigsSec);
             
             % Convert to cents
-            obj = obj.convertCentsData();
+%             obj = obj.convertCentsData();
             
             % Section converted f0 around onset and offset
-            obj.sigsNormSec = obj.sectionData(obj.sigsNorm);
+%             obj.sigsNormSec = obj.sectionData(obj.sigsNorm);
             
             % Identify trials to be removed.
             
             % Mean the trials
-            obj.sigsSecM = obj.meanData(obj.sigsNormSec);
+%             obj.sigsSecM = obj.meanData(obj.sigsNormSec);
             
             % Identify limits of the mean trials
-            obj.sigsSecMLims = obj.identifyBounds;
+%             obj.sigsSecMLims = obj.identifyBounds;
         end
         
         function sigsSec = sectionData(obj, sigs)
@@ -339,13 +339,13 @@ classdef dfSectionDataOrg
 %                                     'FontWeight','bold',...
 %                                     'FontSize',12,...
 %                                     'FontName','Arial');
-
-            legend(lgdCurv, lgdLabl,...
-                    'Box', 'off',...
-                    'Edgecolor', [1 1 1],...
-                    'FontSize', 12,...
-                    'FontWeight', 'bold',...
-                    'Position', [0.8 0.93 0.05 0.05]);         
+% 
+%             legend(lgdCurv, lgdLabl,...
+%                     'Box', 'off',...
+%                     'Edgecolor', [1 1 1],...
+%                     'FontSize', 12,...
+%                     'FontWeight', 'bold',...
+%                     'Position', [0.8 0.93 0.05 0.05]);         
 
 
             obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
