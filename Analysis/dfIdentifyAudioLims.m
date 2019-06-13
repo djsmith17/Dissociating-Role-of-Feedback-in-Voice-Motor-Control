@@ -42,7 +42,7 @@ if ~isempty(An.audioMf0p)
     if strcmp(An.expType, 'Auditory Perturbation_Perceptual')
         lims.audio = [singleSt singleSp lLMH uLMH];
     else
-        lims.audio = [singleSt singleSp lLM lLM];
+        lims.audio = [singleSt singleSp lLM uLM];
     end
 else
     lims.audio     = [singleSt singleSp -20 20];
