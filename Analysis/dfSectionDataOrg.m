@@ -3,6 +3,10 @@ classdef dfSectionDataOrg
     
     properties
         
+        curSess
+        dataType
+        dataUnit
+        
         time
         sigs
         trigs
@@ -17,19 +21,29 @@ classdef dfSectionDataOrg
         
         timeSec
         sigsSec
-        sigsSecM
         
         sigsBase
         sigsBaseM
         
         sigsNorm
         sigsNormSec
+        
+        sigsSecM
+        sigsSecMLims
+        
+        sigsMeanFig
+        sigsMeanFigTitle
     end
     
     methods
-        function obj = dfSectionDataOrg(time, sigs, trigs, fs)
+        function obj = dfSectionDataOrg(time, sigs, trigs, fs, dataInfo)
             %UNTITLED3 Construct an instance of this class
             %   Detailed explanation goes here
+            
+            obj.curSess  = dataInfo.curSess;
+            obj.dataType = dataInfo.sigType;
+            obj.dataUnit = dataInfo.units;
+            
             obj.time  = time;
             obj.sigs  = sigs;
             obj.trigs = trigs;
@@ -50,9 +64,22 @@ classdef dfSectionDataOrg
             % Section raw f0 around onset and offset
             obj.sigsSec  = obj.sectionData(obj.sigs);
             
-            % Identify baseline values 
+            % Identify baseline values
+            obj = obj.identifyBaselineValues(obj.sigsSec);
             
-            obj.sigsSecM = obj.meanData(obj.sigsSec);
+            % Convert to cents
+            obj = obj.convertCentsData();
+            
+            % Section converted f0 around onset and offset
+            obj.sigsNormSec = obj.sectionData(obj.sigsNorm);
+            
+            % Identify trials to be removed.
+            
+            % Mean the trials
+            obj.sigsSecM = obj.meanData(obj.sigsNormSec);
+            
+            % Identify limits of the mean trials
+            obj.sigsSecMLims = obj.identifyBounds;
         end
         
         function sigsSec = sectionData(obj, sigs)
@@ -109,11 +136,11 @@ classdef dfSectionDataOrg
 
             sigsSecM = [meanOnset SEMOnset meanOffset SEMOffset];
         end
-        
+       
         function obj = identifyBaselineValues(obj, sigsSec)
-            prePertT      = obj.timeSec <= 0;                      % timeSec is aligned for timeSec = 0 to be Onset of pert
+            prePertT      = obj.timeSec <= 0;                  % timeSec is aligned for timeSec = 0 to be Onset of pert
             obj.sigsBase  = nanmean(sigsSec(prePertT,:,1), 1); % Per-trial baseline value  
-            obj.sigsBaseM = nanmean(obj.sigsBase);                 % Mean trial baseline value
+            obj.sigsBaseM = nanmean(obj.sigsBase);             % Mean trial baseline value
         end
         
         function obj = convertCentsData(obj)
@@ -149,6 +176,186 @@ classdef dfSectionDataOrg
                     obj.subSvIdx = cat(1, obj.subSvIdx, ii); % Keep the index of the trials that are not removed
                 end
             end
+        end
+        
+        function lims = identifyBounds(obj)
+            % Check the microphone recordings
+            timeMeaned = obj.timeSec;
+            meanSt = round(timeMeaned(1), 1);
+            meanSp = round(timeMeaned(end), 1);
+            
+            [lwBoundOn, upBoundOn] = obj.MaxMinBounds(obj.sigsSecM(:,1), obj.sigsSecM(:,2), 10);
+            [lwBoundOf, upBoundOf] = obj.MaxMinBounds(obj.sigsSecM(:,3), obj.sigsSecM(:,4), 10);
+
+            lwBoundM = obj.CompareAndChooseBounds(lwBoundOn, lwBoundOf, 'min');
+            upBoundM = obj.CompareAndChooseBounds(upBoundOn, upBoundOf, 'max');
+
+            lims = [meanSt meanSp lwBoundM upBoundM];
+        end
+        
+        function [lwBound, upBound] = MaxMinBounds(obj, audio, audioErr, buff)
+            % MaxMinBounds takes an audio trace and the error trace for that audio, and
+            % identifies what the max and min values of the trace are. It identifies
+            % how wide the bounds needs to be fully show the trace with some buff
+
+            [~, Imax] = max(audio);
+            upBound   = round(audio(Imax) + audioErr(Imax) + buff);
+            [~, Imin] = min(audio);
+            lwBound   = round(audio(Imin) - audioErr(Imin) - buff);
+        end
+
+        function bound = CompareAndChooseBounds(obj, bound1, bound2, type)
+            % CompareAndChooseBounds does a simple and quick check between two proposed
+            % bounds and decides which is greater/lesser. Since I am often comparing
+            % two sets of things, this helps to keep data ranges consistent and
+            % symmetrical. 
+
+            allBounds = [bound1 bound2];
+
+            if strcmp(type, 'max')
+                bound = max(allBounds);
+            elseif strcmp(type, 'min')
+                bound = min(allBounds);
+            else
+                bound = allBounds(1);
+            end
+
+        end
+        
+        function obj = drawSigsSecM(obj)
+            % drawDAQMeanTrialMicf0(res, plotFolder) plots differences in microphone 
+            % recordings between perturbed and control trials. 
+
+%             if isempty(varargin)
+%                 presFlag = 0;
+%             else
+%                 presFlag = varargin{1};
+%             end
+% 
+%             curSess          = res.curSess;
+%             f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
+%             AudFB            = res.AudFB;
+%             numCT            = res.numContTrialsFin;
+%             numPT            = res.numPertTrialsFin;
+% 
+%             time             = res.secTime;
+%             meanf0PertOnset  = res.audioMf0MeanPert(:,1);
+%             CIf0PertOnset    = res.audioMf0MeanPert(:,2);
+%             meanf0PertOffset = res.audioMf0MeanPert(:,3);
+%             CIf0PertOffset   = res.audioMf0MeanPert(:,4);
+% 
+%             meanf0ContOnset  = res.audioMf0MeanCont(:,1);
+%             CIf0ContOnset    = res.audioMf0MeanCont(:,2);
+%             meanf0ContOffset = res.audioMf0MeanCont(:,3);
+%             CIf0ContOffset   = res.audioMf0MeanCont(:,4);
+%             limits           = res.limitsAmean;
+
+            % Figure properties
+            plotpos = [10 100];
+            plotdim = [1600 600];
+            OnsetOffsetMeanDataFig = figure('Color', [1 1 1]);
+            set(OnsetOffsetMeanDataFig, 'Position', [plotpos plotdim], 'PaperPositionMode','auto')
+
+%             AD = res.audioDynamics;
+%             if ~isempty(AD)
+%                 statSM = round(AD.respVarM(2), 1);
+%                 statRM = round(AD.respVarM(3), 1);
+%                 statRP = round(AD.respVarM(4));
+%             else
+%                 statSM = '';
+%                 statRM = '';
+%                 statRP = '';
+%             end
+%             curSess(strfind(curSess, '_')) = ' ';
+
+%             lgdCurv = [];
+%             lgdLabl = {};
+
+            % Trigger Line properties
+            trigLineX   = [0 0];
+            trigLineY   = [-10000 10000];
+            trigLineC   = [0.3 0.3 0.3];
+            
+            % Data trace properties
+            dataColor      = 'b';
+            
+            % Axis properties
+            fontName       = 'Arial';
+            titleFontSize  = 14;
+            axisLSize      = 14;
+            lineThick      = 4;
+
+            % Subplot dimensions and spacing
+            ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
+
+            % Onset of Perturbation
+            axes(ha(1))
+            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
+            hold on
+            dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', dataColor}, 'transparent', 1);
+            
+
+            set(dHOn.mainLine, 'LineWidth', lineThick)
+            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
+            title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
+            axis(obj.sigsSecMLims); box off
+
+            set(gca,'FontName', fontName,...
+                    'FontSize', axisLSize,...
+                    'FontWeight','bold')
+            hold off
+            %Offset of Perturbation
+            axes(ha(2))
+            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
+            hold on
+            dHOf = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', dataColor}, 'transparent', 1);
+              
+            set(dHOf.mainLine, 'LineWidth', lineThick)
+            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
+            title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
+            axis(obj.sigsSecMLims); box off
+            hold off
+            set(gca,'FontName', fontName,...
+                    'FontSize', axisLSize,...
+                    'FontWeight','bold',...
+                    'YAxisLocation', 'right');
+
+            sup = suptitle({obj.curSess});
+            set(sup, 'FontName', fontName,...
+                     'FontSize', titleFontSize,...
+                     'FontWeight','bold')
+
+%             annoStim = ['SM: ' num2str(statSM) ' cents'];
+%             annoResp = ['RM: ' num2str(statRM) ' cents'];
+%             annoPerc = ['RP: ' num2str(statRP) ' %'];
+% 
+%             statBox = annotation('textbox',[.38 .75 0.45 0.1],...
+%                                  'string', {annoStim;
+%                                             annoResp
+%                                             annoPerc},...
+%                                     'LineStyle','none',...
+%                                     'FontWeight','bold',...
+%                                     'FontSize',12,...
+%                                     'FontName','Arial');
+
+            legend(lgdCurv, lgdLabl,...
+                    'Box', 'off',...
+                    'Edgecolor', [1 1 1],...
+                    'FontSize', 12,...
+                    'FontWeight', 'bold',...
+                    'Position', [0.8 0.93 0.05 0.05]);         
+
+
+            obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
+            obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean.jpg'];
+        end
+        
+        function saveSigsSecMFig(obj, plotFolder)
+            
+            saveFileName = fullfile(plotFolder, obj.sigsMeanFigTitle);
+            export_fig(saveFileName)
         end
     end
 end
