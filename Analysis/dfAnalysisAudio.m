@@ -56,27 +56,28 @@ if AudFlag == 1
     An.expTrigsSvt  = An.expTrigs(An.allIdxPreProc, :);
     An.trialTypeSvt = An.trialType(An.allIdxPreProc);
     An.numTrialSvt  = length(An.allIdxPreProc);
-   
-    % Set some frequency analysis variables
-    An.numSamp = length(An.audioMSvt);
-    fV = setFreqAnalVar(An.sRate, An.numSamp, An.f0b, An.gender);
+ 
+    freqVar.numSamp = length(An.audioMSvt);
+    freqVar.sRate   = An.sRate;
+    freqVar.f0b     = An.f0b;
+    freqVar.gender  = An.gender;
     
     % File where to save/find pitch contour analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
     
     % How do you want to calculate the pitch contour?
     if strcmp(An.f0Type, 'Praat') == 1
-        anaFlag = 1;
+        freqVar.f0AnalysisType = 1;
     else
-        anaFlag = 2;
+        freqVar.f0AnalysisType = 2;
     end
         
     % Pitch contour analysis can be time consuming. 
     % Flag allows the loading of a previously saved copy for faster reanalysis.
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
 
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioMSvt, An.expTrigsSvt);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioHSvt, An.expTrigsSvt);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -236,22 +237,24 @@ An.audioHf0_meanc = [];
 An.audioDynamics  = [];
 end
 
-function fV = setFreqAnalVar(sRate, numSamp, f0b, gender)
+function fV = setFreqAnalVar(freqVar)
+
+fV.anaFlag    = freqVar.f0AnalysisType;
+fV.sRate      = freqVar.sRate;
+fV.numSamp    = freqVar.numSamp;
 
 %Identify a few analysis varaibles
-fV.f0b        = f0b;
-fV.gender     = gender;
-fV.f0Bounds   = identifyf0Bounds(f0b, gender);
+fV.f0b        = freqVar.f0b;
+fV.gender     = freqVar.gender;
+fV.f0Bounds   = identifyf0Bounds(fV.f0b, fV.gender);
 
-fV.sRate      = sRate;
-fV.numSamp    = numSamp;
-fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; % Time vector for full mic
+fV.time       = (0:1/fV.sRate:(fV.numSamp-1)/fV.sRate)'; % Time vector for full mic
 
 fV.freqCutOff = 400;
-fV.win        = 0.010;      % seconds
+fV.win        = 0.005;      % Sampling window
 fV.fsA        = 1/fV.win;
-fV.winP       = fV.win*sRate;
-fV.pOV        = 0.60;       % 80% overlap
+fV.winP       = fV.win*fV.sRate;
+fV.pOV        = 0.00;       % 80% overlap
 fV.tStepP     = round(fV.winP*(1-fV.pOV));
 
 fV.trialWin = round(1:fV.tStepP:(fV.numSamp-fV.winP)); % Window start frames based on length of voice onset mic
@@ -261,21 +264,14 @@ fV.roundFact = fV.sRate/fV.tStepP;
 fV.winHalf   = fV.win/2;
 end
 
-function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, flag)
+function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, freqVar, audio, expTrig)
 ET = tic;
 [~, numTrial] = size(audio);
 
-fs = fV.sRate;
+fV = setFreqAnalVar(freqVar);
 
-if flag == 1
-    fV.win       = 0.005;
-    fV.winP      = fV.win*fs;
-    fV.pOV       = 0.00;
-    fV.tStepP    = round(fV.winP*(1-fV.pOV));
-    fV.roundFact = fV.sRate/fV.tStepP;
-    fV.winHalf   = 1.0*fV.win;
-    
-    [timef0, audiof0, ~] = dfCalcf0Praat(dirs, audio, fs, fV.f0Bounds);
+if fV.anaFlag == 1    
+    [timef0, audiof0] = dfCalcf0Praat(dirs, audio, fV.sRate, fV.win, fV.f0Bounds);
 else
     audiof0 = [];
     for j = 1:numTrial %Trial by Trial             
