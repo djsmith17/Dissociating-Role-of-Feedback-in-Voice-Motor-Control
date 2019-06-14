@@ -6,6 +6,7 @@ dirs.PooledResultsDir = fullfile(dirs.Results, 'Pooled Analyses', 'DRF_Endo');
 
 allParti = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'};
 numParti = length(allParti);
+coder    = 'DJS';
 % eachTrial = [3 10 8 5 8];
 
 meanSecsOn = [];
@@ -15,7 +16,7 @@ for ii = 1:numParti
     participant = allParti{ii};
     run         = 'SFL1';
     
-    [~, dMeasObj] = analyzeAndDrawResult(dirs, participant, run);
+    [~, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, coder);
     
 %     drawEndoResponses(dirs, curRes, dMeasObj, eachTrial(ii))
 
@@ -44,16 +45,17 @@ distObjAllSubj = distObjAllSubj.drawSigsSecM;
 distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
 
-function [curRes, dMeasObj] = analyzeAndDrawResult(dirs, participant, run)
+function [curRes, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, coder)
 
 dirs.ResultsParti     = fullfile(dirs.Results, participant, run);
 dirs.ResultsBehavFile = fullfile(dirs.ResultsParti, [participant run 'ResultsDRF.mat']);
-dirs.ResultsCodedVid  = fullfile(dirs.ResultsParti, [participant run 'EndoFrameMeasuresDJS.mat']);
+dirs.ResultsCodedVid  = fullfile(dirs.ResultsParti, [participant run 'EndoFrameMeasures' coder '.mat']);
 
 load(dirs.ResultsBehavFile) % returns res
-load(dirs.ResultsCodedVid) % returns CodedEndoFrameDataSet
+load(dirs.ResultsCodedVid)  % returns CodedEndoFrameDataSet
 
 % Participant and Run information
+curRes.coder            = coder;
 curRes.participant      = participant;
 curRes.run              = run;
 curRes.curSess          = res.curSess;
@@ -95,6 +97,7 @@ end
 dataInfo.curSess = curRes.curSess;
 dataInfo.sigType = 'Euclidian Distance';
 dataInfo.units   = 'pixels';
+dataInfo.coder   = coder;
 
 % Create the object that handles signal sectioning
 dMeasObj = dfSectionDataOrg(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, 30, dataInfo);

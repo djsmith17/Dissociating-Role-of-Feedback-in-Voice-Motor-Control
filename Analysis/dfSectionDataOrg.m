@@ -3,6 +3,7 @@ classdef dfSectionDataOrg
     
     properties
         
+        coder
         curSess
         dataType
         dataUnit
@@ -42,6 +43,7 @@ classdef dfSectionDataOrg
             %UNTITLED3 Construct an instance of this class
             %   Detailed explanation goes here
             
+            obj.coder    = dataInfo.coder;
             obj.curSess  = dataInfo.curSess;
             obj.dataType = dataInfo.sigType;
             obj.dataUnit = dataInfo.units;
@@ -362,15 +364,13 @@ classdef dfSectionDataOrg
 %             annoResp = ['RM: ' num2str(statRM) ' cents'];
 %             annoPerc = ['RP: ' num2str(statRP) ' %'];
 % 
-%             statBox = annotation('textbox',[.38 .75 0.45 0.1],...
-%                                  'string', {annoStim;
-%                                             annoResp
-%                                             annoPerc},...
-%                                     'LineStyle','none',...
-%                                     'FontWeight','bold',...
-%                                     'FontSize',12,...
-%                                     'FontName','Arial');
-% 
+             annotation('textbox',[0.88 0.88 0.45 0.1],...
+                        'string', ['Coder: ' obj.coder],...
+                        'LineStyle','none',...
+                        'FontWeight','bold',...
+                        'FontSize',18,...
+                        'FontName','Arial');
+
             legend(lgdCurv, lgdLabl,...
                     'Box', 'off',...
                     'Edgecolor', [1 1 1],...
@@ -380,7 +380,7 @@ classdef dfSectionDataOrg
 
 
             obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
-            obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean.jpg'];
+            obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
         end
         
         function saveSigsSecMFig(obj, plotFolder)
