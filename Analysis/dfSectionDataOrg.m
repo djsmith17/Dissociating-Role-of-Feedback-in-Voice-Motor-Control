@@ -36,6 +36,15 @@ classdef dfSectionDataOrg
         
         sigsMeanFig
         sigsMeanFigTitle
+        
+        dataColor1
+        dataColor2
+        dataColor3
+        
+        OnsetOffsetAxes
+        legendCurves
+        legendLabels
+        LgdObj
     end
     
     methods
@@ -64,6 +73,13 @@ classdef dfSectionDataOrg
             
             % Time vector corresponding to the sectioned signals
             obj.timeSec = linspace(obj.preEveT, obj.posEveT, obj.numSampSec);
+            
+            obj.dataColor1 = [55,126,184]/255; % Cerulean Blu
+            obj.dataColor2 = [77,175,74]/255;  % Leaf Green
+            obj.dataColor3 = [231,41,138]/255; % Bright Magenta
+            
+            obj.legendCurves = [];
+            obj.legendLabels = {};
             
 %             % Section raw f0 around onset and offset
 %             obj.sigsSec  = obj.sectionData(obj.sigs);
@@ -291,9 +307,6 @@ classdef dfSectionDataOrg
 %             end
 %             curSess(strfind(curSess, '_')) = ' ';
 
-            lgdCurv = [];
-            lgdLabl = {};
-
             % Trigger Line properties
             trigLineX   = [0 0];
             trigLineY   = [-10000 10000];
@@ -304,9 +317,6 @@ classdef dfSectionDataOrg
             zeroLineY = [0 0];
             zeroLineC = [0.3 0.3 0.3];
             
-            % Data trace properties
-            dataColor      = 'b';
-            
             % Axis properties
             fontName       = 'Arial';
             titleFontSize  = 14;
@@ -314,14 +324,14 @@ classdef dfSectionDataOrg
             lineThick      = 4;
 
             % Subplot dimensions and spacing
-            ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
+            obj.OnsetOffsetAxes = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
             % Onset of Perturbation
-            axes(ha(1))
+            axes(obj.OnsetOffsetAxes(1))
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
-            dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', dataColor}, 'transparent', 1);
+            dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
 
             set(dHOn.mainLine, 'LineWidth', lineThick)
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -335,14 +345,14 @@ classdef dfSectionDataOrg
             hold off
             
             %Offset of Perturbation
-            axes(ha(2))   
+            axes(obj.OnsetOffsetAxes(2))   
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
-            dHOf = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', dataColor}, 'transparent', 1);
+            dHOf = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
               
-            lgdCurv = cat(2, lgdCurv, dHOf.mainLine);
-            lgdLabl = cat(2, lgdLabl, [num2str(obj.numTrial) ' Trials']);
+            obj.legendCurves = cat(2, obj.legendCurves, dHOf.mainLine);
+            obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' Trials']);
             
             set(dHOf.mainLine, 'LineWidth', lineThick)
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -371,16 +381,42 @@ classdef dfSectionDataOrg
                         'FontSize',18,...
                         'FontName','Arial');
 
-            legend(lgdCurv, lgdLabl,...
-                    'Box', 'off',...
-                    'Edgecolor', [1 1 1],...
-                    'FontSize', 12,...
-                    'FontWeight', 'bold',...
-                    'Position', [0.8 0.93 0.05 0.05]);         
+            obj.LgdObj = legend(obj.legendCurves, obj.legendLabels,...
+                                'Box', 'off',...
+                                'Edgecolor', [1 1 1],...
+                                'FontSize', 12,...
+                                'FontWeight', 'bold',...
+                                'Position', [0.7 0.91 0.05 0.05]);         
 
 
             obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
+        end
+        
+        function obj = appendFigure(obj, sigsSecM, flag)
+            
+            if flag == 2
+                color = obj.dataColor2;
+            else
+                color = obj.dataColor3;
+            end
+            
+            axes(obj.OnsetOffsetAxes(1))
+            hold on
+            onH = shadedErrorBar(obj.timeSec, sigsSecM(:,1), sigsSecM(:,2), 'lineprops', {'color', color}, 'transparent', 1);
+            set(onH.mainLine, 'LineWidth', 4)
+            hold off
+            
+            axes(obj.OnsetOffsetAxes(2))
+            hold on
+            ofH = shadedErrorBar(obj.timeSec, sigsSecM(:,3), sigsSecM(:,4), 'lineprops', {'color', color}, 'transparent', 1);
+            set(ofH.mainLine, 'LineWidth', 4)
+            hold off
+            
+            obj.legendCurves = cat(2, obj.legendCurves, ofH.mainLine);
+            obj.legendLabels = cat(2, obj.legendLabels, ['Line ' num2str(flag) ': ' num2str(obj.numTrial) ' Trials']);
+            
+            legend(obj.legendCurves, obj.legendLabels);
         end
         
         function saveSigsSecMFig(obj, plotFolder)

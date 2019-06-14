@@ -6,7 +6,7 @@ dirs.PooledResultsDir = fullfile(dirs.Results, 'Pooled Analyses', 'DRF_Endo');
 
 allParti = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'};
 numParti = length(allParti);
-coder    = 'DJS';
+coder    = 'RF';
 % eachTrial = [3 10 8 5 8];
 
 meanSecsOn = [];
@@ -81,7 +81,7 @@ curRes.timeFrames = linspace(0, curRes.time(end), numFrame);
 curRes.codedPertTrig = [];
 curRes.codedSigs     = [];
 curRes.codedSensorP  = [];
-curRes.codedDist     = [];
+curRes.codedDist     = []; curRes.codedDist2     = []; curRes.codedDist3     = [];
 for ii = 1:curRes.numTrial
     curTable = CodedEndoFrameDataSet{ii};
     firstVal = curTable.FidPt1X;
@@ -90,6 +90,11 @@ for ii = 1:curRes.numTrial
         curRes.codedSigs     = cat(2, curRes.codedSigs, curRes.sigs(:,ii));
         curRes.codedSensorP  = cat(2, curRes.codedSensorP, curRes.sensorP(:,ii));
         curRes.codedDist     = cat(2, curRes.codedDist, curTable.Dist);
+        
+        if ismember('Dist2', curTable.Properties.VariableNames)
+            curRes.codedDist2    = cat(2, curRes.codedDist2, curTable.Dist2);
+            curRes.codedDist3    = cat(2, curRes.codedDist3, curTable.Dist3);
+        end
     end    
 end
 
@@ -99,8 +104,27 @@ dataInfo.sigType = 'Euclidian Distance';
 dataInfo.units   = 'pixels';
 dataInfo.coder   = coder;
 
+dMeasObj = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, dataInfo);
+
+% Draw the mean-trial Onset and Offset traces
+dMeasObj = dMeasObj.drawSigsSecM;
+
+if ismember('Dist2', curTable.Properties.VariableNames)
+    dMeasObj2 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist2, curRes.codedPertTrig, dataInfo);
+    dMeasObj= dMeasObj.appendFigure(dMeasObj2.sigsSecM, 2);
+    
+    dMeasObj3 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist3, curRes.codedPertTrig, dataInfo);
+    dMeasObj= dMeasObj.appendFigure(dMeasObj3.sigsSecM, 3);
+end
+dMeasObj.saveSigsSecMFig(dirs.ResultsParti)
+end
+
+function dMeasObj = iterateOnAnalysisSteps(timeFrames, codedDist, codedPertTrig, dataInfo)
+
+fs = 30;
+
 % Create the object that handles signal sectioning
-dMeasObj = dfSectionDataOrg(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, 30, dataInfo);
+dMeasObj = dfSectionDataOrg(timeFrames, codedDist, codedPertTrig, fs, dataInfo);
 
 % Section the raw data for ease of baseline detection
 sigsSec4Baseline  = dMeasObj.sectionData(dMeasObj.sigs);
@@ -121,9 +145,6 @@ dMeasObj.sigsSec  = dMeasObj.sectionData(dMeasObj.sigs);
 dMeasObj.sigsSecM = dMeasObj.meanData(dMeasObj.sigsSec);
 % Identify the bounds for these data
 dMeasObj = dMeasObj.identifyBounds;
-% Draw the mean-trial Onset and Offset traces
-dMeasObj = dMeasObj.drawSigsSecM;
-dMeasObj.saveSigsSecMFig(dirs.ResultsParti)
 end
 
 function drawEndoResponses(dirs, curRes, dMeasObj, curTrial)
