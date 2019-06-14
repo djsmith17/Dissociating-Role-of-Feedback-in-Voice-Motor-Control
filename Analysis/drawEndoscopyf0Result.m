@@ -5,17 +5,19 @@ dirs = dfDirs('Dissociating-Role-of-Feedback-in-Voice-Motor-Control');
 dirs.PooledResultsDir = fullfile(dirs.Results, 'Pooled Analyses', 'DRF_Endo');
 
 allParti = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'};
-eachTrial = [3 10 8 5 8];
+numParti = length(allParti);
+% eachTrial = [3 10 8 5 8];
 
 meanSecsOn = [];
 meanSecsOf = [];
 allSubjMeanSecs = [];
-for ii = 1:5
+for ii = 1:numParti
     participant = allParti{ii};
     run         = 'SFL1';
-    curTrial    = eachTrial(ii);
     
-    [~, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, curTrial);
+    [~, dMeasObj] = analyzeAndDrawResult(dirs, participant, run);
+    
+%     drawEndoResponses(dirs, curRes, dMeasObj, eachTrial(ii))
 
     meanSecsOn = cat(2, meanSecsOn, dMeasObj.sigsSecM(:,1));
     meanSecsOf = cat(2, meanSecsOf, dMeasObj.sigsSecM(:,3));
@@ -42,7 +44,7 @@ distObjAllSubj = distObjAllSubj.drawSigsSecM;
 distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
 
-function [curRes, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, curTrial)
+function [curRes, dMeasObj] = analyzeAndDrawResult(dirs, participant, run)
 
 dirs.ResultsParti     = fullfile(dirs.Results, participant, run);
 dirs.ResultsBehavFile = fullfile(dirs.ResultsParti, [participant run 'ResultsDRF.mat']);
@@ -51,42 +53,51 @@ dirs.ResultsCodedVid  = fullfile(dirs.ResultsParti, [participant run 'EndoFrameM
 load(dirs.ResultsBehavFile) % returns res
 load(dirs.ResultsCodedVid) % returns CodedEndoFrameDataSet
 
+% Participant and Run information
 curRes.participant      = participant;
 curRes.run              = run;
-curRes.curTrial         = curTrial;
 curRes.curSess          = res.curSess;
 curRes.trialNums        = res.allIdxFin(res.pertIdxFin);
-ii = find(curRes.trialNums == curTrial);
 
+% General experimental parameters
 curRes.time             = res.timef0;
 curRes.sigs             = res.audioMf0TrialPert;
 curRes.pertTrig         = res.pertTrigsFin;
-
-curRes.curSig           = curRes.sigs(:,ii);
-curRes.curPertTrig      = curRes.pertTrig(ii,:);
 curRes.limits           = res.limitsA;
 
 curRes.timePres         = res.timeS;
 curRes.sensorP          = res.sensorPsv;
-curRes.curSensorP       = curRes.sensorP(:,ii);
 curRes.pressureLim      = res.limitsP;
 
-% Video Results:
-curTable = CodedEndoFrameDataSet{ii};
+% How many trials were coded?
+curRes.numTrial         = res.numPertTrialsFin;
 
-timeFrames = linspace(0,4,121);
-pt1X = curTable.FidPt1X;
-pt2X = curTable.FidPt2X;
-pt1Y = curTable.FidPt1Y;
-pt2Y = curTable.FidPt2Y;
-distRaw = curTable.Dist;
+% Video Properties
+[numFrame, ~] = size(CodedEndoFrameDataSet{1});
+curRes.timeFrames = linspace(0, curRes.time(end), numFrame);
 
+curRes.codedPertTrig = [];
+curRes.codedSigs     = [];
+curRes.codedSensorP  = [];
+curRes.codedDist     = [];
+for ii = 1:curRes.numTrial
+    curTable = CodedEndoFrameDataSet{ii};
+    firstVal = curTable.FidPt1X;
+    if firstVal ~= 0 % Was this trial coded at all? This check needs to be improved in future
+        curRes.codedPertTrig = cat(1, curRes.codedPertTrig, curRes.pertTrig(ii,:));
+        curRes.codedSigs     = cat(2, curRes.codedSigs, curRes.sigs(:,ii));
+        curRes.codedSensorP  = cat(2, curRes.codedSensorP, curRes.sensorP(:,ii));
+        curRes.codedDist     = cat(2, curRes.codedDist, curTable.Dist);
+    end    
+end
+
+% Set up the sectioned data object
 dataInfo.curSess = curRes.curSess;
 dataInfo.sigType = 'Euclidian Distance';
 dataInfo.units   = 'pixels';
 
 % Create the object that handles signal sectioning
-dMeasObj = dfSectionDataOrg(timeFrames, distRaw, curRes.curPertTrig, 30, dataInfo);
+dMeasObj = dfSectionDataOrg(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, 30, dataInfo);
 
 % Section the raw data for ease of baseline detection
 sigsSec4Baseline  = dMeasObj.sectionData(dMeasObj.sigs);
@@ -110,11 +121,11 @@ dMeasObj = dMeasObj.identifyBounds;
 % Draw the mean-trial Onset and Offset traces
 dMeasObj = dMeasObj.drawSigsSecM;
 dMeasObj.saveSigsSecMFig(dirs.ResultsParti)
-
-drawEndoResponses(dirs, curRes, dMeasObj)
 end
 
-function drawEndoResponses(dirs, curRes, dMeasObj)
+function drawEndoResponses(dirs, curRes, dMeasObj, curTrial)
+
+ii = find(curRes.trialNums == curTrial);
 
 plotpos = [10 0];
 plotdim = [1000 500];
@@ -123,13 +134,13 @@ set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 pertColor = [0.8 0.8 0.8];
 
-pertAx  = [curRes.curPertTrig(1), curRes.curPertTrig(2)];
+pertAx  = [curRes.codedPertTrig(ii, 1), curRes.codedPertTrig(ii, 2)];
 pertAy  = [600 600];
 
 % f0 Results
 subplot(2,1,1)
 yyaxis right
-plot(curRes.timePres, curRes.curSensorP, '--k', 'LineWidth', 1.5)
+plot(curRes.timePres, curRes.codedSensorP(:, ii), '--k', 'LineWidth', 1.5)
 ylabel('Pressure (psi)')
 axis(curRes.pressureLim);
 set(gca,'FontSize', 14,...
@@ -139,9 +150,9 @@ yyaxis left
 pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
 hold on    
 
-plot(curRes.time, curRes.curSig, 'b', 'LineWidth', 2)
+plot(curRes.time, curRes.curSig(:,ii), 'b', 'LineWidth', 2)
 ylabel('f0 (cents)', 'FontSize', 18, 'FontWeight', 'bold')
-title({[curRes.participant ' ' curRes.run],[ ' Trial ' num2str(curRes.curTrial)]}, 'FontSize', 18, 'FontWeight', 'bold')
+title({[curRes.participant ' ' curRes.run],[ ' Trial ' num2str(curTrial)]}, 'FontSize', 18, 'FontWeight', 'bold')
 axis(curRes.limits); box off
 lgd = legend(pA, 'Perturbation Period');
 lgd.EdgeColor = 'none';
@@ -154,7 +165,7 @@ subplot(2,1,2)
 pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
 hold on
 plot([-1 5], [0 0], '--k')
-ptDistLn = plot(dMeasObj.time, dMeasObj.sigs, 'b');
+ptDistLn = plot(dMeasObj.time, dMeasObj.sigs(:, ii), 'b');
 axis(dMeasObj.sigsLims); box off
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
 ylabel('Distance (Pixels)')
