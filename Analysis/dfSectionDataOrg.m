@@ -19,6 +19,8 @@ classdef dfSectionDataOrg
         numSampSec
         pVec
         
+        sigsLims
+        
         timeSec
         sigsSec
         
@@ -58,11 +60,11 @@ classdef dfSectionDataOrg
             
             obj.pVec = linspace(0, obj.numSampSec-1, obj.numSampSec);
             
-            % Time vector correspnding to the sectioned signals
+            % Time vector corresponding to the sectioned signals
             obj.timeSec = linspace(obj.preEveT, obj.posEveT, obj.numSampSec);
             
-            % Section raw f0 around onset and offset
-            obj.sigsSec  = obj.sectionData(obj.sigs);
+%             % Section raw f0 around onset and offset
+%             obj.sigsSec  = obj.sectionData(obj.sigs);
             
             % Identify baseline values
 %             obj = obj.identifyBaselineValues(obj.sigsSec);
@@ -111,32 +113,6 @@ classdef dfSectionDataOrg
             sigsSec(:,:,2) = OffsetSecs; % 2nd 3D layer
         end
         
-        function sigsSecM = meanData(obj, sigsSec)
-            % Some simple statistics on the sectioned audio data. 
-            % meanAudio is a vector containing the following information
-            % meanAudio(1) = mean Onset pitch contour
-            % meanAudio(2) = 95% CI of the mean Onset Pitch Contour
-            % meanAudio(3) = mean Offset pitch contour
-            % meanAudio(4) = 95% CI of the mean Offset Pitch Contour
-
-            OnsetSecs  = sigsSec(:,:,1);
-            OffsetSecs = sigsSec(:,:,2);
-
-            meanOnset  = nanmean(OnsetSecs, 2);  % across columns
-            meanOffset = nanmean(OffsetSecs, 2); % across columns
-
-            stdOnset   = nanstd(OnsetSecs, 0, 2);  % across columns
-            stdOffset  = nanstd(OffsetSecs, 0, 2); % across columns
-
-            SEMOnset   = stdOnset/sqrt(obj.numTrial);  % Standard Error
-            SEMOffset  = stdOffset/sqrt(obj.numTrial); % Standard Error
-
-            % NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-            % NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
-
-            sigsSecM = [meanOnset SEMOnset meanOffset SEMOffset];
-        end
-       
         function obj = identifyBaselineValues(obj, sigsSec)
             prePertT      = obj.timeSec <= 0;                  % timeSec is aligned for timeSec = 0 to be Onset of pert
             obj.sigsBase  = nanmean(sigsSec(prePertT,:,1), 1); % Per-trial baseline value  
@@ -149,6 +125,19 @@ classdef dfSectionDataOrg
                 norm = 1200*log2(obj.sigs(:,ii)./obj.sigsBase(ii));
                 obj.sigsNorm  = cat(2, obj.sigsNorm, norm);
             end
+        end
+        
+        function sigsSmooth = applySmoothing(obj, sigs, len)
+            
+            sigsSmooth = [];
+            for ii = 1:obj.numTrial
+                smoothed   = smooth(sigs(:,ii), len);   % 10 sample length smoothing
+                sigsSmooth = cat(2, sigsSmooth, smoothed);
+            end
+        end
+        
+        function sigsZM = applyZeroMean(obj, sigs, base)
+            sigsZM = sigs - base;
         end
         
         function obj = qualityCheckData(obj)
@@ -178,19 +167,51 @@ classdef dfSectionDataOrg
             end
         end
         
-        function lims = identifyBounds(obj)
-            % Check the microphone recordings
-            timeMeaned = obj.timeSec;
-            meanSt = round(timeMeaned(1), 1);
-            meanSp = round(timeMeaned(end), 1);
+        function sigsSecM = meanData(obj, sigsSec)
+            % Some simple statistics on the sectioned audio data. 
+            % meanAudio is a vector containing the following information
+            % meanAudio(1) = mean Onset pitch contour
+            % meanAudio(2) = 95% CI of the mean Onset Pitch Contour
+            % meanAudio(3) = mean Offset pitch contour
+            % meanAudio(4) = 95% CI of the mean Offset Pitch Contour
+
+            OnsetSecs  = sigsSec(:,:,1);
+            OffsetSecs = sigsSec(:,:,2);
+
+            meanOnset  = nanmean(OnsetSecs, 2);  % across columns
+            meanOffset = nanmean(OffsetSecs, 2); % across columns
+
+            stdOnset   = nanstd(OnsetSecs, 0, 2);  % across columns
+            stdOffset  = nanstd(OffsetSecs, 0, 2); % across columns
+
+            SEMOnset   = stdOnset/sqrt(obj.numTrial);  % Standard Error
+            SEMOffset  = stdOffset/sqrt(obj.numTrial); % Standard Error
+
+            % NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
+            % NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
+
+            sigsSecM = [meanOnset SEMOnset meanOffset SEMOffset];
+        end
+        
+        function obj = identifyBounds(obj)
             
+            % Full Trial Limits
+            uLSigs = max(obj.sigs);
+            lLSigs = min(obj.sigs);
+            
+            uL = round(max(uLSigs)) + 10;
+            lL = round(min(lLSigs)) - 10;
+            
+            obj.sigsLims = [obj.time(1) obj.time(end) lL uL];
+            
+            % Section Mean Limits
             [lwBoundOn, upBoundOn] = obj.MaxMinBounds(obj.sigsSecM(:,1), obj.sigsSecM(:,2), 10);
             [lwBoundOf, upBoundOf] = obj.MaxMinBounds(obj.sigsSecM(:,3), obj.sigsSecM(:,4), 10);
 
             lwBoundM = obj.CompareAndChooseBounds(lwBoundOn, lwBoundOf, 'min');
             upBoundM = obj.CompareAndChooseBounds(upBoundOn, upBoundOf, 'max');
 
-            lims = [meanSt meanSp lwBoundM upBoundM];
+            obj.sigsSecMLims = [obj.timeSec(1) obj.timeSec(end) lwBoundM upBoundM];
         end
         
         function [lwBound, upBound] = MaxMinBounds(obj, audio, audioErr, buff)
@@ -268,13 +289,18 @@ classdef dfSectionDataOrg
 %             end
 %             curSess(strfind(curSess, '_')) = ' ';
 
-%             lgdCurv = [];
-%             lgdLabl = {};
+            lgdCurv = [];
+            lgdLabl = {};
 
             % Trigger Line properties
             trigLineX   = [0 0];
             trigLineY   = [-10000 10000];
             trigLineC   = [0.3 0.3 0.3];
+            
+            % Zero Line properties
+            zeroLineX = [obj.timeSec(1) obj.timeSec(end)];
+            zeroLineY = [0 0];
+            zeroLineC = [0.3 0.3 0.3];
             
             % Data trace properties
             dataColor      = 'b';
@@ -290,10 +316,10 @@ classdef dfSectionDataOrg
 
             % Onset of Perturbation
             axes(ha(1))
-            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
+            plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
+            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
             dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', dataColor}, 'transparent', 1);
-            
 
             set(dHOn.mainLine, 'LineWidth', lineThick)
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -305,12 +331,17 @@ classdef dfSectionDataOrg
                     'FontSize', axisLSize,...
                     'FontWeight','bold')
             hold off
+            
             %Offset of Perturbation
-            axes(ha(2))
-            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
+            axes(ha(2))   
+            plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
+            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
             dHOf = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', dataColor}, 'transparent', 1);
               
+            lgdCurv = cat(2, lgdCurv, dHOf.mainLine);
+            lgdLabl = cat(2, lgdLabl, [num2str(obj.numTrial) ' Trials']);
+            
             set(dHOf.mainLine, 'LineWidth', lineThick)
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
             ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
@@ -340,12 +371,12 @@ classdef dfSectionDataOrg
 %                                     'FontSize',12,...
 %                                     'FontName','Arial');
 % 
-%             legend(lgdCurv, lgdLabl,...
-%                     'Box', 'off',...
-%                     'Edgecolor', [1 1 1],...
-%                     'FontSize', 12,...
-%                     'FontWeight', 'bold',...
-%                     'Position', [0.8 0.93 0.05 0.05]);         
+            legend(lgdCurv, lgdLabl,...
+                    'Box', 'off',...
+                    'Edgecolor', [1 1 1],...
+                    'FontSize', 12,...
+                    'FontWeight', 'bold',...
+                    'Position', [0.8 0.93 0.05 0.05]);         
 
 
             obj.sigsMeanFig      = OnsetOffsetMeanDataFig;

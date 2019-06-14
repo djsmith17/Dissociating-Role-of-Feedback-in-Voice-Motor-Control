@@ -7,63 +7,43 @@ dirs.PooledResultsDir = fullfile(dirs.Results, 'Pooled Analyses', 'DRF_Endo');
 allParti = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'};
 eachTrial = [3 10 8 5 8];
 
-allRes = [];
-allSections = [];
-for ii = [1 4 5]
+meanSecsOn = [];
+meanSecsOf = [];
+allSubjMeanSecs = [];
+for ii = 1:5
     participant = allParti{ii};
     run         = 'SFL1';
     curTrial    = eachTrial(ii);
-    curRes = analyzeAndDrawResult(dirs, participant, run, curTrial);
+    
+    [~, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, curTrial);
 
-    
-    dataInfo.curSess = curRes.curSess;
-    dataInfo.sigType = 'Euclidian Distance';
-    dataInfo.units   = 'pixels';
-    dMeasObj = dfSectionDataOrg(curRes.timeFrames, curRes.dist, curRes.curPertTrig, 30, dataInfo);
-    % Perform the mean on the sectioned trials
-    dMeasObj.sigsSecM = dMeasObj.meanData(dMeasObj.sigsSec);
-    % Identify the bounds for these data
-    dMeasObj.sigsSecMLims = dMeasObj.identifyBounds;
-    % Draw the mean-trial Onset and Offset traces
-    dMeasObj.drawSigsSecM
-    
-    
-    
-    if ii == 5 %This should be fixed in the future
-        curRes.curPertTrig(2) = curRes.curPertTrig(2) - 1/30;
-    end
-    
-    [curRes.secTime, curRes.secSigs] = sectionData(curRes.timeFrames, curRes.dist, curRes.curPertTrig);
-    
-    allSections = cat(2, allSections, curRes.secSigs);
-    
-    allRes = cat(1, allRes, curRes);
+    meanSecsOn = cat(2, meanSecsOn, dMeasObj.sigsSecM(:,1));
+    meanSecsOf = cat(2, meanSecsOf, dMeasObj.sigsSecM(:,3));
 end
 close all
 
-poolRes.curSess = 'Mean Participant Distance Change';
-poolRes.f0b     = 0;
-poolRes.AudFB   = 'Auditory Masked';
-poolRes.numContTrialsFin = 0;
-poolRes.numPertTrialsFin = length(allRes);
+allSubjMeanSecs = cat(3, allSubjMeanSecs, meanSecsOn);
+allSubjMeanSecs = cat(3, allSubjMeanSecs, meanSecsOf);
+[~, numSubj, ~] = size(allSubjMeanSecs);
 
-poolRes.secTime = curRes.secTime;
-poolRes.audioMf0MeanPert = meanAudioData(allSections);
-poolRes.audioMf0MeanCont = zeros(size(poolRes.audioMf0MeanPert));
+% Create All Subj object based on parameters from last single subj obj
+distObjAllSubj = dMeasObj;
 
-poolRes.pltName     = 'meanParticipantDistChange';
-poolRes.limitsAmean = [-0.5 1.0 -10 40];
-poolRes.audioDynamics = [];
+distObjAllSubj.curSess = 'Mean Participant Distance Change';
+distObjAllSubj.sigsSec = allSubjMeanSecs;
+distObjAllSubj.numTrial = numSubj;
 
-poolRes.secTimeP = 0;
-poolRes.sensorPAdjust = 0;
-poolRes.InflDeflT = 0;
+% Perform the mean on the sectioned trials
+distObjAllSubj.sigsSecM = distObjAllSubj.meanData(distObjAllSubj.sigsSec);
+% Identify the bounds for these data
+distObjAllSubj = distObjAllSubj.identifyBounds;
 
-drawMeanTrialMicf0(poolRes, dirs.PooledResultsDir, 0)
+distObjAllSubj = distObjAllSubj.drawSigsSecM;
+distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
 
-function curRes = analyzeAndDrawResult(dirs, participant, run, curTrial)
-        
+function [curRes, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, curTrial)
+
 dirs.ResultsParti     = fullfile(dirs.Results, participant, run);
 dirs.ResultsBehavFile = fullfile(dirs.ResultsParti, [participant run 'ResultsDRF.mat']);
 dirs.ResultsCodedVid  = fullfile(dirs.ResultsParti, [participant run 'EndoFrameMeasuresDJS.mat']);
@@ -94,21 +74,47 @@ curRes.pressureLim      = res.limitsP;
 % Video Results:
 curTable = CodedEndoFrameDataSet{ii};
 
-curRes.timeFrames = linspace(0,4,121);
+timeFrames = linspace(0,4,121);
 pt1X = curTable.FidPt1X;
 pt2X = curTable.FidPt2X;
 pt1Y = curTable.FidPt1Y;
 pt2Y = curTable.FidPt2Y;
 distRaw = curTable.Dist;
-[curRes.dist, curRes.distLim] = adjustDistMeasure(curRes.timeFrames, distRaw);
 
-XPtsDiff = pt2X - pt1X;
-YPtsDiff = pt2Y - pt1Y;
+dataInfo.curSess = curRes.curSess;
+dataInfo.sigType = 'Euclidian Distance';
+dataInfo.units   = 'pixels';
 
-drawEndoResponses(dirs, curRes)
+% Create the object that handles signal sectioning
+dMeasObj = dfSectionDataOrg(timeFrames, distRaw, curRes.curPertTrig, 30, dataInfo);
+
+% Section the raw data for ease of baseline detection
+sigsSec4Baseline  = dMeasObj.sectionData(dMeasObj.sigs);
+
+% Identify Baseline Values
+dMeasObj = dMeasObj.identifyBaselineValues(sigsSec4Baseline);
+
+% Apply smoothing
+dMeasObj.sigs = dMeasObj.applySmoothing(dMeasObj.sigs, 3);
+
+% Apply a zero-mean to the full signals, replace the original full signal
+dMeasObj.sigs = dMeasObj.applyZeroMean(dMeasObj.sigs, dMeasObj.sigsBase);
+
+% Section the processed data
+dMeasObj.sigsSec  = dMeasObj.sectionData(dMeasObj.sigs);
+
+% Perform the mean on the sectioned trials
+dMeasObj.sigsSecM = dMeasObj.meanData(dMeasObj.sigsSec);
+% Identify the bounds for these data
+dMeasObj = dMeasObj.identifyBounds;
+% Draw the mean-trial Onset and Offset traces
+dMeasObj = dMeasObj.drawSigsSecM;
+dMeasObj.saveSigsSecMFig(dirs.ResultsParti)
+
+drawEndoResponses(dirs, curRes, dMeasObj)
 end
 
-function drawEndoResponses(dirs, curRes)
+function drawEndoResponses(dirs, curRes, dMeasObj)
 
 plotpos = [10 0];
 plotdim = [1000 500];
@@ -143,12 +149,13 @@ lgd.EdgeColor = 'none';
 set(gca,'FontSize', 14,...
         'FontWeight','bold')
 
+% Distance Results
 subplot(2,1,2)
 pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
 hold on
 plot([-1 5], [0 0], '--k')
-ptDistLn = plot(curRes.timeFrames, curRes.dist, 'b');
-axis([0 4 curRes.distLim]); box off
+ptDistLn = plot(dMeasObj.time, dMeasObj.sigs, 'b');
+axis(dMeasObj.sigsLims); box off
 xlabel('Time (s)', 'FontSize', 18, 'FontWeight', 'bold')
 ylabel('Distance (Pixels)')
 title('Euclidian Distance Between Points')
@@ -159,92 +166,4 @@ set(gca,'FontSize', 14,...
 fileName = 'EndoDistanceMeasure.png';
 savedFigFile = fullfile(dirs.ResultsParti, [curRes.participant curRes.run fileName]);
 export_fig(savedFigFile)
-end
-
-function [dist, distLim] = adjustDistMeasure(time, distRaw)
-
-indPrePert = time < 1.0;
-
-distSmooth = smooth(distRaw, 3);
-distBase   = mean(distSmooth(indPrePert));
-
-dist = distSmooth - distBase;
-distMax = max(dist) + 10;
-distMin = min(dist) - 10;
-distLim = [distMin distMax];
-end
-
-function [secTime, secSigs] = sectionData(time, sigs, trigs)
-% [secTime, secSigs] = sectionData(time, sigs, trigs) sections
-% time series data around important points in time.
-% 
-% time:  Vector of time points (numSamp)
-% sigs:  Matrix of signals to be sectioned (numSamp x numTrial)
-% trigs: Onset and Offset time tiggers (numTrial x 2)
-%
-% secTime: Vector of time points corresponding to the sectioned window (numSampSec)
-% secSigs: 3D mat of sectioned sigs (numSampSec x numTrial x event)
-%          The 1st 3D layer are Onset Sections
-%          The 2nd 3D later are Offset Sections
-
-[~, numTrial] = size(sigs);
-preEve  = 0.5; posEve = 1.0;
-
-secSigs    = [];
-OnsetSecs  = [];
-OffsetSecs = [];
-if numTrial > 0
-    for ii = 1:numTrial
-        OnsetT   = trigs(ii, 1); % Onset time
-        OffsetT  = trigs(ii, 2); % Offset time
-
-        OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
-        OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
-        OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
-
-        OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
-        OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
-        OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
-
-        OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
-        OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
-
-        OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
-        OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
-    end
-    [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
-else
-    numSampSec = 301;
-end
-
-secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
-secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
-secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
-end
-
-function meanAudio = meanAudioData(secAudio)
-% Some simple statistics on the sectioned audio data. 
-% meanAudio is a vector containing the following information
-% meanAudio(1) = mean Onset pitch contour
-% meanAudio(2) = 95% CI of the mean Onset Pitch Contour
-% meanAudio(3) = mean Offset pitch contour
-% meanAudio(4) = 95% CI of the mean Offset Pitch Contour
-
-OnsetSecs  = secAudio(:,:,1);
-OffsetSecs = secAudio(:,:,2);
-[~, numTrial] = size(OnsetSecs);
-
-meanOnset  = nanmean(OnsetSecs, 2);  % across columns
-meanOffset = nanmean(OffsetSecs, 2); % across columns
-
-stdOnset   = nanstd(OnsetSecs, 0, 2);  % across columns
-stdOffset  = nanstd(OffsetSecs, 0, 2); % across columns
-
-SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
-SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
-
-% NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-% NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
-
-meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
