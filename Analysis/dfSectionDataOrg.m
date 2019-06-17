@@ -7,6 +7,7 @@ classdef dfSectionDataOrg
         curSess
         dataType
         dataUnit
+        iterationType
         
         time
         sigs
@@ -56,6 +57,7 @@ classdef dfSectionDataOrg
             obj.curSess  = dataInfo.curSess;
             obj.dataType = dataInfo.sigType;
             obj.dataUnit = dataInfo.units;
+            obj.iterationType = dataInfo.itrType;
             
             obj.time  = time;
             obj.sigs  = sigs;
@@ -352,7 +354,7 @@ classdef dfSectionDataOrg
             dHOf = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
               
             obj.legendCurves = cat(2, obj.legendCurves, dHOf.mainLine);
-            obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' Trials']);
+            obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
             
             set(dHOf.mainLine, 'LineWidth', lineThick)
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -414,7 +416,7 @@ classdef dfSectionDataOrg
             hold off
             
             obj.legendCurves = cat(2, obj.legendCurves, ofH.mainLine);
-            obj.legendLabels = cat(2, obj.legendLabels, ['Line ' num2str(flag) ': ' num2str(obj.numTrial) ' Trials']);
+            obj.legendLabels = cat(2, obj.legendLabels, ['Line ' num2str(flag) ': ' num2str(obj.numTrial) ' ' obj.iterationType]);
             
             legend(obj.legendCurves, obj.legendLabels);
         end

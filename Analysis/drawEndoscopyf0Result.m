@@ -6,22 +6,39 @@ dirs.PooledResultsDir = fullfile(dirs.Results, 'Pooled Analyses', 'DRF_Endo');
 
 allParti = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'};
 numParti = length(allParti);
-coder    = 'RF';
+coder    = 'DJS';
 % eachTrial = [3 10 8 5 8];
 
 meanSecsOn = [];
 meanSecsOf = [];
 allSubjMeanSecs = [];
+
+meanSecsOn2 = [];
+meanSecsOf2 = [];
+allSubjMeanSecs2 = [];
+
+meanSecsOn3 = [];
+meanSecsOf3 = [];
+allSubjMeanSecs3 = [];
+
 for ii = 1:numParti
     participant = allParti{ii};
     run         = 'SFL1';
     
-    [~, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, coder);
+    [~, dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, participant, run, coder);
     
 %     drawEndoResponses(dirs, curRes, dMeasObj, eachTrial(ii))
 
     meanSecsOn = cat(2, meanSecsOn, dMeasObj.sigsSecM(:,1));
     meanSecsOf = cat(2, meanSecsOf, dMeasObj.sigsSecM(:,3));
+    
+    if ~isempty(dMeasObj2)
+        meanSecsOn2 = cat(2, meanSecsOn2, dMeasObj2.sigsSecM(:,1));
+        meanSecsOf2 = cat(2, meanSecsOf2, dMeasObj2.sigsSecM(:,3));
+        
+        meanSecsOn3 = cat(2, meanSecsOn3, dMeasObj3.sigsSecM(:,1));
+        meanSecsOf3 = cat(2, meanSecsOf3, dMeasObj3.sigsSecM(:,3));
+    end
 end
 close all
 
@@ -35,6 +52,9 @@ distObjAllSubj = dMeasObj;
 distObjAllSubj.curSess = 'Mean Participant Distance Change';
 distObjAllSubj.sigsSec = allSubjMeanSecs;
 distObjAllSubj.numTrial = numSubj;
+distObjAllSubj.iterationType = 'Participants';
+distObjAllSubj.legendCurves = [];
+distObjAllSubj.legendLabels = {};
 
 % Perform the mean on the sectioned trials
 distObjAllSubj.sigsSecM = distObjAllSubj.meanData(distObjAllSubj.sigsSec);
@@ -42,10 +62,25 @@ distObjAllSubj.sigsSecM = distObjAllSubj.meanData(distObjAllSubj.sigsSec);
 distObjAllSubj = distObjAllSubj.identifyBounds;
 
 distObjAllSubj = distObjAllSubj.drawSigsSecM;
+
+if ~isempty(dMeasObj2)
+    allSubjMeanSecs2 = cat(3, allSubjMeanSecs2, meanSecsOn2);
+    allSubjMeanSecs2 = cat(3, allSubjMeanSecs2, meanSecsOf2);
+    % Perform the mean on the sectioned trials
+    sigsSecM2 = distObjAllSubj.meanData(allSubjMeanSecs2);
+    distObjAllSubj= distObjAllSubj.appendFigure(sigsSecM2, 2);
+
+    allSubjMeanSecs3 = cat(3, allSubjMeanSecs3, meanSecsOn3);
+    allSubjMeanSecs3 = cat(3, allSubjMeanSecs3, meanSecsOf3);
+    sigsSecM3 = distObjAllSubj.meanData(allSubjMeanSecs3);
+    distObjAllSubj= distObjAllSubj.appendFigure(sigsSecM3, 3);
+end
+
+
 distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
 
-function [curRes, dMeasObj] = analyzeAndDrawResult(dirs, participant, run, coder)
+function [curRes, dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, participant, run, coder)
 
 dirs.ResultsParti     = fullfile(dirs.Results, participant, run);
 dirs.ResultsBehavFile = fullfile(dirs.ResultsParti, [participant run 'ResultsDRF.mat']);
@@ -103,6 +138,7 @@ dataInfo.curSess = curRes.curSess;
 dataInfo.sigType = 'Euclidian Distance';
 dataInfo.units   = 'pixels';
 dataInfo.coder   = coder;
+dataInfo.itrType = 'Trials';
 
 dMeasObj = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, dataInfo);
 
@@ -115,6 +151,9 @@ if ismember('Dist2', curTable.Properties.VariableNames)
     
     dMeasObj3 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist3, curRes.codedPertTrig, dataInfo);
     dMeasObj= dMeasObj.appendFigure(dMeasObj3.sigsSecM, 3);
+else
+    dMeasObj2 = [];
+    dMeasObj3 = [];
 end
 dMeasObj.saveSigsSecMFig(dirs.ResultsParti)
 end
