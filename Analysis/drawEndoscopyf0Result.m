@@ -6,7 +6,7 @@ dirs.PooledResultsDir = fullfile(dirs.Results, 'Pooled Analyses', 'DRF_Endo');
 
 allParti = {'DRF5', 'DRF9', 'DRF12', 'DRF14', 'DRF19'};
 numParti = length(allParti);
-coder    = 'DJS';
+coder    = 'RF';
 % eachTrial = [3 10 8 5 8];
 
 meanSecsOn = [];
@@ -75,7 +75,23 @@ if ~isempty(dMeasObj2)
     sigsSecM3 = distObjAllSubj.meanData(allSubjMeanSecs3);
     distObjAllSubj= distObjAllSubj.appendFigure(sigsSecM3, 3);
 end
+distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 
+%Mean Lines
+distObjAllSubj.iterationType = 'Participantsx3Lines';
+distObjAllSubj.legendCurves = [];
+distObjAllSubj.legendLabels = {};
+
+sigsSecLinesOn = [distObjAllSubj.sigsSecM(:,1), sigsSecM2(:,1), sigsSecM3(:,1)];
+sigsSecLinesOf = [distObjAllSubj.sigsSecM(:,3), sigsSecM2(:,3), sigsSecM3(:,3)];
+sigsSecLines = sigsSecLinesOn;
+sigsSecLines = cat(3, sigsSecLines, sigsSecLinesOf);
+distObjAllSubj.sigsSecM = distObjAllSubj.meanData(sigsSecLines);
+
+distObjAllSubj = distObjAllSubj.identifyBounds;
+
+distObjAllSubj = distObjAllSubj.drawSigsSecM;
+distObjAllSubj.sigsMeanFigTitle = [distObjAllSubj.curSess '_InterTrialMeanLineMean' distObjAllSubj.coder '.jpg'];
 
 distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
