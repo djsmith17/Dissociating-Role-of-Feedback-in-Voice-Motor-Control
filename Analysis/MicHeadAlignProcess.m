@@ -12,9 +12,10 @@ classdef MicHeadAlignProcess
         frameLen    % Frame rate of recording (After downsampling)
         trialLen    % length (points) of raw microphone/headphone recording
         trialTime   % length (time) of raw microphone/headphone recording
-        t           % time vector of the recording
+        time        % time vector of the recording
         auTrigs     % trigger points from Audapter recording
-        auTrigsAuNi % trigger points from Audapter recording aligned with NIDAQ triggers
+        auTrigsAuNi % trigger points from Audapter recording aligned with NIDAQ triggers (Only used for quality check)
+        auTimesAuNi % time points from Aduapter recording aligned with NIDAQ triggers (Only used for quality check)
         rawMicDS    % Raw microphone signal, downsampled
         
         frameDel
@@ -27,12 +28,8 @@ classdef MicHeadAlignProcess
         tNI
         
         numSamp
-        envThresh
         
-        env
-        maxPeak
-        threshIdx
-        rmsVoiceInd
+        rmsVoiceFrame
         voiceOnsetInd
         voiceOnsetT
         
@@ -65,8 +62,11 @@ classdef MicHeadAlignProcess
             %UNTITLED2 Construct an instance of this class
             %   Detailed explanation goes here
             
+            % Experimental Variables
             obj.expType   = analysisVar.expType;
             obj.AudFB     = trialVar.AudFB;
+            
+            % Audapter Recorded Signals and Variables
             obj.rawMic    = double(trialVar.rawMic);
             obj.rawHead   = double(trialVar.rawHead);
             obj.rms       = double(trialVar.rms);
@@ -74,12 +74,12 @@ classdef MicHeadAlignProcess
             obj.frameLen  = analysisVar.frameLen;
             obj.trialLen  = length(obj.rawMic);
             obj.trialTime = obj.trialLen/obj.fs;
-            obj.t         = linspace(0, obj.trialTime, obj.trialLen);
+            obj.time      = linspace(0, obj.trialTime, obj.trialLen);
             obj.auTrigs   = trialVar.auTrigs;
             obj.frameDel  = 7;
             obj.rmsThresh = 0.011;
             
-            % NIDAQ Recording Specifics
+            % NIDAQ Recorded Signals and Variables
             obj.rawMicNI    = trialVar.rawMicNI;
             obj.fsNI        = analysisVar.sRateNi;
             obj.trialLenNI  = length(obj.rawMicNI);
@@ -87,24 +87,14 @@ classdef MicHeadAlignProcess
             obj.tNI         = linspace(0, obj.trialTimeNI, obj.trialLenNI);
             
             obj.numSamp   = obj.trialTimeNI*obj.fs;
-            obj.envThresh = 0.30;
-            
-            % Find the envelope of the microphone signal
-            obj.env = obj.calcEnvelope(obj.rawMic, obj.fs);
-            
-            % Largest peak in the envelope theoretically occurs during voicing
-            obj.maxPeak = max(obj.env);
 
-            % Find values that are within threshold of max 'voicing' value
-            obj.threshIdx = find(obj.env > obj.envThresh*obj.maxPeak); 
-            
-            % First index of the theoretical useable signal (Voice onset)
-            obj.rmsVoiceInd   = find(obj.rms > obj.rmsThresh);
-            obj.voiceOnsetInd = (obj.rmsVoiceInd(1) - obj.frameDel)*obj.frameLen;
-            if obj.voiceOnsetInd <= 0 % If they started speaking IMMEDIATELY...can't have index of 0
+            % Identify Voice Onset in the Audapter Microphone (rms) signal
+            obj.rmsVoiceFrame = find(obj.rms > obj.rmsThresh);
+            obj.voiceOnsetInd = (obj.rmsVoiceFrame(1) - obj.frameDel)*obj.frameLen;
+            if obj.voiceOnsetInd <= 0 % Can't have index <= 0
                 obj.voiceOnsetInd = 1;
             end
-            obj.voiceOnsetT   = obj.t(obj.voiceOnsetInd);
+            obj.voiceOnsetT   = obj.time(obj.voiceOnsetInd);
             
             % Evaluate the pre-voice onset rms (used to identify voice breaks)
             obj.preVOnsetRMS = evalPreVoiceRMS(obj);
@@ -114,15 +104,15 @@ classdef MicHeadAlignProcess
             obj.AuNIDelay  = obj.xCorrTimeLag(obj.rawMicDS, obj.rawMicNI, obj.fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
             obj.AuNIDelayP = obj.AuNIDelay*obj.fs;                          % Convert to points
 
-            % Adjust Triggers against NIDAQ only if we are using Laryngeal Pert Exp.
-            % Otherwise adjsut based on VoiceOnset, which is what Audapter does in PSR
+            % Adjust Triggers against NIDAQ if a Laryngeal Pert Exp.
+            % Otherwise adjust based on VoiceOnset, which happens during the PSR
             if strcmp(obj.expType(1:3), 'Som')
                 obj.adjustedDelay = obj.AuNIDelayP;
-                obj.auTrigsAuNi = obj.auTrigs + obj.adjustedDelay;
             else
                 obj.adjustedDelay = obj.voiceOnsetInd;
-                obj.auTrigsAuNi = obj.auTrigs + obj.adjustedDelay;
             end
+            obj.auTrigsAuNi = obj.auTrigs + obj.adjustedDelay;
+            obj.auTimesAuNi = obj.time(obj.auTrigsAuNi);
 
             % Aim to section audio at 0.5s pre-onset to 1.0s post-offset.
             preOn   = 0.5*obj.fs;
@@ -180,6 +170,8 @@ classdef MicHeadAlignProcess
                 obj.tooShort = 1;
             end
 
+            % Apply logic for saving a trial
+            % Include message for reason saved/not saved
             if obj.voiceOnsetLate
                 saveT    = 0;  
                 saveTmsg = 'Participant started too late!!';
@@ -207,12 +199,22 @@ classdef MicHeadAlignProcess
             obj.saveTmsg = saveTmsg; % Reason, if any the trial was thrown out
         end
         
-        function env = calcEnvelope(obj, audio, fs)
-            cutoffF = 40;
+        function threshIdx = calcEnvelope(obj, audio, fs)
+            % Method for identifying voice onset without the knowing what
+            % the pre-voice rms in the signal is thresholded at
+            
+            envThresh = 0.30; 
+            cutoffF   = 40;
             [B, A] = butter(4, cutoffF/(fs/2));
 
             % Envelope the signal by low-pass filtering (change in amplitude/time ~RMS)
             env = filter(B, A, abs(audio)); 
+            
+            % Largest peak in the envelope theoretically occurs during voicing
+            maxPeak = max(env);
+
+            % Find values that are within threshold of max 'voicing' value
+            threshIdx = find(env > envThresh*maxPeak);
         end
         
         function preVOnsetRMS = evalPreVoiceRMS(obj)
@@ -274,8 +276,8 @@ classdef MicHeadAlignProcess
             voiceOnsetFrame = ceil(obj.voiceOnsetInd/obj.frameLen);
             postVOnsetFrames = (0:postVOnsetFrame) + voiceOnsetFrame;
 
-            analysisPerFO  = obj.rms(obj.analysisFrames) < obj.preVOnsetRMS;
-            postVOnsetFO   = obj.rms(postVOnsetFrames) < obj.preVOnsetRMS;
+            analysisPerFO  = obj.rms(obj.analysisFrames) < obj.preVOnsetRMS; %Analysis Frame
+            postVOnsetFO   = obj.rms(postVOnsetFrames) < obj.preVOnsetRMS;   %Post Voice Onset
 
             breakTol             = 0.1; % Voice Break Tolerance; 100ms
             breakTolFrame        = breakTol*obj.fs/obj.frameLen;
@@ -305,27 +307,27 @@ classdef MicHeadAlignProcess
         ha = tight_subplot(2,1,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
 
         axes(ha(1))
-        plot(obj.t, obj.rawMic)
+        plot(obj.time, obj.rawMic)
         hold on
-        plot(obj.t, obj.env, 'y')
+        plot(obj.time, obj.env, 'y')
         hold on
-        plot([obj.voiceOnsetT obj.voiceOnsetT ], [-0.2 0.2])
+        plot([obj.voiceOnsetT obj.voiceOnsetT], [-0.2 0.2])
         hold on
-        plot([obj.t(obj.auTrigs(1)) obj.t(obj.auTrigs(1))], [-0.2 0.2], 'k--')
+        plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-0.2 0.2], 'k--')
         hold on
-        plot([obj.t(obj.auTrigs(2)) obj.t(obj.auTrigs(2))], [-0.2 0.2], 'k--')
+        plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-0.2 0.2], 'k--')
         box off
         axis([0 6 -0.25 0.25])
 
         if check == 1
             axes(ha(2))
-            plot(obj.t, obj.rawHead)
+            plot(obj.time, obj.rawHead)
             hold on
             plot([obj.voiceOnsetT obj.voiceOnsetT ], [-0.2 0.2])
             hold on
-            plot([obj.t(obj.auTrigs(1)) obj.t(obj.auTrigs(1))], [-0.2 0.2], 'k--')
+            plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-0.2 0.2], 'k--')
             hold on
-            plot([obj.t(obj.auTrigs(2)) obj.t(obj.auTrigs(2))], [-0.2 0.2], 'k--')
+            plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-0.2 0.2], 'k--')
             box off
             axis([0 6 -0.25 0.25])
             title(num2str(obj.AuMHDelay))
