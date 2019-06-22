@@ -90,8 +90,8 @@ distObjAllSubj.sigsSecM = distObjAllSubj.meanData(sigsSecLines);
 
 distObjAllSubj = distObjAllSubj.identifyBounds;
 
-distObjAllSubj = distObjAllSubj.drawSigsSecM;
-distObjAllSubj.sigsMeanFigTitle = [distObjAllSubj.curSess '_InterTrialMeanLineMean' distObjAllSubj.coder '.jpg'];
+distObjAllSubj = distObjAllSubj.drawSigsSecM_Onset;
+distObjAllSubj.sigsMeanFigTitle = [distObjAllSubj.curSess '_InterTrialMeanLineOnset' distObjAllSubj.coder '.jpg'];
 
 distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end

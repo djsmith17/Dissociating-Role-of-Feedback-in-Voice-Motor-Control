@@ -3,14 +3,14 @@ classdef dfSectionDataOrg
     
     properties
         
-        coder
-        curSess
-        dataType
-        dataUnit
-        iterationType
+        coder         % The person (if any) who took the measurements
+        curSess       % Combined Participant and Run information
+        dataType      % Type of data measured 
+        dataUnit      % Units of the data measured
+        iterationType % Level of analysis (cross-trial//cross-participant)
         
-        time
-        sigs
+        time          % Full time vector of recorded signals
+        sigs          % Vector of full length signals
         trigs
         fs
         
@@ -264,32 +264,8 @@ classdef dfSectionDataOrg
         end
         
         function obj = drawSigsSecM(obj)
-            % drawDAQMeanTrialMicf0(res, plotFolder) plots differences in microphone 
-            % recordings between perturbed and control trials. 
-
-%             if isempty(varargin)
-%                 presFlag = 0;
-%             else
-%                 presFlag = varargin{1};
-%             end
-% 
-%             curSess          = res.curSess;
-%             f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
-%             AudFB            = res.AudFB;
-%             numCT            = res.numContTrialsFin;
-%             numPT            = res.numPertTrialsFin;
-% 
-%             time             = res.secTime;
-%             meanf0PertOnset  = res.audioMf0MeanPert(:,1);
-%             CIf0PertOnset    = res.audioMf0MeanPert(:,2);
-%             meanf0PertOffset = res.audioMf0MeanPert(:,3);
-%             CIf0PertOffset   = res.audioMf0MeanPert(:,4);
-% 
-%             meanf0ContOnset  = res.audioMf0MeanCont(:,1);
-%             CIf0ContOnset    = res.audioMf0MeanCont(:,2);
-%             meanf0ContOffset = res.audioMf0MeanCont(:,3);
-%             CIf0ContOffset   = res.audioMf0MeanCont(:,4);
-%             limits           = res.limitsAmean;
+            % drawSigsSecM(obj) plots onset and offset sectioned signals
+            % manipulated in this class.
 
             % Figure properties
             plotpos = [10 100];
@@ -346,7 +322,7 @@ classdef dfSectionDataOrg
                     'FontWeight','bold')
             hold off
             
-            %Offset of Perturbation
+            % Offset of Perturbation
             axes(obj.OnsetOffsetAxes(2))   
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
@@ -371,11 +347,7 @@ classdef dfSectionDataOrg
             set(sup, 'FontName', fontName,...
                      'FontSize', titleFontSize,...
                      'FontWeight','bold')
-
-%             annoStim = ['SM: ' num2str(statSM) ' cents'];
-%             annoResp = ['RM: ' num2str(statRM) ' cents'];
-%             annoPerc = ['RP: ' num2str(statRP) ' %'];
-% 
+                 
              annotation('textbox',[0.88 0.88 0.45 0.1],...
                         'string', ['Coder: ' obj.coder],...
                         'LineStyle','none',...
@@ -389,6 +361,89 @@ classdef dfSectionDataOrg
                                 'FontSize', 12,...
                                 'FontWeight', 'bold',...
                                 'Position', [0.7 0.91 0.05 0.05]);         
+
+
+            obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
+            obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
+        end
+        
+        function obj = drawSigsSecM_Onset(obj)
+            % drawSigsSecM_Onset(obj) plots onset and offset sectioned signals
+            % manipulated in this class.
+
+            % Figure properties
+            plotpos = [10 100];
+            plotdim = [800 600];
+            OnsetOffsetMeanDataFig = figure('Color', [1 1 1]);
+            set(OnsetOffsetMeanDataFig, 'Position', [plotpos plotdim], 'PaperPositionMode','auto')
+
+%             AD = res.audioDynamics;
+%             if ~isempty(AD)
+%                 statSM = round(AD.respVarM(2), 1);
+%                 statRM = round(AD.respVarM(3), 1);
+%                 statRP = round(AD.respVarM(4));
+%             else
+%                 statSM = '';
+%                 statRM = '';
+%                 statRP = '';
+%             end
+%             curSess(strfind(curSess, '_')) = ' ';
+
+            % Trigger Line properties
+            trigLineX   = [0 0];
+            trigLineY   = [-10000 10000];
+            trigLineC   = [0.3 0.3 0.3];
+            
+            % Zero Line properties
+            zeroLineX = [obj.timeSec(1) obj.timeSec(end)];
+            zeroLineY = [0 0];
+            zeroLineC = [0.3 0.3 0.3];
+            
+            % Axis properties
+            fontName       = 'Arial';
+            titleFontSize  = 20;
+            axisLSize      = 20;
+            lineThick      = 4;
+
+            % Onset of Perturbation)
+            plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
+            hold on
+            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
+            dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
+
+            obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
+            obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+            
+            
+            set(dHOn.mainLine, 'LineWidth', lineThick)
+            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
+            title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
+            axis(obj.sigsSecMLims); box off
+
+            set(gca,'FontName', fontName,...
+                    'FontSize', axisLSize,...
+                    'FontWeight','bold')
+            hold off
+
+%             sup = suptitle({obj.curSess});
+%             set(sup, 'FontName', fontName,...
+%                      'FontSize', titleFontSize,...
+%                      'FontWeight','bold')
+                 
+%              annotation('textbox',[0.88 0.88 0.45 0.1],...
+%                         'string', ['Coder: ' obj.coder],...
+%                         'LineStyle','none',...
+%                         'FontWeight','bold',...
+%                         'FontSize',18,...
+%                         'FontName','Arial');
+
+%             obj.LgdObj = legend(obj.legendCurves, obj.legendLabels,...
+%                                 'Box', 'off',...
+%                                 'Edgecolor', [1 1 1],...
+%                                 'FontSize', 12,...
+%                                 'FontWeight', 'bold',...
+%                                 'Position', [0.7 0.91 0.05 0.05]);         
 
 
             obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
