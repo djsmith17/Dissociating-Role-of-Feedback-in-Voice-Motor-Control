@@ -35,12 +35,12 @@ classdef MicHeadAlignProcess
         
         preVOnsetRMS
         
-        AuNIDelay
-        AuNIDelayP
+        AuNIDelay    % Delay between the Audapter and NIDAQ recordings in time
+        AuNIDelayP   % Delay between the Audapter and NIDAQ recordings in points (Au)
         adjustedDelay
         
-        AuMHDelay
-        AuMHDelayP
+        AuMHDelay    % Delay between the Microphone and Headphone recordings in time
+        AuMHDelayP   % Delay between the Microphone and Headphone recordings in points (Au)
         
         analysisSec
         analysisPoints
@@ -59,8 +59,7 @@ classdef MicHeadAlignProcess
     
     methods
         function obj = MicHeadAlignProcess(analysisVar, trialVar)
-            %UNTITLED2 Construct an instance of this class
-            %   Detailed explanation goes here
+            % obj = MicHeadAlignProcess(analysisVar, trialVar) aligns 
             
             % Experimental Variables
             obj.expType   = analysisVar.expType;
@@ -102,7 +101,8 @@ classdef MicHeadAlignProcess
             % Find the delay between NIDAQ recording and Audapter recording
             obj.rawMicDS   = resample(obj.rawMic, obj.fsNI, obj.fs);         % Downsample the Audapter recording
             obj.AuNIDelay  = obj.xCorrTimeLag(obj.rawMicDS, obj.rawMicNI, obj.fsNI); % Perform xCorr between NIDAQ and Audapter. Expect that NIDAQ leads Audapter
-            obj.AuNIDelayP = obj.AuNIDelay*obj.fs;                          % Convert to points
+            obj.AuNIDelay  = round(obj.AuNIDelay, 3); % Round to the nearest 1ms
+            obj.AuNIDelayP = obj.AuNIDelay*obj.fs;    % Convert to points
 
             % Adjust Triggers against NIDAQ if a Laryngeal Pert Exp.
             % Otherwise adjust based on VoiceOnset, which happens during the PSR
@@ -140,6 +140,7 @@ classdef MicHeadAlignProcess
                 prePertPer = obj.analysisSec(1): obj.auTrigsAuNi(1); % 500ms preperturbation
                 obj.AuMHDelay = obj.xCorrTimeLag(obj.rawHead(prePertPer), obj.rawMic(prePertPer), obj.fs);   % Expect Mic leads Head
             end
+            obj.AuMHDelay  = round(obj.AuMHDelay, 3); %Round to nearest 1ms
             obj.AuMHDelayP = obj.AuMHDelay*obj.fs; % Convert to points
 
             %%%%%ADJUSTING LENGTHS OF MIC/HEAD BASED ON DELAYS
@@ -296,48 +297,73 @@ classdef MicHeadAlignProcess
             end
         end
         
-        function drawPreProcessDiagnostic(obj, check)
+        function drawPreProcessDiagnostic(obj)
 
-        plotPos = [10 10];
+        plotPos = [700 40];
         plotDim = [1200 900];
+        lineThick = 2;
+
+        %Time points
+        auTimeRange = [0 6];
+        niTimeRange = auTimeRange - obj.AuNIDelay;
 
         MHFig = figure('Color', [1 1 1]);
         set(MHFig, 'Position', [plotPos plotDim],'PaperPositionMode','auto')
 
-        ha = tight_subplot(2,1,[0.1 0.05],[0.12 0.15],[0.08 0.08]);
+        ha = tight_subplot(3,1,[0.1 0.05],[0.08 0.10],[0.05 0.05]);
 
+        % Raw NIDAQ Microphone
         axes(ha(1))
+        plot(obj.tNI, obj.rawMicNI)
+        box off
+        axis([niTimeRange min(obj.rawMicNI) max(obj.rawMicNI)])
+        title('Raw NIDAQ Microphone')
+
+        set(gca,'FontName', 'Arial',...
+                'FontSize', 14,...
+                'FontWeight','bold')
+
+        % Raw Aduapter Microphone
+        axes(ha(2))
         plot(obj.time, obj.rawMic)
         hold on
-        plot(obj.time, obj.env, 'y')
+        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'LineStyle', '--', 'LineWidth', lineThick)
         hold on
-        plot([obj.voiceOnsetT obj.voiceOnsetT], [-0.2 0.2])
+        plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
         hold on
-        plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-0.2 0.2], 'k--')
-        hold on
-        plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-0.2 0.2], 'k--')
+        plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-2 2], 'k--', 'LineWidth', lineThick)
         box off
-        axis([0 6 -0.25 0.25])
+        axis([auTimeRange min(obj.rawMic) max(obj.rawMic)])
+        title('Raw Audapter Microphone')
 
-        if check == 1
-            axes(ha(2))
-            plot(obj.time, obj.rawHead)
-            hold on
-            plot([obj.voiceOnsetT obj.voiceOnsetT ], [-0.2 0.2])
-            hold on
-            plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-0.2 0.2], 'k--')
-            hold on
-            plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-0.2 0.2], 'k--')
-            box off
-            axis([0 6 -0.25 0.25])
-            title(num2str(obj.AuMHDelay))
-        else
-            axes(ha(2))
-            plot(obj.tNI, obj.rawMicNI)
-            title(num2str(obj.AuNIDelay))
-            axis([0 4 -0.25 0.25])
-            box off
-        end
+        set(gca,'FontName', 'Arial',...
+                'FontSize', 14,...
+                'FontWeight','bold')
+
+        % Raw Audapter Headphones
+        axes(ha(3))
+        plot(obj.time, obj.rawHead)
+        hold on
+        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'LineStyle', '--','LineWidth', lineThick)
+        hold on
+        plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
+        hold on
+        plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-2 2], 'k--', 'LineWidth', lineThick)
+        box off
+        axis([auTimeRange min(obj.rawHead) max(obj.rawHead)])
+        title('Raw Audapter Headphones')
+
+        xlabel('Time (s)')
+        set(gca,'FontName', 'Arial',...
+                'FontSize', 14,...
+                'FontWeight','bold')
+
+        annotation('textbox', [0.8 0.9 0.1 0.1], 'String', {['MiHe Delay: ' num2str(obj.AuMHDelay) 's'];...
+                                                            ['AuNI Delay: ' num2str(obj.AuNIDelay) 's']},...
+                                                 'EdgeColor', 'none',...
+                                                 'FontSize', 14,...
+                                                 'FontWeight', 'Bold');
+
         end
     end
 end
