@@ -59,7 +59,6 @@ niAn.numTrial  = n;                     % Number of Trials recorded
 niAn.trialLen  = niAn.numSamp/niAn.sRate;
 niAn.trialType = expParam.trialType;    % Control (0), Perturbed (1)
 niAn.expTrigs  = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
-niAn.dnSamp    = 10;
 
 % Find all the perturbed trials
 [niAn.ContTrials, niAn.contIdx] = find(niAn.trialType == 0);
@@ -71,10 +70,10 @@ niAn.numPertTrials = sum(niAn.PertTrials);
 niAn.time     = linspace(0, niAn.trialLen, niAn.numSamp)';
 niAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbatron Signal (Pert)
 niAn.sensorFC = squeeze(DAQin(:,2,:)); % Force Sensor Collar (FC)
-niAn.sensorFN = squeeze(DAQin(:,3,:)); % Force Sensor Neck (FN)
-niAn.sensorP  = squeeze(DAQin(:,4,:)); % Pressure (P)
-niAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal (M)
-niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal (H)
+niAn.sensorFN = squeeze(DAQin(:,3,:)); % Force Sensor Neck   (FN)
+niAn.sensorP  = squeeze(DAQin(:,4,:)); % Pressure            (P)
+niAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal   (M)
+niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal    (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
 %Convert the measured Pressure Sensor Voltage (V) to Pressure (psi)
@@ -85,22 +84,14 @@ niAn.sensorPz  = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 % niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
 % niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
 
-niAn.sRateDN     = niAn.sRate/niAn.dnSamp;
-niAn.time_DN     = dnSampleSignal(niAn.time, niAn.dnSamp);    % DownSampled Time
-niAn.pertSig_DN  = dnSampleSignal(niAn.pertSig, niAn.dnSamp); % DownSampled Perturbatron Signal
-
-niAn.sensorFC_DN = dnSampleSignal(niAn.sensorFC, niAn.dnSamp);
-niAn.sensorFN_DN = dnSampleSignal(niAn.sensorFN, niAn.dnSamp);
-niAn.sensorP_DN  = dnSampleSignal(niAn.sensorPz, niAn.dnSamp);
-
 %Parse out the perturbed trials
-niAn.pertSig_p  = parseTrialTypes(niAn.pertSig_DN, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorP_p  = parseTrialTypes(niAn.sensorP_DN, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC_DN, niAn.pertIdx); % Only Perturbed Trials
-niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN_DN, niAn.pertIdx); % Only Perturbed Trials
+niAn.pertSig_p  = parseTrialTypes(niAn.pertSig, niAn.pertIdx);  % Only Perturbed Trials
+niAn.sensorP_p  = parseTrialTypes(niAn.sensorP, niAn.pertIdx);  % Only Perturbed Trials
+niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN, niAn.pertIdx); % Only Perturbed Trials
 
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
-[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time_DN, niAn.pertSig_p, niAn.sRateDN);
+[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_p, niAn.sRate);
 
 % What was the delay between the intended (code) onset/offset triggers
 % and actual (measured) onset/offset triggers
@@ -113,13 +104,13 @@ niAn.alignResponseTriggers = niAn.expTrigs;
 niAn.pertSD.TrigTime = niAn.pertTrig;
 niAn.pertSD.TrigIdx  = niAn.idxPert;
 
-niAn.presSD.time   = niAn.time_DN;
+niAn.presSD.time   = niAn.time;
 niAn.presSD.sensor = niAn.sensorP_p;
-niAn.presSD.fs     = niAn.sRateDN;
+niAn.presSD.fs     = niAn.sRate;
 
-niAn.fSNSD.time   = niAn.time_DN;
+niAn.fSNSD.time   = niAn.time;
 niAn.fSNSD.sensor = niAn.sensorFN_p;
-niAn.fSNSD.fs     = niAn.sRateDN;
+niAn.fSNSD.fs     = niAn.sRate;
 
 if PresFlag == 1 && niAn.numPertTrials > 0
     % Set PresFlag = 1 if pressure dynamics are worth looking investigating
@@ -164,7 +155,6 @@ niAn.numTrial  = [];
 niAn.trialLen  = [];
 niAn.trialType = [];
 niAn.expTrigs  = [];
-niAn.dnSamp    = [];
 
 niAn.ContTrials    = [];
 niAn.contIdx       = [];
@@ -186,17 +176,15 @@ niAn.sensorPz  = [];
 niAn.sensorFCz = [];
 niAn.sensorFNz = [];
 
-niAn.sRateDN     = [];
-niAn.time_DN     = [];
-niAn.pertSig_DN  = [];
-niAn.sensorP_DN  = [];
-niAn.sensorFC_DN = [];
-niAn.sensorFN_DN = [];
-
 niAn.pertSig_p  = [];
 niAn.sensorP_p  = [];
 niAn.sensorFC_p = [];
 niAn.sensorFN_p = [];
+
+niAn.pertTrig   = [];
+niAn.idxPert    = [];
+niAn.TriggerLag = [];
+niAn.alignResponseTriggers = [];
 
 niAn.pertSD = initSensorDynamicsStruct();
 niAn.presSD = initSensorDynamicsStruct();
@@ -839,7 +827,7 @@ res.pertTrig      = niAn.pertTrig;
 % Against the pressure onset?
 res.alignResponseTriggers = niAn.alignResponseTriggers;
 
-res.timeS         = niAn.time_DN;
+res.timeS         = niAn.time;
 % Pressure Results
 res.sensorP       = niAn.sensorP_p; % Individual Processed Perturbed trials. 
 res.presSD        = niAn.presSD;    % Sensor Dynamics Structure
