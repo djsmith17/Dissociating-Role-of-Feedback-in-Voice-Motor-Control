@@ -86,9 +86,9 @@ niAn.sensorPz  = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 
 %Parse out the perturbed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorP_p  = parseTrialTypes(niAn.sensorP, niAn.pertIdx);  % Only Perturbed Trials
+niAn.sensorP_p  = parseTrialTypes(niAn.sensorPz, niAn.pertIdx);  % Only Perturbed Trials
 niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC, niAn.pertIdx); % Only Perturbed Trials
-niAn.sensorFN_p = parseTrialTypes(niAn.sensorFN, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorFN_p = parseTrialTypes(niAn.sensorFNz, niAn.pertIdx); % Only Perturbed Trials
 
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
 [niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_p, niAn.sRate);
