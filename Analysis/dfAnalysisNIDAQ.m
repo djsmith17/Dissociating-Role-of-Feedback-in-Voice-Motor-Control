@@ -76,18 +76,18 @@ niAn.audioM   = squeeze(DAQin(:,5,:)); % Microphone Signal   (M)
 niAn.audioH   = squeeze(DAQin(:,6,:)); % Headphone Signal    (H)
 niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 
-%Convert the measured Pressure Sensor Voltage (V) to Pressure (psi)
+% Convert the measured Pressure Sensor Voltage (V) to Pressure (psi)
 niAn.sensorFNz = convertPressureSensor(niAn.sensorFN, niAn.sensorPType);
 niAn.sensorPz  = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 
-%Preprocessing some of the Force sensors
+% Preprocessing some of the Force sensors
 % niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
 % niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
 
-%Parse out the perturbed trials
-niAn.pertSig_p  = parseTrialTypes(niAn.pertSig, niAn.pertIdx);  % Only Perturbed Trials
+% Parse out the perturbed trials
+niAn.pertSig_p  = parseTrialTypes(niAn.pertSig, niAn.pertIdx);   % Only Perturbed Trials
 niAn.sensorP_p  = parseTrialTypes(niAn.sensorPz, niAn.pertIdx);  % Only Perturbed Trials
-niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC, niAn.pertIdx); % Only Perturbed Trials
+niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC, niAn.pertIdx);  % Only Perturbed Trials
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFNz, niAn.pertIdx); % Only Perturbed Trials
 
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS

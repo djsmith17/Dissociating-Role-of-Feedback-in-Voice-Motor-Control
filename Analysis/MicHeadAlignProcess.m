@@ -21,11 +21,16 @@ classdef MicHeadAlignProcess
         frameDel
         rmsThresh
         
-        rawMicNI
         fsNI
-        trialLenNI
         trialTimeNI
-        tNI
+        expTrigsNI
+        timeNI
+        rawMicNI
+        pressureNI
+        pressureTrigs
+        presLagTimes
+        presRiseTimes
+        pressureEndActions
         
         numSamp
         
@@ -79,13 +84,19 @@ classdef MicHeadAlignProcess
             obj.rmsThresh = 0.011;
             
             % NIDAQ Recorded Signals and Variables
-            obj.rawMicNI    = trialVar.rawMicNI;
-            obj.fsNI        = analysisVar.sRateNi;
-            obj.trialLenNI  = length(obj.rawMicNI);
-            obj.trialTimeNI = obj.trialLenNI/obj.fsNI;
-            obj.tNI         = linspace(0, obj.trialTimeNI, obj.trialLenNI);
+            obj.fsNI          = trialVar.fsNI;
+            obj.trialTimeNI   = trialVar.trialTimeNI;
+            obj.expTrigsNI    = trialVar.expTrigsNI;
+            obj.timeNI        = trialVar.timeNI;
+            obj.rawMicNI      = trialVar.rawMicNI;
+            obj.pressureNI    = trialVar.pressureNI;
+            obj.pressureTrigs = trialVar.pressureTrigs;
+            obj.presLagTimes  = trialVar.presLagTimes;
+            obj.presRiseTimes = trialVar.presRiseTimes;
+            obj.pressureEndActions = obj.pressureTrigs + obj.presRiseTimes;
             
-            obj.numSamp   = obj.trialTimeNI*obj.fs;
+            % Define the output NumSamp
+            obj.numSamp = obj.trialTimeNI*obj.fs;
 
             % Identify Voice Onset in the Audapter Microphone (rms) signal
             obj.rmsVoiceFrame = find(obj.rms > obj.rmsThresh);
@@ -299,14 +310,18 @@ classdef MicHeadAlignProcess
         
         function drawPreProcessDiagnostic(obj)
 
-        plotPos = [700 40];
+        plotPos = [720 40];
         plotDim = [1200 900];
         lineThick = 2;
 
-        %Time points
+        % Time Bounds
         auTimeRange = [0 6];
         niTimeRange = auTimeRange - obj.AuNIDelay;
 
+        % Inflation//Deflation Properties
+        InfDefColor = 'm';
+        
+        % Setup the Figure parameters
         MHFig = figure('Color', [1 1 1]);
         set(MHFig, 'Position', [plotPos plotDim],'PaperPositionMode','auto')
 
@@ -314,10 +329,31 @@ classdef MicHeadAlignProcess
 
         % Raw NIDAQ Microphone
         axes(ha(1))
-        plot(obj.tNI, obj.rawMicNI)
-        box off
+        plot(obj.timeNI, obj.rawMicNI)
+        hold on
+        plot([obj.expTrigsNI(1) obj.expTrigsNI(1)], [-2 2], 'Color', [0.3 0.3 0.3], 'LineStyle', '--', 'LineWidth', lineThick)
+        hold on
+        plot([obj.expTrigsNI(2) obj.expTrigsNI(2)], [-2 2], 'Color', [0.3 0.3 0.3], 'LineStyle', '--', 'LineWidth', lineThick)
         axis([niTimeRange min(obj.rawMicNI) max(obj.rawMicNI)])
         title('Raw NIDAQ Microphone')
+        
+        % Converted Pressure Recording
+        yyaxis right
+        plot(obj.timeNI, obj.pressureNI, 'Color', 'g', 'LineWidth', lineThick)
+        
+        hold on
+        plot([obj.pressureTrigs(1) obj.pressureTrigs(1)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)
+        hold on
+        plot([obj.pressureEndActions(1) obj.pressureEndActions(1)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)
+        
+        hold on
+        plot([obj.pressureTrigs(2) obj.pressureTrigs(2)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)
+        hold on
+        plot([obj.pressureEndActions(2) obj.pressureEndActions(2)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)       
+        
+        ylabel('Pressure (psi')
+        axis([niTimeRange -0.1 5.5])
+        box off  
 
         set(gca,'FontName', 'Arial',...
                 'FontSize', 14,...
@@ -344,7 +380,7 @@ classdef MicHeadAlignProcess
         axes(ha(3))
         plot(obj.time, obj.rawHead)
         hold on
-        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'LineStyle', '--','LineWidth', lineThick)
+        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'LineStyle', '--', 'LineWidth', lineThick)
         hold on
         plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
         hold on

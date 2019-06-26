@@ -53,7 +53,6 @@ auAn.frameLen = expParam.frameLenDown;
 auAn.trialLen = expParam.trialLen;
 auAn.numSamp  = auAn.sRate*auAn.trialLen;
 
-auAn.time       = (0:1/auAn.sRate:(auAn.numSamp-1)/auAn.sRate)';
 auAn.numTrial   = expParam.numTrial;
 auAn.trialType  = expParam.trialType;
 auAn.expTrigs   = expParam.trigs(:,:,1);
@@ -84,14 +83,11 @@ for ii = 1:auAn.numTrial
     trialVar.typeIdx = auAn.trialType(ii);               % Trial Type 0(Control), 1 (Perturbed)
     trialVar.type    = auAn.types{trialVar.typeIdx + 1}; % Trial Type (Words)
     
-    if isfield(niAn, 'audioM')
-        trialVar.rawMicNI = niAn.audioM(:,ii);          % Microphone (NIDAQ) 
-    else
-        trialVar.rawMicNI = resample(trialVar.rawMic, 8000, auAn.sRate);
-    end
+    trialVar = setNIDAQTrialVars(niAn, auAn, ii, trialVar);
     
     % Preprocessing step identifies time-series errors in recording/vocalization
-%     [mic, head, preProSt] = preProcAudio(auAn, trialVar);
+    % Making use of MH class object to handle the signal processing. See
+    % that script for more information
     MH = MicHeadAlignProcess(auAn, trialVar);
     
     % Save all trials (and delay calcs), regardless of eventual exclusion
@@ -169,6 +165,41 @@ auAn.trialTypeSvt  = []; % Key for identifying Control (0) & Perturbed (1) trial
 auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for further analyses
 end
 
+function trialVar = setNIDAQTrialVars(niAn, auAn, ii, trialVar)
+
+if isfield(niAn, 'audioM')
+    trialVar.fsNI        = niAn.sRate;
+    trialVar.trialTimeNI = niAn.trialLen;
+    trialVar.numSampNI   = niAn.numSamp;
+    trialVar.timeNI      = niAn.time;
+    trialVar.rawMicNI    = niAn.audioM(:,ii);          % Microphone (NIDAQ)
+    trialVar.pressureNI  = niAn.sensorPz(:,ii);
+    trialVar.expTrigsNI  = niAn.expTrigs(ii, :);
+    
+    if ismember(ii, niAn.pertIdx)
+        thisIdx = find(ii == niAn.pertIdx);
+        trialVar.pressureTrigs = niAn.presSD.TrigTime(thisIdx, :);
+        trialVar.presLagTimes  = niAn.presSD.lagTimes(thisIdx, :);
+        trialVar.presRiseTimes = niAn.presSD.riseTimes(thisIdx, :);
+    else
+        trialVar.pressureTrigs = trialVar.expTrigsNI;
+        trialVar.presLagTimes  = [0 0];
+        trialVar.presRiseTimes = [0 0];
+    end
+else
+    trialVar.fsNI        = 8000;
+    trialVar.trialTimeNI = 4;
+    trialVar.numSampNI   = trialVar.trialTimeNI*trialVar.fsNI;
+    trialVar.timeNI      = linspace(0, trialVar.trialTimeNI, trialVar.numSampNI);
+    trialVar.rawMicNI    = resample(trialVar.rawMic, trialVar.fsNI, auAn.sRate);
+    trialVar.pressureNI  = zeros(size(trialVar.timeNI));
+    trialVar.expTrigsNI    = [0 0];
+    trialVar.pressureTrigs = [0 0];
+    trialVar.presLagTimes  = [0 0];
+    trialVar.presRiseTimes = [0 0];
+end
+end
+
 function res = packResults(auAn, lims)
 % res = packResults(auAn, lims) takes the values stored in the analysis 
 % variables structure and repackages the important variables into a new 
@@ -190,7 +221,7 @@ res.AudFB    = auAn.AudFB;            % Voice Feedback, Masking Noise
 res.SeqAudFB = auAn.SeqAudFB;         % Same as above, but keeps track of individual trial differences
 
 res.f0Type = auAn.f0Type;             % Type of pitch-shift perturbation used
-res.etMH   = auAn.etMH;               % 
+res.etMH   = auAn.etMH;               % Time it took to run the f0 analysis
 
 % Raw Recorded data
 res.sRate         = auAn.sRate;
