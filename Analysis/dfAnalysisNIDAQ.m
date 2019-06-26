@@ -351,31 +351,35 @@ pertTime = pertSD.TrigTime;
 for ii = 1:numTrial
     trial = sensor(:,ii);
     
+    % 1st Derivative (1D) of the recording
     fDiff = [0; diff(trial)];
-    fDiff = smooth(5*fDiff, 10);
+    fDiff = smooth(5*fDiff, 20);
     
+    % Thresholds for detecting edges of (expected) step function
     threshUp = 0.2*max(fDiff);
-    threshDn = 0.2*min(fDiff);
-    ups = find(fDiff > threshUp);
-    dns = find(fDiff < threshDn);
+    threshDn = 0.3*min(fDiff);
     
-    StRiseIdx = ups(1);    
-    StFallIdx = dns(1);
+    ups = find(fDiff > threshUp); % Parts of 1D that could include Increasing edge
+    dns = find(fDiff < threshDn); % Parts of 1D that could include decreasing edge
     
-    RisingEdgeRange = StRiseIdx:(StRiseIdx + 0.3*fs);
-    [~, idxAtMax] = max(trial(RisingEdgeRange));
-    SpRiseIdx = StRiseIdx + idxAtMax-1;
+    StRiseIdx = ups(1);           % Assume first idx of increasing edges is (St)art of rise 
+    StFallIdx = dns(1);           % Assume first idx of decreasing edges is (St)art of fall
     
-    FallingEdgeRange = StFallIdx:(StFallIdx + 0.3*fs);
-    [~, idxAtMin] = min(trial(FallingEdgeRange));
-    SpFallIdx = StFallIdx + idxAtMin-1;
+    RisingEdgeRange = StRiseIdx:(StRiseIdx + 0.3*fs); % Range Following the StRiseIdx
+    [~, idxAtMax] = max(trial(RisingEdgeRange));      % Max value of recording in that range (Assume low->high)
+    SpRiseIdx = StRiseIdx + idxAtMax-1;               % Idx of Rise (S)to(p)
     
+    FallingEdgeRange = StFallIdx:(StFallIdx + 0.3*fs); % Range Following the StFallIdx
+    [~, idxAtMin] = min(trial(FallingEdgeRange));      % Min value of recording in that range (Assume high->low)
+    SpFallIdx = StFallIdx + idxAtMin-1;                % Idx of Fall (S)to(p)
+    
+    % Convert Indices to Times
     StRiseTime = round(time(StRiseIdx), 3);
     SpRiseTime = round(time(SpRiseIdx), 3);
     StFallTime = round(time(StFallIdx), 3);
     SpFallTime = round(time(SpFallIdx), 3);
     
-    lagTimeRise = StRiseTime - pertTime(ii, 1);
+    lagTimeRise = StRiseTime - pertTime(ii, 1); 
     lagTimeFall = StFallTime - pertTime(ii, 2);
     
     riseTime = SpRiseTime - StRiseTime;
