@@ -3,7 +3,7 @@ function dfRunSubjAnalysis()
 % and sensor information from experiments studying Voice Motor Control. 
 % This function is set up to analyze multiple subject and runs in an 
 % identical fashion, so that once you have a new data set, you can run it 
-% all very quickly. 
+% all very quickly.
 % Most importantly, these analyses calculate change in f0 of a speaker's 
 % voice as they complete somatosensory and auditory feedback perturbation 
 % tasks. 
@@ -190,7 +190,12 @@ res.limitsAmean      = auRes.limitsAmean;
 res.audioDynamics = auRes.audioDynamics;
 
 %NIAu Delay
+res.audioMinc     = auRes.audioMinc;
+res.audioHinc     = auRes.audioHinc;
+res.AuMHDelaysinc = auRes.AuMHDelaysinc;
 res.AuNiDelaysinc = auRes.AuNiDelaysinc;
+res.prePertVoicingTimeinc = auRes.prePertVoicingTimeinc;
+
 
 %Result variables to be plotted after accounting for tossed trials
 res.sensorPsv    = res.sensorP;
