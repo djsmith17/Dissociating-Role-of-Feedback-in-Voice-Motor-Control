@@ -16,6 +16,7 @@ classdef MicHeadAlignProcess
         auTrigs     % trigger points from Audapter recording
         auTrigsAuNi % trigger points from Audapter recording aligned with NIDAQ triggers (Only used for quality check)
         auTimesAuNi % time points from Aduapter recording aligned with NIDAQ triggers (Only used for quality check)
+        prePertVoicingTime
         rawMicDS    % Raw microphone signal, downsampled
         
         frameDel
@@ -124,6 +125,10 @@ classdef MicHeadAlignProcess
             end
             obj.auTrigsAuNi = obj.auTrigs + obj.adjustedDelay;
             obj.auTimesAuNi = obj.time(obj.auTrigsAuNi);
+            
+            % Amount of Time Vocalizing from Voice Onset to perturbation
+            % trigger
+            obj.prePertVoicingTime = obj.auTimesAuNi(1) - obj.voiceOnsetT;
 
             % Aim to section audio at 0.5s pre-onset to 1.0s post-offset.
             preOn   = 0.5*obj.fs;

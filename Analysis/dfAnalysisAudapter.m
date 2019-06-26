@@ -91,10 +91,11 @@ for ii = 1:auAn.numTrial
     MH = MicHeadAlignProcess(auAn, trialVar);
     
     % Save all trials (and delay calcs), regardless of eventual exclusion
-    auAn.audioM        = cat(2, auAn.audioM, MH.processedMic);
-    auAn.audioH        = cat(2, auAn.audioH, MH.processedHead);
-    auAn.allAuMHDelays = cat(1, auAn.allAuMHDelays, MH.AuMHDelay);
-    auAn.allAuNiDelays = cat(1, auAn.allAuNiDelays, MH.AuNIDelay);
+    auAn.audioM              = cat(2, auAn.audioM, MH.processedMic);
+    auAn.audioH              = cat(2, auAn.audioH, MH.processedHead);
+    auAn.prePertVoicingTimes = cat(1, auAn.prePertVoicingTimes, MH.prePertVoicingTime);
+    auAn.allAuMHDelays       = cat(1, auAn.allAuMHDelays, MH.AuMHDelay);
+    auAn.allAuNiDelays       = cat(1, auAn.allAuNiDelays, MH.AuNIDelay);
     
     % Identify if trial should be tossed
     if MH.saveT == 0     % Don't save the trial :(
@@ -110,11 +111,12 @@ end
 % The Audio Analysis
 auAn = dfAnalysisAudio(dirs, auAn, AudFlag, aDF, f0CalcF);
 
-% (inc)luded trials following Audio Analysis
-auAn.audioMinc     = auAn.audioM(:, auAn.svf0Idx);
-auAn.audioHinc     = auAn.audioH(:, auAn.svf0Idx);
-auAn.AuMHDelaysinc = auAn.allAuMHDelays(auAn.svf0Idx);
-auAn.AuNiDelaysinc = auAn.allAuNiDelays(auAn.svf0Idx);
+% (inc)luded trials following Audio Analysis trial removal
+auAn.audioMinc             = auAn.audioM(:, auAn.svf0Idx);
+auAn.audioHinc             = auAn.audioH(:, auAn.svf0Idx);
+auAn.AuMHDelaysinc         = auAn.allAuMHDelays(auAn.svf0Idx);
+auAn.AuNiDelaysinc         = auAn.allAuNiDelays(auAn.svf0Idx);
+auAn.prePertVoicingTimeinc = auAn.prePertVoicingTimes(auAn.svf0Idx);
 
 lims  = dfIdentifyAudioLims(auAn);
 auRes = packResults(auAn, lims);
@@ -156,6 +158,7 @@ auAn.removedTrialTracker = {}; % List of Trials that were automatically thrown o
 auAn.incTrialInfo = []; % Record of manual trial removal
 auAn.allAuMHDelays = []; % Vector of the delays between the Audapter microphone and Headphone recordings
 auAn.allAuNiDelays = []; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+auAn.prePertVoicingTimes = []; % Vector of the times that are recorded of the participant vocalizing pre-perturbation
 
 auAn.allIdxPreProc = []; % Vector of indicies of all recorded trials saved for further analyses.
 auAn.audioMSvt     = []; % Microphone recordings for the trials saved for further analyses
@@ -284,8 +287,10 @@ res.limitsAmean      = lims.audioMean;
 % Dynamics of the Participant's Vocal Response
 res.audioDynamics = auAn.audioDynamics;
 
-%Some Final Output time series data
-res.audioMinc = auAn.audioMinc;
-res.audioHinc = auAn.audioHinc;
+% Some Final Output time series data
+res.audioMinc     = auAn.audioMinc;
+res.audioHinc     = auAn.audioHinc;
+res.AuMHDelaysinc = auAn.AuMHDelaysinc;
 res.AuNiDelaysinc = auAn.AuNiDelaysinc;
+res.prePertVoicingTimeinc = auAn.prePertVoicingTimeinc;
 end
