@@ -179,7 +179,7 @@ if isfield(niAn, 'audioM')
     trialVar.pressureNI  = niAn.sensorPz(:,ii);
     trialVar.expTrigsNI  = niAn.expTrigs(ii, :);
     
-    if ismember(ii, niAn.pertIdx)
+    if ismember(ii, niAn.pertIdx) && ~isempty(niAn.presSD.TrigTime)
         thisIdx = find(ii == niAn.pertIdx);
         trialVar.pressureTrigs = niAn.presSD.TrigTime(thisIdx, :);
         trialVar.presLagTimes  = niAn.presSD.lagTimes(thisIdx, :);
