@@ -89,14 +89,25 @@ if AudFlag == 1
     An.audioHf0   = f0A.audioHf0;
     An.etMH       = f0A.etM + f0A.etH; % Minutes
     An.fV         = f0A.fV;
+    
+    %Set up time information to section data around
+    preEveT = -0.5;
+    posEveT = 1.0;
+    eveTLen = posEveT - preEveT;
+    numSampSec = eveTLen/An.fV.win + 1;
+    
+    pVec = linspace(0, numSampSec-1, numSampSec);
 
+    % Time vector corresponding to the sectioned signals
+    An.secTime = linspace(preEveT, posEveT, numSampSec);
+    
     % Smooth the f0 data
     An.audioMf0S   = smoothf0(An.audioMf0);
     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0, An.expTrigsf0);
-    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0, An.expTrigsf0);
+    An.audioMf0SecAll = sectionData(An.timef0, An.audioMf0, An.expTrigsf0, pVec);
+    An.audioHf0SecAll = sectionData(An.timef0, An.audioHf0, An.expTrigsf0, pVec);
    
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
@@ -162,10 +173,10 @@ if AudFlag == 1
     An.audioHf0c   = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
     
     %Section the data around onset and offset
-    [An.secTime, An.audioMf0_Secp] = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR);
-    [An.secTime, An.audioHf0_Secp] = sectionData(An.timef0, An.audioHf0p, An.pertTrigsR);
-    [An.secTime, An.audioMf0_Secc] = sectionData(An.timef0, An.audioMf0c, An.contTrigsR);
-    [An.secTime, An.audioHf0_Secc] = sectionData(An.timef0, An.audioHf0c, An.contTrigsR);
+    An.audioMf0_Secp = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR, pVec);
+    An.audioHf0_Secp = sectionData(An.timef0, An.audioHf0p, An.pertTrigsR, pVec);
+    An.audioMf0_Secc = sectionData(An.timef0, An.audioMf0c, An.contTrigsR, pVec);
+    An.audioHf0_Secc = sectionData(An.timef0, An.audioHf0c, An.contTrigsR, pVec);
 
     %Mean around the onset and offset
     An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
@@ -251,7 +262,7 @@ fV.f0Bounds   = identifyf0Bounds(fV.f0b, fV.gender);
 fV.time       = (0:1/fV.sRate:(fV.numSamp-1)/fV.sRate)'; % Time vector for full mic
 
 fV.freqCutOff = 400;
-fV.win        = 0.005;      % Sampling window
+fV.win        = 0.001;      % Sampling window
 fV.fsA        = 1/fV.win;
 fV.winP       = fV.win*fV.sRate;
 fV.pOV        = 0.00;       % 80% overlap
@@ -378,7 +389,7 @@ function signalParse = parseTrialTypes(signal, idx)
 signalParse = signal(:, idx);
 end
 
-function [secTime, secSigs] = sectionData(time, sigs, trigs)
+function secSigs = sectionData(time, sigs, trigs, pVec)
 % [secTime, secSigs] = sectionData(time, sigs, trigs) sections
 % time series data around important points in time.
 % 
@@ -392,9 +403,8 @@ function [secTime, secSigs] = sectionData(time, sigs, trigs)
 %          The 2nd 3D later are Offset Sections
 
 [~, numTrial] = size(sigs);
-preEve  = 0.5; posEve = 1.0;
+preEveT  = -0.5;
 
-secSigs    = [];
 OnsetSecs  = [];
 OffsetSecs = [];
 if numTrial > 0
@@ -402,13 +412,13 @@ if numTrial > 0
         OnsetT   = trigs(ii, 1); % Onset time
         OffsetT  = trigs(ii, 2); % Offset time
 
-        OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
-        OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
-        OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
+        OnsetTSt = round(OnsetT + preEveT, 3);   % PreOnset time, rounded to nearest ms
+        OnsetTStLeast = find(time <= OnsetTSt);
+        OnsetSpan = OnsetTStLeast(end) + pVec; % Indices corresponding to Onset period
 
-        OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
-        OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
-        OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
+        OffsetTSt = round(OffsetT + preEveT, 3); % PreOffset time, rounded to nearest ms
+        OffsetTStLeast = find(time <= OffsetTSt);
+        OffsetSpan = OffsetTStLeast(end) + pVec; % Indices corresponding to Offset period
 
         OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
         OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
@@ -416,12 +426,8 @@ if numTrial > 0
         OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
         OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
     end
-    [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
-else
-    numSampSec = 301;
 end
 
-secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
 secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
 secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
 end
