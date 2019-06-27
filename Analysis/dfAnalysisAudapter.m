@@ -233,6 +233,7 @@ res.audioM        = auAn.audioM;      % Raw microphone recording (no lag correct
 res.audioH        = auAn.audioH;      % Raw headphone recording  (no lag correction)
 res.allAuMHDelays = auAn.allAuMHDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 res.allAuNiDelays = auAn.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+res.prePertVoicingTimes = auAn.prePertVoicingTimes;
 
 res.removedTrialTracker = auAn.removedTrialTracker; % Result of Automatic Trial Exclusion
 res.incTrialInfo = auAn.incTrialInfo; % Result of Manual Trial Exclusion

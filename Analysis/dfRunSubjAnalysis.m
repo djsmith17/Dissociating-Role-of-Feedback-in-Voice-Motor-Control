@@ -134,6 +134,7 @@ res.removedTrialTracker = auRes.removedTrialTracker;
 res.incTrialInfo        = auRes.incTrialInfo;
 res.allAuMHDelays       = auRes.allAuMHDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 res.allAuNiDelays       = auRes.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+res.prePertVoicingTimes = auRes.prePertVoicingTimes;
 
 %NIDAQ RESULTS Collection
 res.balloon         = niRes.balloon;
