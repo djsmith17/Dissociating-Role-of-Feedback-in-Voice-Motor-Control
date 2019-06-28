@@ -1,5 +1,5 @@
 classdef MeasureSummaryStats
-    % MeasureSummaryStats(dirs, pA, varName, cond, measure, idealLambda) 
+    % MeasureSummaryStats(dirs, pA, measureVar, measure, idealLambda) 
     % is a class for organizing the resultant stats of a measure. The input
     % dirs is the current directory you are working in and
     % specifically is looking for the the results folder you are
@@ -23,20 +23,13 @@ classdef MeasureSummaryStats
     
     methods
         function obj = MeasureSummaryStats(dirs, pA, measVar, measure, idealLambda)
-            % MeasureSummaryStats(dirs, pA, varName, cond, measure, idealLambda) is a class
-            % for organizing the resultant stats of a measure. The input
-            % dirs is the current directory you are working in and
-            % specifically is looking for the the results folder you are
-            % writing to. pA is a structure describing the pooled analysis
-            % conditions we are testing over. varName is the name of the
-            % measure we are testing. Cond is the name of the condition
-            % that this variable was tested on. Measure is a vector of the
-            % actual measured values. idealLambda is a value of lambda such
-            % that when measure is transformed using a box-cox transform 
-            % with this lambda, the transformed measure is as normal is
-            % possible.
-            
-            %   Detailed explanation goes here
+            % This class is called from the following Stats functions
+            %
+            % -StatsOrg_MaskingNoiseStudy
+            % -StatsOrg_DRF_Som
+            % -StatsOrg_DRF_Aud
+            % -StatsOrg_DRF_Som_Aud
+            % -drawExpPressureDist
 
             % Load necessary identifiers
             obj.pAnalysis     = pA.pAnalysis;
@@ -160,7 +153,7 @@ classdef MeasureSummaryStats
             sigma  = '\sigma';
             
             diffBox = figure('Color', [1 1 1]);
-            plotpos = [30 0]; plotdim = [400 300];
+            plotpos = [30 40]; plotdim = [400 300];
             set(diffBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
             histogram(measure, 10); box off        

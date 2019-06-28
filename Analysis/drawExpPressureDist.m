@@ -7,6 +7,8 @@ axisLSize = 14;
 
 mu = '\mu';
 sigma  = '\sigma'; 
+studyTitle = pA.pAnalysis;
+studyTitle(strfind(studyTitle, '_')) = '';
 
 plotpos = [10 10];
 plotdim = [1600 800];
@@ -54,7 +56,7 @@ for ii = 1:numSubj
      axis([lB rB 0 15])
 end
 
-bigTit = suptitle({'Masking Study', 'Distributions of pressure readings at the appex of the pressure step function', [mu '= Mean, ' sigma '= Standard Deviation']});
+bigTit = suptitle({studyTitle, 'Distributions of pressure readings at the appex of the pressure step function', [mu '= Mean, ' sigma '= Standard Deviation']});
 
 set(bigTit, 'FontName', fontN,...
               'FontSize', axisLSize,...
@@ -65,9 +67,9 @@ plotFileName = fullfile(dirs.SavResultsDir, pltTitle);
 export_fig(plotFileName)
 
 % Perform Standard Summary Stats
-measureVar.varName = 'MeanPressureLevels';
+measureVar.varName   = 'MeanPressureLevels';
 measureVar.condition = 'AllConditions';
-measureVar.units = 'psi';
+measureVar.units     = 'psi';
 summaryStat = MeasureSummaryStats(dirs, pA, measureVar, allMeanPress, 0);
 
 summaryStat = summaryStat.testNormality(); % Describe the normality  
