@@ -36,8 +36,12 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
+        measureVar.varName   = meas{k};
+        measureVar.condition = curCond;
+        measureVar.units     = 'cents';
+        
         % Perform Standard Summary Stats
-        summaryStat = MeasureSummaryStats(dirs, pA, meas{k}, curCond, measure, lambdas(i));
+        summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
              
         % Describe the normality
         summaryStat = summaryStat.testNormality();
@@ -51,7 +55,11 @@ for k = curTestingMeas
     
     % Find the difference between the two conditions and place in Struct
     measDiff = measureSummaryStrs(1).measure - measureSummaryStrs(2).measure;
-    summaryStatDiff = MeasureSummaryStats(dirs, pA, [meas{k} 'Diff'], 'Diff', measDiff, 0);
+    
+    measureDiffVar.varName   = [meas{k} 'Diff'];
+    measureDiffVar.condition = 'Diff';
+    measureDiffVar.units     = 'cents';
+    summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
     if k == 3
         % Apply a Box Cox transform with the default (best) lambda

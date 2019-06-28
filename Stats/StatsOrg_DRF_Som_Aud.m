@@ -40,9 +40,13 @@ for i = 1:pA.numCond
     % Identify the Variable and Condition
     curCond   = pA.condName{i};
     measure   = respPerCol(:, i);
+    
+    measureVar.varName   = 'RespPer';
+    measureVar.condition = curCond;
+    measureVar.units     = 'cents';
 
     % Perform Standard Sumamry Stats
-    summaryStat = MeasureSummaryStats(dirs, pA, 'RespPer', curCond, measure, lambdas(i));
+    summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
     
     if ApplyTrans == 1
         usedLambda  = lambdas(2);
@@ -70,7 +74,11 @@ for jj = 1:comp
     cond = ['DiffBetween' num2str(varCmp(jj,:))];
     % Find the difference between the two conditions and place in Struct
     measDiff = measureSummaryStrs(varCmp(jj,1)).measure - measureSummaryStrs(varCmp(jj,2)).measure;
-    summaryStatDiff = MeasureSummaryStats(dirs, pA, 'RespPer', cond, measDiff, 0);
+    
+    measureDiffVar.varName   = 'RespPer';
+    measureDiffVar.condition = cond;
+    measureDiffVar.units     = 'cents';
+    summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
     summaryStatDiff.SummaryStruct.vars = varCmp(jj,:);
     summaryStatDiff.SummaryStruct.h    = varH(jj);

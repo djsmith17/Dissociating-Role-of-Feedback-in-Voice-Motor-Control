@@ -36,8 +36,12 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
+        measureVar.varName   = meas{k};
+        measureVar.condition = curCond;
+        measureVar.units     = 'cents';
+        
         % Perform Standard Summary Stats
-        summaryStat = MeasureSummaryStats(dirs, pA, meas{k}, curCond, measure, lambdas(i));
+        summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
              
         % Describe the normality
         summaryStat = summaryStat.testNormality();
