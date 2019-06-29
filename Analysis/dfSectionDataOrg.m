@@ -9,34 +9,37 @@ classdef dfSectionDataOrg
         dataUnit      % Units of the data measured
         iterationType % Level of analysis (cross-trial//cross-participant)
         
-        time          % Full time vector of recorded signals
-        sigs          % Vector of full length signals
-        trigs
-        fs
+        time          % Time vector for the length of the full signals
+        sigs          % Data vector for full length signals
+        trigs         % Trigger points (time) when onset and offset occur
+        fs            % sampling rate of the time/data vectors
         
-        numTrial
-        preEveT
-        posEveT
-        eveTLen
-        numSampSec
-        pVec
+        numTrial      % Number of trials involved
+        preEveT       % Amount of time pre-trigger
+        posEveT       % Amount of time post-trigger
+        eveTLen       % Time length to section over from (-pre:pos)
+        numSampSec    % Number of samples in a section
+        pVec          % Vector of samples starting from first point
         
-        sigsLims
+        sigsLims      % limits of the full signal
         
-        timeSec
-        sigsSec
+        timeSec       % time vector of the sectioned signal
+        sigsSec       % signal sectioned around the trigger
         
-        sigsBase
-        sigsBaseM
+        sigsBase      % baseline value of each trial (from raw signal)
+        sigsBaseM     % mean baseline value
         
-        sigsNorm
-        sigsNormSec
+        sigsNorm      % full length signal normalized by baseline
+        sigsNormSec   % sectioned signal normalized by baseline
         
-        sigsSecM
-        sigsSecMLims
+        sigsSecM      % mean sectioned signals
+        sigsSecMLims  % limits of the mean sectioned signal
         
-        sigsMeanFig
+        sigsMeanFig      % figure for displaying the 
         sigsMeanFigTitle
+        
+        svIdx
+        removedTrialTracker
         
         dataColor1
         dataColor2
@@ -49,14 +52,24 @@ classdef dfSectionDataOrg
     end
     
     methods
-        function obj = dfSectionDataOrg(time, sigs, trigs, fs, dataInfo)
+        function obj = dfSectionDataOrg(time, sigs, trigs, fs, varargin)
             %UNTITLED3 Construct an instance of this class
             %   Detailed explanation goes here
             
-            obj.coder    = dataInfo.coder;
-            obj.curSess  = dataInfo.curSess;
-            obj.dataType = dataInfo.sigType;
-            obj.dataUnit = dataInfo.units;
+            if isempty(varargin)
+                dataInfo.coder   = '';
+                dataInfo.curSess = '';
+                dataInfo.sigType = '';
+                dataInfo.units   = '';
+                dataInfo.itrType = '';
+            else
+                dataInfo = varargin{1};
+            end
+            
+            obj.coder         = dataInfo.coder;
+            obj.curSess       = dataInfo.curSess;
+            obj.dataType      = dataInfo.sigType;
+            obj.dataUnit      = dataInfo.units;
             obj.iterationType = dataInfo.itrType;
             
             obj.time  = time;
@@ -69,7 +82,7 @@ classdef dfSectionDataOrg
             obj.preEveT = -0.5; % 500ms before trigger
             obj.posEveT = 1.0;  % 1000ms after trigger
             obj.eveTLen = obj.posEveT - obj.preEveT;
-            obj.numSampSec = obj.eveTLen*obj.fs;
+            obj.numSampSec = obj.eveTLen*obj.fs+1;
             
             obj.pVec = linspace(0, obj.numSampSec-1, obj.numSampSec);
             
@@ -82,6 +95,9 @@ classdef dfSectionDataOrg
             
             obj.legendCurves = [];
             obj.legendLabels = {};
+            
+            obj.svIdx = [];
+            obj.removedTrialTracker = [];
             
 %             % Section raw f0 around onset and offset
 %             obj.sigsSec  = obj.sectionData(obj.sigs);
@@ -140,6 +156,10 @@ classdef dfSectionDataOrg
         end
         
         function obj = convertCentsData(obj)
+            % This will normalize the full length signal into another full
+            % length signal by the equation for converting a f0 recording
+            % from Hz to cents
+            
             obj.sigsNorm = [];
             for ii = 1:obj.numTrial
                 norm = 1200*log2(obj.sigs(:,ii)./obj.sigsBase(ii));
@@ -160,29 +180,35 @@ classdef dfSectionDataOrg
             sigsZM = sigs - base;
         end
         
-        function obj = qualityCheckData(obj)
+        function obj = qualityCheckData(obj, sigSec, varargin)
             % Identify trials (mic) where participant had vocal fry
             % aka: f0 pitch miscalculation
             
+            if isempty(varargin)
+                curSavedIdxList = 1:obj.numtrial;
+            else
+                curSavedIdxList = varargin{1};
+            end
+            
             for ii = 1:obj.numTrial
+                curSavedIdx = curSavedIdxList(ii);
+                sigSecTrial = sigSec(:, ii, :);
 
-                mic     = obj.audioMf0_norm(timeInd, ii);
+                % Any points where pitch is > 500 // < -500 cents?
+                MisCalc = find(sigSecTrial >= 500 | sigSecTrial <=  -500);
 
-                % objy points where pitch is > 500 // < -500 cents?
-                MisCalcf0 = find(mic >= 500 | mic <=  -500);
+                if ~isempty(MisCalc)
+%                     if obj.trialTypeSvt(ii) == 0
+%                         type = 'Control';
+%                     else
+%                         type = 'Perturbed';
+%                     end       
+%                     fprintf('%s Trial %d (%s) excluded due to Miscalculated Pitch Trace\n', obj.curSess, svIdc, type)
 
-                if ~isempty(MisCalcf0)
-                    if obj.trialTypeSvt(ii) == 0
-                        type = 'Control';
-                    else
-                        type = 'Perturbed';
-                    end       
-                    fprintf('%s Trial %d (%s) excluded due to Miscalculated Pitch Trace\n', obj.curSess, svIdc, type)
-
-                    removedTrial = {['Trial ' num2str(svIdc)], 'Miscalculated pitch Trace'};
+                    removedTrial = {['Trial ' num2str(curSavedIdx)], 'Miscalculated pitch Trace'};
                     obj.removedTrialTracker = cat(1, obj.removedTrialTracker, removedTrial);
                 else
-                    obj.subSvIdx = cat(1, obj.subSvIdx, ii); % Keep the index of the trials that are not removed
+                    obj.svIdx = cat(1, obj.svIdx, ii); % Keep the index of saved trials (not removed)
                 end
             end
         end
@@ -235,9 +261,10 @@ classdef dfSectionDataOrg
         end
         
         function [lwBound, upBound] = MaxMinBounds(obj, audio, audioErr, buff)
-            % MaxMinBounds takes an audio trace and the error trace for that audio, and
-            % identifies what the max and min values of the trace are. It identifies
-            % how wide the bounds needs to be fully show the trace with some buff
+            % MaxMinBounds takes an time-series measure and the measured
+            % error and identifies the max and min values for the 
+            % time-series trace. It identifies how wide the bounds needs to
+            % be fully show the trace with some buffer
 
             [~, Imax] = max(audio);
             upBound   = round(audio(Imax) + audioErr(Imax) + buff);
@@ -451,6 +478,9 @@ classdef dfSectionDataOrg
         end
         
         function obj = appendFigure(obj, sigsSecM, flag)
+            % obj = appendFigure(obj, sigsSecM, flag) allows you to add
+            % more meaned section traces to the figure which has already
+            % been created for the defauly trace.
             
             if flag == 2
                 color = obj.dataColor2;

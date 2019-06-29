@@ -150,7 +150,27 @@ if AudFlag == 1
             An.subSvIdx = cat(1, An.subSvIdx, ii); % Keep the index of the trials that are not removed
         end
     end
+%%%%%%%%    
+    fs = 1/An.fV.win;
+    secf0 = dfSectionDataOrg(An.timef0, An.audioMf0, An.expTrigsf0, fs);
     
+    % Section raw f0 around onset and offset
+    secf0.sigsSec  = secf0.sectionData(secf0.sigs);
+    
+    % Identify baseline values
+    secf0 = secf0.identifyBaselineValues(secf0.sigsSec);
+    
+    % Convert to cents
+    secf0 = secf0.convertCentsData();
+    
+    % Section converted f0 around onset and offset
+    secf0.sigsNormSec = secf0.sectionData(secf0.sigsNorm);
+    
+    % Quality check trial
+    secf0 = secf0.qualityCheckData(secf0.sigsNormSec, An.allIdxPreProc);
+    
+    
+%%%%%%%%    
     % Parse out the trials we are saving (not removed)
     An.svf0Idx       = An.allIdxPreProc(An.subSvIdx);
     An.expTrigsf0Sv  = An.expTrigsf0(An.subSvIdx, :);
