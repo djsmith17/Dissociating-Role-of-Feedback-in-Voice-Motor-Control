@@ -151,23 +151,23 @@ if AudFlag == 1
         end
     end
 %%%%%%%%    
-    fs = 1/An.fV.win;
-    secf0 = dfSectionDataOrg(An.timef0, An.audioMf0, An.expTrigsf0, fs);
-    
-    % Section raw f0 around onset and offset
-    secf0.sigsSec  = secf0.sectionData(secf0.sigs);
-    
-    % Identify baseline values
-    secf0 = secf0.identifyBaselineValues(secf0.sigsSec);
-    
-    % Convert to cents
-    secf0 = secf0.convertCentsData();
-    
-    % Section converted f0 around onset and offset
-    secf0.sigsNormSec = secf0.sectionData(secf0.sigsNorm);
-    
-    % Quality check trial
-    secf0 = secf0.qualityCheckData(secf0.sigsNormSec, An.allIdxPreProc);
+%     fs = 1/An.fV.win;
+%     secf0 = dfSectionDataOrg(An.timef0, An.audioMf0, An.expTrigsf0, fs);
+%     
+%     % Section raw f0 around onset and offset
+%     secf0.sigsSec  = secf0.sectionData(secf0.sigs);
+%     
+%     % Identify baseline values
+%     secf0 = secf0.identifyBaselineValues(secf0.sigsSec);
+%     
+%     % Convert to cents
+%     secf0 = secf0.convertCentsData();
+%     
+%     % Section converted f0 around onset and offset
+%     secf0.sigsNormSec = secf0.sectionData(secf0.sigsNorm);
+%     
+%     % Quality check trial
+%     secf0 = secf0.qualityCheckData(secf0.sigsNormSec, An.allIdxPreProc);
     
     
 %%%%%%%%    

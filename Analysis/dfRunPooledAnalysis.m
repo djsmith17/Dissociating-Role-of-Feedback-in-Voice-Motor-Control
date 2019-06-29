@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -152,7 +152,7 @@ if strcmp(pA.pAnalysis, 'MaskingStudy')
 elseif strcmp(pA.pAnalysis, 'DRF_Som')
     drawExpPressureDist(dirs, pA, pooledRunStr)
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
-    timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
+%     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
     drawSubjRespVarDists(dirs, pooledRunStr)
     StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
@@ -770,6 +770,7 @@ function audioDynamics_Audio = PitchShiftReflexResponseSingle(secTime, secAudioM
 
 [numSamp, numTrial, ~] = size(secAudioMean); % Size of the data we are dealing with
 
+audioDynamics_Audio.tAtMin  = [];
 audioDynamics_Audio.stimMag = [];
 audioDynamics_Audio.respMag = [];
 audioDynamics_Audio.respPer = [];
@@ -800,11 +801,13 @@ for ii = 1:numTrial
     % RespPer
     ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respMag
     
+    audioDynamics_Audio.tAtMin  = cat(1, audioDynamics_Audio.tAtMin, ir.tAtMin);
     audioDynamics_Audio.stimMag = cat(1, audioDynamics_Audio.stimMag, ir.stimMag);
     audioDynamics_Audio.respMag = cat(1, audioDynamics_Audio.respMag, ir.respMag);
     audioDynamics_Audio.respPer = cat(1, audioDynamics_Audio.respPer, ir.respPer);
 end
-
+audioDynamics_Audio.tAtMinM   = round(mean(audioDynamics_Audio.tAtMin),3);
+audioDynamics_Audio.tAtMinSD  = round(mean(audioDynamics_Audio.tAtMin),3);
 audioDynamics_Audio.stimMagM  = round(mean(audioDynamics_Audio.stimMag),2);
 audioDynamics_Audio.stimMagSD = round(std(audioDynamics_Audio.stimMag),2);
 audioDynamics_Audio.respMagM  = round(mean(audioDynamics_Audio.respMag),2);

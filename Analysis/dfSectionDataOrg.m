@@ -14,6 +14,7 @@ classdef dfSectionDataOrg
         trigs         % Trigger points (time) when onset and offset occur
         fs            % sampling rate of the time/data vectors
         
+        % Basic Sectioning Trial variables
         numTrial      % Number of trials involved
         preEveT       % Amount of time pre-trigger
         posEveT       % Amount of time post-trigger
@@ -23,6 +24,7 @@ classdef dfSectionDataOrg
         
         sigsLims      % limits of the full signal
         
+        % Sectioned trial versions
         timeSec       % time vector of the sectioned signal
         sigsSec       % signal sectioned around the trigger
         
@@ -31,6 +33,7 @@ classdef dfSectionDataOrg
         
         sigsNorm      % full length signal normalized by baseline
         sigsNormSec   % sectioned signal normalized by baseline
+        sigsNormSecSv % sectioned signal normalized with tossed trials removed
         
         sigsSecM      % mean sectioned signals
         sigsSecMLims  % limits of the mean sectioned signal
@@ -41,6 +44,7 @@ classdef dfSectionDataOrg
         svIdx
         removedTrialTracker
         
+        % Plotting Variables
         dataColor1
         dataColor2
         dataColor3
@@ -98,20 +102,6 @@ classdef dfSectionDataOrg
             
             obj.svIdx = [];
             obj.removedTrialTracker = [];
-            
-%             % Section raw f0 around onset and offset
-%             obj.sigsSec  = obj.sectionData(obj.sigs);
-            
-            % Identify baseline values
-%             obj = obj.identifyBaselineValues(obj.sigsSec);
-            
-            % Convert to cents
-%             obj = obj.convertCentsData();
-            
-            % Section converted f0 around onset and offset
-%             obj.sigsNormSec = obj.sectionData(obj.sigsNorm);
-            
-            % Identify trials to be removed.
             
             % Mean the trials
 %             obj.sigsSecM = obj.meanData(obj.sigsNormSec);

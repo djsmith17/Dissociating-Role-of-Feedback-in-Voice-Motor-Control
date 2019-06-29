@@ -193,7 +193,7 @@ classdef MeasureSummaryStats
             sigma  = '\sigma'; 
 
             diffBox = figure('Color', [1 1 1]);
-            plotpos = [30 0]; plotdim = [800 300];
+            plotpos = [30 40]; plotdim = [800 300];
             set(diffBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
             subplot(1,2,1); histogram(measure, 10); box off
