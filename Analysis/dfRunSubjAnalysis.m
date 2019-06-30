@@ -35,7 +35,7 @@ AVar.participants  = {'DRF1',...
                       'DRF19',...
                       'DRF20'}; % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF1', 'AF2'}; %    List of multiple runs.
+AVar.runs          = {'SF1', 'SF2', 'SF3', 'SF4'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
@@ -90,6 +90,7 @@ for i = 1:AVar.numPart
         audioFlagA = 1; % Audio Analysis Flag
         f0CalcF    = 0;
         
+        close all
         % Analysis on the NIDAQ raw data
         [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, audioFlagN, aDF, pF);
         % Analysis on the Audapter raw data

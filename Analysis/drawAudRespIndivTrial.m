@@ -5,7 +5,7 @@ f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
 numPT            = res.numPertTrialsFin;
 trialNums        = res.allIdxFin(res.pertIdxFin);
-pertTrig         = res.pertTrigsFin;
+pertTrig         = round(res.pertTrigsFin, 3);
 MHDelays         = res.allAuMHDelays;
 AuNiDelays       = round(res.allAuNiDelays, 3);
 
