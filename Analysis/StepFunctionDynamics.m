@@ -73,25 +73,29 @@ classdef StepFunctionDynamics
 
             for ii = 1:obj.numTrial
                 trial = obj.sensor(:,ii);
+                
+                trialSmoothed = smooth(trial, 100);
 
                 % 1st Derivative (1D) of the recording
-                fDiff = [0; diff(trial)];
-                fDiff = smooth(5*fDiff, 20);
+                fDiff = 5*[0; diff(trialSmoothed)];
 
                 % Thresholds for detecting edges of (expected) step function
                 threshUp = 0.2*max(fDiff);
                 threshDn = 0.3*min(fDiff);
 
+                %%%Find the Rising Edge%%%
                 ups = find(fDiff > threshUp); % Parts of 1D that could include Increasing edge
-                dns = find(fDiff < threshDn); % Parts of 1D that could include decreasing edge
-
-                StRiseIdx = ups(1);           % Assume first idx of increasing edges is (St)art of rise 
-                StFallIdx = dns(1);           % Assume first idx of decreasing edges is (St)art of fall
-
+                StRiseIdx = ups(1);           % Assume first idx of increasing edges is (St)art of rise
+                
                 RisingEdgeRange = StRiseIdx:(StRiseIdx + 0.3*fs); % Range Following the StRiseIdx
                 [~, idxAtMax] = max(trial(RisingEdgeRange));      % Max value of recording in that range (Assume low->high)
                 SpRiseIdx = StRiseIdx + idxAtMax-1;               % Idx of Rise (S)to(p)
 
+                %%%Find the Falling Edge%%%
+                followRiseEdge = fDiff(StRiseIdx:end);
+                dns = find(followRiseEdge < threshDn); % Parts of 1D that could include decreasing edge                 
+                StFallIdx = dns(1)+ StRiseIdx;           % Assume first idx of decreasing edges is (St)art of fall
+                
                 FallingEdgeRange = StFallIdx:(StFallIdx + 0.3*fs); % Range Following the StFallIdx
                 [~, idxAtMin] = min(trial(FallingEdgeRange));      % Min value of recording in that range (Assume high->low)
                 SpFallIdx = StFallIdx + idxAtMin-1;                % Idx of Fall (S)to(p)
@@ -101,8 +105,10 @@ classdef StepFunctionDynamics
                 SpRiseTime = round(time(SpRiseIdx), 3);
                 StFallTime = round(time(StFallIdx), 3);
                 SpFallTime = round(time(SpFallIdx), 3);
+                FullTimeDynamics = [StRiseTime SpRiseTime StFallTime SpFallTime];
+%                 obj.drawSingleTrial(trial, FullTimeDynamics)
 
-                lagTimeRise = StRiseTime - pertTime(ii, 1); 
+                lagTimeRise = StRiseTime - pertTime(ii, 1);
                 lagTimeFall = StFallTime - pertTime(ii, 2);
 
                 riseTime = SpRiseTime - StRiseTime;
@@ -209,20 +215,20 @@ classdef StepFunctionDynamics
         timeAl = (-preEve:per:posEve)';
         end
         
-        function drawSingleTrial(obj)
+        function drawSingleTrial(obj, trial, FullTimeDynamics)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             
             figure
             plot(obj.time, trial)
             hold on
-            plot([StRiseTime StRiseTime], [-5 10], 'g')
+            plot([FullTimeDynamics(1) FullTimeDynamics(1)], [-5 10], 'g')
             hold on
-            plot([SpRiseTime SpRiseTime], [-5 10], 'g--')
+            plot([FullTimeDynamics(2) FullTimeDynamics(2)], [-5 10], 'g--')
             hold on
-            plot([StFallTime StFallTime], [-5 10], 'r')
+            plot([FullTimeDynamics(3) FullTimeDynamics(3)], [-5 10], 'r')
             hold on
-            plot([SpFallTime SpFallTime], [-5 10], 'r--')
+            plot([FullTimeDynamics(4) FullTimeDynamics(4)], [-5 10], 'r--')
             axis([0 4 -0.5 5])
         end
         
@@ -273,18 +279,10 @@ classdef StepFunctionDynamics
                 box off
                 set(gca,'FontSize', 14,...
                         'FontWeight','bold')
-                    
-
-%                 title({['Trial ' num2str(trialNums(ii))], [num2str(pertTrig(ii,1)) '  ' num2str(pertTrig(ii,2))]}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
-%                 axis(limits); box off
-% 
-%                 set(gca, 'FontName', fontN,...
-%                          'FontSize', axisLSize,...
-%                          'FontWeight','bold')
             end
             suptitle(obj.curSess)
             
-            dirPath = 'E:\Desktop\Pressure Diagnostics';
+            dirPath = 'C:\Users\djsmith\Desktop\Pressure Diagnostics';
             filePath = fullfile(dirPath, [obj.curSess 'PressureDiag.jpg']);
             export_fig(filePath)
             
