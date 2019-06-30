@@ -346,8 +346,8 @@ time     = SD.time;
 sensor   = SD.sensor;
 fs       = SD.fs;
 
-pertIdx  = pertSD.TrigIdx;
-pertTime = pertSD.TrigTime;
+SD.pertIdx  = pertSD.TrigIdx;
+SD.pertTime = pertSD.TrigTime;
 
 [~, numTrial] = size(sensor);
 
