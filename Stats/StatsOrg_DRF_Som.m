@@ -1,7 +1,8 @@
 function StatsOrg_DRF_Som(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas = {'StimMag', 'RespMag', 'RespPer'};
+meas   = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+mUnits = {'s', 'cents', 'cents', '%'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -10,10 +11,10 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:3;
+curTestingMeas = 1:4;
 ApplyTrans = 0;
 for k = curTestingMeas
-    pA.k = k;
+    
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
@@ -38,7 +39,7 @@ for k = curTestingMeas
         
         measureVar.varName   = meas{k};
         measureVar.condition = curCond;
-        measureVar.units     = 'cents';
+        measureVar.units     = mUnits{k};
         
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
@@ -58,7 +59,7 @@ for k = curTestingMeas
     
     measureDiffVar.varName   = [meas{k} 'Diff'];
     measureDiffVar.condition = 'Diff';
-    measureDiffVar.units     = 'cents';
+    measureDiffVar.units     = mUnits{k};
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
     if k == 3
@@ -165,7 +166,6 @@ end
 
 function drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
 
-units  = {'cents', 'cents', '%'};
 fontN = 'Arial';
 axisLSize = 25;
 
@@ -185,7 +185,7 @@ varName     = measureSummaryStrs.varName;
 measureData = [measureSummaryStrs.measure];
 
 boxplot(measureData, 'Labels', cond)
-ylabel([varName ' (' units{pA.k} ')'])
+ylabel([varName ' (' summaryStrDiff.units ')'])
 title({pAnalysisFix, varName})
 box off
 
@@ -217,7 +217,7 @@ numCond = length(pubCond);
 genVar = cell(numCond, 1);
 genVar(:) = {''};
 
-pubTable = table(genVar, genVar, genVar); %Three times for numMeas
+pubTable = table(genVar, genVar, genVar, genVar); %Three times for numMeas
 pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end
