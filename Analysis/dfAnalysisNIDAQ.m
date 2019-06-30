@@ -382,8 +382,8 @@ for ii = 1:numTrial
     StFallTime = round(time(StFallIdx), 3);
     SpFallTime = round(time(SpFallIdx), 3);
     
-    lagTimeRise = StRiseTime - pertTime(ii, 1); 
-    lagTimeFall = StFallTime - pertTime(ii, 2);
+    lagTimeRise = StRiseTime - SD.pertTime(ii, 1); 
+    lagTimeFall = StFallTime - SD.pertTime(ii, 2);
     
     riseTime = SpRiseTime - StRiseTime;
     fallTime = SpFallTime - StFallTime;
@@ -448,9 +448,9 @@ SD.pTrialLossM  = round(SD.pTrialLossM, 3); % Round
 SD.pTrialLossSE = round(SD.pTrialLossSE, 3); % Round
 
 %%%%%%%%%%%%%
-[SD.timeAl, SD.sensorAl] = alignSensorData(sensor, fs, pertIdx);
+[SD.timeAl, SD.sensorAl] = alignSensorData(sensor, fs, SD.pertIdx);
 
-[SD.timeSec, SD.sensorSec] = sectionData(sensor, fs, pertIdx);
+[SD.timeSec, SD.sensorSec] = sectionData(sensor, fs, SD.pertIdx);
 SD.sensorSecM              = meanSensorData(SD.sensorSec);   
 end
 
