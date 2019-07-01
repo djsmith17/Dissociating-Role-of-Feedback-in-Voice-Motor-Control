@@ -201,6 +201,9 @@ SD.time   = [];
 SD.sensor = [];
 SD.fs     = [];
 
+SD.pertIdx  = [];
+SD.pertTime = [];
+
 % Per Trial sensor index and time value of rising edge start and falling
 % edge end (expecting ~step function)
 SD.TrigIdx  = [];

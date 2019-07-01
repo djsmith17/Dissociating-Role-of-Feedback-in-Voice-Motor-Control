@@ -12,6 +12,7 @@ classdef StepFunctionDynamics
         
         curSess
         
+        numSamp
         numTrial
 
         % Per Trial sensor index and time value of rising edge start and falling
@@ -68,8 +69,10 @@ classdef StepFunctionDynamics
             obj.pertTime = pertTime;
             
             obj.curSess = curSess;
+            
+            fiveMs = round(0.005*obj.fs); %5ms in points
 
-            [~, obj.numTrial] = size(obj.sensor);
+            [obj.numSamp, obj.numTrial] = size(obj.sensor);
 
             for ii = 1:obj.numTrial
                 trial = obj.sensor(:,ii);
@@ -77,10 +80,14 @@ classdef StepFunctionDynamics
                 trialSmoothed = smooth(trial, 100);
 
                 % 1st Derivative (1D) of the recording
-                fDiff = 5*[0; diff(trialSmoothed)];
+                fDiff = 10*[0; diff(trialSmoothed)];
+                
+                % Shave off the 5ms at beginning and end
+                fDiff(1:fiveMs) = 0;
+                fDiff((obj.numSamp-fiveMs):end) = 0;
 
                 % Thresholds for detecting edges of (expected) step function
-                threshUp = 0.2*max(fDiff);
+                threshUp = 0.3*max(fDiff);
                 threshDn = 0.3*min(fDiff);
 
                 %%%Find the Rising Edge%%%
