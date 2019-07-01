@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'MaskingStudy'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -468,7 +468,7 @@ for wC = 1:pA.numCond
     polRes.obvGender  = cat(1, polRes.obvGender, sortStruc.gender);
     polRes.f0         = cat(1, polRes.f0, sortStruc.f0b(wC));
     polRes.obvAudFB   = cat(1, polRes.obvAudFB, sortStruc.AudFB{wC}{1});
-    polRes.obvRespVar = cat(1, polRes.obvRespVar, round(sortStruc.respVarM{wC},2));
+    polRes.obvRespVar = cat(1, polRes.obvRespVar, sortStruc.respVarM{wC});
 end
 end
 
@@ -955,8 +955,8 @@ end
 
 function statTable = packStatTable(ss)
 
-varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'StimMag', 'RespMag', 'RespPer'};
-statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.f0, ss.obvAudFB, ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
+varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.f0, ss.obvAudFB, ss.obvRespVar(:,1), ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
 end
 
 function statTable = packStatTableSingle(pooledRunStr)
@@ -1051,11 +1051,11 @@ fprintf('An additional %d trials were excluded Manually, of the %d trials Manual
 fprintf('Automatic trial exclusion methods accounted for %s%% of trials selected Manually\n', allSubjRes.autoSuccessPerc)
 fprintf('\n')
 
-if svFile == 1                
-    uitable('Data', tossTrialTable{:,:},...
+if svFile == 1
+    uf = uifigure('Position', [0 40 800 1200]);
+    uitable(uf, 'Data', tossTrialTable{:,:},...
             'ColumnName', tossTrialTable.Properties.VariableNames,...
-            'Units', 'Normalized',...
-            'Position', [0, 0, 1, 1]);
+            'OuterPosition', [0 0 800 1200]);
         
     dirs.excludedTrialTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ExcludedTrial.csv']);
     writetable(tossTrialTable, dirs.excludedTrialTable, 'WriteVariableNames',true)
