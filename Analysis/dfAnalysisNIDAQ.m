@@ -121,8 +121,8 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     % Pressure Sensor Dynamics
     [niAn.presSD] = analyzeSensorDynamics(niAn.presSD, niAn.pertSD);
     
-    SD = StepFunctionDynamics(niAn.time, niAn.sensorP_p, niAn.sRate, niAn.idxPert, niAn.pertTrig, niAn.curSess);
-    SD.drawAllTrial;
+%     SD = StepFunctionDynamics(niAn.time, niAn.sensorP_p, niAn.sRate, niAn.idxPert, niAn.pertTrig, niAn.curSess);
+%     SD.drawAllTrial;
     
     [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
 end
