@@ -150,6 +150,7 @@ if strcmp(pA.pAnalysis, 'MaskingStudy')
     drawExpPressureDist(dirs, pA, pooledRunStr)
     StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes);
 elseif strcmp(pA.pAnalysis, 'DRF_Som')
+    drawSubjRespVarVoicingCorr(dirs, pA, pooledRunStr)
     drawExpPressureDist(dirs, pA, pooledRunStr)
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
 %     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
@@ -195,7 +196,8 @@ sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
 sortStr.audioHf0SecPert = cell(numCond, 1);
 sortStr.audioHf0SecCont = [];
-sortStr.prePertVoicingTime = cell(numCond,1);
+sortStr.prePertVoicingTimeCont = [];
+sortStr.prePertVoicingTimePert = cell(numCond,1);
 
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
@@ -256,7 +258,9 @@ polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0S
 polRes.audioHf0SecPert{wC} = cat(2, polRes.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCont);
-polRes.prePertVoicingTime{wC} = cat(1, polRes.prePertVoicingTime{wC}, curRes.prePertVoicingTimeinc);
+
+polRes.prePertVoicingTimeCont     = cat(1, polRes.prePertVoicingTimeCont, curRes.prePertVoicingTimeinc(curRes.contIdxFin));
+polRes.prePertVoicingTimePert{wC} = cat(1, polRes.prePertVoicingTimePert{wC}, curRes.prePertVoicingTimeinc(curRes.pertIdxFin));
 
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
