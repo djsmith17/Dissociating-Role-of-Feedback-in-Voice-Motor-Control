@@ -62,7 +62,7 @@ for k = curTestingMeas
     measureDiffVar.units     = mUnits{k};
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
-    if k == 3
+    if k == 4
         % Apply a Box Cox transform with the default (best) lambda
         summaryStatDiff = performSimpleBoxCoxTrans(summaryStatDiff);
     end
@@ -190,7 +190,7 @@ title({pAnalysisFix, varName})
 box off
 
 yt = get(gca, 'YTick');
-axis([xlim    0  ceil(max(yt)*1.2)])
+axis([xlim    0  max(yt)*1.2])
 xt = get(gca, 'XTick');
 
 if isSig
