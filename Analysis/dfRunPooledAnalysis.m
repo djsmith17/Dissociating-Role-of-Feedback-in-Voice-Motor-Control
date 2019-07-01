@@ -195,6 +195,7 @@ sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
 sortStr.audioHf0SecPert = cell(numCond, 1);
 sortStr.audioHf0SecCont = [];
+sortStr.prePertVoicingTime = cell(numCond,1);
 
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
@@ -255,6 +256,7 @@ polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0S
 polRes.audioHf0SecPert{wC} = cat(2, polRes.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCont);
+polRes.prePertVoicingTime{wC} = cat(1, polRes.prePertVoicingTime{wC}, curRes.prePertVoicingTimeinc);
 
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
