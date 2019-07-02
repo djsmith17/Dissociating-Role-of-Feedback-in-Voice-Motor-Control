@@ -1,5 +1,5 @@
 function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, AudFlag, aDF, f0CalcF)
-% [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, f0b, AudFlag, iRF, niAn)
+% [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, AudFlag, aDF, f0CalcF)
 % This function analyzes the raw audio data that was recorded by Audapter 
 % in the experiments measuring changes in f0. It first does a
 % preprocessing step where it identifies any temporal errors in
@@ -17,21 +17,28 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, AudFl
 % dirs:     The set of directories we are currently working in 
 % expParam: The experimental parameters of the recorded experiment
 % rawData:  Raw Audapter data structures
-% f0b:      Baseline fundamental frequency, recorded from baseline trials
-% AudFlag:  Flag to check if analyses of audio data should be performed
-% iRF:      Inflation Response Flag; should the inflation response be calculated
 % niAn:     Analysis variables used to analyze NIDAQ data
+% AudFlag:  Flag to check if analyses of audio data should be performed
+% aRF:      Audio Dynamics Flag. Analyze changes in f0 following triggers
+% f0CalcF:  f0 Calculation flag
 %
 % auAn:  Analysis variables used to analyze Audapter data
 % auRes: Structure of result vars that are needed for stats and plotting
 %
-% This function calls the following functions
-% dfAnalysisAudio.m
+% This function calls the following classes/functions
+% -MicHeadAlignProcess
+% -dfAnalysisAudio.m
+% -dfIdentifyAudioLims.m
+%
+% See below for the following sub-functions:
+% -initAudapterAnalysisStruct
+% -setNIDAQTrialVars
+% -packResults
 %
 % Requires the Signal Processing Toolbox
 
 % Identify some Experimental variables
-auAn = setAudapterAnalysisParams();
+auAn = initAudapterAnalysisStruct();
 
 auAn.expType   = expParam.expType;
 auAn.subject   = expParam.subject;
@@ -122,7 +129,7 @@ lims  = dfIdentifyAudioLims(auAn);
 auRes = packResults(auAn, lims);
 end
 
-function auAn = setAudapterAnalysisParams()
+function auAn = initAudapterAnalysisStruct()
 
 auAn.AnaType   = 'Audapter';% Analysis of data recorded with Audapter
 auAn.expType   = [];        % Somatosensory vs Auditory

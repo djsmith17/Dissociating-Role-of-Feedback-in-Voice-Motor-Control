@@ -10,16 +10,20 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, Pr
 % dirs:     The set of directories we are currently working in 
 % expParam: The experimental parameters of the recorded experiment
 % DAQin:    Raw NIDAQ data structure
-% f0b:      Baseline fundamental frequency, recorded from baseline trials
 % AudFlag:  Flag to check if analyses of audio data should be performed
-% iRF:      Inflation Response Flag; should the inflation response be calculated
+% aDF:      Audio Dynamics Flag. Analyze changes in f0 following triggers
 % PresFlag: Flag to check if analyses of pressure data should be performed
 %
 % niAn:  Analysis variables used to analyze NIDAQ data
 % niRes: Structure of result vars that are needed for stats and plotting
 %
 % This function calls the following functions
-% dfAnalysisAudio.m
+% -dfAnalysisAudio.m
+%
+% See below for the following sub-functions:
+% -initNIDAQAnalysisStruct
+% -initSensorDynamicsStruct
+% -convertPressureSensor
 %
 % Requires the Signal Processing Toolbox, Image Processing Toolbox
 

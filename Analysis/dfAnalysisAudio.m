@@ -1,26 +1,27 @@
 function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % An = dfAnalysisAudio(dirs, An, AudFlag, varargin) performs frequency 
 % analyses on recorded audio data to measure the pitch contour on a number
-% of recorded trials. The actual f0 analysises are done within the
-% signalfrequencyanalyses function below, and rest of the script is spent
-% converting the f0 traces to cents, and sectioning them around the trigger
-% points. Mutli-trial statistics can be perfomed on the set of analyzed
-% trials, and inflation response results can be indetified
+% of recorded trials. The actual f0 measurement is done in the sub-function
+% signalFrequencyAnalysis. The remainder of this script processes the
+% f0-trace (for both Mic/Head) with the following steps:
+% 1: Identifying the baseline f0 value for each trial
+% 2: Normalizing each f0-trace by its baseline f0 value
+% 3: Parsing trials between perturbed and control trial types
+% 4: Sectioning each trial around the trigger values
+% 5: Taking the mean section of trials of a type
+% 6: Performing (if applicable) audio dynamics of the mean f0-trace
 %
-% This function adds to an existing analysis variables structure, which
-% means it can use any data set (NIDAQ/Audapter) as long as it has some
-% starting variables. 
-%
+% Inputs: 
 % dirs:    The set of directories we are working in
-% An:      Analysis variables used to analyze data set
-% AudFlag: Do we want to do analysis on the audio data? Useful for when
-%          analyzing just perturbatron data
-% aDF:     Audio Dynamics Flag. Do we want to analyze the response to
-%          inflation?
-% f0F:     f0 Flag. Do we want to reanalyze data and receive new pitch
-%          traces?
+% An:      Analysis variables structure organized in the function that
+%          calls this one. dfAnalysisAudio is currently called from 
+%          dfAnalysisAudapter and dfAnalysisNIDAQ. This value of An is 
+%          pre-set in those functions.
+% AudFlag: Perform function or not. Useful for when analyzing just NIDAQ data
+% aDF:     Audio Dynamics Flag. Analyze changes in f0 following triggers
+% f0Flag:  Perform f0-trace calculation, or load previous version?
 %
-% This function expects that the structure An contains the following fields
+% This function expects that An contains the following fields
 % -An.curSess
 % -An.f0Type
 % -An.f0AnaFile
@@ -72,10 +73,8 @@ if AudFlag == 1
         freqVar.f0AnalysisType = 2;
     end
         
-    % Pitch contour analysis can be time consuming. 
-    % Flag allows the loading of a previously saved copy for faster reanalysis.
+    % f0-trace measurement from time-series data 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
-
         [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioMSvt, An.expTrigsSvt);
         [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioHSvt, An.expTrigsSvt);        
         save(dirs.audiof0AnalysisFile, 'f0A')
@@ -184,7 +183,7 @@ if AudFlag == 1
     An.numPertTrialsPP = sum(An.pertf0Idx);
     An.numContTrialsPP = sum(An.contf0Idx);
 
-    %Find the Perturbed Trials
+    %Parse between Perturbed and Control trials
     An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
     An.audioMf0p   = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
     An.audioHf0p   = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);

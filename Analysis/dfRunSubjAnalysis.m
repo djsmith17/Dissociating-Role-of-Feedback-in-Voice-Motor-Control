@@ -1,16 +1,20 @@
 function dfRunSubjAnalysis()
 % dfRunSubjAnalysis() is my main script for analyzing recorded audio files 
-% and sensor information from experiments studying Voice Motor Control. 
+% and sensor information from experiments studying voice motor control. 
 % This function is set up to analyze multiple subject and runs in an 
-% identical fashion, so that once you have a new data set, you can run it 
-% all very quickly.
-% Most importantly, these analyses calculate change in f0 of a speaker's 
-% voice as they complete somatosensory and auditory feedback perturbation 
-% tasks. 
+% identical fashion
+%
+% One of the primary outcome measures of this analysis is the time-series
+% analysis of a speaker's f0 as they complete either a somatosensory or
+% auditory feedback perturbation task.
 %
 % This makes use of the following functions:
-% dfAnalysisNIDAQ.m
-% dfAnalysisAudapter.m
+% -dfAnalysisNIDAQ.m
+% -dfAnalysisAudapter.m
+%
+% See below for the following sub-functions:
+% -preAnalysisCheck
+% -combineRes
 %
 % Requires the Signal Processing Toolbox
 
@@ -83,8 +87,7 @@ for i = 1:AVar.numPart
         end
         
         % Identify the type of experiment and decide what types of analyzes
-        % we need. pF: Pressure Flag; iRF: Inflation Response Flag
-        
+        % we need. pF: Pressure Flag; iRF: Inflation Response Flag        
         [DRF, pF, aDF] = preAnalysisCheck(DRF, f0b);
         audioFlagN = 0; % Audio Analysis Flag
         audioFlagA = 1; % Audio Analysis Flag
