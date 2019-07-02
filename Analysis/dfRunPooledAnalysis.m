@@ -77,6 +77,7 @@ allSubjRes.subject = 'Mean Participant Response';
 allSubjRes.curSess = allSubjRes.subject;
 allSubjRes.cond    = pA.cond;
 allSubjRes.pubCond = pA.pubCond;
+allSubjRes.statTableSingle = initStatTableSingle(numObs);
 
 tossTrialTable = initTossedTrialTable(pA.totnumRuns);
 
@@ -129,7 +130,7 @@ allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName = pA.pltNameMVm;
 
-% allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
+allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
 
 % Organize and Print the Stats of the Demographics included in this study
 organizeAndPrintDemographicStats(dirs, allSubjRes);
@@ -240,6 +241,15 @@ varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double',
 numVar = length(varNames);
 
 statTable = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
+end
+
+function [statTableSingle] = initStatTableSingle(numObs)
+
+varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'StimMag', 'StimMagSD', 'RespMag', 'RespMagSD', 'RespPer', 'RespPerSD'};
+varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double'};
+numVar = length(varNames);
+
+statTableSingle = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
 end
 
 function polRes = combineCondTrials(pA, curRes, polRes, tossT)
@@ -1000,8 +1010,6 @@ for ii = 1:numSubj
     end
 end
 
-varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'StimMag', 'StimMagSD', 'RespMag', 'RespMagSD', 'RespPer', 'RespPerSD',};
-statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.f0, ss.obvAudFB, ss.StimMag, ss.StimMagSD, ss.RespMag, ss.RespMagSD, ss.RespPer, ss.RespPerSD,'VariableNames', varNames);
 end
 
 function organizeAndPrintDemographicStats(dirs, allSubjRes)
