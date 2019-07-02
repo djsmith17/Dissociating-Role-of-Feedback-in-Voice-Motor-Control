@@ -40,7 +40,12 @@ niAn.f0AnaFile = [niAn.subject niAn.run 'f0Analysis.mat'];
 niAn.gender    = expParam.gender;
 niAn.AudFB     = expParam.AudFB;
 niAn.AudFBSw   = expParam.AudFBSw;
-niAn.bTf0b     = expParam.f0b;
+
+if isfield(expParam, f0b)
+    niAn.bTf0b     = expParam.f0b;
+else
+    niAn.bTf0b     = 100;
+end
 
 if isfield(expParam, 'balloon')
     niAn.balloon = expParam.balloon;

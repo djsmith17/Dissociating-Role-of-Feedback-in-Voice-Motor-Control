@@ -119,10 +119,9 @@ else
     load(dirs.RecFileDir)
 end
 
-f0b = 100;
 pF  = 1;
 aD = 0;
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, aD, pF);
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0, aD, pF);
 
 niRes.numPertTrialsNi = niRes.numPertTrials;
 
