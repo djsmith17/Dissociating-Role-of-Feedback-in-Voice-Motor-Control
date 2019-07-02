@@ -28,6 +28,10 @@ for ii = 1:numSubj
         respPer      = curRes.respVarSingle{jj}.respPer;
         voicingTimes = curRes.prePertVoicingTimePert{jj};
 
+        wayWrong = respPer > 300 | respPer < -300;
+        respPer      = respPer(~wayWrong);
+        voicingTimes = voicingTimes(~wayWrong);
+        
         numTrial = length(respPer);
 
         varToCorr = [voicingTimes, respPer];
