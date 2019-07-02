@@ -71,7 +71,8 @@ for ii = 1:pA.numPart
     allDataStr = cat(1, allDataStr, subjRes);
 end
 
-allSubjRes         = initSortedStruct(pA);
+numObs             = pA.numPart*pA.numCond;
+allSubjRes         = initSortedStruct(pA, numObs);
 allSubjRes.subject = 'Mean Participant Response';
 allSubjRes.curSess = allSubjRes.subject;
 allSubjRes.cond    = pA.cond;
@@ -84,7 +85,7 @@ for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Sorting task conditions for %s\n', participant)
     
-    sortStruc         = initSortedStruct(pA);
+    sortStruc         = initSortedStruct(pA, 2);
     sortStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
     
     sortStruc.curSess = sortStruc.subject;
@@ -114,9 +115,8 @@ for ii = 1:pA.numPart
     sortStruc.pltName = pA.pltNameMVi{ii};
     
     % Organize Stat Tables
-    sortStruc  = catStatTableObs(pA, sortStruc, sortStruc);
-    allSubjRes = catStatTableObs(pA, allSubjRes, sortStruc);
-    sortStruc.statTable = packStatTable(sortStruc);
+    sortStruc  = popStatTableObs(pA, sortStruc, sortStruc, 1);
+    allSubjRes = popStatTableObs(pA, allSubjRes, sortStruc, ii);
     
     pooledRunStr(ii)   = sortStruc;
     
@@ -127,16 +127,15 @@ end
 
 allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
-allSubjRes.pltName  = pA.pltNameMVm;
+allSubjRes.pltName = pA.pltNameMVm;
 
-allSubjRes.statTable       = packStatTable(allSubjRes);
-allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
+% allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
 
 % Organize and Print the Stats of the Demographics included in this study
 organizeAndPrintDemographicStats(dirs, allSubjRes);
 
 % Organize and Save the Table of Excluded Trials
-organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, 1)
+organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, 0)
 
 % organizePooledResultsForFrank(dirs, allSubjRes)
 
@@ -160,7 +159,7 @@ elseif strcmp(pA.pAnalysis, 'DRF_Aud')
 end
 end
 
-function sortStr = initSortedStruct(pA)
+function sortStr = initSortedStruct(pA, numObs)
 % sortStr = initSortedStruct(numCond) initializes the structure that will
 % store the pooled results for each subject, or group of subjects. It is
 % created to have different sizes, based on the number of conditions that
@@ -220,11 +219,7 @@ sortStr.tossedAutoMiss   = 0;
 sortStr.respVarSingle    = cell(numCond, 1);
 sortStr.respVarM         = cell(numCond, 1);
 
-sortStr.obvSubj          = {};
-sortStr.obvAge           = [];
-sortStr.obvGender        = {};
-sortStr.obvAudFB         = {};
-sortStr.obvRespVar       = [];
+sortStr.statTable = initStatTable(numObs);
 end
 
 function [tossTrialTable] = initTossedTrialTable(totnumRuns)
@@ -236,6 +231,15 @@ tVN = {'CurSess', 'AutoRemoved', 'ManuallyRemoved', 'MissedByAuto', 'PercentCaug
 
 tossTrialTable = table(genVar, genVar, genVar, genVar, genVar, genVar, genVar, genVar);
 tossTrialTable.Properties.VariableNames = tVN;
+end
+
+function [statTable] = initStatTable(numObs)
+
+varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double'};
+numVar = length(varNames);
+
+statTable = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
 end
 
 function polRes = combineCondTrials(pA, curRes, polRes, tossT)
@@ -443,9 +447,9 @@ end
 
 % Identify Limits of the newly meaned data
 lims = identifyLimits(polRes);
-polRes.limitsAmean = lims.audioMean;
+polRes.limitsAmean  = lims.audioMean;
 polRes.limitsMHmean = lims.audioMHMean;
-polRes.limitsPmean = lims.presMean;
+polRes.limitsPmean  = lims.presMean;
 
 % Scale Pressure traces against the f0 traces
 if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
@@ -466,15 +470,20 @@ else
 end
 end
 
-function polRes = catStatTableObs(pA, polRes, sortStruc)
+function polRes = popStatTableObs(pA, polRes, sortStruc, curSubj)
 
 for wC = 1:pA.numCond
-    polRes.obvSubj    = cat(1, polRes.obvSubj, sortStruc.studyID);
-    polRes.obvAge     = cat(1, polRes.obvAge, sortStruc.age);
-    polRes.obvGender  = cat(1, polRes.obvGender, sortStruc.gender);
-    polRes.f0         = cat(1, polRes.f0, sortStruc.f0b(wC));
-    polRes.obvAudFB   = cat(1, polRes.obvAudFB, sortStruc.AudFB{wC}{1});
-    polRes.obvRespVar = cat(1, polRes.obvRespVar, sortStruc.respVarM{wC});
+    
+    curIdx = (curSubj*pA.numCond) - pA.numCond + wC;
+    polRes.statTable.SubjID(curIdx)  = sortStruc.studyID;
+    polRes.statTable.Age(curIdx)     = sortStruc.age;
+    polRes.statTable.Gender(curIdx)  = sortStruc.gender;
+    polRes.statTable.f0(curIdx)      = sortStruc.f0b(wC);
+    polRes.statTable.AudFB(curIdx)   = sortStruc.AudFB{wC}(1);
+    polRes.statTable.tAtMin(curIdx)  = sortStruc.respVarM{wC}(1);
+    polRes.statTable.StimMag(curIdx) = sortStruc.respVarM{wC}(2);
+    polRes.statTable.RespMag(curIdx) = sortStruc.respVarM{wC}(3);
+    polRes.statTable.RespPer(curIdx) = sortStruc.respVarM{wC}(4);
 end
 end
 
@@ -957,12 +966,6 @@ SpDeflTime = time(bumpsSp(end));
 
 adjustPres = [adjPresOnsetM, adjPresOnsetE, adjPresOffsetM, adjPresOffsetE];
 InflDeflT  = [StInflTime SpInflTime StDeflTime SpDeflTime];
-end
-
-function statTable = packStatTable(ss)
-
-varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-statTable = table(ss.obvSubj, ss.obvAge, ss.obvGender, ss.f0, ss.obvAudFB, ss.obvRespVar(:,1), ss.obvRespVar(:,2), ss.obvRespVar(:,3), ss.obvRespVar(:,4), 'VariableNames', varNames);
 end
 
 function statTable = packStatTableSingle(pooledRunStr)
