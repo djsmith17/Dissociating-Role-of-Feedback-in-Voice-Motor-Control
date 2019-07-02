@@ -317,49 +317,54 @@ classdef MicHeadAlignProcess
 
         plotPos = [720 40];
         plotDim = [1200 900];
-        lineThick = 2;
+        lineThick = 2.5;
+        voiceOnsetColor = 'm';
 
         % Time Bounds
         auTimeRange = [0 6];
         niTimeRange = auTimeRange - obj.AuNIDelay;
 
         % Inflation//Deflation Properties
-        InfDefColor = 'm';
+        PertColor = [0 0 0];
+        PresColor = [255, 66, 0]/255; %Sunburnt Orange;
+        InfColor = 'g';
+        DefColor = 'r';
         
         % Setup the Figure parameters
         MHFig = figure('Color', [1 1 1]);
         set(MHFig, 'Position', [plotPos plotDim],'PaperPositionMode','auto')
 
-        ha = tight_subplot(3,1,[0.1 0.05],[0.08 0.10],[0.05 0.05]);
+        ha = tight_subplot(3,1,[0.11 0.05],[0.08 0.08],[0.05 0.05]);
 
         % Raw NIDAQ Microphone
         axes(ha(1))
         plot(obj.timeNI, obj.rawMicNI)
         hold on
-        plot([obj.expTrigsNI(1) obj.expTrigsNI(1)], [-2 2], 'Color', [0.3 0.3 0.3], 'LineStyle', '--', 'LineWidth', lineThick)
+        plot([obj.expTrigsNI(1) obj.expTrigsNI(1)], [-2 2], 'Color', PertColor, 'LineStyle', '-', 'LineWidth', lineThick)
         hold on
-        plot([obj.expTrigsNI(2) obj.expTrigsNI(2)], [-2 2], 'Color', [0.3 0.3 0.3], 'LineStyle', '--', 'LineWidth', lineThick)
+        plot([obj.expTrigsNI(2) obj.expTrigsNI(2)], [-2 2], 'Color', PertColor, 'LineStyle', '-', 'LineWidth', lineThick)
         axis([niTimeRange min(obj.rawMicNI) max(obj.rawMicNI)])
         title('Raw NIDAQ Microphone')
         
         % Converted Pressure Recording
         yyaxis right
-        plot(obj.timeNI, obj.pressureNI, 'Color', 'g', 'LineWidth', lineThick)
+        plot(obj.timeNI, obj.pressureNI, 'Color', PresColor, 'LineWidth', lineThick)
         
         hold on
-        plot([obj.pressureTrigs(1) obj.pressureTrigs(1)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)
+        plot([obj.pressureTrigs(1) obj.pressureTrigs(1)], [-600 600], 'Color', InfColor, 'LineStyle', '-', 'LineWidth', lineThick)
         hold on
-        plot([obj.pressureEndActions(1) obj.pressureEndActions(1)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)
+        plot([obj.pressureEndActions(1) obj.pressureEndActions(1)], [-600 600], 'Color', InfColor, 'LineStyle', '--', 'LineWidth', lineThick)
         
         hold on
-        plot([obj.pressureTrigs(2) obj.pressureTrigs(2)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)
+        plot([obj.pressureTrigs(2) obj.pressureTrigs(2)], [-600 600], 'Color', DefColor, 'LineStyle', '-', 'LineWidth', lineThick)
         hold on
-        plot([obj.pressureEndActions(2) obj.pressureEndActions(2)], [-600 600], 'Color', InfDefColor, 'LineStyle', '--', 'LineWidth', lineThick)       
+        plot([obj.pressureEndActions(2) obj.pressureEndActions(2)], [-600 600], 'Color', DefColor, 'LineStyle', '--', 'LineWidth', lineThick)       
         
         ylabel('Pressure (psi')
-        axis([niTimeRange -0.1 5.5])
+        axis([niTimeRange -0.2 5.5])
         box off  
 
+        xlabel('NIDAQ Time (s)')
         set(gca,'FontName', 'Arial',...
                 'FontSize', 14,...
                 'FontWeight','bold')
@@ -368,7 +373,7 @@ classdef MicHeadAlignProcess
         axes(ha(2))
         plot(obj.time, obj.rawMic)
         hold on
-        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'LineStyle', '--', 'LineWidth', lineThick)
+        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'Color', voiceOnsetColor, 'LineStyle', '--', 'LineWidth', lineThick)
         hold on
         plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
         hold on
@@ -377,6 +382,7 @@ classdef MicHeadAlignProcess
         axis([auTimeRange min(obj.rawMic) max(obj.rawMic)])
         title('Raw Audapter Microphone')
 
+        xlabel('Audapter Time (s)')
         set(gca,'FontName', 'Arial',...
                 'FontSize', 14,...
                 'FontWeight','bold')
@@ -385,7 +391,7 @@ classdef MicHeadAlignProcess
         axes(ha(3))
         plot(obj.time, obj.rawHead)
         hold on
-        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'LineStyle', '--', 'LineWidth', lineThick)
+        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'Color', voiceOnsetColor, 'LineStyle', '--', 'LineWidth', lineThick)
         hold on
         plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
         hold on
@@ -394,7 +400,7 @@ classdef MicHeadAlignProcess
         axis([auTimeRange min(obj.rawHead) max(obj.rawHead)])
         title('Raw Audapter Headphones')
 
-        xlabel('Time (s)')
+        xlabel('Audapter Time (s)')
         set(gca,'FontName', 'Arial',...
                 'FontSize', 14,...
                 'FontWeight','bold')
