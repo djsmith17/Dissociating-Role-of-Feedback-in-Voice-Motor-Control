@@ -28,10 +28,10 @@ for ii = 1:numSubj
         respPer      = curRes.respVarSingle{jj}.respPer;
         voicingTimes = curRes.prePertVoicingTimePert{jj};
 
-        wayWrong = respPer > 300 | respPer < -300;
-        respPer      = respPer(~wayWrong);
-        voicingTimes = voicingTimes(~wayWrong);
-        
+%         wayWrong = respPer > 300 | respPer < -300;
+%         respPer      = respPer(~wayWrong);
+%         voicingTimes = voicingTimes(~wayWrong);
+%         
         numTrial = length(respPer);
 
         varToCorr = [voicingTimes, respPer];
@@ -49,7 +49,7 @@ for ii = 1:numSubj
     respPerMin = min(allRespPer);
     respPerMax = max(allRespPer);
     lowB = respPerMin - 10;
-    upB  = respPerMax + 100;
+    upB  = respPerMax + 50;
     
     timesMin = min(allTimes);
     timesMax = max(allTimes);
