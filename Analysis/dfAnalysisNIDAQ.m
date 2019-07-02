@@ -24,6 +24,7 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, Pr
 % -initNIDAQAnalysisStruct
 % -initSensorDynamicsStruct
 % -convertPressureSensor
+% -analyzeSensorDynamics
 %
 % Requires the Signal Processing Toolbox, Image Processing Toolbox
 
@@ -84,10 +85,6 @@ niAn.sensorO  = squeeze(DAQin(:,7,:)); % Optical Trigger Box (O)
 niAn.sensorFNz = convertPressureSensor(niAn.sensorFN, niAn.sensorPType);
 niAn.sensorPz  = convertPressureSensor(niAn.sensorP, niAn.sensorPType);
 
-% Preprocessing some of the Force sensors
-% niAn.sensorFCz = sensorPreProcessing(niAn.sensorFC, niAn.sRate);
-% niAn.sensorFNz = sensorPreProcessing(niAn.sensorFN, niAn.sRate);
-
 % Parse out the perturbed trials
 niAn.pertSig_p  = parseTrialTypes(niAn.pertSig, niAn.pertIdx);   % Only Perturbed Trials
 niAn.sensorP_p  = parseTrialTypes(niAn.sensorPz, niAn.pertIdx);  % Only Perturbed Trials
@@ -95,7 +92,7 @@ niAn.sensorFC_p = parseTrialTypes(niAn.sensorFC, niAn.pertIdx);  % Only Perturbe
 niAn.sensorFN_p = parseTrialTypes(niAn.sensorFNz, niAn.pertIdx); % Only Perturbed Trials
 
 %Find Rising and Falling Edges of sensor signals: Onset and Offset TRIGGERS
-[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_p, niAn.sRate);
+[niAn.pertTrig, niAn.idxPert] = findPertTrigs(niAn.time, niAn.pertSig_p);
 
 % What was the delay between the intended (code) onset/offset triggers
 % and actual (measured) onset/offset triggers
@@ -275,26 +272,6 @@ sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
 % sensorPres = sensorV*m + b; % Convert from voltage to pressure
 end
 
-function sensorPP = sensorPreProcessing(sensor, sRate)
-%This was mostly to mess around with the force sensor, but for right now we
-%will hide that all in here. Likely will never need this again. 
-
-sensorRed = 4*(sensor-2);
-
-[B,A]    = butter(4, 10/(sRate/2)); %Low-pass filter under 10
-sensorPP = filter(B,A,abs(sensorRed));
-end
-
-function sensorDN = dnSampleSignal(sensor, dnSamp)
-[numSamp, numTrial] = size(sensor);
-numSampDN = numSamp/dnSamp;
-
-sensorDN = zeros(numSampDN, numTrial);
-for i = 1:numSampDN
-    sensorDN(i,:) = mean(sensor((1:dnSamp) + dnSamp*(i-1),:));
-end
-end
-
 function signalParse = parseTrialTypes(signal, idx)
 % signalParse = parseTrialTypes(signal, idx) parses individual trials out 
 % of a large matrix of recordings of size numSamp x numTrial. 
@@ -304,8 +281,8 @@ function signalParse = parseTrialTypes(signal, idx)
 signalParse = signal(:, idx);
 end
 
-function [trigs, idx] = findPertTrigs(time, sensor, fs)
-%findPertTrigs(time, sensor, fs) finds rising and falling edges in sensor
+function [trigs, idx] = findPertTrigs(time, sensor)
+%findPertTrigs(time, sensor) finds rising and falling edges in sensor
 %data. It is expected that these signals will be mostly step functions
 [~, numTrial] = size(sensor);
 
@@ -329,20 +306,6 @@ for i = 1:numTrial
     trigs = cat(1, trigs, [trigSt trigSp]);
     idx   = cat(1, idx, [idxSt idxSp]);
 end
-end
-
-function [lags, lagMeans] = calcMeanLags(pertTrig, sensorTrig)
-% [lags, lagMeans] = calcMeanLags(pertTrig, sensorTrig) compares the
-% trigger time from a sensor recording against that of when the 
-
-lags = sensorTrig - pertTrig;
-lagsMean = mean(lags, 1);
-lagsSTD  = std(lags, 0, 1);
-
-SEM = lagsSTD/sqrt(length(lags)); % Standard Error
-CIM = 1.96*SEM;                   % 95% Confidence Interval
-
-lagMeans = [lagsMean; SEM]; %OnsetMean OffsetMean; OnsetSEM, OffsetSEM
 end
 
 function [SD] = analyzeSensorDynamics(SD, pertSD)
@@ -469,105 +432,6 @@ SD.pTrialLossSE = round(SD.pTrialLossSE, 3); % Round
 
 [SD.timeSec, SD.sensorSec] = sectionData(sensor, fs, SD.pertIdx);
 SD.sensorSecM              = meanSensorData(SD.sensorSec);   
-end
-
-function [endRiseInd, startFallInd] = findCrossings(sensor, fs, toggle)
-% [endRiseInd, startFallInd] = findCrossings(sensor, fs, man) finds the
-% points when a sensor recording (expected to be a step function) reaches
-% its highest point, and when it starts to fall from its highest point.
-% This function can operate automatically (auto), or manually (man). In the
-% auto method, the first derivative (sensDiff) of the function determines 
-% when the function goes from low to high (sensDiff > 0) or from 
-% high to low (sensDiff < 0). From the peaks of sensDiff, the last indice 
-% of the largest + peak is considered the end of the signal rise (endRiseInd), 
-% and the first indice of the largest - peak is considered the start of 
-% the signal fall (startFallInd). 
-%
-% In the man method, a plot of the signal and D1 is displayed. 
-% Using the mouse, the point where the rise ends and the fall starts can be
-% selected. 
-% 
-% sensor: Single trial recording from the NIDAQ. Expected that it is 
-%         roughly a step function. 
-% fs:     sampling rate of sensor
-% toggle: Toggle for man or auto analysis
-%
-% endRiseInd:   Indice of where the step function rise ends
-% startFallInd: Indice of where the step function fall starts
-
-[B, A] = butter(8, (50/(fs/2)), 'low'); % 8th order butter filter settings
-sensorFilt = filtfilt(B,A, sensor);     % Low-pass filter the signal
-
-numSamp   = length(sensor); 
-sensDiff  = diff(sensorFilt)*50;        % 1st derivative, then magnified for ease of viewing
-sensDiff  = [0; sensDiff];              % Add a zero to correct for the length
-sensDiff  = smooth(sensDiff, 50);       % Smooth the 1st derivative
-
-diffPeakMax = 0.05;      % Threshold value of derivative 
-peakLeadLag = fs*0.5;    % How many seconds past peak to look for the level off. 
-
-if toggle == 0 % Automatic selection
-    
-    %yes its a bit lazy. I am sorry. 
-    [pksU, locU] = findpeaks(sensDiff);    % Positive peaks
-    [pksD, locD] = findpeaks(-1*sensDiff); % Negative peaks
-
-    if isempty(pksU)
-        disp('No rise found')
-        endRiseInd = 1;
-    else
-        [~, maxInd] = max(pksU);           % Largest Mag positive peak
-        maxIndFull = locU(maxInd);         % Ind of the maxPeak in the signal
-        searchRSt = maxIndFull;
-        searchRSp = maxIndFull + peakLeadLag;
-        searchR   = searchRSt:searchRSp; % Range of Max peak to Max Peak+lag
-        upRoute      = sensDiff(searchR);
-        upRouteDiff  = diff(upRoute)*5;
-        noLongerRise = find(upRouteDiff > -.010);
-
-        endRiseInd = noLongerRise(1)+ searchRSt; % Take the last point that is satisfies the threshold in the range
-    end
-    
-    if isempty(pksD)
-        disp('No fall found')
-        startFallInd = numSamp;
-    else
-        [~, minInd] = max(pksD);         % Largest Mag negative peak
-        minIndFull = locD(minInd);       % Ind of the maxPeak in the signal
-        searchRSt = minIndFull-peakLeadLag;
-        searchRSp = minIndFull;
-        searchR   = searchRSt:searchRSp; % Range of Max Peak-lag to Max Peak
-        dnRoute      = sensDiff(searchR);
-        dnRouteDiff  = diff(dnRoute)*5;
-        noLongerStraight = find(dnRouteDiff < -1);
-
-        startFallInd = noLongerStraight(1) + searchRSt; % Take the first point that is satisfies the threshold in the range
-    end
-  
-% During debugging, uncomment the below so you can see how well the
-% automated selection is finding the endRiseInd and startFallInd
-    figure
-    plot(sensor,'k')
-    hold on
-    plot([endRiseInd endRiseInd], [-100 100], 'b')
-    hold on
-    plot([startFallInd startFallInd], [-100 100], 'r')
-    axis([0 3200 -0.10 7])
-
-else % Manual selection
-    PresFig = figure;
-    plot(sensor, 'k'); hold on
-    plot(sensDiff, 'r'); hold on
-    axis([0 3200 3.8 4.5])
-
-    [x1, ~] = getpts(PresFig); % Mouse selection (Image Processing Toolbox)
-    [x2, ~] = getpts(PresFig); % Mouse selection (Image Processing Toolbox)
-
-    endRiseInd   = round(x1);
-    startFallInd = round(x2);
-
-    close PresFig;
-end
 end
 
 function [timeAl, sensorAl] = alignSensorData(sensor, fs, idx)
