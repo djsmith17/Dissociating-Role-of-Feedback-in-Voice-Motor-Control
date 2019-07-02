@@ -22,8 +22,8 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, AudFl
 % aRF:      Audio Dynamics Flag. Analyze changes in f0 following triggers
 % f0CalcF:  f0 Calculation flag
 %
-% auAn:  Analysis variables used to analyze Audapter data
-% auRes: Structure of result vars that are needed for stats and plotting
+% auAn:  Structure of all variables used to analyze Audapter data
+% auRes: Structure of necessary vars for pooled-analyses, stats, & figures
 %
 % This function calls the following classes/functions
 % -MicHeadAlignProcess

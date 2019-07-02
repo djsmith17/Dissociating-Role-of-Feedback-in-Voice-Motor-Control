@@ -1,11 +1,11 @@
 function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, PresFlag)
 % [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, PresFlag)
-% This function analyzes the raw audio data that was recorded by Audapter 
-% in the experiments measuring changes in f0. It first does a
-% pre-processing step where it identifies any experimental errors in
-% production, and also identifies and corrects for any lags in recording.
-% Once all the data are set up correctly and processed, they are handed off
-% to a function to do the actual analysis of the audio signals. 
+% This function organizes and analyzes the raw NIDAQ recordings taken from
+% sensors and audio devices during experiments measuring changes in f0. 
+% Specifically this function is responsible for cataloging the
+% timing dynamics of the perturbation trigger signals, as well as measuring
+% the sensor dynamics of the sensors that verify appropriate stimulus
+% levels
 % 
 % dirs:     The set of directories we are currently working in 
 % expParam: The experimental parameters of the recorded experiment
@@ -14,8 +14,8 @@ function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, Pr
 % aDF:      Audio Dynamics Flag. Analyze changes in f0 following triggers
 % PresFlag: Flag to check if analyses of pressure data should be performed
 %
-% niAn:  Analysis variables used to analyze NIDAQ data
-% niRes: Structure of result vars that are needed for stats and plotting
+% niAn:  Structure of all variables used to analyze NIDAQ data
+% niRes: Structure of necessary vars for pooled-analyses, stats, & figures
 %
 % This function calls the following functions
 % -dfAnalysisAudio.m
