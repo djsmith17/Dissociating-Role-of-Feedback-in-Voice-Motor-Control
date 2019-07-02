@@ -60,7 +60,10 @@ for ii = 1:sPlt.numPart
             return
         else
             load(dirs.SavResultsFile)
-        end        
+        end
+        
+%         SD = StepFunctionDynamics(res.presSD.time, res.presSD.sensor, res.presSD.fs, res.presSD.pertIdx, res.presSD.pertTime, res.curSess);
+%         SD.drawAllTrial;
         
         if sPlt.drawDAQAll == 1
             drawDAQAll(res, dirs.PlotResultsDir, sv2File)
