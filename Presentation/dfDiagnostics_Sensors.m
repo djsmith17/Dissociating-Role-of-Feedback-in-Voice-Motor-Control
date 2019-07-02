@@ -133,8 +133,6 @@ if doubleSens == 1
     drawRawVoltagePressure(niAn, dirs.SavResultsDir, 1)
     CompareVoltagesInternalExternal()
 end
-% drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
-% drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
 end
 
 function drawRawVoltagePressure(niAn, saveResultsDir, intFlag)

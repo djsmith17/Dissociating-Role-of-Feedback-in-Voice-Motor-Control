@@ -1,13 +1,12 @@
 function dfRunSubjPlotting()
 %The function that draws the plots from analyzed results
 
-%This uses the following plot functions
-%drawDAQAll
-%drawDAQPresMic
-%drawDAQAlignedPressure
-%drawDAQMeanTrialMicf0
-%drawAudRespIndivTrial
-%drawAudRespMeanTrial
+% This calls the following drawing functions:
+% -drawDAQAlignedPressure
+% -drawMeanTrialMicf0
+% -drawAllPertTrialMicf0
+% -drawAudRespIndivTrial
+% -drawAudRespMeanTrial
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
@@ -37,8 +36,6 @@ ext                = '';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                      = 1;
-sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
-sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 
 sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawPertMicResponse     = 0; % All Perturbed Trials Microphone input
@@ -50,27 +47,13 @@ for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
-        dirs.SavResultsFile = fullfile(dirs.Results, participant, run, [participant run ext 'ResultsDRF.mat']); %The Analyzed Results File
-        
         dirs.PlotResultsDir = fullfile(dirs.Results, participant, run); % Analyzed Results Folder...Where Plots will go
         
-
+        dirs.SavResultsFile = fullfile(dirs.Results, participant, run, [participant run ext 'ResultsDRF.mat']); % Analyzed Results File.. The analyzed data to open
         if exist(dirs.SavResultsFile, 'file') == 0
-            fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
-            return
+            error('File %s does not exist!\n', dirs.SavResultsFile)
         else
             load(dirs.SavResultsFile)
-        end
-        
-%         SD = StepFunctionDynamics(res.presSD.time, res.presSD.sensor, res.presSD.fs, res.presSD.pertIdx, res.presSD.pertTime, res.curSess);
-%         SD.drawAllTrial;
-        
-        if sPlt.drawDAQAll == 1
-            drawDAQAll(res, dirs.PlotResultsDir, sv2File)
-        end
-        
-        if sPlt.drawDAQPresMic == 1
-            drawDAQPresMic(res, dirs.PlotResultsDir)
         end
         
         if sPlt.drawDAQAlignedPressure == 1
@@ -90,5 +73,4 @@ for ii = 1:sPlt.numPart
         close all
     end
 end
-close all
 end
