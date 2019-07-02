@@ -118,6 +118,7 @@ for ii = 1:pA.numPart
     % Organize Stat Tables
     sortStruc  = popStatTableObs(pA, sortStruc, sortStruc, 1);
     allSubjRes = popStatTableObs(pA, allSubjRes, sortStruc, ii);
+    allSubjRes = packStatTableSingle(pA, allSubjRes, sortStruc, ii);
     
     pooledRunStr(ii)   = sortStruc;
     
@@ -129,8 +130,6 @@ end
 allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
 allSubjRes.pltName = pA.pltNameMVm;
-
-allSubjRes.statTableSingle = packStatTableSingle(pooledRunStr);
 
 % Organize and Print the Stats of the Demographics included in this study
 organizeAndPrintDemographicStats(dirs, allSubjRes);
@@ -978,38 +977,23 @@ adjustPres = [adjPresOnsetM, adjPresOnsetE, adjPresOffsetM, adjPresOffsetE];
 InflDeflT  = [StInflTime SpInflTime StDeflTime SpDeflTime];
 end
 
-function statTable = packStatTableSingle(pooledRunStr)
+function polRes = packStatTableSingle(pA, polRes, sortStruc, curSubj)
 
-numSubj = length(pooledRunStr);
-ss.obvSubj = {};
-ss.obvAge  = [];
-ss.obvGender = {};
-ss.f0        = [];
-ss.obvAudFB  = {};
-ss.StimMag   = [];
-ss.StimMagSD = [];
-ss.RespMag   = [];
-ss.RespMagSD = [];
-ss.RespPer   = [];
-ss.RespPerSD = [];
-for ii = 1:numSubj
-    curRes = pooledRunStr(ii);
-    numRun = length(curRes.runs);
-    for jj = 1:numRun
-        ss.obvSubj   = cat(1, ss.obvSubj, curRes.studyID);
-        ss.obvAge    = cat(1, ss.obvAge, curRes.age);
-        ss.obvGender = cat(1, ss.obvGender, curRes.gender);
-        ss.f0        = cat(1, ss.f0, curRes.f0(jj));
-        ss.obvAudFB  = cat(1, ss.obvAudFB, curRes.AudFB{jj}{1});
-        ss.StimMag   = cat(1, ss.StimMag, curRes.respVarSingle{jj, 1}.stimMagM);
-        ss.StimMagSD = cat(1, ss.StimMagSD, curRes.respVarSingle{jj, 1}.stimMagSD);
-        ss.RespMag   = cat(1, ss.RespMag, curRes.respVarSingle{jj, 1}.respMagM);
-        ss.RespMagSD = cat(1, ss.RespMagSD, curRes.respVarSingle{jj, 1}.respMagSD);
-        ss.RespPer   = cat(1, ss.RespPer, curRes.respVarSingle{jj, 1}.respPerM);
-        ss.RespPerSD = cat(1, ss.RespPerSD, curRes.respVarSingle{jj, 1}.respPerSD);   
-    end
+for wC = 1:pA.numCond
+    
+    curIdx = (curSubj*pA.numCond) - pA.numCond + wC;
+    polRes.statTableSingle.SubjID(curIdx)  = sortStruc.studyID;
+    polRes.statTableSingle.Age(curIdx)     = sortStruc.age;
+    polRes.statTableSingle.Gender(curIdx)  = sortStruc.gender;
+    polRes.statTableSingle.f0(curIdx)      = sortStruc.f0b(wC);
+    polRes.statTableSingle.AudFB(curIdx)   = sortStruc.AudFB{wC}(1);
+    polRes.statTableSingle.StimMag(curIdx)   = sortStruc.respVarSingle{wC, 1}.stimMagM;
+    polRes.statTableSingle.StimMagSD(curIdx) = sortStruc.respVarSingle{wC, 1}.stimMagSD;
+    polRes.statTableSingle.RespMag(curIdx)   = sortStruc.respVarSingle{wC, 1}.respMagM;
+    polRes.statTableSingle.RespMagSD(curIdx) = sortStruc.respVarSingle{wC, 1}.respMagSD;
+    polRes.statTableSingle.RespPer(curIdx)   = sortStruc.respVarSingle{wC, 1}.respPerM;
+    polRes.statTableSingle.RespPerSD(curIdx) = sortStruc.respVarSingle{wC, 1}.respPerSD;
 end
-
 end
 
 function organizeAndPrintDemographicStats(dirs, allSubjRes)
