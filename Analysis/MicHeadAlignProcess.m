@@ -1,6 +1,34 @@
 classdef MicHeadAlignProcess
-    %UNTITLED2 Summary of this class goes here
-    %   Detailed explanation goes here
+    % MicHeadAlignProcess(analysisVar, trialVar) is a class which handles
+    % the time-alignment between audio signals collected in individual 
+    % trials of sensorimotor experiments. 
+    % 
+    % This calculates delays between the Audapter and NIDAQ microphone
+    % recordings, as well as the delay between the Microphone and
+    % Headphones in the Audapter recording
+    %
+    % analysisVar is a structure of variables from the overall experiment
+    % and expects the following (3) fields.
+    % -expType   : The Experiment Name (e.g. 'Auditory Perturbation_Perceptual')
+    % -sRate     : Sampling rate of recordings
+    % -frameLen  : Frame length of recordings
+    %
+    % trialVar is a structure of variables from the specific trial being
+    % processed and expects the following (14) fields.
+    % -AudFB
+    % -rawMic
+    % -rawHead
+    % -rms
+    % -auTrigs
+    % -fsNi
+    % -trialTimeNI
+    % -expTrigsNI
+    % -timeNI
+    % -rawMicNI
+    % -pressureNI
+    % -pressureTrigs
+    % -presLagTimes
+    % -presRiseTimes
     
     properties
         expType     % Experiment Type
@@ -16,10 +44,10 @@ classdef MicHeadAlignProcess
         auTrigs     % trigger points from Audapter recording
         auTrigsAuNi % trigger points from Audapter recording aligned with NIDAQ triggers (Only used for quality check)
         auTimesAuNi % time points from Aduapter recording aligned with NIDAQ triggers (Only used for quality check)
-        prePertVoicingTime
+        prePertVoicingTime % amount of vocalization pre-perturbation
         rawMicDS    % Raw microphone signal, downsampled
         
-        frameDel
+        frameDel    % Expected frame-delay between Microphone and Headphones (Audapter)
         rmsThresh
         
         fsNI

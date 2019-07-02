@@ -169,6 +169,10 @@ auAn.expTrigsSvt   = []; % Trigger Onset and Offset (Time) for trials saved for 
 end
 
 function trialVar = setNIDAQTrialVars(niAn, auAn, ii, trialVar)
+% trialVar = setNIDAQTrialVars(niAn, auAn, ii, trialVar) is a simple
+% function to set up the fields needed to describe the nidaq behavior.
+% Sometimes NIDAQ data was not recorded, and we want the MHAlignProcess to
+% still function correctly. This sets default values in that case.
 
 if isfield(niAn, 'audioM')
     trialVar.fsNI        = niAn.sRate;
