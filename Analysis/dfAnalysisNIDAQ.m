@@ -41,7 +41,7 @@ niAn.gender    = expParam.gender;
 niAn.AudFB     = expParam.AudFB;
 niAn.AudFBSw   = expParam.AudFBSw;
 
-if isfield(expParam, f0b)
+if isfield(expParam, 'f0b')
     niAn.bTf0b     = expParam.f0b;
 else
     niAn.bTf0b     = 100;
