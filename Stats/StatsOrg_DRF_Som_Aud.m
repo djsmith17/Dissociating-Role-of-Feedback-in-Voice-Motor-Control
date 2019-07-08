@@ -18,6 +18,9 @@ respPer_AudLs = StatTableAudLs.RespPer;
 
 respPerCol = [respPer_SomVF, respPer_SomMN, respPer_AudLs];
 pA.condName = {'SomPert Not Masked', 'SomPert Masked', 'AudPert'};
+pA.pubCondName = {'Somatosensory Feedback Perturbation\nNot Masked',...
+                  'Somatosensory Feedback Perturbation\nMasked',...
+                  'Auditory Feedback Perturbation'};
 [~, pA.numCond] = size(respPerCol);
 
 ApplyTrans = 1;
@@ -66,7 +69,7 @@ end
 drawHistograms(measureSummaryStrs, dirs, pA)
 
 varCmp = [1 2; 1 3; 2 3];
-varH   = [1.04, 1.12, 0.82];
+varH   = [1.08, 1.16, 0.82];
 comp = length(varCmp);
 
 measureSummaryStrDiff = [];
@@ -168,7 +171,7 @@ end
 function drawBoxPlot(dirs, pA, measureSummaryStrs, summaryStrDiff)
 
 fontN = 'Arial';
-axisLSize = 15;
+axisLSize = 20;
 
 cond      = pA.condName;
 numCond   = pA.numCond;
@@ -181,32 +184,42 @@ collData = [];
 for i = 1:numCond
     collData(:,i) = measureSummaryStrs(i).measure;
 end
+minCol = min(min(collData)) - 5;
 
 boxplot(collData, 'Labels', cond)
 ylabel('RespPer (%)')
-title('Comparison of Response Percentage between Experimental Conditions')
+title({'Comparison of Response Percentages'; 'Between Experimental Conditions'})
 box off
 
 yt = get(gca, 'YTick');
-axis([xlim    0  ceil(max(yt)*1.2)])
+axis([xlim    minCol  ceil(max(yt)*1.25)])
 xt = get(gca, 'XTick');
 
 numComp = length(summaryStrDiff);
 for ii = 1:numComp
     cS = summaryStrDiff(ii);
-    pVal = cS.ttestPstr;
+    pVal = cS.ttestP;
+    
+    if pVal >= 0.001
+        pVal = round(pVal, 3);
+        pSentence = ['p = ' pVal];
+    else
+        pSentence = 'p < 0.001';
+    end    
+    
     barR = xt(cS.vars);
     barM = mean(barR);
     if cS.isSig == 1
         hold on
-        plot(barR, [1 1]*max(yt)*(cS.h+.01), '-k')
-        plot(barM, max(yt)*(cS.h+.02), '*k', 'MarkerSize', 10)
+        plot(barR, [1 1]*max(yt)*(cS.h+.01), '-k', 'LineWidth', 2)
+%         plot(barM, max(yt)*(cS.h+.02), '*k', 'MarkerSize', 10)
     end
-    text(barM-0.35, max(yt)*(cS.h+.05), ['p = ' pVal], 'FontSize',18)
+    text(barM-0.30, max(yt)*(cS.h+.035), pSentence, 'FontSize', axisLSize, 'FontWeight','bold')
 end
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
-        'FontWeight','bold')
+        'FontWeight','bold',...
+        'LineWidth', 2)
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, 'Question4BoxPlot.jpg');
 export_fig(dirs.BoxPlotFigureFile)
