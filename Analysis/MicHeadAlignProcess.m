@@ -397,7 +397,7 @@ classdef MicHeadAlignProcess
                 'FontSize', 14,...
                 'FontWeight','bold')
 
-        % Raw Aduapter Microphone
+        % Raw Audapter Microphone
         axes(ha(2))
         plot(obj.time, obj.rawMic)
         hold on
@@ -425,7 +425,7 @@ classdef MicHeadAlignProcess
         hold on
         plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-2 2], 'k--', 'LineWidth', lineThick)
         box off
-        axis([auTimeRange min(obj.rawHead) max(obj.rawHead)])
+        axis([auTimeRange min(obj.rawMic) max(obj.rawMic)])
         title('Raw Audapter Headphones')
 
         xlabel('Audapter Time (s)')

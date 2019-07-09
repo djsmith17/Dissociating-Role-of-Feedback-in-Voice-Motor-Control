@@ -196,9 +196,9 @@ if isfield(niAn, 'audioM')
         trialVar.presLagTimes  = niAn.presSD.lagTimes(thisIdx, :);
         trialVar.presRiseTimes = niAn.presSD.riseTimes(thisIdx, :);
     else
-        trialVar.pressureTrigs = trialVar.expTrigsNI;
-        trialVar.presLagTimes  = [0 0];
-        trialVar.presRiseTimes = [0 0];
+        trialVar.pressureTrigs = [-15 -15];
+        trialVar.presLagTimes  = [-15 -15];
+        trialVar.presRiseTimes = [-15 -15];
     end
 else
     trialVar.fsNI        = 8000;
