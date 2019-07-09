@@ -549,7 +549,6 @@ classdef dfSectionDataOrg
         % Add to the audioDynamics struct
         respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
         audioDynamics_Somato.respVarM = respVarM;
-        % drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
         end
         
         function appendFigureDynamics()

@@ -150,46 +150,46 @@ if AudFlag == 1
         end
     end
 %%%%%%%%    
-    fs = 1/An.fV.win;
-    trialVar.coder = 'Pipe';
-    trialVar.curSess = 'Pipe';
-    trialVar.sigType = 'f0';
-    trialVar.units   = 'cents';
-    trialVar.itrType = '';
-    secf0 = dfSectionDataOrg(An.timef0, An.audioMf0, An.expTrigsf0, fs, trialVar);
-    
-    % Section raw f0 around onset and offset
-    secf0.sigsSec  = secf0.sectionData(secf0.sigs);
-    
-    % Identify baseline values
-    secf0 = secf0.identifyBaselineValues(secf0.sigsSec);
-    
-    % Convert to cents
-    secf0 = secf0.convertCentsData();
-    
-    % Section converted f0 around onset and offset
-    secf0.sigsNormSec = secf0.sectionData(secf0.sigsNorm);
-    
-    % Quality check trial
-    secf0 = secf0.qualityCheckData(secf0.sigsNormSec, An.allIdxPreProc);
-    
-    % Separate saved trials
-    secf0.sigsNormSecSv = secf0.sigsNormSec(:,secf0.svIdx,:);
-    pertTrialsIdx = An.trialTypeSvt(secf0.svIdx) == 1;
-    secf0P = secf0;
-    secf0P.sigsNormSecSv = secf0.sigsNormSecSv(:, pertTrialsIdx, :);
-    
-    % Mean the trials
-    secf0P.sigsSecM = secf0P.meanData(secf0P.sigsNormSecSv);
-    
-    % Identify Inflation Response
-    secf0P.sigsDynamics = secf0.InflationResponse;
-    
-    % Identify limits of the mean trials
-    secf0P = secf0P.identifyBounds;
-    
-    % Draw the Onset Figure
-    secf0P.drawSigsSecM_Onset(2);
+%     fs = 1/An.fV.win;
+%     trialVar.coder = 'Pipe';
+%     trialVar.curSess = 'Pipe';
+%     trialVar.sigType = 'f0';
+%     trialVar.units   = 'cents';
+%     trialVar.itrType = '';
+%     secf0 = dfSectionDataOrg(An.timef0, An.audioMf0, An.expTrigsf0, fs, trialVar);
+%     
+%     % Section raw f0 around onset and offset
+%     secf0.sigsSec  = secf0.sectionData(secf0.sigs);
+%     
+%     % Identify baseline values
+%     secf0 = secf0.identifyBaselineValues(secf0.sigsSec);
+%     
+%     % Convert to cents
+%     secf0 = secf0.convertCentsData();
+%     
+%     % Section converted f0 around onset and offset
+%     secf0.sigsNormSec = secf0.sectionData(secf0.sigsNorm);
+%     
+%     % Quality check trial
+%     secf0 = secf0.qualityCheckData(secf0.sigsNormSec, An.allIdxPreProc);
+%     
+%     % Separate saved trials
+%     secf0.sigsNormSecSv = secf0.sigsNormSec(:,secf0.svIdx,:);
+%     pertTrialsIdx = An.trialTypeSvt(secf0.svIdx) == 1;
+%     secf0P = secf0;
+%     secf0P.sigsNormSecSv = secf0.sigsNormSecSv(:, pertTrialsIdx, :);
+%     
+%     % Mean the trials
+%     secf0P.sigsSecM = secf0P.meanData(secf0P.sigsNormSecSv);
+%     
+%     % Identify Inflation Response
+%     secf0P.sigsDynamics = secf0P.InflationResponse;
+%     
+%     % Identify limits of the mean trials
+%     secf0P = secf0P.identifyBounds;
+%     
+%     % Draw the Onset Figure
+%     secf0P.drawSigsSecM_Onset(2);
     
 %%%%%%%%    
     % Parse out the trials we are saving (not removed)
@@ -566,7 +566,7 @@ ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respM
 % Add to the audioDynamics struct
 respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
 audioDynamics_Somato.respVarM = respVarM;
-% drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
+drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
 end
 
 function ir = initInflationResponseStruct()
