@@ -53,6 +53,8 @@ classdef dfSectionDataOrg
         legendCurves
         legendLabels
         LgdObj
+        
+        sigsDynamics
     end
     
     methods
@@ -384,27 +386,14 @@ classdef dfSectionDataOrg
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
         end
         
-        function obj = drawSigsSecM_Onset(obj)
-            % drawSigsSecM_Onset(obj) plots onset and offset sectioned signals
-            % manipulated in this class.
+        function obj = drawSigsSecM_Onset(obj, shadeFlag)
+            % drawSigsSecM_Onset(obj) plots onset sectioned signals
 
             % Figure properties
             plotpos = [10 100];
             plotdim = [800 600];
             OnsetOffsetMeanDataFig = figure('Color', [1 1 1]);
             set(OnsetOffsetMeanDataFig, 'Position', [plotpos plotdim], 'PaperPositionMode','auto')
-
-%             AD = res.audioDynamics;
-%             if ~isempty(AD)
-%                 statSM = round(AD.respVarM(2), 1);
-%                 statRM = round(AD.respVarM(3), 1);
-%                 statRP = round(AD.respVarM(4));
-%             else
-%                 statSM = '';
-%                 statRM = '';
-%                 statRP = '';
-%             end
-%             curSess(strfind(curSess, '_')) = ' ';
 
             % Trigger Line properties
             trigLineX   = [0 0];
@@ -414,54 +403,38 @@ classdef dfSectionDataOrg
             % Zero Line properties
             zeroLineX = [obj.timeSec(1) obj.timeSec(end)];
             zeroLineY = [0 0];
-            zeroLineC = [0.3 0.3 0.3];
+            zeroLineC = [1 0 0];
             
             % Axis properties
             fontName       = 'Arial';
-            titleFontSize  = 20;
             axisLSize      = 20;
             lineThick      = 4;
 
-            % Onset of Perturbation)
+            % Onset of Perturbation
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
-            dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
-
-            obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
-            obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
             
+            % Draw the Onset Trace
+            if shadeFlag == 1
+                dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
+                obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
+                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+            else
+                dHOn = plot(obj.timeSec, obj.sigsSecM(:,1), 'color', 'k', 'LineWidth', lineThick);
+                obj.legendCurves = cat(2, obj.legendCurves, dHOn);
+                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+            end
             
-            set(dHOn.mainLine, 'LineWidth', lineThick)
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
             ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
-            title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
+%             title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
             axis(obj.sigsSecMLims); box off
 
             set(gca,'FontName', fontName,...
                     'FontSize', axisLSize,...
                     'FontWeight','bold')
             hold off
-
-%             sup = suptitle({obj.curSess});
-%             set(sup, 'FontName', fontName,...
-%                      'FontSize', titleFontSize,...
-%                      'FontWeight','bold')
-                 
-%              annotation('textbox',[0.88 0.88 0.45 0.1],...
-%                         'string', ['Coder: ' obj.coder],...
-%                         'LineStyle','none',...
-%                         'FontWeight','bold',...
-%                         'FontSize',18,...
-%                         'FontName','Arial');
-
-%             obj.LgdObj = legend(obj.legendCurves, obj.legendLabels,...
-%                                 'Box', 'off',...
-%                                 'Edgecolor', [1 1 1],...
-%                                 'FontSize', 12,...
-%                                 'FontWeight', 'bold',...
-%                                 'Position', [0.7 0.91 0.05 0.05]);         
-
 
             obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
@@ -500,6 +473,87 @@ classdef dfSectionDataOrg
             
             saveFileName = fullfile(plotFolder, obj.sigsMeanFigTitle);
             export_fig(saveFileName)
+        end
+        
+        function ir = initInflationResponseStruct(obj)
+
+            ir.time     = [];
+            ir.onset    = [];
+
+            ir.iAtOnset = []; % Index where t = 0
+            ir.tAtOnset = []; % Time at t = 0
+            ir.vAtOnset = []; % f0 value at t = 0
+
+            ir.iPostOnsetR = []; % Range of indices between t = 0ms and t = 200ms;
+            ir.iAtMin      = []; % Index at min f0 value in PostOnsetR
+            ir.tAtMin      = []; % Time at min f0 value in PostOnsetR
+            ir.vAtMin      = []; % Min f0 value in PostOnsetR
+            ir.stimMag     = []; % ir.vAtMin - ir.vAtOnset ..in a perfect world vAtOnset = 0
+
+            ir.iAtResp = []; % Index of f0 value when participant 'fully' responded...right now = last value in section
+            ir.tAtResp = []; % Time at f0 value when participant 'fully' responded
+            ir.vAtResp = []; % f0 value when participant 'fully' responded 
+            ir.respMag = []; % vAtResp - vAtMin   ...distance traveled
+            ir.respPer = []; % Percent change from stimMag to respMag
+        end
+        
+        function audioDynamics_Somato = InflationResponse(obj)
+        % [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
+        % Identifies the relevant pitch contour characteristics that are important
+        % for deciding how a participant responded to the inflation of the balloon
+        % during production. iR is a structure representing the result variables
+        % from studying the inflation response (iR). The prefix letter denotes
+        % whether the variable is a index (i), a time (t), or a value (v). 
+        %
+        % secTime:  Vector of time points corresponding to the sectioned data (numSamp)
+        % secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
+        %           The 1st 3D layer are Onset Sections
+        %           The 2nd 3D later are Offset Sections
+        %
+        % respVar: Matrix of per trial iR results (numTrial x 4)
+        %          respVar(:,1) = Time of the minimum f0 value in the sec
+        %          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
+        %          respVar(:,3) = Value of f0 at end of sec (response magnitude)
+        %          respVar(:,4) = ABS percent change of stim and response
+        %          magnitude (response percentage)
+        % respVarM:    Vector of mean trial values from respVarm (1x4)
+        % respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
+        % InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
+
+        ir = obj.initInflationResponseStruct(); % Initialize the structure that handles the variable calculations
+        ir.time     = obj.timeSec;          % Time Interval for the sectioned trials (-0.5->1.0s)
+        ir.onset    = obj.sigsSecM(:, 1);   % f0 Trace sectioned around pert Onset.
+
+        ir.iAtOnset = find(ir.time == 0);
+        ir.tAtOnset = 0;                     % duh
+        ir.vAtOnset = ir.onset(ir.iAtOnset); % f0 value at t = 0
+
+        ir.iPostOnsetR = find(0 < ir.time & .20 >= ir.time); % Range of indices between t > 0ms and t =< 200ms;
+        [minOn, minIdx] = min(ir.onset(ir.iPostOnsetR));     % Minimum f0 val within PostOnsetR
+
+        % StimMag
+        ir.iAtMin  = ir.iPostOnsetR(minIdx);       % Indice of the min f0 value following trigger
+        ir.tAtMin  = ir.time(ir.iAtMin);           % Time at min f0 value following trigger
+        ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
+        ir.stimMag = abs(ir.vAtMin - ir.vAtOnset); % Distance traveled from onset to min value
+
+        % RespMag
+        ir.iAtResp = obj.numSampSec;         % Last index in section
+        ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
+        ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+        ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
+
+        % RespPer
+        ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respMag 
+
+        % Add to the audioDynamics struct
+        respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
+        audioDynamics_Somato.respVarM = respVarM;
+        % drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
+        end
+        
+        function appendFigureDynamics()
+            
         end
     end
 end
