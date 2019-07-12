@@ -212,9 +212,9 @@ for ii = 1:numComp
     if cS.isSig == 1
         hold on
         plot(barR, [1 1]*max(yt)*(cS.h+.01), '-k', 'LineWidth', 2)
-%         plot(barM, max(yt)*(cS.h+.02), '*k', 'MarkerSize', 10)
+        plot(barM, max(yt)*(cS.h+.04), '*k', 'MarkerSize', 10)
     end
-    text(barM-0.30, max(yt)*(cS.h+.035), pSentence, 'FontSize', axisLSize, 'FontWeight','bold')
+%     text(barM-0.30, max(yt)*(cS.h+.035), pSentence, 'FontSize', axisLSize, 'FontWeight','bold')
 end
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
