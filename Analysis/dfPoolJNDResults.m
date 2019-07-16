@@ -74,6 +74,7 @@ for ii = 1:pA.numPart
         sortStruc.studyID = curRes.participant; % Study ID
         sortStruc.gender  = curRes.gender;
         sortStruc.f0      = curRes.f0;
+        sortStruc.audioRMS = curRes.baseAudioRMS;
         
         sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
         allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
@@ -122,14 +123,21 @@ measVarAccu.varName   = 'LastSetAccuracy';
 measVarAccu.condition = 'LastSetAccuracy';
 measVarAccu.units     = '%';
 
+measVarLoud.varName   = 'TokenRMS';
+measVarLoud.condition = 'TokenRMS';
+measVarLoud.units     = 'dB';
+
 JNDTable  = MeasureSummaryStats(dirs, pA, measVarJND, allSubjRes.statTable.JNDScoreMean, 0);
 accuTable = MeasureSummaryStats(dirs, pA, measVarAccu, allSubjRes.statTable.lastSetAccuracyMean, 0);
+LoudTable = MeasureSummaryStats(dirs, pA, measVarLoud, allSubjRes.statTable.audioRMS, 0);
 
 JNDTable  = JNDTable.testNormality;
 accuTable = accuTable.testNormality;
+LoudTable = LoudTable.testNormality;
 
 JNDTable.drawHistoBoxCombo; JNDTable.drawHistogram;
 accuTable.drawHistoBoxCombo;
+LoudTable.drawHistoBoxCombo;
 
 dirs.JNDTableCSV = fullfile(dirs.SavResultsDir, 'JNDStatTable.csv');
 writetable(allSubjRes.statTable, dirs.JNDTableCSV);
@@ -154,6 +162,7 @@ sortStr.subject = [];
 sortStr.gender  = [];
 sortStr.age     = [];
 sortStr.f0      = [];
+sortStr.audioRMS = [];
 sortStr.curSess = [];
 sortStr.studyID = [];
 sortStr.runs    = [];
@@ -226,7 +235,8 @@ function StatTable = packStatTable(pooledRunStr)
 
 statStr.subjID              = {pooledRunStr.studyID}';
 statStr.genders             = {pooledRunStr.gender}';
-statStr.f0                  = {pooledRunStr.f0}';
+statStr.f0                  = [pooledRunStr.f0]';
+statStr.audioRMS            = [pooledRunStr.audioRMS]';
 statStr.JNDScoreMean        = [pooledRunStr.JNDScoreMean]';
 statStr.JNDScoreSE          = [pooledRunStr.JNDScoreSE]';
 statStr.lastSetAccuracyMean = [pooledRunStr.lastSetAccuracyMean]';
@@ -235,6 +245,7 @@ statStr.lastSetAccuracySE   = [pooledRunStr.lastSetAccuracySE]';
 VarNames = {'SubjID',...
             'gender',...
             'f0',...
+            'audioRMS',...
             'JNDScoreMean',...
             'JNDScoreSE',...
             'lastSetAccuracyMean',...
@@ -243,6 +254,7 @@ VarNames = {'SubjID',...
 StatTable = table(statStr.subjID,...
                   statStr.genders,...
                   statStr.f0,...
+                  statStr.audioRMS,....
                   statStr.JNDScoreMean,...
                   statStr.JNDScoreSE,...
                   statStr.lastSetAccuracyMean,...

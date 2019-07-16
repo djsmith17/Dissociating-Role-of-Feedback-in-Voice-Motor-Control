@@ -129,14 +129,15 @@ respPer_SomVF = StatTableSomVF.RespPer;
 respPer_SomMN = StatTableSomMN.RespPer;
 respPer_Diff  = respPer_SomMN - respPer_SomVF;
 JNDScore      = StatTableJNDLs.JNDScoreMean;
-f0            = cell2mat(StatTableJNDLs.f0);
+f0            = StatTableJNDLs.f0;
+RMS           = StatTableJNDLs.audioRMS;
 
 q6AllResponse  = [JNDScore respPer_Diff];
 [corrR, corrP] = corrcoef(q6AllResponse);
 q6Sentence = sprintf('Weak positive correlation between RespPer Diff and JND, (n = %d)', length(respPer_Diff));
 
 % Perform the correltion controlling for f0
-[corrR2, corrP2] = partialcorr(q6AllResponse, f0);
+[corrR2, corrP2] = partialcorr(q6AllResponse, RMS);
 
 columnNames = {'rho'; 'p_Value'};
 rowNames = {'Corr'; 'Partial Corr (f0)'};
@@ -174,7 +175,8 @@ function addressQuest7(dirs, StatTableJND, StatTableAud)
 
 respPer_Aud = StatTableAud.RespPer;
 JNDScore    = StatTableJND.JNDScoreMean;
-f0          = cell2mat(StatTableJND.f0);
+f0          = StatTableJND.f0;
+RMS         = StatTableJND.audioRMS;
 
 % Perform the correlation
 q7AllResponse = [JNDScore respPer_Aud];
@@ -182,7 +184,7 @@ q7AllResponse = [JNDScore respPer_Aud];
 q7Sentence = sprintf('Weak negative correlation between RespPer and JND (n = %d)', length(JNDScore));
 
 % Perform the correltion controlling for f0
-[corrR2, corrP2] = partialcorr(q7AllResponse, f0);
+[corrR2, corrP2] = partialcorr(q7AllResponse, RMS);
 
 columnNames = {'rho'; 'p_Value'};
 rowNames = {'Corr'; 'Partial Corr (f0)'};
@@ -225,7 +227,8 @@ StatTableJNDLs(I,:) = [];
 
 respPer_SomMN = StatTableSomMN.RespPer;
 JNDScore      = StatTableJNDLs.JNDScoreMean;
-f0            = cell2mat(StatTableJNDLs.f0);
+f0            = StatTableJNDLs.f0;
+RMS           = StatTableJNDLs.audioRMS;
 
 % Perform the correlation
 qE1AllResponse = [JNDScore respPer_SomMN];
@@ -274,7 +277,7 @@ StatTableJNDLs(I,:) = [];
 
 stimMag_SomMN = StatTableSomMN.StimMag;
 JNDScore      = StatTableJNDLs.JNDScoreMean;
-f0            = cell2mat(StatTableJNDLs.f0);
+f0            = StatTableJNDLs.f0;
 
 % Perform the correlation
 qE2AllResponse = [JNDScore stimMag_SomMN];
