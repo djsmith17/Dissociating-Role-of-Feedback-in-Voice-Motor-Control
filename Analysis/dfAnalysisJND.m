@@ -93,26 +93,31 @@ GTBase = GT.BaseToken;
 bVfs   = bV.expParam.sRateAnal;
 bVBase = bV.rawData(GT.baseTrial).signalIn;
 bVBase_seg = bVBase(2*bVfs:2.5*bVfs);
-bvTime = linspace(0, 0.5, length(bVBase_seg));
+bvTime = linspace(2, 2.5, length(bVBase_seg));
 
 bVaudioRMS = bV.qRes.audioRMS(GT.baseTrial);
 
-% figure
-% subplot(2,1,1)
-% plot(bvTime, bVBase_seg)
-% title(bVaudioRMS);
-% subplot(2,1,2)
-% plot(GTTime, GTBase)
-% suptitle(bV.expParam.subject)
+rmsBV   = rms(bVBase_seg(800:7200));
+rmsBase = rms(GTBase(2205:19845));
 
-rmsBV   = rms(bVBase_seg);
-rmsBase = rms(GTBase);
+figure('Color', [1 1 1])
+subplot(1,2,1)
+plot(bvTime, bVBase_seg)
+xlabel('Time (s)')
+box off
+title({'Baseline Voice', ['RMS = ' num2str(round(rmsBV, 4))]});
+
+subplot(1,2,2)
+plot(GTTime, GTBase)
+xlabel('Time (s)')
+box off
+title({'Baseline Token', ['RMS = ' num2str(round(rmsBase, 4))]});
+suptitle(bV.expParam.subject)
 
 allRMS = [];
 for ii = 1:GT.numPertToken
-    allRMS = [allRMS rms(GT.PertTokens(ii,:))];
+    allRMS = [allRMS rms(GT.PertTokens(ii,2205:19845))];
 end
-
 end
 
 function resJND = initJNDAnalysis()

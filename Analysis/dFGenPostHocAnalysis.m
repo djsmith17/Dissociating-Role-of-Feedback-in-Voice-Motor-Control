@@ -40,10 +40,10 @@ StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
 % Question 4 %%%
-StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
+% StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
-addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+% addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
 
 % Question 6 %%%
 addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
@@ -56,6 +56,9 @@ addressQuest7(dirs, StatTableJND, StatTableAud)
 
 % Question E2 %%%
 % addressQuestE2(dirs, StatTableJND, StatTableSomMN)
+
+% Question E# %%%
+% addressQuestE3(dirs, StatTableJND)
 end
 
 function addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
@@ -303,6 +306,49 @@ scatStr.sent   = qE2Sentence;
 scatStr.color  = 'k';
 scatStr.Table  = T;
 scatStr.qNum   = 22;
+scatStr.minX   = 0;
+scatStr.maxX   = 70;
+scatStr.minY   = min(scatStr.y) - 10;
+scatStr.maxY   = max(scatStr.y) + 10;
+scatStr.winPos = [0.48 0.73];
+
+% Draw the scatter plot
+drawScatterCorr(dirs, scatStr)
+end
+
+function addressQuestE3(dirs, StatTableJND)
+
+% I18 = strcmp(StatTableJND.SubjID, 'DRF18');
+% StatTableJND(I18,:) = [];
+
+JNDScore      = StatTableJND.JNDScoreMean;
+f0            = StatTableJND.f0;
+RMS           = StatTableJND.audioRMS;
+
+% Perform the correlation
+qE3AllResponse = [JNDScore RMS];
+[corrR, corrP] = corrcoef(qE3AllResponse);
+qE3Sentence = sprintf('Weak positive correlation between StimMag and JND (n = %d)', length(JNDScore));
+
+% Perform the correltion controlling for f0
+[corrR2, corrP2] = partialcorr(qE3AllResponse, f0);
+
+columnNames = {'rho'; 'p_Value'};
+rowNames = {'Corr'; 'Partial Corr (f0)'};
+allRhos = [round(corrR(1,2), 3); round(corrR2(1,2), 3)];
+allPs   = [round(corrP(1,2), 4); round(corrP2(1,2), 4)];
+T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
+
+% Organize the output
+scatStr.x      = JNDScore;
+scatStr.y      = RMS;
+scatStr.xLabel = 'JND Score (cents)';
+scatStr.yLabel = 'Loudness Level (dB)';
+scatStr.title  = 'Relationship between JND Score and Token loudness';
+scatStr.sent   = qE3Sentence;
+scatStr.color  = 'k';
+scatStr.Table  = T;
+scatStr.qNum   = 33;
 scatStr.minX   = 0;
 scatStr.maxX   = 70;
 scatStr.minY   = min(scatStr.y) - 10;
