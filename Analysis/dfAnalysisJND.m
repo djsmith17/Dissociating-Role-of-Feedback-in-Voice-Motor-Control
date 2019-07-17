@@ -85,7 +85,7 @@ end
 fprintf('Elapsed time was %f min\n', toc/60)
 end
 
-function bVaudioRMS  = assessTokenQuality(GT, bV)
+function bVLoudDB = assessTokenQuality(GT, bV)
 
 GTTime = linspace(0, GT.tokenLen, GT.tokenLenP);
 GTBase = GT.BaseToken;
@@ -99,39 +99,44 @@ bvTime = linspace(2, 2.5, length(bVBase_seg));
 
 bVaudioRMS = bV.qRes.audioRMS(GT.baseTrial);
 
-rmsBV   = reCalcRMS(bVBase_seg(800:7200), frameLen);
-rmsBase = reCalcRMS(GTBase(2205:19845), frameLen);
-
-bVStruct.rms = rmsBV;
-GTStruct.rms = rmsBase;
+bVStruct.rms   = reCalcRMS(bVBase_seg(800:7200), frameLen);
+bVStruct.rmsM  = mean(bVStruct.rms);
+GTStruct.rms   = reCalcRMS(GTBase(2205:19845), frameLen);
+GTStruct.rmsM  = mean(GTStruct.rms);
 
 bVLoudDB = dfCalcMeanRMS(bVStruct, rmsB);
 GTLoudDB = dfCalcMeanRMS(GTStruct, rmsB);
 
-figure('Color', [1 1 1])
-subplot(1,2,1)
-plot(bvTime, bVBase_seg)
-xlabel('Time (s)')
-box off
-title({'Baseline Voice', ['RMS = ' num2str(round(rmsBV, 4))]});
+fprintf('Baseline Voice Loudness recorded as %0.2f dB\n', bVaudioRMS)
+fprintf('Baseline Voice Loudness reanalyzed as %0.2f dB\n', bVLoudDB)
+fprintf('Baseline Token Loudness reanalyzed as %0.2f dB\n', GTLoudDB)
 
-subplot(1,2,2)
-plot(GTTime, GTBase)
-xlabel('Time (s)')
-box off
-title({'Baseline Token', ['RMS = ' num2str(round(rmsBase, 4))]});
-suptitle(bV.expParam.subject)
+% fprintf('Difference between recorded and reanalyzed baseline voice = %f\n', bVLoudDB - bVaudioRMS)
+% fprintf('Difference between baseline Token and baseline voice = %f\n', bVLoudDB - GTLoudDB)
 
-allRMS = [];
+% figure('Color', [1 1 1])
+% subplot(1,2,1)
+% plot(bvTime, bVBase_seg)
+% xlabel('Time (s)')
+% box off
+% title({'Baseline Voice', ['RMS = ' num2str(round(bVStruct.rmsM, 4))]});
+% 
+% subplot(1,2,2)
+% plot(GTTime, GTBase)
+% xlabel('Time (s)')
+% box off
+% title({'Baseline Token', ['RMS = ' num2str(round(GTStruct.rmsM, 4))]});
+% suptitle(bV.expParam.subject)
+
+allTokenRMSdB = [];
 for ii = 1:GT.numPertToken
-    allRMS = [allRMS rms(GT.PertTokens(ii,2205:19845))];
+    tokenStruct.rms = reCalcRMS(GT.PertTokens(ii,2205:19845), frameLen);
+    allTokenRMSdB = cat(1, allTokenRMSdB, dfCalcMeanRMS(tokenStruct, rmsB));
 end
+allTokenRMSdB_Mean = round(mean(allTokenRMSdB), 2);
+allTokenRMSdB_SD   = round(std(allTokenRMSdB), 3);
 
-
-
-allRMSdB = 20*log10(allRMS/refSPL);
-
-
+fprintf('Mean Token Loudness = %0.2f db (SD = %0.3f dB)\n\n', allTokenRMSdB_Mean, allTokenRMSdB_SD)
 end
 
 function sigRMS = reCalcRMS(sig, frameLen)
