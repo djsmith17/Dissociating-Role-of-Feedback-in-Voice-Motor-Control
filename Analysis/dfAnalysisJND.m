@@ -90,6 +90,8 @@ function bVaudioRMS  = assessTokenQuality(GT, bV)
 GTTime = linspace(0, GT.tokenLen, GT.tokenLenP);
 GTBase = GT.BaseToken;
 
+frameLen = bV.expParam.frameLenDown;
+rmsB     = bV.expParam.rmsB;
 bVfs   = bV.expParam.sRateAnal;
 bVBase = bV.rawData(GT.baseTrial).signalIn;
 bVBase_seg = bVBase(2*bVfs:2.5*bVfs);
@@ -97,8 +99,14 @@ bvTime = linspace(2, 2.5, length(bVBase_seg));
 
 bVaudioRMS = bV.qRes.audioRMS(GT.baseTrial);
 
-rmsBV   = rms(bVBase_seg(800:7200));
-rmsBase = rms(GTBase(2205:19845));
+rmsBV   = reCalcRMS(bVBase_seg(800:7200), frameLen);
+rmsBase = reCalcRMS(GTBase(2205:19845), frameLen);
+
+bVStruct.rms = rmsBV;
+GTStruct.rms = rmsBase;
+
+bVLoudDB = dfCalcMeanRMS(bVStruct, rmsB);
+GTLoudDB = dfCalcMeanRMS(GTStruct, rmsB);
 
 figure('Color', [1 1 1])
 subplot(1,2,1)
@@ -118,6 +126,24 @@ allRMS = [];
 for ii = 1:GT.numPertToken
     allRMS = [allRMS rms(GT.PertTokens(ii,2205:19845))];
 end
+
+
+
+allRMSdB = 20*log10(allRMS/refSPL);
+
+
+end
+
+function sigRMS = reCalcRMS(sig, frameLen)
+
+lenSig = length(sig);
+numFrame = floor(lenSig/frameLen);
+
+sigRMS = zeros(numFrame, 1);
+for ii = 1:numFrame
+    sigRMS(ii) = rms(sig([1:frameLen]*ii));
+end
+
 end
 
 function resJND = initJNDAnalysis()
