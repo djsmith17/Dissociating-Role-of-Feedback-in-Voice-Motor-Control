@@ -188,7 +188,7 @@ minCol = min(min(collData)) - 5;
 
 boxplot(collData, 'Labels', cond)
 ylabel('RespPer (%)')
-title({'Comparison of Response Percentages'; 'Between Experimental Conditions'})
+% title({'Comparison of Response Percentages'; 'Between Experimental Conditions'})
 box off
 
 yt = get(gca, 'YTick');
