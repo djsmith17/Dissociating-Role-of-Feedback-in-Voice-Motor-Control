@@ -47,6 +47,13 @@ for k = curTestingMeas
         % Describe the normality
         summaryStat = summaryStat.testNormality();
         
+        % Answering Research Questions 1-3
+        if k == 3 || k == 4
+            summaryStat = summaryStat.performTTest(1); 
+            rangeVal = ['A' num2str(7 +2*(i))];
+            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
+        end
+        
         % Concatenate the Summary Stat Arrays across condition
         summaryVarTableAcrossCond = [summaryVarTableAcrossCond; summaryStat.SummaryTable];
 

@@ -108,8 +108,14 @@ classdef MeasureSummaryStats
             obj.SummaryStruct.usedLambda = num2str(round(l,2));
         end
         
-        function obj = performTTest(obj)
+        function obj = performTTest(obj, varargin)
             % Perform a One-Sample T-Test on the difference between the measures
+            
+            if isempty(varargin)
+                type = 'between the two conditions';
+            else
+                type = ['than 0 in the ' obj.SummaryStruct.cond ' condition'];
+            end
             
             [~, P, ~, STATS] = ttest(obj.SummaryStruct.measureT);
             Pstr   = sprintf('%0.6f', P);
@@ -122,9 +128,10 @@ classdef MeasureSummaryStats
                 sigNote = ' not';
             end
             
-            statSentence = sprintf('The variable %s was%s significantly different between the two conditions t(%d) = %0.2f, p = %0.6f\n',...
+            statSentence = sprintf('The variable %s was%s signficantly different %s t(%d) = %0.2f, p = %0.6f\n',...
                                    obj.SummaryStruct.varName,...
                                    sigNote,...
+                                   type,...
                                    STATS.df,...
                                    STATS.tstat,...
                                    P);
