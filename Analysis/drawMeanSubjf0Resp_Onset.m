@@ -29,8 +29,8 @@ legNames = {};
 pValueThresh = 0.05;
 
 % Plotting Variables
-plotpos        = [10 10];
-plotdim        = 2*[640 480];
+plotpos        = [10 40];
+plotdim        = targPixDim;
 MeanSubjf0Resp = figure('Color', [1 1 1]);
 set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
@@ -75,12 +75,13 @@ end
 
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
-title({'Mean Participant Response'; 'Onset of Perturbation'}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
+% title({'Mean Participant Response'; 'Onset of Perturbation'}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
-        'FontWeight','bold')
+        'FontWeight','bold',...
+        'LineWidth', 2)
 
 if fStat == 1
     % Done plotting, now to add some annotations
@@ -113,8 +114,7 @@ if fLabel == 1
 end
 
 legend(legLines, legNames,...
-       'Position', [0.68 0.77 0.1 0.1],...
-       'box','off',...
+       'Position', [0.72 0.15 0.1 0.1],...
        'FontName', fontN,...
        'FontSize', legAnnoFSize,...
        'FontWeight', 'bold');
@@ -124,7 +124,7 @@ for i = 1:length(plots)
     plTitle = [pltName '_Onset.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
-    export_fig(saveFileName, '-nocrop')
+    export_fig(saveFileName)
 end
 end
 

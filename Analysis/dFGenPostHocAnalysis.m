@@ -130,7 +130,7 @@ StatTableJNDLs(I,:) = [];
 
 respPer_SomVF = StatTableSomVF.RespPer;
 respPer_SomMN = StatTableSomMN.RespPer;
-respPer_Diff  = respPer_SomMN - respPer_SomVF;
+respPer_Diff  = respPer_SomMN - respPer_SomVF; % Masked - Not Masked
 JNDScore      = StatTableJNDLs.JNDScoreMean;
 f0            = StatTableJNDLs.f0;
 RMS           = StatTableJNDLs.audioRMS;
