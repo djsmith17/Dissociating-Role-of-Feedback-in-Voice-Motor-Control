@@ -427,6 +427,8 @@ classdef dfSectionDataOrg
             plotdim = [800 600];
             OnsetOffsetMeanDataFig = figure('Color', [1 1 1]);
             set(OnsetOffsetMeanDataFig, 'Position', [plotpos plotdim], 'PaperPositionMode','auto')
+            
+            set(OnsetOffsetMeanDataFig,'defaultAxesColorOrder',[obj.dataColor1; obj.dataColor3]);
 
             % Trigger Line properties
             trigLineX   = [0 0];
@@ -436,7 +438,7 @@ classdef dfSectionDataOrg
             % Zero Line properties
             zeroLineX = [obj.timeSec(1) obj.timeSec(end)];
             zeroLineY = [0 0];
-            zeroLineC = [1 0 0];
+            zeroLineC = [0 0 0];
             
             % Axis properties
             fontName       = 'Arial';
@@ -467,14 +469,15 @@ classdef dfSectionDataOrg
             end
             
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
-            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold', 'Color', obj.dataColor1)
 %             title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
             axis(obj.sigsSecMLims); box off
 
             set(gca,'FontName', fontName,...
                     'FontSize', axisLSize,...
                     'FontWeight','bold',...
-                    'LineWidth', 2)
+                    'LineWidth', 2,...
+                    'YColor', obj.dataColor1)
             hold off
 
             obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
@@ -592,8 +595,14 @@ classdef dfSectionDataOrg
         audioDynamics_Somato.respVarM = respVarM;
         end
         
-        function appendFigureDynamics()
-            
+        function appendFigureDynamics_Onset(obj, time, sec)
+            yyaxis right
+            shadedErrorBar(time, sec(:,1), sec(:,2), 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
+            ylabel('f0 (cents)')
+            axis([-0.5 1.0 -100 150])
+            yyaxis left
+            axis([-0.5 1.0 -10 15])
+            set(gca,'YColor', obj.dataColor1)
         end
     end
 end

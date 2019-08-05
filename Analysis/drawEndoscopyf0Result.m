@@ -43,9 +43,13 @@ distObj2AllSubj.sigsSec = eAnPool.allSubjMeanSecs2;
 distObj3AllSubj.sigsSec = eAnPool.allSubjMeanSecs3;
 
 % Mean the sectioned trials
+eAnPool.sigsSecf0M       = distObj1AllSubj.meanData(eAnPool.sigsSecf0);
 distObj1AllSubj.sigsSecM = distObj1AllSubj.meanData(distObj1AllSubj.sigsSec);
 distObj2AllSubj.sigsSecM = distObj2AllSubj.meanData(distObj2AllSubj.sigsSec);
 distObj3AllSubj.sigsSecM = distObj3AllSubj.meanData(distObj3AllSubj.sigsSec);
+
+eAnPool.lagTimeM  = mean(eAnPool.lagTimes, 1);
+eAnPool.riseTimeM = mean(eAnPool.riseTimes, 1);
 
 % Identify the bounds for these data
 distObj1AllSubj = distObj1AllSubj.identifyBounds;
@@ -77,12 +81,14 @@ distObj1AllSubj.sigsSecM = distObj1AllSubj.meanData(sigsSecLines);
 distObj1AllSubj = distObj1AllSubj.identifyBounds;
 
 % All three lines collapsed: Onset Figure
-stimWindowProp.meanOnsetLag  = curRes.presSDsv.lagTimeM(1)/1000;
-stimWindowProp.meanOnsetRise = curRes.presSDsv.riseTimeM(1)/1000;
-stimWindowProp.meanOffsetLag  = curRes.presSDsv.lagTimeM(2)/1000;
-stimWindowProp.meanOffsetRise = curRes.presSDsv.riseTimeM(2)/1000;
+stimWindowProp.meanOnsetLag  = eAnPool.lagTimeM(1);
+stimWindowProp.meanOnsetRise = eAnPool.riseTimeM(1);
+stimWindowProp.meanOffsetLag  = eAnPool.lagTimeM(2);
+stimWindowProp.meanOffsetRise = eAnPool.riseTimeM(2);
+
 distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Onset(1, stimWindowProp);
 distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLineOnset' distObj1AllSubj.coder '.jpg'];
+distObj1AllSubj.appendFigureDynamics_Onset(eAnPool.timef0Sec, eAnPool.sigsSecf0M)
 
 distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
@@ -91,8 +97,13 @@ function eAnPool = initPooledEndoscopyResults()
 % A place to organize the extra pooled vars that need to be accounted for
 
 eAnPool.timef0Sec       = [];
-eAnPool.f0SecSigs       = [];
-eAnPool.f0SecSigM       = [];
+eAnPool.sigsSecf0       = [];
+eAnPool.sigsSecf0M      = [];
+
+eAnPool.lagTimes = [];
+eAnPool.lagTimeM = [];
+eAnPool.riseTimes = [];
+eAnPool.riseTimeM = [];
 
 eAnPool.meanSecsOn      = [];
 eAnPool.meanSecsOf      = [];
@@ -110,7 +121,10 @@ end
 function eAnPool = iterPooledEndoscopyResults(eAnPool, curRes, dMeasObj, dMeasObj2, dMeasObj3)
 
 eAnPool.timef0Sec = curRes.timef0Sec;
-eAnPool.f0SecSigs = cat(2, eAnPool.f0SecSigs, curRes.codedSigsSecM);
+eAnPool.sigsSecf0 = cat(2, eAnPool.sigsSecf0, curRes.codedSigsSecM);
+
+eAnPool.lagTimes  = cat(1, eAnPool.lagTimes, curRes.codedLagTimesM);
+eAnPool.riseTimes = cat(1, eAnPool.riseTimes, curRes.codedRiseTimesM);
 
 eAnPool.meanSecsOn = cat(2, eAnPool.meanSecsOn, dMeasObj.sigsSecM(:,1));
 eAnPool.meanSecsOf = cat(2, eAnPool.meanSecsOf, dMeasObj.sigsSecM(:,3));
@@ -125,8 +139,6 @@ end
 end
 
 function eAnPool = meanPooledEndoscopyResults(eAnPool)
-
-eAnPool.f0SecSigM = mean(eAnPool.f0SecSigs, 2);
 
 eAnPool.allSubjMeanSecs = cat(3, eAnPool.allSubjMeanSecs, eAnPool.meanSecsOn);
 eAnPool.allSubjMeanSecs = cat(3, eAnPool.allSubjMeanSecs, eAnPool.meanSecsOf);
@@ -168,7 +180,7 @@ curRes.sensorP          = res.sensorPsv;
 curRes.pressureLim      = res.limitsP;
 
 % Pressure Sensor dynamics
-curRes.presSDsv = res.presSDsv;
+curRes.presSD = res.presSDsv;
 
 % How many trials were coded?
 curRes.numTrial         = res.numPertTrialsFin;
@@ -177,26 +189,16 @@ curRes.numTrial         = res.numPertTrialsFin;
 [numFrame, ~] = size(CodedEndoFrameDataSet{1});
 curRes.timeFrames = linspace(0, curRes.time(end), numFrame);
 
-curRes.codedTrialNum = [];
-curRes.codedPertTrig = [];
-curRes.codedSigs     = [];
-curRes.codedSigsSec  = [];
-curRes.codedSigsSecM = [];
-curRes.codedSensorP  = [];
-curRes.codedSensorTrigTSt = [];
-curRes.codedSensorTrigTSp = [];
-curRes.codedDist     = []; curRes.codedDist2     = []; curRes.codedDist3     = [];
+ctIdx = [];
+curRes.codedDist  = []; 
+curRes.codedDist2 = []; 
+curRes.codedDist3 = [];
 for ii = 1:curRes.numTrial
     curTable = CodedEndoFrameDataSet{ii};
     firstVal = curTable.FidPt1X;
     if firstVal ~= 0 % Was this trial coded at all? This check needs to be improved in future
-        curRes.codedTrialNum = cat(1, curRes.codedTrialNum, curRes.trialNums(ii));
-        curRes.codedPertTrig = cat(1, curRes.codedPertTrig, curRes.pertTrig(ii,:));
-        curRes.codedSigs     = cat(2, curRes.codedSigs, curRes.sigs(:,ii));
-        curRes.codedSigsSec  = cat(2, curRes.codedSigsSec, curRes.sigsf0Sec(:, ii, 1)); % Onset
-        curRes.codedSensorP  = cat(2, curRes.codedSensorP, curRes.sensorP(:,ii));
-        curRes.codedSensorTrigTSt = cat(1, curRes.codedSensorTrigTSt, curRes.presSDsv.TrigTime(ii,:));
-        curRes.codedSensorTrigTSp = cat(1, curRes.codedSensorTrigTSp, curRes.presSDsv.TrigTime(ii,:) + curRes.presSDsv.riseTimes(ii,:));
+        ctIdx = [ctIdx ii];
+       
         curRes.codedDist     = cat(2, curRes.codedDist, curTable.Dist);
         
         if ismember('Dist2', curTable.Properties.VariableNames)
@@ -206,8 +208,21 @@ for ii = 1:curRes.numTrial
     end    
 end
 
+curRes.codedTrialNum      = curRes.trialNums(ctIdx);
+curRes.codedPertTrig      = curRes.pertTrig(ctIdx,:);
+curRes.codedSigs          = curRes.sigs(:,ctIdx);
+curRes.codedSigsSec       = curRes.sigsf0Sec(:, ctIdx, :); % Onset
+curRes.codedSensorP       = curRes.sensorP(:, ctIdx);
+curRes.codedSensorTrigTSt = curRes.presSD.TrigTime(ctIdx,:);
+curRes.codedSensorTrigTSp = curRes.presSD.TrigTime(ctIdx,:) + curRes.presSD.riseTimes(ctIdx,:);
+
+curRes.codedlagTimes  = curRes.presSD.lagTimes(ctIdx,:);
+curRes.codedriseTimes = curRes.presSD.riseTimes(ctIdx,:);
+
 % Mean the behaviroal stuff
-curRes.codedSigsSecM = mean(curRes.codedSigsSec, 2);
+curRes.codedSigsSecM   = mean(curRes.codedSigsSec, 2);
+curRes.codedLagTimesM  = mean(curRes.codedlagTimes, 1);
+curRes.codedRiseTimesM = mean(curRes.codedriseTimes, 1);
 
 % Set up the sectioned data object
 dataInfo.curSess = curRes.curSess;
@@ -219,10 +234,10 @@ dataInfo.itrType = 'Trials';
 dMeasObj = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, dataInfo);
 
 % Draw the mean-trial Onset and Offset traces
-stimWindowProp.meanOnsetLag  = curRes.presSDsv.lagTimeM(1)/1000;
-stimWindowProp.meanOnsetRise = curRes.presSDsv.riseTimeM(1)/1000;
-stimWindowProp.meanOffsetLag  = curRes.presSDsv.lagTimeM(2)/1000;
-stimWindowProp.meanOffsetRise = curRes.presSDsv.riseTimeM(2)/1000;
+stimWindowProp.meanOnsetLag  = curRes.presSD.lagTimeM(1)/1000;
+stimWindowProp.meanOnsetRise = curRes.presSD.riseTimeM(1)/1000;
+stimWindowProp.meanOffsetLag  = curRes.presSD.lagTimeM(2)/1000;
+stimWindowProp.meanOffsetRise = curRes.presSD.riseTimeM(2)/1000;
 dMeasObj = dMeasObj.drawSigsSecM(stimWindowProp);
 
 if ismember('Dist2', curTable.Properties.VariableNames)
