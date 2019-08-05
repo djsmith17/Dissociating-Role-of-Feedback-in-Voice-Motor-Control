@@ -234,7 +234,7 @@ if res.numPertTrialsFin < res.numPertTrialsNi
     res.presSDsv.TrigIdx   = res.presSDsv.TrigIdx(presInd, :);
     res.presSDsv.TrigTime  = res.presSDsv.TrigTime(presInd, :);
     res.presSDsv.lagTimes  = res.presSDsv.lagTimes(presInd, :);
-    res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd);
+    res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd, :);
     res.presSDsv.OnOffVal  = res.presSDsv.OnOffVal(presInd, :);
 end
 end

@@ -221,7 +221,7 @@ if res.numPertTrialsFin < res.numPertTrialsNi && strcmp(res.expType, 'Somatosens
     res.sensorPsv          = res.sensorPsv(:, presInd);
     res.presSDsv.sensorSec = res.presSDsv.sensorSec(:, presInd, :);
     res.presSDsv.lagTimes  = res.presSDsv.lagTimes(presInd, :);
-    res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd);
+    res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd, :);
     res.presSDsv.OnOffVal  = res.presSDsv.OnOffVal(presInd, :);
 end
 end
