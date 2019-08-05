@@ -30,7 +30,7 @@ allSubjMeanSecs3 = [];
 
 for ii = 1:eAn.numParti
     
-    [dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, eAn.allParti{ii}, eAn.runs, eAn.coder);
+    [curRes, dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, eAn.allParti{ii}, eAn.runs, eAn.coder);
 
     meanSecsOn = cat(2, meanSecsOn, dMeasObj.sigsSecM(:,1));
     meanSecsOf = cat(2, meanSecsOf, dMeasObj.sigsSecM(:,3));
@@ -94,13 +94,17 @@ distObjAllSubj.sigsSecM = distObjAllSubj.meanData(sigsSecLines);
 distObjAllSubj = distObjAllSubj.identifyBounds;
 
 % All three lines collapsed: Onset Figure
-distObjAllSubj = distObjAllSubj.drawSigsSecM_Onset(1);
+stimWindowProp.meanOnsetLag  = curRes.presSDsv.lagTimeM(1)/1000;
+stimWindowProp.meanOnsetRise = curRes.presSDsv.riseTimeM(1)/1000;
+stimWindowProp.meanOffsetLag  = curRes.presSDsv.lagTimeM(2)/1000;
+stimWindowProp.meanOffsetRise = curRes.presSDsv.riseTimeM(2)/1000;
+distObjAllSubj = distObjAllSubj.drawSigsSecM_Onset(1, stimWindowProp);
 distObjAllSubj.sigsMeanFigTitle = [distObjAllSubj.curSess '_InterTrialMeanLineOnset' distObjAllSubj.coder '.jpg'];
 
 distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
 
-function [dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, participant, run, coder)
+function [curRes, dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, participant, run, coder)
 
 dirs.ResultsParti     = fullfile(dirs.Results, participant, run);
 dirs.ResultsBehavFile = fullfile(dirs.ResultsParti, [participant run 'ResultsDRF.mat']);
@@ -173,7 +177,11 @@ dataInfo.itrType = 'Trials';
 dMeasObj = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, dataInfo);
 
 % Draw the mean-trial Onset and Offset traces
-dMeasObj = dMeasObj.drawSigsSecM;
+stimWindowProp.meanOnsetLag  = curRes.presSDsv.lagTimeM(1)/1000;
+stimWindowProp.meanOnsetRise = curRes.presSDsv.riseTimeM(1)/1000;
+stimWindowProp.meanOffsetLag  = curRes.presSDsv.lagTimeM(2)/1000;
+stimWindowProp.meanOffsetRise = curRes.presSDsv.riseTimeM(2)/1000;
+dMeasObj = dMeasObj.drawSigsSecM(stimWindowProp);
 
 if ismember('Dist2', curTable.Properties.VariableNames)
     dMeasObj2 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist2, curRes.codedPertTrig, dataInfo);

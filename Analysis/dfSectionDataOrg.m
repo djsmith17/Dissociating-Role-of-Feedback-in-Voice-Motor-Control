@@ -282,10 +282,17 @@ classdef dfSectionDataOrg
 
         end
         
-        function obj = drawSigsSecM(obj)
+        function obj = drawSigsSecM(obj, varargin)
             % drawSigsSecM(obj) plots onset and offset sectioned signals
             % manipulated in this class.
 
+            if isempty(varargin)
+                plotStimWindows = 0;
+            else
+                plotStimWindows = 1;
+                stimWindowProp = varargin{1};
+            end
+            
             % Figure properties
             plotpos = [10 100];
             plotdim = [1600 600];
@@ -325,6 +332,14 @@ classdef dfSectionDataOrg
 
             % Onset of Perturbation
             axes(obj.OnsetOffsetAxes(1))
+            if plotStimWindows == 1
+                onsetStimWinC = [0 1 0];
+                onsetStimWinAx = [stimWindowProp.meanOnsetLag stimWindowProp.meanOnsetRise];
+                onsetStimWinAy = [600 600];
+                area(onsetStimWinAx, onsetStimWinAy, -600, 'FaceColor', onsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+                hold on
+            end
+                        
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
@@ -343,7 +358,16 @@ classdef dfSectionDataOrg
             hold off
             
             % Offset of Perturbation
-            axes(obj.OnsetOffsetAxes(2))   
+            axes(obj.OnsetOffsetAxes(2))
+            
+            if plotStimWindows == 1
+                offsetStimWinC = [1 0 0];
+                offsetStimWinAx = [stimWindowProp.meanOffsetLag stimWindowProp.meanOffsetRise];
+                offsetStimWinAy = [600 600];
+                area(offsetStimWinAx, offsetStimWinAy, -600, 'FaceColor', offsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+                hold on
+            end
+            
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
@@ -388,9 +412,16 @@ classdef dfSectionDataOrg
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
         end
         
-        function obj = drawSigsSecM_Onset(obj, shadeFlag)
+        function obj = drawSigsSecM_Onset(obj, shadeFlag, varargin)
             % drawSigsSecM_Onset(obj) plots onset sectioned signals
 
+            if isempty(varargin)
+                plotStimWindows = 0;
+            else
+                plotStimWindows = 1;
+                stimWindowProp = varargin{1};
+            end
+            
             % Figure properties
             plotpos = [10 100];
             plotdim = [800 600];
@@ -413,6 +444,13 @@ classdef dfSectionDataOrg
             lineThick      = 4;
 
             % Onset of Perturbation
+            if plotStimWindows == 1
+                onsetStimWinC = [0 1 0];
+                onsetStimWinAx = [stimWindowProp.meanOnsetLag stimWindowProp.meanOnsetRise];
+                onsetStimWinAy = [600 600];
+                area(onsetStimWinAx, onsetStimWinAy, -600, 'FaceColor', onsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+                hold on
+            end
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
