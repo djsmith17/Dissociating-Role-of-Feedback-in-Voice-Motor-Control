@@ -90,6 +90,7 @@ end
 function eAnPool = initPooledEndoscopyResults()
 % A place to organize the extra pooled vars that need to be accounted for
 
+eAnPool.timef0Sec       = [];
 eAnPool.f0SecSigs       = [];
 eAnPool.f0SecSigM       = [];
 
@@ -108,6 +109,7 @@ end
 
 function eAnPool = iterPooledEndoscopyResults(eAnPool, curRes, dMeasObj, dMeasObj2, dMeasObj3)
 
+eAnPool.timef0Sec = curRes.timef0Sec;
 eAnPool.f0SecSigs = cat(2, eAnPool.f0SecSigs, curRes.codedSigsSecM);
 
 eAnPool.meanSecsOn = cat(2, eAnPool.meanSecsOn, dMeasObj.sigsSecM(:,1));
@@ -155,7 +157,7 @@ curRes.trialNums        = res.allIdxFin(res.pertIdxFin);
 % General experimental parameters
 curRes.time             = res.timef0;
 curRes.sigs             = res.audioMf0TrialPert;
-curRes.timef0Sec        = res.timeSec;
+curRes.timef0Sec        = res.secTime;
 curRes.sigsf0Sec        = res.audioMf0SecPert;
 curRes.pertTrig         = res.pertTrigsFin;
 curRes.limits           = res.limitsA;
