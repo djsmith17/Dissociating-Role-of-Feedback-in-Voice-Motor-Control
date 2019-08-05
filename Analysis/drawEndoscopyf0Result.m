@@ -16,92 +16,124 @@ eAn.numParti = length(eAn.allParti);
 eAn.runs     = 'SFL1';
 eAn.coder    = 'RF';
 
-meanSecsOn = [];
-meanSecsOf = [];
-allSubjMeanSecs = [];
-
-meanSecsOn2 = [];
-meanSecsOf2 = [];
-allSubjMeanSecs2 = [];
-
-meanSecsOn3 = [];
-meanSecsOf3 = [];
-allSubjMeanSecs3 = [];
-
+% Initalize the Pooled Endoscopy Results
+eAnPool = initPooledEndoscopyResults();
 for ii = 1:eAn.numParti
-    
     [curRes, dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, eAn.allParti{ii}, eAn.runs, eAn.coder);
-
-    meanSecsOn = cat(2, meanSecsOn, dMeasObj.sigsSecM(:,1));
-    meanSecsOf = cat(2, meanSecsOf, dMeasObj.sigsSecM(:,3));
-    
-    if ~isempty(dMeasObj2)
-        meanSecsOn2 = cat(2, meanSecsOn2, dMeasObj2.sigsSecM(:,1));
-        meanSecsOf2 = cat(2, meanSecsOf2, dMeasObj2.sigsSecM(:,3));
-        
-        meanSecsOn3 = cat(2, meanSecsOn3, dMeasObj3.sigsSecM(:,1));
-        meanSecsOf3 = cat(2, meanSecsOf3, dMeasObj3.sigsSecM(:,3));
-    end
+    eAnPool = iterPooledEndoscopyResults(eAnPool, curRes, dMeasObj, dMeasObj2, dMeasObj3);
 end
 close all
 
-allSubjMeanSecs = cat(3, allSubjMeanSecs, meanSecsOn);
-allSubjMeanSecs = cat(3, allSubjMeanSecs, meanSecsOf);
-[~, numSubj, ~] = size(allSubjMeanSecs);
+eAnPool = meanPooledEndoscopyResults(eAnPool);
 
 % Create All Subj object based on parameters from last single subj obj
-distObjAllSubj = dMeasObj;
+distObj1AllSubj = dMeasObj;
 
-distObjAllSubj.curSess = 'Mean Participant Distance Change';
-distObjAllSubj.sigsSec = allSubjMeanSecs;
-distObjAllSubj.numTrial = numSubj;
-distObjAllSubj.iterationType = 'Participants';
-distObjAllSubj.legendCurves = [];
-distObjAllSubj.legendLabels = {};
+distObj1AllSubj.curSess       = 'Mean Participant Distance Change';
+distObj1AllSubj.numTrial      = eAn.numParti;
+distObj1AllSubj.iterationType = 'Participants';
+distObj1AllSubj.legendCurves  = [];
+distObj1AllSubj.legendLabels  = {};
 
-% Perform the mean on the sectioned trials
-distObjAllSubj.sigsSecM = distObjAllSubj.meanData(distObjAllSubj.sigsSec);
+distObj2AllSubj = distObj1AllSubj;
+distObj3AllSubj = distObj1AllSubj;
+
+distObj1AllSubj.sigsSec = eAnPool.allSubjMeanSecs;
+distObj2AllSubj.sigsSec = eAnPool.allSubjMeanSecs2;
+distObj3AllSubj.sigsSec = eAnPool.allSubjMeanSecs3;
+
+% Mean the sectioned trials
+distObj1AllSubj.sigsSecM = distObj1AllSubj.meanData(distObj1AllSubj.sigsSec);
+distObj2AllSubj.sigsSecM = distObj2AllSubj.meanData(distObj2AllSubj.sigsSec);
+distObj3AllSubj.sigsSecM = distObj3AllSubj.meanData(distObj3AllSubj.sigsSec);
+
 % Identify the bounds for these data
-distObjAllSubj = distObjAllSubj.identifyBounds;
+distObj1AllSubj = distObj1AllSubj.identifyBounds;
+distObj1AllSubj = distObj1AllSubj.drawSigsSecM;
 
-distObjAllSubj = distObjAllSubj.drawSigsSecM;
+% Append the sturf
+distObj1AllSubj = distObj1AllSubj.appendFigure(distObj2AllSubj.sigsSecM, 2);
+distObj1AllSubj = distObj1AllSubj.appendFigure(distObj3AllSubj.sigsSecM, 3);
 
-if ~isempty(dMeasObj2)
-    allSubjMeanSecs2 = cat(3, allSubjMeanSecs2, meanSecsOn2);
-    allSubjMeanSecs2 = cat(3, allSubjMeanSecs2, meanSecsOf2);
-    % Perform the mean on the sectioned trials
-    sigsSecM2 = distObjAllSubj.meanData(allSubjMeanSecs2);
-    distObjAllSubj= distObjAllSubj.appendFigure(sigsSecM2, 2);
-
-    allSubjMeanSecs3 = cat(3, allSubjMeanSecs3, meanSecsOn3);
-    allSubjMeanSecs3 = cat(3, allSubjMeanSecs3, meanSecsOf3);
-    sigsSecM3 = distObjAllSubj.meanData(allSubjMeanSecs3);
-    distObjAllSubj= distObjAllSubj.appendFigure(sigsSecM3, 3);
-end
-distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
+distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 
 %Mean Lines
-distObjAllSubj.iterationType = 'Participantsx3Lines';
-distObjAllSubj.legendCurves = [];
-distObjAllSubj.legendLabels = {};
+distObj1AllSubj.iterationType = 'Participantsx3Lines';
+distObj1AllSubj.legendCurves = [];
+distObj1AllSubj.legendLabels = {};
 
-sigsSecLinesOn = [distObjAllSubj.sigsSecM(:,1), sigsSecM2(:,1), sigsSecM3(:,1)];
-sigsSecLinesOf = [distObjAllSubj.sigsSecM(:,3), sigsSecM2(:,3), sigsSecM3(:,3)];
+sigsSecLinesOn = [distObj1AllSubj.sigsSecM(:,1),...
+                  distObj2AllSubj.sigsSecM(:,1),...
+                  distObj3AllSubj.sigsSecM(:,1)];
+              
+sigsSecLinesOf = [distObj1AllSubj.sigsSecM(:,3),...
+                  distObj2AllSubj.sigsSecM(:,3),...
+                  distObj3AllSubj.sigsSecM(:,3)];
+              
 sigsSecLines = sigsSecLinesOn;
 sigsSecLines = cat(3, sigsSecLines, sigsSecLinesOf);
-distObjAllSubj.sigsSecM = distObjAllSubj.meanData(sigsSecLines);
+distObj1AllSubj.sigsSecM = distObj1AllSubj.meanData(sigsSecLines);
 
-distObjAllSubj = distObjAllSubj.identifyBounds;
+distObj1AllSubj = distObj1AllSubj.identifyBounds;
 
 % All three lines collapsed: Onset Figure
 stimWindowProp.meanOnsetLag  = curRes.presSDsv.lagTimeM(1)/1000;
 stimWindowProp.meanOnsetRise = curRes.presSDsv.riseTimeM(1)/1000;
 stimWindowProp.meanOffsetLag  = curRes.presSDsv.lagTimeM(2)/1000;
 stimWindowProp.meanOffsetRise = curRes.presSDsv.riseTimeM(2)/1000;
-distObjAllSubj = distObjAllSubj.drawSigsSecM_Onset(1, stimWindowProp);
-distObjAllSubj.sigsMeanFigTitle = [distObjAllSubj.curSess '_InterTrialMeanLineOnset' distObjAllSubj.coder '.jpg'];
+distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Onset(1, stimWindowProp);
+distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLineOnset' distObj1AllSubj.coder '.jpg'];
 
-distObjAllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
+distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
+end
+
+function eAnPool = initPooledEndoscopyResults()
+% A place to organize the extra pooled vars that need to be accounted for
+
+eAnPool.f0SecSigs       = [];
+eAnPool.f0SecSigM       = [];
+
+eAnPool.meanSecsOn      = [];
+eAnPool.meanSecsOf      = [];
+eAnPool.allSubjMeanSecs = [];
+
+eAnPool.meanSecsOn2      = [];
+eAnPool.meanSecsOf2      = [];
+eAnPool.allSubjMeanSecs2 = [];
+
+eAnPool.meanSecsOn3      = [];
+eAnPool.meanSecsOf3      = [];
+eAnPool.allSubjMeanSecs3 = [];
+end
+
+function eAnPool = iterPooledEndoscopyResults(eAnPool, curRes, dMeasObj, dMeasObj2, dMeasObj3)
+
+eAnPool.f0SecSigs = cat(2, eAnPool.f0SecSigs, curRes.codedSigsSecM);
+
+eAnPool.meanSecsOn = cat(2, eAnPool.meanSecsOn, dMeasObj.sigsSecM(:,1));
+eAnPool.meanSecsOf = cat(2, eAnPool.meanSecsOf, dMeasObj.sigsSecM(:,3));
+
+if ~isempty(dMeasObj2)
+    eAnPool.meanSecsOn2 = cat(2, eAnPool.meanSecsOn2, dMeasObj2.sigsSecM(:,1));
+    eAnPool.meanSecsOf2 = cat(2, eAnPool.meanSecsOf2, dMeasObj2.sigsSecM(:,3));
+
+    eAnPool.meanSecsOn3 = cat(2, eAnPool.meanSecsOn3, dMeasObj3.sigsSecM(:,1));
+    eAnPool.meanSecsOf3 = cat(2, eAnPool.meanSecsOf3, dMeasObj3.sigsSecM(:,3));
+end
+end
+
+function eAnPool = meanPooledEndoscopyResults(eAnPool)
+
+eAnPool.f0SecSigM = mean(eAnPool.f0SecSigs, 2);
+
+eAnPool.allSubjMeanSecs = cat(3, eAnPool.allSubjMeanSecs, eAnPool.meanSecsOn);
+eAnPool.allSubjMeanSecs = cat(3, eAnPool.allSubjMeanSecs, eAnPool.meanSecsOf);
+
+eAnPool.allSubjMeanSecs2 = cat(3, eAnPool.allSubjMeanSecs2, eAnPool.meanSecsOn2);
+eAnPool.allSubjMeanSecs2 = cat(3, eAnPool.allSubjMeanSecs2, eAnPool.meanSecsOf2);
+
+eAnPool.allSubjMeanSecs3 = cat(3, eAnPool.allSubjMeanSecs3, eAnPool.meanSecsOn3);
+eAnPool.allSubjMeanSecs3 = cat(3, eAnPool.allSubjMeanSecs3, eAnPool.meanSecsOf3);
 end
 
 function [curRes, dMeasObj, dMeasObj2, dMeasObj3] = analyzeAndDrawResult(dirs, participant, run, coder)
@@ -123,6 +155,8 @@ curRes.trialNums        = res.allIdxFin(res.pertIdxFin);
 % General experimental parameters
 curRes.time             = res.timef0;
 curRes.sigs             = res.audioMf0TrialPert;
+curRes.timef0Sec        = res.timeSec;
+curRes.sigsf0Sec        = res.audioMf0SecPert;
 curRes.pertTrig         = res.pertTrigsFin;
 curRes.limits           = res.limitsA;
 
@@ -144,6 +178,8 @@ curRes.timeFrames = linspace(0, curRes.time(end), numFrame);
 curRes.codedTrialNum = [];
 curRes.codedPertTrig = [];
 curRes.codedSigs     = [];
+curRes.codedSigsSec  = [];
+curRes.codedSigsSecM = [];
 curRes.codedSensorP  = [];
 curRes.codedSensorTrigTSt = [];
 curRes.codedSensorTrigTSp = [];
@@ -155,6 +191,7 @@ for ii = 1:curRes.numTrial
         curRes.codedTrialNum = cat(1, curRes.codedTrialNum, curRes.trialNums(ii));
         curRes.codedPertTrig = cat(1, curRes.codedPertTrig, curRes.pertTrig(ii,:));
         curRes.codedSigs     = cat(2, curRes.codedSigs, curRes.sigs(:,ii));
+        curRes.codedSigsSec  = cat(2, curRes.codedSigsSec, curRes.sigsf0Sec(:, ii, 1)); % Onset
         curRes.codedSensorP  = cat(2, curRes.codedSensorP, curRes.sensorP(:,ii));
         curRes.codedSensorTrigTSt = cat(1, curRes.codedSensorTrigTSt, curRes.presSDsv.TrigTime(ii,:));
         curRes.codedSensorTrigTSp = cat(1, curRes.codedSensorTrigTSp, curRes.presSDsv.TrigTime(ii,:) + curRes.presSDsv.riseTimes(ii,:));
@@ -166,6 +203,9 @@ for ii = 1:curRes.numTrial
         end
     end    
 end
+
+% Mean the behaviroal stuff
+curRes.codedSigsSecM = mean(curRes.codedSigsSec, 2);
 
 % Set up the sectioned data object
 dataInfo.curSess = curRes.curSess;
