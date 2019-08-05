@@ -566,7 +566,7 @@ ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respM
 % Add to the audioDynamics struct
 respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
 audioDynamics_Somato.respVarM = respVarM;
-drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
+% drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
 end
 
 function ir = initInflationResponseStruct()
