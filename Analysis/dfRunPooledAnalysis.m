@@ -464,6 +464,21 @@ polRes.limitsPmean  = lims.presMean;
 % Scale Pressure traces against the f0 traces
 if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     [sensorPAdjust, InflDeflT] = scalePressureVals(polRes);
+elseif strcmp(polRes.expType, 'Auditory Perturbation_Perceptual')
+    polRes.secTimeP = linspace(-0.5, 1.0, 12000);
+    
+    polRes.sensorPMean = -100*ones(size(polRes.secTimeP));
+    timeLZero = polRes.secTimeP <= 0;
+    polRes.sensorPMean(timeLZero) = 0;
+    
+    timeRampD = find((polRes.secTimeP >= 0 ) & (polRes.secTimeP <= 0.11));
+    rampDValues = linspace(0, -100, length(timeRampD));
+    polRes.sensorPMean(timeRampD) = rampDValues;
+    polRes.sensorPMean = polRes.sensorPMean';
+    polRes.sensorPMean = repmat(polRes.sensorPMean, 1, 4);
+    
+    sensorPAdjust = polRes.sensorPMean;
+    InflDeflT     = [0.04 0.24 1.04 1.24];
 else
     sensorPAdjust = polRes.sensorPMean;
     InflDeflT     = [0.04 0.24 1.04 1.24];

@@ -56,14 +56,29 @@ if presFlag == 1
 %     hold on 
     axes(ax2)
     pL = plot(timeP, sensorPAdj(:,1), 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
-    ylabel(ax2, 'Pressure (psi)')
+    
+    switch poolRes.expType
+        case 'Somatosensory Perturbation_Perceptual'
+            measUnits = 'Pressure (psi)';
+            measUnitTicks = [0 1 2 3 4];
+            measLimits = [-0.5 1.0 0 4.5];
+            legendLabel = 'Pressure Trace';
+        case 'Auditory Perturbation_Perceptual'
+            measUnits = 'Artifical f0 Shift (cents)';
+            measUnitTicks = [-100 0];
+            legendLabel = 'Artifical f0 Shift';
+            limits(3) = -30;
+            measLimits = limits.*[1 1 10 10];
+    end    
+    ylabel(ax2, measUnits)
+    axis(measLimits)    
     
     box off
     set(gca,'FontName', fontN,...
             'FontSize', axisLSize,...
             'FontWeight','bold',...
             'LineWidth', 2,...
-            'YTick', [0 1 2 3 4],...
+            'YTick', measUnitTicks,...
             'YColor', pressureC)
 end
 
@@ -99,8 +114,9 @@ ax2.YAxisLocation = 'right';
 set(gca, 'Color', 'None')
 if presFlag == 1
     legLines = cat(2, legLines, pL);
-    legNames = cat(2, legNames, 'Pressure Trace');
+    legNames = cat(2, legNames, legendLabel);
 end
+
 if fStat == 1
     % Done plotting, now to add some annotations
     annoStim = ['SM (M/NM): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];
