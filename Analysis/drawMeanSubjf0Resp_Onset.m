@@ -20,7 +20,7 @@ limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
 
 timeP       = poolRes.secTimeP;
-sensorPAdj  = poolRes.sensorPAdjust;
+sensorPAdj  = poolRes.sensorPMean;
 InflDeflT   = poolRes.InflDeflT;
 
 legLines = [];
@@ -43,20 +43,32 @@ titleFSize   = 35;
 axisLSize    = 30;
 lineThick    = 4;
 pertColor = [0.6 0.6 0.6];
+pressureC = [255 87 51]/255; %Auburn
 
-%Onset of Perturbation
+ax2 = axes('Position',[0.1300 0.1100 0.7750 0.8150]);
+ax1 = axes('Position',[0.1300 0.1100 0.7750 0.8150]);
+
 if presFlag == 1
     pertAx  = [InflDeflT(1), InflDeflT(2)];
     pertAy  = [600 600];
     
-    pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
-    hold on 
+%     pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+%     hold on 
+    axes(ax2)
+    pL = plot(timeP, sensorPAdj(:,1), 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
+    ylabel(ax2, 'Pressure (psi)')
     
-    plot(timeP, sensorPAdj(:,1), '--m', 'LineWidth', 3)
-    hold on
-end  
+    box off
+    set(gca,'FontName', fontN,...
+            'FontSize', axisLSize,...
+            'FontWeight','bold',...
+            'LineWidth', 2,...
+            'YTick', [0 1 2 3 4],...
+            'YColor', pressureC)
+end
 
-plot(dottedStartx, dottedy,'color',[0.3 0.3 0.3],'LineWidth',lineThick)
+axes(ax1)
+plot(dottedStartx, dottedy, 'color', [0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
 
 nC = shadedErrorBar(time, contf0(:,1), contf0(:,2), 'lineprops', 'k', 'transparent', 1);
@@ -74,7 +86,7 @@ for ii = 1:numCond
 end
 
 xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
-ylabel('f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
+ylabel(ax1, 'f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 % title({'Mean Participant Response'; 'Onset of Perturbation'}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
 
@@ -82,7 +94,13 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold',...
         'LineWidth', 2)
-
+    
+ax2.YAxisLocation = 'right';
+set(gca, 'Color', 'None')
+if presFlag == 1
+    legLines = cat(2, legLines, pL);
+    legNames = cat(2, legNames, 'Pressure Trace');
+end
 if fStat == 1
     % Done plotting, now to add some annotations
     annoStim = ['SM (M/NM): ' num2str(statSMM) ' cents / ' num2str(statSMV) ' cents'];

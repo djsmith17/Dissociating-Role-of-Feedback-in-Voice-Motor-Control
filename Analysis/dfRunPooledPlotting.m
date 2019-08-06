@@ -24,7 +24,7 @@ PolPlt.MicVHead          = 0;
 PolPlt.AllSubjMicVHead   = 0;
 
 fStat    = 0;
-fPres    = 0;
+fPres    = 1;
 
 targPPI    = 300;
 scRes      = [2560 1440];
