@@ -147,7 +147,7 @@ classdef MicHeadAlignProcess
             % Adjust Triggers against NIDAQ if a Laryngeal Pert Exp.
             % Otherwise adjust based on VoiceOnset, which happens during the PSR
             if strcmp(obj.expType(1:3), 'Som')
-                obj.adjustedDelay = obj.AuNIDelayP;
+                obj.adjustedDelay = obj.AuNIDelayP + round(obj.presLagTimes(1)*obj.fs);
             else
                 obj.adjustedDelay = obj.voiceOnsetInd;
             end

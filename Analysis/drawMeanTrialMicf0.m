@@ -26,6 +26,9 @@ meanf0ContOffset = res.audioMf0MeanCont(:,3);
 CIf0ContOffset   = res.audioMf0MeanCont(:,4);
 limits           = res.limitsAmean;
 
+timeP   = res.presSDsv.timeSec;
+sensorP = res.presSDsv.sensorSecM;
+
 plotpos = [10 100];
 plotdim = [1600 600];
 InterTrialf0 = figure('Color', [1 1 1]);
@@ -61,6 +64,7 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
+
 plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
 hold on
 if ~isempty(meanf0ContOnset)
@@ -84,8 +88,19 @@ set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold')
 
+if presFlag == 1
+%     pertAx  = [InflDeflT(1), InflDeflT(2)];
+%     pertAy  = [600 600];
+%     
+%     pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+%     hold on 
+    yyaxis right
+    plot(timeP, sensorP(:,1), '--m', 'LineWidth', 3)
+end  
+
 %Offset of Perturbation
 axes(ha(2))
+
 plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
 hold on
 if ~isempty(meanf0ContOffset)
@@ -107,6 +122,16 @@ set(gca,'FontName', fontN,...
         'FontWeight','bold',...
         'YAxisLocation', 'right');
 
+if presFlag == 1    
+%     pertAx  = [InflDeflT(3), InflDeflT(4)];
+%     pertAy  = [600 600];
+%     
+%     pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
+%     hold on 
+    yyaxis right
+    plot(timeP, sensorP(:,3), '--m', 'LineWidth', 3)
+end 
+    
 sup = suptitle({curSess; ['AudFB: ' AudFB]; ['f0: ' num2str(f0b) 'Hz']});
 set(sup, 'FontName', fontN,...
          'FontSize', titleFSize,...

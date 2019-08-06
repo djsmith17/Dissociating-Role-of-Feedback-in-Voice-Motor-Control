@@ -433,9 +433,9 @@ SD.pTrialLossM  = round(SD.pTrialLossM, 3); % Round
 SD.pTrialLossSE = round(SD.pTrialLossSE, 3); % Round
 
 %%%%%%%%%%%%%
-[SD.timeAl, SD.sensorAl] = alignSensorData(sensor, fs, SD.pertIdx);
+[SD.timeAl, SD.sensorAl] = alignSensorData(sensor, fs, SD.TrigIdx);
 
-[SD.timeSec, SD.sensorSec] = sectionData(sensor, fs, SD.pertIdx);
+[SD.timeSec, SD.sensorSec] = sectionData(sensor, fs, SD.TrigIdx);
 SD.sensorSecM              = meanSensorData(SD.sensorSec);   
 end
 
