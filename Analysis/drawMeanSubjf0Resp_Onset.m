@@ -14,7 +14,8 @@ numPerturb       = poolRes.numPertTrialsFin;
 
 time             = poolRes.secTime;
 contf0           = poolRes.audioMf0MeanCont;  
-pertf0           = poolRes.audioMf0MeanPert;
+pertf0M          = poolRes.audioMf0MeanPert;
+pertf0H          = poolRes.audioHf0MeanPert;
 
 limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
@@ -64,11 +65,11 @@ if presFlag == 1
             measLimits = [-0.5 1.0 0 4.5];
             legendLabel = 'Pressure Trace';
         case 'Auditory Perturbation_Perceptual'
-            measUnits = 'Artifical f0 Shift (cents)';
-            measUnitTicks = [-100 0];
-            legendLabel = 'Artifical f0 Shift';
-            limits(3) = -30;
-            measLimits = limits.*[1 1 10 10];
+            measUnits = 'Artificial f0 Shift (cents)';
+            measUnitTicks = [-100 0 100];
+            legendLabel = 'Artificial f0 Shift';
+            limits = [-0.5 1.0 -105 105];
+            measLimits = [-0.5 1.0 -105 0];
     end    
     ylabel(ax2, measUnits)
     axis(measLimits)    
@@ -93,14 +94,20 @@ legNames = cat(2, legNames, 'Control Trials');
 hold on
 
 for ii = 1:numCond
-    nM = shadedErrorBar(time, pertf0{ii}(:,1), pertf0{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
+    nM = shadedErrorBar(time, pertf0M{ii}(:,1), pertf0M{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
     set(nM.mainLine, 'LineWidth', lineThick)
     legLines = cat(2, legLines, nM.mainLine);
     legNames = cat(2, legNames, {[cond{ii} ' Trials']});
     hold on
+    
+%     nM = shadedErrorBar(time, pertf0H{ii}(:,1), pertf0H{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
+%     set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-.')
+%     legLines = cat(2, legLines, nM.mainLine);
+%     legNames = cat(2, legNames, {[cond{ii} ' Trials-Heard']});
+%     hold on
 end
 
-xlabel('Time (s)',   'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
 ylabel(ax1, 'f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 % title({'Mean Participant Response'; 'Onset of Perturbation'}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
 axis(limits); box off
@@ -111,6 +118,7 @@ set(gca,'FontName', fontN,...
         'LineWidth', 2)
     
 ax2.YAxisLocation = 'right';
+% ax2.YDir = 'reverse';
 set(gca, 'Color', 'None')
 if presFlag == 1
     legLines = cat(2, legLines, pL);
