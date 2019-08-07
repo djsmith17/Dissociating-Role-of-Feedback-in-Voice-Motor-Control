@@ -499,6 +499,9 @@ OnsetSecs  = [];
 OffsetSecs = [];
 if numTrial > 0
     for ii = 1:numTrial
+        thisSig = sigs(:, ii);
+        thisSig = padarray(thisSig,1000,0,'post');
+        
         Onset   = trigs(ii, 1); % Onset point
         Offset  = trigs(ii, 2); % Offset point
 
@@ -510,15 +513,15 @@ if numTrial > 0
         OffsetPos  = Offset + posEve;   % PostOnset point
         OffsetSpan = OffsetPre:OffsetPos; % Indices corresponding to Onset period
 
-        OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
-        OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
+        OnsetSec  = thisSig(OnsetSpan);  % Data sectioned around Onset
+        OffsetSec = thisSig(OffsetSpan); % Data sectioned around Offset
 
         OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
         OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
     end
     [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
 else
-    numSampSec = 1200;
+    numSampSec = 12000;
 end
 
 secTime = linspace(-preEveT, posEveT, numSampSec); % time vector correspnding to the sectioned signals
