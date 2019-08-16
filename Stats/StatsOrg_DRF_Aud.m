@@ -2,6 +2,7 @@ function StatsOrg_DRF_Aud(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
 meas = {'StimMag', 'RespMag', 'RespPer'};
+mUnits = {'cents', 'cents', '%'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -38,7 +39,7 @@ for k = curTestingMeas
         
         measureVar.varName   = meas{k};
         measureVar.condition = curCond;
-        measureVar.units     = 'cents';
+        measureVar.units     = mUnits{k};
         
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
@@ -46,6 +47,13 @@ for k = curTestingMeas
         % Describe the normality
         summaryStat = summaryStat.testNormality();
 
+        % Answering Research Questions 4.1
+        if k == 2 || k == 3
+            summaryStat = summaryStat.performTTest(1); 
+            rangeVal = ['A' num2str(7 +2*(i))];
+            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
+        end
+        
         % Concatenate the Summary Stat Arrays across condition
         summaryVarTableAcrossCond = [summaryVarTableAcrossCond; summaryStat.SummaryTable];
 
