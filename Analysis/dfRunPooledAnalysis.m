@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -135,7 +135,7 @@ allSubjRes.pltName = pA.pltNameMVm;
 organizeAndPrintDemographicStats(dirs, allSubjRes);
 
 % Organize and Save the Table of Excluded Trials
-organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, 0)
+organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, 1)
 
 % organizePooledResultsForFrank(dirs, allSubjRes)
 
@@ -152,7 +152,6 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
     drawSubjRespVarVoicingCorr(dirs, pA, pooledRunStr)
     drawExpPressureDist(dirs, pA, pooledRunStr)
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
-%     timeSeriesDiffAnalysis(dirs, pA, allSubjRes)
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
     drawSubjRespVarVoicingCorr(dirs, pA, pooledRunStr)
     drawSubjRespVarDists(dirs, pooledRunStr)
@@ -202,6 +201,7 @@ sortStr.prePertVoicingTimePert = cell(numCond,1);
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
 sortStr.sensorPOnOff    = [];
+sortStr.sensorPRiseTime = [];
 
 sortStr.audioMf0MeanPert = cell(numCond, 1);
 sortStr.audioMf0MeanCont = [];
@@ -209,6 +209,7 @@ sortStr.audioHf0MeanPert = cell(numCond, 1);
 sortStr.audioHf0MeanCont = [];
 sortStr.sensorPMean      = [];
 sortStr.sensorPOnOffMean = [];
+sortStr.sensorPRiseTimeM = [];
 
 sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
@@ -279,6 +280,7 @@ polRes.prePertVoicingTimePert{wC} = cat(1, polRes.prePertVoicingTimePert{wC}, cu
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
 polRes.sensorPOnOff        = cat(1, polRes.sensorPOnOff, PD.OnOffVal);
+polRes.sensorPRiseTime     = cat(1, polRes.sensorPRiseTime, PD.riseTimeM);
 
 polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
 polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
@@ -431,10 +433,12 @@ polRes.audioHf0MeanCont = meanSecData(polRes.audioHf0SecCont);
 
 if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     polRes.sensorPMean = meanSecData(polRes.sensorPSec);
-    polRes.sensorPOnOffMean = mean(polRes.sensorPOnOff, 2);
+    polRes.sensorPOnOffMean = mean(polRes.sensorPOnOff, 1);
+    polRes.sensorPRiseTimeM = mean(polRes.sensorPRiseTime, 1);
 else
     polRes.sensorPMean = zeros(size(polRes.audioMf0SecPert{1}));
     polRes.sensorPOnOffMean = [0 0];
+    polRes.sensorPRiseTimeM = [0 0];
 end
 
 for wC = 1:pA.numCond
