@@ -4,7 +4,7 @@ function drawInflationResultMetrics(ir, arrows, vals)
 
 dim     = 50;
 plotPos = [10 40];
-plotDim = 3*[500 500];
+plotDim = [1485 1005];
 
 fontN        = 'Arial';
 lineThick    = 3;
@@ -46,7 +46,7 @@ set(gca,'LineWidth', 2,...
 
 if arrows == 1
     lowf0PixelY  = 0.198;
-    lastf0PixelY = 0.53;
+    lastf0PixelY = 0.56;
     lowf0PixelYLow = lowf0PixelY - 0.03;
     
     SMArrowX = [0.33 0.33];
@@ -69,10 +69,10 @@ if arrows == 1
                          'FontName', fontN,...
                          'FontSize',legAnnoFSize)
     
-    tMArrowX = [0.388 0.45];
+    tMArrowX = [0.388 0.435];
     tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
     annotation('arrow', tMArrowX, tMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
-    annotation('textbox', [0.45 0.08 0.1 0.1],...
+    annotation('textbox', [0.44 0.08 0.1 0.1],...
                          'string', 'tAtMin',...
                          'LineStyle', 'none',...
                          'FontWeight','bold',...
@@ -99,8 +99,8 @@ if vals == 1
                              'FontWeight','bold');
 end
                      
-% path = 'E:\Desktop';
-path  = 'C:\Users\djsmith\Desktop';
+path = 'E:\Desktop';
+% path  = 'C:\Users\djsmith\Desktop';
 fileName = 'DependentVariablesManuscript.png';
 fullpath = fullfile(path, fileName);
 export_fig(fullpath)
