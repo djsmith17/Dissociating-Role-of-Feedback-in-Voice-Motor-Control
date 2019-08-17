@@ -222,7 +222,7 @@ curRes.codedSensorP       = curRes.sensorP(:, ctIdx);
 curRes.codedSensorTrigTSt = curRes.presSD.TrigTime(ctIdx,:);
 curRes.codedSensorTrigTSp = curRes.presSD.TrigTime(ctIdx,:) + curRes.presSD.riseTimes(ctIdx,:);
 
-curRes.codedlagTimes  = curRes.presSD.lagTimes(ctIdx,:);
+curRes.codedlagTimes  = curRes.presSD.lagTimes(ctIdx,:)- curRes.presSD.lagTimes(ctIdx,:);
 curRes.codedriseTimes = curRes.presSD.riseTimes(ctIdx,:);
 
 % Mean the behaviroal stuff
@@ -237,7 +237,7 @@ dataInfo.units   = 'pixels';
 dataInfo.coder   = coder;
 dataInfo.itrType = 'Trials';
 
-dMeasObj = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist, curRes.codedPertTrig, dataInfo);
+dMeasObj = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist, [curRes.codedPertTrig+ curRes.presSD.lagTimes(ctIdx,:)], dataInfo);
 
 % Draw the mean-trial Onset and Offset traces
 stimWindowProp.meanOnsetLag  = curRes.presSD.lagTimeM(1)/1000;
@@ -247,10 +247,10 @@ stimWindowProp.meanOffsetRise = curRes.presSD.riseTimeM(2)/1000;
 dMeasObj = dMeasObj.drawSigsSecM(stimWindowProp);
 
 if ismember('Dist2', curTable.Properties.VariableNames)
-    dMeasObj2 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist2, curRes.codedPertTrig, dataInfo);
+    dMeasObj2 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist2, [curRes.codedPertTrig+ curRes.presSD.lagTimes(ctIdx,:)], dataInfo);
     dMeasObj  = dMeasObj.appendFigure(dMeasObj2.sigsSecM, 2);
     
-    dMeasObj3 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist3, curRes.codedPertTrig, dataInfo);
+    dMeasObj3 = iterateOnAnalysisSteps(curRes.timeFrames, curRes.codedDist3, [curRes.codedPertTrig+ curRes.presSD.lagTimes(ctIdx,:)], dataInfo);
     dMeasObj  = dMeasObj.appendFigure(dMeasObj3.sigsSecM, 3);
 else
     dMeasObj2 = [];
