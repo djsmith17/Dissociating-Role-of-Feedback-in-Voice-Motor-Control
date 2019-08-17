@@ -91,6 +91,12 @@ distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLine
 distObj1AllSubj.appendFigureDynamics_Onset(eAnPool.timef0Sec, eAnPool.sigsSecf0M)
 
 distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
+
+distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Offset(1, stimWindowProp);
+distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLineOffset' distObj1AllSubj.coder '.jpg'];
+distObj1AllSubj.appendFigureDynamics_Offset(eAnPool.timef0Sec, eAnPool.sigsSecf0M)
+
+distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 end
 
 function eAnPool = initPooledEndoscopyResults()

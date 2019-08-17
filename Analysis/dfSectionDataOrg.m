@@ -425,10 +425,10 @@ classdef dfSectionDataOrg
             % Figure properties
             plotpos = [10 100];
             plotdim = [800 600];
-            OnsetOffsetMeanDataFig = figure('Color', [1 1 1]);
-            set(OnsetOffsetMeanDataFig, 'Position', [plotpos plotdim], 'PaperPositionMode','auto')
+            OnsetMeanDataFig = figure('Color', [1 1 1]);
+            set(OnsetMeanDataFig, 'Position', [plotpos plotdim], 'PaperPositionMode','auto')
             
-            set(OnsetOffsetMeanDataFig,'defaultAxesColorOrder',[obj.dataColor1; obj.dataColor3]);
+            set(OnsetMeanDataFig,'defaultAxesColorOrder',[obj.dataColor1; obj.dataColor3]);
 
             % Trigger Line properties
             trigLineX   = [0 0];
@@ -480,7 +480,79 @@ classdef dfSectionDataOrg
                     'YColor', obj.dataColor1)
             hold off
 
-            obj.sigsMeanFig      = OnsetOffsetMeanDataFig;
+            obj.sigsMeanFig      = OnsetMeanDataFig;
+            obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
+        end
+        
+        function obj = drawSigsSecM_Offset(obj, shadeFlag, varargin)
+            % drawSigsSecM_Onset(obj) plots onset sectioned signals
+
+            if isempty(varargin)
+                plotStimWindows = 0;
+            else
+                plotStimWindows = 1;
+                stimWindowProp = varargin{1};
+            end
+            
+            % Figure properties
+            plotpos = [10 100];
+            plotdim = [800 600];
+            OffsetMeanDataFig = figure('Color', [1 1 1]);
+            set(OffsetMeanDataFig, 'Position', [plotpos plotdim], 'PaperPositionMode','auto')
+            
+            set(OffsetMeanDataFig,'defaultAxesColorOrder',[obj.dataColor1; obj.dataColor3]);
+
+            % Trigger Line properties
+            trigLineX   = [0 0];
+            trigLineY   = [-10000 10000];
+            trigLineC   = [0.3 0.3 0.3];
+            
+            % Zero Line properties
+            zeroLineX = [obj.timeSec(1) obj.timeSec(end)];
+            zeroLineY = [0 0];
+            zeroLineC = [0 0 0];
+            
+            % Axis properties
+            fontName       = 'Arial';
+            axisLSize      = 20;
+            lineThick      = 4;
+
+            % Onset of Perturbation
+            if plotStimWindows == 1
+                offsetStimWinC = [1 0 0];
+                offsetStimWinAx = [stimWindowProp.meanOffsetLag stimWindowProp.meanOffsetRise];
+                offsetStimWinAy = [600 600];
+                area(offsetStimWinAx, offsetStimWinAy, -600, 'FaceColor', offsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+                hold on
+            end
+            plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
+            hold on
+            plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
+            
+            % Draw the Onset Trace
+            if shadeFlag == 1
+                dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
+                obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
+                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+            else
+                dHOn = plot(obj.timeSec, obj.sigsSecM(:,3), 'color', 'k', 'LineWidth', lineThick);
+                obj.legendCurves = cat(2, obj.legendCurves, dHOn);
+                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+            end
+            
+            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold', 'Color', obj.dataColor1)
+%             title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
+            axis(obj.sigsSecMLims); box off
+
+            set(gca,'FontName', fontName,...
+                    'FontSize', axisLSize,...
+                    'FontWeight','bold',...
+                    'LineWidth', 2,...
+                    'YColor', obj.dataColor1)
+            hold off
+
+            obj.sigsMeanFig      = OffsetMeanDataFig;
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
         end
         
@@ -598,6 +670,16 @@ classdef dfSectionDataOrg
         function appendFigureDynamics_Onset(obj, time, sec)
             yyaxis right
             shadedErrorBar(time, sec(:,1), sec(:,2), 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
+            ylabel('f0 (cents)')
+            axis([-0.5 1.0 -100 150])
+            yyaxis left
+            axis([-0.5 1.0 -10 15])
+            set(gca,'YColor', obj.dataColor1)
+        end
+        
+        function appendFigureDynamics_Offset(obj, time, sec)
+            yyaxis right
+            shadedErrorBar(time, sec(:,3), sec(:,4), 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
             ylabel('f0 (cents)')
             axis([-0.5 1.0 -100 150])
             yyaxis left
