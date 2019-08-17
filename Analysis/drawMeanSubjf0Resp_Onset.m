@@ -95,16 +95,16 @@ hold on
 
 for ii = 1:numCond
     nM = shadedErrorBar(time, pertf0M{ii}(:,1), pertf0M{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
-    set(nM.mainLine, 'LineWidth', lineThick)
+    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '--')
     legLines = cat(2, legLines, nM.mainLine);
-    legNames = cat(2, legNames, {[cond{ii} ' Trials']});
+    legNames = cat(2, legNames, {[cond{ii} ' Trials-Produced']});
     hold on
     
-%     nM = shadedErrorBar(time, pertf0H{ii}(:,1), pertf0H{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
-%     set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-.')
-%     legLines = cat(2, legLines, nM.mainLine);
-%     legNames = cat(2, legNames, {[cond{ii} ' Trials-Heard']});
-%     hold on
+    nM = shadedErrorBar(time, pertf0H{ii}(:,1), pertf0H{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
+    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
+    legLines = cat(2, legLines, nM.mainLine);
+    legNames = cat(2, legNames, {[cond{ii} ' Trials-Heard']});
+    hold on
 end
 
 xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -118,7 +118,7 @@ set(gca,'FontName', fontN,...
         'LineWidth', 2)
     
 ax2.YAxisLocation = 'right';
-% ax2.YDir = 'reverse';
+ax2.YDir = 'reverse';
 set(gca, 'Color', 'None')
 if presFlag == 1
     legLines = cat(2, legLines, pL);
