@@ -334,7 +334,7 @@ classdef dfSectionDataOrg
             axes(obj.OnsetOffsetAxes(1))
             if plotStimWindows == 1
                 onsetStimWinC = [0 1 0];
-                onsetStimWinAx = [stimWindowProp.meanOnsetLag stimWindowProp.meanOnsetRise];
+                onsetStimWinAx = [stimWindowProp.meanOnsetLag stimWindowProp.meanOnsetLag+stimWindowProp.meanOnsetRise];
                 onsetStimWinAy = [600 600];
                 area(onsetStimWinAx, onsetStimWinAy, -600, 'FaceColor', onsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
                 hold on
@@ -362,7 +362,7 @@ classdef dfSectionDataOrg
             
             if plotStimWindows == 1
                 offsetStimWinC = [1 0 0];
-                offsetStimWinAx = [stimWindowProp.meanOffsetLag stimWindowProp.meanOffsetRise];
+                offsetStimWinAx = [stimWindowProp.meanOffsetLag stimWindowProp.meanOffsetLag+stimWindowProp.meanOffsetRise];
                 offsetStimWinAy = [600 600];
                 area(offsetStimWinAx, offsetStimWinAy, -600, 'FaceColor', offsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
                 hold on
@@ -448,7 +448,7 @@ classdef dfSectionDataOrg
             % Onset of Perturbation
             if plotStimWindows == 1
                 onsetStimWinC = [0 1 0];
-                onsetStimWinAx = [stimWindowProp.meanOnsetLag stimWindowProp.meanOnsetRise];
+                onsetStimWinAx = [stimWindowProp.meanOnsetLag stimWindowProp.meanOnsetLag+stimWindowProp.meanOnsetRise];
                 onsetStimWinAy = [600 600];
                 area(onsetStimWinAx, onsetStimWinAy, -600, 'FaceColor', onsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
                 hold on
@@ -520,7 +520,7 @@ classdef dfSectionDataOrg
             % Onset of Perturbation
             if plotStimWindows == 1
                 offsetStimWinC = [1 0 0];
-                offsetStimWinAx = [stimWindowProp.meanOffsetLag stimWindowProp.meanOffsetRise];
+                offsetStimWinAx = [stimWindowProp.meanOffsetLag stimWindowProp.meanOffsetLag+stimWindowProp.meanOffsetRise];
                 offsetStimWinAy = [600 600];
                 area(offsetStimWinAx, offsetStimWinAy, -600, 'FaceColor', offsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
                 hold on
