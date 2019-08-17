@@ -95,16 +95,16 @@ hold on
 
 for ii = 1:numCond
     nM = shadedErrorBar(time, pertf0M{ii}(:,1), pertf0M{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
-    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '--')
+    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
     legLines = cat(2, legLines, nM.mainLine);
     legNames = cat(2, legNames, {[cond{ii} ' Trials-Produced']});
     hold on
     
-    nM = shadedErrorBar(time, pertf0H{ii}(:,1), pertf0H{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
-    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
-    legLines = cat(2, legLines, nM.mainLine);
-    legNames = cat(2, legNames, {[cond{ii} ' Trials-Heard']});
-    hold on
+%     nM = shadedErrorBar(time, pertf0H{ii}(:,1), pertf0H{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
+%     set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
+%     legLines = cat(2, legLines, nM.mainLine);
+%     legNames = cat(2, legNames, {[cond{ii} ' Trials-Heard']});
+%     hold on
 end
 
 xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -118,7 +118,7 @@ set(gca,'FontName', fontN,...
         'LineWidth', 2)
     
 ax2.YAxisLocation = 'right';
-ax2.YDir = 'reverse';
+% ax2.YDir = 'reverse';
 set(gca, 'Color', 'None')
 if presFlag == 1
     legLines = cat(2, legLines, pL);
@@ -155,7 +155,7 @@ if fLabel == 1
                             'FontWeight','bold');
 end
 
-legend(legLines, legNames,...
+lgdButt = legend(legLines, legNames,...
        'Position', [0.72 0.15 0.1 0.1],...
        'FontName', fontN,...
        'FontSize', legAnnoFSize,...
@@ -168,6 +168,15 @@ for i = 1:length(plots)
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName)
 end
+
+ax2.delete;
+lgdButt.delete;
+
+ax1.XLim = [-0.05 0.1];
+ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1];
+plTitle = [pltName '_OnsetZoom.jpg'];
+saveFileName = fullfile(plotFolder, plTitle);
+export_fig(saveFileName)
 end
 
 function anno = checkSig(stat, thresh, anno)
