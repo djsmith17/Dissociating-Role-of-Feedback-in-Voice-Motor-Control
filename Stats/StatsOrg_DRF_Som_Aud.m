@@ -18,9 +18,9 @@ respPer_AudLs = StatTableAudLs.RespPer;
 
 respPerCol = [respPer_SomVF, respPer_SomMN, respPer_AudLs];
 pA.condName = {'SomPert Not Masked', 'SomPert Masked', 'AudPert'};
-pA.pubCondName = {'Somatosensory Feedback Perturbation\nNot Masked',...
-                  'Somatosensory Feedback Perturbation\nMasked',...
-                  'Auditory Feedback Perturbation'};
+pA.pubCondName = {'SOM Pert Not Masked',...
+                  'SOM Pert Masked',...
+                  'AUD Pert'};
 [~, pA.numCond] = size(respPerCol);
 
 ApplyTrans = 1;
@@ -173,7 +173,7 @@ function drawBoxPlot(dirs, pA, measureSummaryStrs, summaryStrDiff)
 fontN = 'Arial';
 axisLSize = 20;
 
-cond      = pA.condName;
+cond      = pA.pubCondName;
 numCond   = pA.numCond;
 
 measBox = figure('Color', [1 1 1]);
@@ -186,7 +186,7 @@ for i = 1:numCond
 end
 minCol = min(min(collData)) - 5;
 
-boxplot(collData, 'Labels', cond)
+boxplot(collData)
 ylabel('RespPer (%)')
 % title({'Comparison of Response Percentages'; 'Between Experimental Conditions'})
 box off
@@ -216,6 +216,10 @@ for ii = 1:numComp
     end
 %     text(barM-0.30, max(yt)*(cS.h+.035), pSentence, 'FontSize', axisLSize, 'FontWeight','bold')
 end
+
+set(gca, 'XTickLabel', cond)
+fix_xticklabels(gca, 0.2, {'FontSize', axisLSize, 'FontName', fontN, 'FontWeight','bold'});
+
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold',...
