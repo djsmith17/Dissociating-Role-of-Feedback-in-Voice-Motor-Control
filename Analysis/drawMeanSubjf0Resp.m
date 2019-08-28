@@ -30,7 +30,7 @@ pValueThresh = 0.05;
 
 % Plotting Variables
 plotpos        = [10 100];
-plotdim        = targPixDim;
+plotdim        = [4335 1121];
 MeanSubjf0Resp = figure('Color', [1 1 1]);
 set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 

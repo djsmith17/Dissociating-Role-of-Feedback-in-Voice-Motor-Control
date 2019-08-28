@@ -20,9 +20,8 @@ pertf0H          = poolRes.audioHf0MeanPert;
 limits  = poolRes.limitsAmean;
 pltName = poolRes.pltName;
 
-timeP       = poolRes.secTimeP;
-sensorPAdj  = poolRes.sensorPMean;
-InflDeflT   = poolRes.InflDeflT;
+timeP   = poolRes.secTimeP;
+sensorP = poolRes.sensorPMean;
 
 legLines = [];
 legNames = {};
@@ -50,20 +49,17 @@ ax2 = axes('Position',[0.1300 0.1100 0.7750 0.8150]);
 ax1 = axes('Position',[0.1300 0.1100 0.7750 0.8150]);
 
 if presFlag == 1
-    pertAx  = [InflDeflT(1), InflDeflT(2)];
-    pertAy  = [600 600];
-    
-%     pA = area(pertAx, pertAy, -600, 'FaceColor', pertColor, 'EdgeColor', pertColor);
-%     hold on 
     axes(ax2)
-    pL = plot(timeP, sensorPAdj(:,1), 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
+    pL = plot(timeP, sensorP(:,1), 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
     
     switch poolRes.expType
         case 'Somatosensory Perturbation_Perceptual'
             measUnits = 'Pressure (psi)';
             measUnitTicks = [0 1 2 3 4];
-            measLimits = [-0.5 1.0 0 4.5];
+            measLimits = [-0.2 1.0 0 4.5];
             legendLabel = 'Pressure Trace';
+            limits(1) = -0.2;
+%             limits(2) = 0.6;
         case 'Auditory Perturbation_Perceptual'
             measUnits = 'Artificial f0 Shift (cents)';
             measUnitTicks = [-100 0 100];
@@ -90,14 +86,14 @@ hold on
 nC = shadedErrorBar(time, contf0(:,1), contf0(:,2), 'lineprops', 'k', 'transparent', 1);
 set(nC.mainLine, 'LineWidth', lineThick)
 legLines = cat(2, legLines, nC.mainLine);
-legNames = cat(2, legNames, 'Control Trials');
+legNames = cat(2, legNames, 'Control');
 hold on
 
 for ii = 1:numCond
     nM = shadedErrorBar(time, pertf0M{ii}(:,1), pertf0M{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
     set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
     legLines = cat(2, legLines, nM.mainLine);
-    legNames = cat(2, legNames, {[cond{ii} ' Trials-Produced']});
+    legNames = cat(2, legNames, {[cond{ii}]});
     hold on
     
 %     nM = shadedErrorBar(time, pertf0H{ii}(:,1), pertf0H{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
@@ -108,8 +104,7 @@ for ii = 1:numCond
 end
 
 xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
-ylabel(ax1, 'f0 (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
-% title({'Mean Participant Response'; 'Onset of Perturbation'}, 'FontName', fontN, 'FontSize', titleFSize, 'FontWeight', 'bold')
+ylabel(ax1, '{\it f}_o (cents)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold')
 axis(limits); box off
 
 set(gca,'FontName', fontN,...

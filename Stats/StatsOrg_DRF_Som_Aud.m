@@ -18,9 +18,9 @@ respPer_AudLs = StatTableAudLs.RespPer;
 
 respPerCol = [respPer_SomVF, respPer_SomMN, respPer_AudLs];
 pA.condName = {'SomPert Not Masked', 'SomPert Masked', 'AudPert'};
-pA.pubCondName = {'SOM Pert Not Masked',...
-                  'SOM Pert Masked',...
-                  'AUD Pert'};
+pA.pubCondName = {'Laryngeal Perturbation Without Masking',...
+                  'Laryngeal Perturbation With Masking',...
+                  'Auditory Perturbation'};
 [~, pA.numCond] = size(respPerCol);
 
 ApplyTrans = 1;
@@ -187,7 +187,7 @@ end
 minCol = min(min(collData)) - 5;
 
 boxplot(collData)
-ylabel('RespPer (%)')
+ylabel('Response Magnitude (%)')
 % title({'Comparison of Response Percentages'; 'Between Experimental Conditions'})
 box off
 
@@ -218,7 +218,7 @@ for ii = 1:numComp
 end
 
 set(gca, 'XTickLabel', cond)
-fix_xticklabels(gca, 0.2, {'FontSize', axisLSize, 'FontName', fontN, 'FontWeight','bold'});
+fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
