@@ -50,7 +50,7 @@ ax1 = axes('Position',[0.1300 0.1100 0.7750 0.8150]);
 
 if presFlag == 1
     axes(ax2)
-    pL = plot(timeP, sensorP(:,1), 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
+    pL = plot(timeP, sensorP.ON.mean, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
     
     switch poolRes.expType
         case 'Somatosensory Perturbation_Perceptual'
@@ -83,24 +83,24 @@ axes(ax1)
 plot(dottedStartx, dottedy, 'color', [0.3 0.3 0.3],'LineWidth',lineThick)
 hold on
 
-nC = shadedErrorBar(time, contf0(:,1), contf0(:,2), 'lineprops', 'k', 'transparent', 1);
+nC = shadedErrorBar(time, contf0.ON.mean, contf0.ON.NCI, 'lineprops', 'k', 'transparent', 1);
 set(nC.mainLine, 'LineWidth', lineThick)
 legLines = cat(2, legLines, nC.mainLine);
 legNames = cat(2, legNames, 'Control');
 hold on
 
 for ii = 1:numCond
-    nM = shadedErrorBar(time, pertf0M{ii}(:,1), pertf0M{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
-    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
+    nM = shadedErrorBar(time, pertf0M{ii}.ON.mean, pertf0M{ii}.ON.NCI, 'lineprops', condColors(ii), 'transparent', 1);
+    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '--')
     legLines = cat(2, legLines, nM.mainLine);
-    legNames = cat(2, legNames, {[cond{ii}]});
+    legNames = cat(2, legNames, {[cond{ii} '-Produced']});
     hold on
     
-%     nM = shadedErrorBar(time, pertf0H{ii}(:,1), pertf0H{ii}(:,2), 'lineprops', condColors(ii), 'transparent', 1);
-%     set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
-%     legLines = cat(2, legLines, nM.mainLine);
-%     legNames = cat(2, legNames, {[cond{ii} ' Trials-Heard']});
-%     hold on
+    nM = shadedErrorBar(time, pertf0H{ii}.ON.mean, pertf0H{ii}.ON.NCI, 'lineprops', condColors(ii), 'transparent', 1);
+    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
+    legLines = cat(2, legLines, nM.mainLine);
+    legNames = cat(2, legNames, {[cond{ii} '-Heard']});
+    hold on
 end
 
 xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -113,7 +113,7 @@ set(gca,'FontName', fontN,...
         'LineWidth', 2)
     
 ax2.YAxisLocation = 'right';
-% ax2.YDir = 'reverse';
+ax2.YDir = 'reverse';
 set(gca, 'Color', 'None')
 if presFlag == 1
     legLines = cat(2, legLines, pL);

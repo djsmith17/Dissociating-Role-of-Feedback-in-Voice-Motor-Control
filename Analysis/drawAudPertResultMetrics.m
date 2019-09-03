@@ -1,5 +1,5 @@
 function drawAudPertResultMetrics(ir, arrows, vals)
-% This has been optimized to diagram DRF4 mean trace results.
+% This has been optimized to diagram DRF4 AF1 mean trace results.
 % Hopefully in the future, the arrows will 
 
 dim     = 50;

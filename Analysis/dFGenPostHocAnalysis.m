@@ -40,16 +40,16 @@ StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
 % Question 4 %%%
-% StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
+StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
 % addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
 
 % Question 6 %%%
-addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+% addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
 
 % Question 7 %%%
-addressQuest7(dirs, StatTableJND, StatTableAud)
+% addressQuest7(dirs, StatTableJND, StatTableAud)
 
 % Question E1 %%%
 % addressQuestE1(dirs, StatTableJND, StatTableSomMN)

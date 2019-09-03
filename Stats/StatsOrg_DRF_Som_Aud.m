@@ -187,7 +187,7 @@ end
 minCol = min(min(collData)) - 5;
 
 boxplot(collData)
-ylabel('Response Magnitude (%)')
+ylabel('Response Percentage (%)')
 % title({'Comparison of Response Percentages'; 'Between Experimental Conditions'})
 box off
 

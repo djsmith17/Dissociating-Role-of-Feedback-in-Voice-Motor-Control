@@ -66,13 +66,13 @@ distObj1AllSubj.iterationType = 'Participantsx3Lines';
 distObj1AllSubj.legendCurves = [];
 distObj1AllSubj.legendLabels = {};
 
-sigsSecLinesOn = [distObj1AllSubj.sigsSecM(:,1),...
-                  distObj2AllSubj.sigsSecM(:,1),...
-                  distObj3AllSubj.sigsSecM(:,1)];
+sigsSecLinesOn = [distObj1AllSubj.sigsSecM.ON.mean,...
+                  distObj2AllSubj.sigsSecM.ON.mean,...
+                  distObj3AllSubj.sigsSecM.ON.mean];
               
-sigsSecLinesOf = [distObj1AllSubj.sigsSecM(:,3),...
-                  distObj2AllSubj.sigsSecM(:,3),...
-                  distObj3AllSubj.sigsSecM(:,3)];
+sigsSecLinesOf = [distObj1AllSubj.sigsSecM.OF.mean,...
+                  distObj2AllSubj.sigsSecM.OF.mean,...
+                  distObj3AllSubj.sigsSecM.OF.mean];
               
 sigsSecLines = sigsSecLinesOn;
 sigsSecLines = cat(3, sigsSecLines, sigsSecLinesOf);
@@ -132,15 +132,15 @@ eAnPool.sigsSecf0 = cat(2, eAnPool.sigsSecf0, curRes.codedSigsSecM);
 eAnPool.lagTimes  = cat(1, eAnPool.lagTimes, curRes.codedLagTimesM);
 eAnPool.riseTimes = cat(1, eAnPool.riseTimes, curRes.codedRiseTimesM);
 
-eAnPool.meanSecsOn = cat(2, eAnPool.meanSecsOn, dMeasObj.sigsSecM(:,1));
-eAnPool.meanSecsOf = cat(2, eAnPool.meanSecsOf, dMeasObj.sigsSecM(:,3));
+eAnPool.meanSecsOn = cat(2, eAnPool.meanSecsOn, dMeasObj.sigsSecM.ON.mean);
+eAnPool.meanSecsOf = cat(2, eAnPool.meanSecsOf, dMeasObj.sigsSecM.OF.mean);
 
 if ~isempty(dMeasObj2)
-    eAnPool.meanSecsOn2 = cat(2, eAnPool.meanSecsOn2, dMeasObj2.sigsSecM(:,1));
-    eAnPool.meanSecsOf2 = cat(2, eAnPool.meanSecsOf2, dMeasObj2.sigsSecM(:,3));
+    eAnPool.meanSecsOn2 = cat(2, eAnPool.meanSecsOn2, dMeasObj2.sigsSecM.ON.mean);
+    eAnPool.meanSecsOf2 = cat(2, eAnPool.meanSecsOf2, dMeasObj2.sigsSecM.OF.mean);
 
-    eAnPool.meanSecsOn3 = cat(2, eAnPool.meanSecsOn3, dMeasObj3.sigsSecM(:,1));
-    eAnPool.meanSecsOf3 = cat(2, eAnPool.meanSecsOf3, dMeasObj3.sigsSecM(:,3));
+    eAnPool.meanSecsOn3 = cat(2, eAnPool.meanSecsOn3, dMeasObj3.sigsSecM.ON.mean);
+    eAnPool.meanSecsOf3 = cat(2, eAnPool.meanSecsOf3, dMeasObj3.sigsSecM.OF.mean);
 end
 end
 
@@ -259,7 +259,7 @@ end
 dMeasObj.saveSigsSecMFig(dirs.ResultsParti)
 
 % Draw the individual trial f0 vs inflation trace
-drawEndoResponses(dirs, curRes, dMeasObj, 3)
+% drawEndoResponses(dirs, curRes, dMeasObj, 3)
 end
 
 function dMeasObj = iterateOnAnalysisSteps(timeFrames, codedDist, codedPertTrig, dataInfo)

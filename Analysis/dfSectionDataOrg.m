@@ -216,19 +216,17 @@ classdef dfSectionDataOrg
             OnsetSecs  = sigsSec(:,:,1);
             OffsetSecs = sigsSec(:,:,2);
 
-            meanOnset  = nanmean(OnsetSecs, 2);  % across columns
-            meanOffset = nanmean(OffsetSecs, 2); % across columns
+            sigsSecM.ON.mean = nanmean(OnsetSecs, 2);  % across columns
+            sigsSecM.OF.mean = nanmean(OffsetSecs, 2); % across columns
 
-            stdOnset   = nanstd(OnsetSecs, 0, 2);  % across columns
-            stdOffset  = nanstd(OffsetSecs, 0, 2); % across columns
+            sigsSecM.ON.STD = nanstd(OnsetSecs, 0, 2);  % across columns
+            sigsSecM.OF.STD = nanstd(OffsetSecs, 0, 2); % across columns
 
-            SEMOnset   = stdOnset/sqrt(obj.numTrial);  % Standard Error
-            SEMOffset  = stdOffset/sqrt(obj.numTrial); % Standard Error
+            sigsSecM.ON.SEM = sigsSecM.ON.STD/sqrt(obj.numTrial);  % Standard Error
+            sigsSecM.OF.SEM = sigsSecM.OF.STD/sqrt(obj.numTrial); % Standard Error
 
-            % NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-            % NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
-
-            sigsSecM = [meanOnset SEMOnset meanOffset SEMOffset];
+            sigsSecM.ON.NCI = 1.96*sigsSecM.ON.SEM;  % 95% Confidence Interval
+            sigsSecM.OF.NCI = 1.96*sigsSecM.OF.SEM; % 95% Confidence Interval
         end
         
         function obj = identifyBounds(obj)
@@ -243,8 +241,8 @@ classdef dfSectionDataOrg
             obj.sigsLims = [obj.time(1) obj.time(end) lL uL];
             
             % Section Mean Limits
-            [lwBoundOn, upBoundOn] = obj.MaxMinBounds(obj.sigsSecM(:,1), obj.sigsSecM(:,2), 10);
-            [lwBoundOf, upBoundOf] = obj.MaxMinBounds(obj.sigsSecM(:,3), obj.sigsSecM(:,4), 10);
+            [lwBoundOn, upBoundOn] = obj.MaxMinBounds(obj.sigsSecM.ON.mean, obj.sigsSecM.ON.NCI, 10);
+            [lwBoundOf, upBoundOf] = obj.MaxMinBounds(obj.sigsSecM.OF.mean, obj.sigsSecM.OF.NCI, 10);
 
             lwBoundM = obj.CompareAndChooseBounds(lwBoundOn, lwBoundOf, 'min');
             upBoundM = obj.CompareAndChooseBounds(upBoundOn, upBoundOf, 'max');
@@ -343,7 +341,7 @@ classdef dfSectionDataOrg
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
-            dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
+            dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.ON.mean, obj.sigsSecM.ON.NCI, 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
 
             set(dHOn.mainLine, 'LineWidth', lineThick)
             xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -371,7 +369,7 @@ classdef dfSectionDataOrg
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
             hold on
             plot(trigLineX, trigLineY, 'color', trigLineC, 'LineWidth', lineThick)
-            dHOf = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
+            dHOf = shadedErrorBar(obj.timeSec, obj.sigsSecM.OF.mean, obj.sigsSecM.OF.NCI, 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
               
             obj.legendCurves = cat(2, obj.legendCurves, dHOf.mainLine);
             obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
@@ -459,11 +457,11 @@ classdef dfSectionDataOrg
             
             % Draw the Onset Trace
             if shadeFlag == 1
-                dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,1), obj.sigsSecM(:,2), 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
+                dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.ON.mean, obj.sigsSecM.ON.NCI, 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
                 obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
             else
-                dHOn = plot(obj.timeSec, obj.sigsSecM(:,1), 'color', 'k', 'LineWidth', lineThick);
+                dHOn = plot(obj.timeSec, obj.sigsSecM.ON.mean, 'color', 'k', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn);
                 obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
             end
@@ -531,11 +529,11 @@ classdef dfSectionDataOrg
             
             % Draw the Onset Trace
             if shadeFlag == 1
-                dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM(:,3), obj.sigsSecM(:,4), 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
+                dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.OF.mean, obj.sigsSecM.OF.NCI, 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
                 obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
             else
-                dHOn = plot(obj.timeSec, obj.sigsSecM(:,3), 'color', 'k', 'LineWidth', lineThick);
+                dHOn = plot(obj.timeSec, obj.sigsSecM.OF.mean, 'color', 'k', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn);
                 obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
             end
@@ -569,13 +567,13 @@ classdef dfSectionDataOrg
             
             axes(obj.OnsetOffsetAxes(1))
             hold on
-            onH = shadedErrorBar(obj.timeSec, sigsSecM(:,1), sigsSecM(:,2), 'lineprops', {'color', color}, 'transparent', 1);
+            onH = shadedErrorBar(obj.timeSec, sigsSecM.ON.mean, sigsSecM.ON.NCI, 'lineprops', {'color', color}, 'transparent', 1);
             set(onH.mainLine, 'LineWidth', 4)
             hold off
             
             axes(obj.OnsetOffsetAxes(2))
             hold on
-            ofH = shadedErrorBar(obj.timeSec, sigsSecM(:,3), sigsSecM(:,4), 'lineprops', {'color', color}, 'transparent', 1);
+            ofH = shadedErrorBar(obj.timeSec, sigsSecM.OF.mean, sigsSecM.OF.NCI, 'lineprops', {'color', color}, 'transparent', 1);
             set(ofH.mainLine, 'LineWidth', 4)
             hold off
             
@@ -638,7 +636,7 @@ classdef dfSectionDataOrg
 
         ir = obj.initInflationResponseStruct(); % Initialize the structure that handles the variable calculations
         ir.time     = obj.timeSec;          % Time Interval for the sectioned trials (-0.5->1.0s)
-        ir.onset    = obj.sigsSecM(:, 1);   % f0 Trace sectioned around pert Onset.
+        ir.onset    = obj.sigsSecM.ON.mean;   % f0 Trace sectioned around pert Onset.
 
         ir.iAtOnset = find(ir.time == 0);
         ir.tAtOnset = 0;                     % duh
@@ -669,17 +667,17 @@ classdef dfSectionDataOrg
         
         function appendFigureDynamics_Onset(obj, time, sec)
             yyaxis right
-            shadedErrorBar(time, sec(:,1), sec(:,2), 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
+            shadedErrorBar(time, sec.ON.mean, sec.ON.NCI, 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
             ylabel('f0 (cents)')
-            axis([-0.5 1.0 -100 150])
+            axis([-0.5 1.0 -108 158])
             yyaxis left
-            axis([-0.5 1.0 -10 15])
+            axis([-0.5 1.0 -10.8 15.8])
             set(gca,'YColor', obj.dataColor1)
         end
         
         function appendFigureDynamics_Offset(obj, time, sec)
             yyaxis right
-            shadedErrorBar(time, sec(:,3), sec(:,4), 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
+            shadedErrorBar(time, sec.OF.mean, sec.OF.NCI, 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
             ylabel('f0 (cents)')
             axis([-0.5 1.0 -100 150])
             yyaxis left
