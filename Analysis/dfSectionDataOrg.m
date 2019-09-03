@@ -417,7 +417,7 @@ classdef dfSectionDataOrg
                 plotStimWindows = 0;
             else
                 plotStimWindows = 1;
-                stimWindowProp = varargin{1};
+                stimTraceProp = varargin{1};
             end
             
             % Figure properties
@@ -438,6 +438,9 @@ classdef dfSectionDataOrg
             zeroLineY = [0 0];
             zeroLineC = [0 0 0];
             
+            % Pressure Line properties
+            pressureC = [255 87 51]/255; %Auburn
+            
             % Axis properties
             fontName       = 'Arial';
             axisLSize      = 20;
@@ -445,10 +448,10 @@ classdef dfSectionDataOrg
 
             % Onset of Perturbation
             if plotStimWindows == 1
-                onsetStimWinC = [0 1 0];
-                onsetStimWinAx = [stimWindowProp.meanOnsetLag stimWindowProp.meanOnsetLag+stimWindowProp.meanOnsetRise];
-                onsetStimWinAy = [600 600];
-                area(onsetStimWinAx, onsetStimWinAy, -600, 'FaceColor', onsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+                minPres = min(stimTraceProp.meanPres.OF.mean); maxPres = max(stimTraceProp.meanPres.ON.mean);
+                m = (obj.sigsSecMLims(4) - obj.sigsSecMLims(3))/(maxPres - minPres);
+                b = obj.sigsSecMLims(3) - m*minPres;
+                plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.ON.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick)
                 hold on
             end
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
@@ -489,7 +492,7 @@ classdef dfSectionDataOrg
                 plotStimWindows = 0;
             else
                 plotStimWindows = 1;
-                stimWindowProp = varargin{1};
+                stimTraceProp = varargin{1};
             end
             
             % Figure properties
@@ -509,6 +512,9 @@ classdef dfSectionDataOrg
             zeroLineX = [obj.timeSec(1) obj.timeSec(end)];
             zeroLineY = [0 0];
             zeroLineC = [0 0 0];
+        
+            % Pressure Line properties
+            pressureC = [255 87 51]/255; %Auburn
             
             % Axis properties
             fontName       = 'Arial';
@@ -517,10 +523,10 @@ classdef dfSectionDataOrg
 
             % Onset of Perturbation
             if plotStimWindows == 1
-                offsetStimWinC = [1 0 0];
-                offsetStimWinAx = [stimWindowProp.meanOffsetLag stimWindowProp.meanOffsetLag+stimWindowProp.meanOffsetRise];
-                offsetStimWinAy = [600 600];
-                area(offsetStimWinAx, offsetStimWinAy, -600, 'FaceColor', offsetStimWinC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+                minPres = min(stimTraceProp.meanPres.OF.mean); maxPres = max(stimTraceProp.meanPres.ON.mean);
+                m = (obj.sigsSecMLims(4) - obj.sigsSecMLims(3))/(maxPres - minPres);
+                b = obj.sigsSecMLims(3) - m*minPres;
+                plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.OF.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick)
                 hold on
             end
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
@@ -668,8 +674,9 @@ classdef dfSectionDataOrg
         function appendFigureDynamics_Onset(obj, time, sec)
             yyaxis right
             shadedErrorBar(time, sec.ON.mean, sec.ON.NCI, 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
-            ylabel('f0 (cents)')
+            ylabel('{\it f}_o (cents)')
             axis([-0.5 1.0 -108 158])
+            set(gca,'YColor', obj.dataColor3)
             yyaxis left
             axis([-0.5 1.0 -10.8 15.8])
             set(gca,'YColor', obj.dataColor1)
@@ -678,10 +685,11 @@ classdef dfSectionDataOrg
         function appendFigureDynamics_Offset(obj, time, sec)
             yyaxis right
             shadedErrorBar(time, sec.OF.mean, sec.OF.NCI, 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
-            ylabel('f0 (cents)')
-            axis([-0.5 1.0 -100 150])
+            ylabel('{\it f}_o(cents)')
+            axis([-0.5 1.0 -108 158])
+            set(gca,'YColor', obj.dataColor3)
             yyaxis left
-            axis([-0.5 1.0 -10 15])
+            axis([-0.5 1.0 -10.8 15.8])
             set(gca,'YColor', obj.dataColor1)
         end
     end
