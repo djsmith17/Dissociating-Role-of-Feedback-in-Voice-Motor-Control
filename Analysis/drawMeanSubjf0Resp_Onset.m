@@ -61,9 +61,9 @@ if presFlag == 1
             limits(1) = -0.2;
 %             limits(2) = 0.6;
         case 'Auditory Perturbation_Perceptual'
-            measUnits = 'Artificial f0 Shift (cents)';
+            measUnits = 'Artificial {\it f}_o Shift (cents)';
             measUnitTicks = [-100 0 100];
-            legendLabel = 'Artificial f0 Shift';
+            legendLabel = 'Artificial {\it f}_o Shift';
             limits = [-0.5 1.0 -105 105];
             measLimits = [-0.5 1.0 -105 0];
     end    

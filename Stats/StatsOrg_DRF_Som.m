@@ -191,7 +191,7 @@ set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 varName     = measureSummaryStrs.varName;
 measureData = [measureSummaryStrs.measure];
 
-boxplot(measureData, 'Labels', cond)
+boxplot(measureData)
 ylabel([varName ' (' summaryStrDiff.units ')'])
 title({pAnalysisFix, varName})
 box off
@@ -207,6 +207,9 @@ if isSig
     hold off
 end
 text(mean(xt([1 2]))-0.25, max(yt)*1.15, ['p = ' summaryStrDiff.ttestPstr], 'FontSize',18)
+
+set(gca, 'XTickLabel', cond)
+fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
