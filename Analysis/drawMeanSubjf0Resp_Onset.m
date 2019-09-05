@@ -56,16 +56,24 @@ if presFlag == 1
         case 'Somatosensory Perturbation_Perceptual'
             measUnits = 'Pressure (psi)';
             measUnitTicks = [0 1 2 3 4];
-            measLimits = [-0.2 1.0 0 4.5];
+            measLimits = [-0.5 1.0 0 4.5];
             legendLabel = 'Pressure Trace';
-            limits(1) = -0.2;
+            limits(1) = -0.5;
 %             limits(2) = 0.6;
+            micLegendSuffix = '';
+            micLineStyle = '-';
+            rightYAxisDir = 'normal';
+            drawHead = 0;
         case 'Auditory Perturbation_Perceptual'
             measUnits = 'Artificial {\it f}_o Shift (cents)';
             measUnitTicks = [-100 0 100];
             legendLabel = 'Artificial {\it f}_o Shift';
             limits = [-0.5 1.0 -105 105];
             measLimits = [-0.5 1.0 -105 0];
+            micLegendSuffix = '-Produced';
+            micLineStyle = '--';
+            rightYAxisDir = 'reverse';
+            drawHead = 1;
     end    
     ylabel(ax2, measUnits)
     axis(measLimits)    
@@ -91,16 +99,18 @@ hold on
 
 for ii = 1:numCond
     nM = shadedErrorBar(time, pertf0M{ii}.ON.mean, pertf0M{ii}.ON.NCI, 'lineprops', condColors(ii), 'transparent', 1);
-    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '--')
+    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', micLineStyle)
     legLines = cat(2, legLines, nM.mainLine);
-    legNames = cat(2, legNames, {[cond{ii} '-Produced']});
+    legNames = cat(2, legNames, {[cond{ii} micLegendSuffix]});
     hold on
     
-    nM = shadedErrorBar(time, pertf0H{ii}.ON.mean, pertf0H{ii}.ON.NCI, 'lineprops', condColors(ii), 'transparent', 1);
-    set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
-    legLines = cat(2, legLines, nM.mainLine);
-    legNames = cat(2, legNames, {[cond{ii} '-Heard']});
-    hold on
+    if drawHead == 1
+        nM = shadedErrorBar(time, pertf0H{ii}.ON.mean, pertf0H{ii}.ON.NCI, 'lineprops', condColors(ii), 'transparent', 1);
+        set(nM.mainLine, 'LineWidth', lineThick, 'LineStyle', '-')
+        legLines = cat(2, legLines, nM.mainLine);
+        legNames = cat(2, legNames, {[cond{ii} '-Heard']});
+        hold on
+    end
 end
 
 xlabel('Time (s)', 'FontName', fontN, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -113,7 +123,7 @@ set(gca,'FontName', fontN,...
         'LineWidth', 2)
     
 ax2.YAxisLocation = 'right';
-ax2.YDir = 'reverse';
+ax2.YDir = rightYAxisDir;
 set(gca, 'Color', 'None')
 if presFlag == 1
     legLines = cat(2, legLines, pL);
