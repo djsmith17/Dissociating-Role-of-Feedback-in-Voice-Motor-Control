@@ -170,7 +170,7 @@ end
 
 function drawBoxPlot(dirs, pA, measureSummaryStrs, summaryStrDiff)
 
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 20;
 
 cond      = pA.pubCondName;
@@ -218,7 +218,7 @@ for ii = 1:numComp
 end
 
 set(gca, 'XTickLabel', cond)
-fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
+fix_xticklabels(gca, 0.15, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...

@@ -37,7 +37,7 @@ set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 dottedStartx = [0 0];
 dottedy      = [-500 500];
 condColors   = {'b', 'r', 'g', 'm'};
-fontN        = 'Arial';
+fontN        = 'Times New Roman';
 legAnnoFSize = 25;
 titleFSize   = 35;
 axisLSize    = 30;
@@ -64,6 +64,7 @@ if presFlag == 1
             micLineStyle = '-';
             rightYAxisDir = 'normal';
             drawHead = 0;
+            lgdPosition = [0.72 0.15 0.1 0.1];
         case 'Auditory Perturbation_Perceptual'
             measUnits = 'Artificial {\it f}_o Shift (cents)';
             measUnitTicks = [-100 0 100];
@@ -74,6 +75,7 @@ if presFlag == 1
             micLineStyle = '--';
             rightYAxisDir = 'reverse';
             drawHead = 1;
+            lgdPosition = [0.21 0.15 0.1 0.1];
     end    
     ylabel(ax2, measUnits)
     axis(measLimits)    
@@ -161,7 +163,7 @@ if fLabel == 1
 end
 
 lgdButt = legend(legLines, legNames,...
-       'Position', [0.72 0.15 0.1 0.1],...
+       'Position', lgdPosition,...
        'FontName', fontN,...
        'FontSize', legAnnoFSize,...
        'FontWeight', 'bold');
