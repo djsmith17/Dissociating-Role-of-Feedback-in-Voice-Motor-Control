@@ -82,13 +82,14 @@ distObj1AllSubj.sigsSecM = distObj1AllSubj.meanData(sigsSecLines);
 distObj1AllSubj = distObj1AllSubj.identifyBounds;
 
 % All three lines collapsed: Onset Figure
-stimTraceProp.timeP         = eAnPool.timePresSec;
-stimTraceProp.meanPres      = eAnPool.codedSensorPSecM;
-stimTraceProp.meanOnsetLag  = eAnPool.lagTimeM(1);
-stimTraceProp.meanOnsetRise = eAnPool.riseTimeM(1);
+stimTraceProp.timeP          = eAnPool.timePresSec;
+stimTraceProp.meanPres       = eAnPool.codedSensorPSecM;
+stimTraceProp.meanOnsetLag   = eAnPool.lagTimeM(1);
+stimTraceProp.meanOnsetRise  = eAnPool.riseTimeM(1);
 stimTraceProp.meanOffsetLag  = eAnPool.lagTimeM(2);
 stimTraceProp.meanOffsetRise = eAnPool.riseTimeM(2);
 
+distObj1AllSubj.dataColor1 = [0 78 0]/255;
 distObj1AllSubj.sigsSecMLims = [-0.5 1.0 0 15.8];
 distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Onset(1, stimTraceProp);
 distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLineOnset' distObj1AllSubj.coder '.jpg'];

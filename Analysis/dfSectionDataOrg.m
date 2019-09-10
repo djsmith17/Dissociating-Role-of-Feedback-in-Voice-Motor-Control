@@ -49,6 +49,8 @@ classdef dfSectionDataOrg
         dataColor2
         dataColor3
         
+        f0TraceColor
+        
         OnsetOffsetAxes
         legendCurves
         legendLabels
@@ -98,6 +100,8 @@ classdef dfSectionDataOrg
             obj.dataColor1 = [55,126,184]/255; % Cerulean Blu
             obj.dataColor2 = [77,175,74]/255;  % Leaf Green
             obj.dataColor3 = [231,41,138]/255; % Bright Magenta
+            
+            obj.f0TraceColor = [0 0 1];
             
             obj.legendCurves = [];
             obj.legendLabels = {};
@@ -673,10 +677,10 @@ classdef dfSectionDataOrg
         
         function appendFigureDynamics_Onset(obj, time, sec)
             yyaxis right
-            shadedErrorBar(time, sec.ON.mean, sec.ON.NCI, 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
+            shadedErrorBar(time, sec.ON.mean, sec.ON.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
             ylabel('{\it f}_o (cents)')
             axis([-0.5 1.0 -108 158])
-            set(gca,'YColor', obj.dataColor3)
+            set(gca,'YColor', obj.f0TraceColor)
             yyaxis left
             axis([-0.5 1.0 -10.8 15.8])
             set(gca,'YColor', obj.dataColor1)
@@ -684,10 +688,10 @@ classdef dfSectionDataOrg
         
         function appendFigureDynamics_Offset(obj, time, sec)
             yyaxis right
-            shadedErrorBar(time, sec.OF.mean, sec.OF.NCI, 'lineprops', {'color', obj.dataColor3, 'LineWidth', 4}, 'transparent', 1);
+            shadedErrorBar(time, sec.OF.mean, sec.OF.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
             ylabel('{\it f}_o(cents)')
             axis([-0.5 1.0 -108 158])
-            set(gca,'YColor', obj.dataColor3)
+            set(gca,'YColor', obj.f0TraceColor)
             yyaxis left
             axis([-0.5 1.0 -10.8 15.8])
             set(gca,'YColor', obj.dataColor1)
