@@ -56,6 +56,8 @@ classdef dfSectionDataOrg
         legendLabels
         LgdObj
         
+        figTextName
+        
         sigsDynamics
     end
     
@@ -102,6 +104,7 @@ classdef dfSectionDataOrg
             obj.dataColor3 = [231,41,138]/255; % Bright Magenta
             
             obj.f0TraceColor = [0 0 1];
+            obj.figTextName = 'Times New Roman';
             
             obj.legendCurves = [];
             obj.legendLabels = {};
@@ -324,7 +327,6 @@ classdef dfSectionDataOrg
             zeroLineC = [0.3 0.3 0.3];
             
             % Axis properties
-            fontName       = 'Arial';
             titleFontSize  = 14;
             axisLSize      = 14;
             lineThick      = 4;
@@ -348,12 +350,12 @@ classdef dfSectionDataOrg
             dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.ON.mean, obj.sigsSecM.ON.NCI, 'lineprops', {'color', obj.dataColor1}, 'transparent', 1);
 
             set(dHOn.mainLine, 'LineWidth', lineThick)
-            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
-            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
-            title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
+            xlabel('Time (s)', 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold')
+            title('Onset of Perturbation', 'FontName', obj.figTextName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
             axis(obj.sigsSecMLims); box off
 
-            set(gca,'FontName', fontName,...
+            set(gca,'FontName', obj.figTextName,...
                     'FontSize', axisLSize,...
                     'FontWeight','bold',...
                     'LineWidth', 2)
@@ -379,19 +381,19 @@ classdef dfSectionDataOrg
             obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
             
             set(dHOf.mainLine, 'LineWidth', lineThick)
-            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
-            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold')
+            xlabel('Time (s)', 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold')
             title('Offset of Perturbation', 'FontSize', 18, 'FontWeight', 'bold')
             axis(obj.sigsSecMLims); box off
             hold off
-            set(gca,'FontName', fontName,...
+            set(gca,'FontName', obj.figTextName,...
                     'FontSize', axisLSize,...
                     'FontWeight','bold',...
                     'LineWidth', 2,...
                     'YAxisLocation', 'right');
 
             sup = suptitle({obj.curSess});
-            set(sup, 'FontName', fontName,...
+            set(sup, 'FontName', obj.figTextName,...
                      'FontSize', titleFontSize,...
                      'FontWeight','bold')
                  
@@ -446,7 +448,6 @@ classdef dfSectionDataOrg
             pressureC = [255 87 51]/255; %Auburn
             
             % Axis properties
-            fontName       = 'Arial';
             axisLSize      = 20;
             lineThick      = 4;
 
@@ -455,7 +456,9 @@ classdef dfSectionDataOrg
                 minPres = min(stimTraceProp.meanPres.OF.mean); maxPres = max(stimTraceProp.meanPres.ON.mean);
                 m = (obj.sigsSecMLims(4) - obj.sigsSecMLims(3))/(maxPres - minPres);
                 b = obj.sigsSecMLims(3) - m*minPres;
-                plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.ON.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick)
+                presTrace = plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.ON.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
+                obj.legendCurves = cat(2, obj.legendCurves, presTrace);
+                obj.legendLabels = cat(2, obj.legendLabels, 'Pressure Trace');
                 hold on
             end
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
@@ -466,24 +469,30 @@ classdef dfSectionDataOrg
             if shadeFlag == 1
                 dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.ON.mean, obj.sigsSecM.ON.NCI, 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
-                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
             else
                 dHOn = plot(obj.timeSec, obj.sigsSecM.ON.mean, 'color', 'k', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn);
-                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
             end
             
-            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
-            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold', 'Color', obj.dataColor1)
+            xlabel('Time (s)', 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold', 'Color', obj.dataColor1)
 %             title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
             axis(obj.sigsSecMLims); box off
 
-            set(gca,'FontName', fontName,...
+            set(gca,'FontName', obj.figTextName,...
                     'FontSize', axisLSize,...
                     'FontWeight','bold',...
                     'LineWidth', 2,...
                     'YColor', obj.dataColor1)
             hold off
+            
+            obj.LgdObj = legend(obj.legendCurves, obj.legendLabels,...
+                    'FontName', obj.figTextName,...
+                    'FontSize', 12,...
+                    'FontWeight', 'bold',...
+                    'Position', [0.635 0.165 0.1 0.1]); 
 
             obj.sigsMeanFig      = OnsetMeanDataFig;
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
@@ -521,7 +530,6 @@ classdef dfSectionDataOrg
             pressureC = [255 87 51]/255; %Auburn
             
             % Axis properties
-            fontName       = 'Arial';
             axisLSize      = 20;
             lineThick      = 4;
 
@@ -530,7 +538,9 @@ classdef dfSectionDataOrg
                 minPres = min(stimTraceProp.meanPres.OF.mean); maxPres = max(stimTraceProp.meanPres.ON.mean);
                 m = (obj.sigsSecMLims(4) - obj.sigsSecMLims(3))/(maxPres - minPres);
                 b = obj.sigsSecMLims(3) - m*minPres;
-                plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.OF.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick)
+                presTrace = plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.OF.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
+                obj.legendCurves = cat(2, obj.legendCurves, presTrace);
+                obj.legendLabels = cat(2, obj.legendLabels, 'Pressure Trace');
                 hold on
             end
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
@@ -541,24 +551,30 @@ classdef dfSectionDataOrg
             if shadeFlag == 1
                 dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.OF.mean, obj.sigsSecM.OF.NCI, 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
-                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
             else
                 dHOn = plot(obj.timeSec, obj.sigsSecM.OF.mean, 'color', 'k', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn);
-                obj.legendLabels = cat(2, obj.legendLabels, ['Line 1: ' num2str(obj.numTrial) ' ' obj.iterationType]);
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
             end
             
-            xlabel('Time (s)', 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
-            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', fontName, 'FontSize', axisLSize, 'FontWeight', 'bold', 'Color', obj.dataColor1)
+            xlabel('Time (s)', 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
+            ylabel([obj.dataType ' (' obj.dataUnit ')'], 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold', 'Color', obj.dataColor1)
 %             title('Onset of Perturbation', 'FontName', fontName, 'FontSize', titleFontSize, 'FontWeight', 'bold')
             axis(obj.sigsSecMLims); box off
 
-            set(gca,'FontName', fontName,...
+            set(gca,'FontName', obj.figTextName,...
                     'FontSize', axisLSize,...
                     'FontWeight','bold',...
                     'LineWidth', 2,...
                     'YColor', obj.dataColor1)
             hold off
+            
+            obj.LgdObj = legend(obj.legendCurves, obj.legendLabels,...
+                    'FontName', obj.figTextName,...
+                    'FontSize', 12,...
+                    'FontWeight', 'bold',...
+                    'Position', [0.635 0.165 0.1 0.1]); 
 
             obj.sigsMeanFig      = OffsetMeanDataFig;
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];
@@ -677,7 +693,10 @@ classdef dfSectionDataOrg
         
         function appendFigureDynamics_Onset(obj, time, sec)
             yyaxis right
-            shadedErrorBar(time, sec.ON.mean, sec.ON.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
+            f0Trace = shadedErrorBar(time, sec.ON.mean, sec.ON.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
+            obj.legendCurves = cat(2, obj.legendCurves, f0Trace.mainLine);
+            obj.legendLabels = cat(2, obj.legendLabels, '{\it f}_o Trace');
+            obj.LgdObj = legend(obj.legendCurves, obj.legendLabels);
             ylabel('{\it f}_o (cents)')
             axis([-0.5 1.0 -108 158])
             set(gca,'YColor', obj.f0TraceColor)
@@ -688,7 +707,10 @@ classdef dfSectionDataOrg
         
         function appendFigureDynamics_Offset(obj, time, sec)
             yyaxis right
-            shadedErrorBar(time, sec.OF.mean, sec.OF.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
+            f0Trace = shadedErrorBar(time, sec.OF.mean, sec.OF.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
+            obj.legendCurves = cat(2, obj.legendCurves, f0Trace.mainLine);
+            obj.legendLabels = cat(2, obj.legendLabels, '{\it f}_o Trace');
+            obj.LgdObj = legend(obj.legendCurves, obj.legendLabels);
             ylabel('{\it f}_o(cents)')
             axis([-0.5 1.0 -108 158])
             set(gca,'YColor', obj.f0TraceColor)

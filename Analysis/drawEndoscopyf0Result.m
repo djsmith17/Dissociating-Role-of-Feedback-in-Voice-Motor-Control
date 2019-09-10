@@ -97,6 +97,8 @@ distObj1AllSubj.appendFigureDynamics_Onset(eAnPool.timef0Sec, eAnPool.sigsSecf0M
 
 distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 
+distObj1AllSubj.legendCurves = [];
+distObj1AllSubj.legendLabels = {};
 distObj1AllSubj.sigsSecMLims = [-0.5 1.0 0 15.8];
 distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Offset(1, stimTraceProp);
 distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLineOffset' distObj1AllSubj.coder '.jpg'];
