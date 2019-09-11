@@ -2,11 +2,10 @@ function drawAudPertResultMetrics(ir, arrows, vals)
 % This has been optimized to diagram DRF19 AF2 mean trace results.
 % Hopefully in the future, the arrows will 
 
-dim     = 50;
 plotPos = [10 40];
 plotDim = [1485 1005];
 
-fontN        = 'Arial';
+fontN        = 'Times New Roman';
 lineThick    = 3;
 axisLSize    = 30;
 legAnnoFSize = 30;
@@ -23,15 +22,19 @@ plot([ir.tAtOnset ir.tAtOnset], [-300 300], 'k--', 'LineWidth', 2.5)
 hold on
 plot([-0.6 1.1], [ir.vAtOnset, ir.vAtOnset], 'r--', 'LineWidth', 2.5)
 
+area([ir.tAtRespRange(1) ir.tAtRespRange(2)], [min(ir.vAtRespRange) min(ir.vAtRespRange)], max(ir.vAtRespRange), 'FaceColor', respC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0, 'ShowBaseline', 'off')
+
 % Draw the pitch trace
 plot(ir.time, ir.onset, 'k', 'LineWidth', lineThick)
 xlabel('Time (s)')
 ylabel('{\it f}_o (Cents)')
 hold on
 
+% Draw the markers
 plot(ir.tAtOnset, ir.vAtOnset, 'Color', onsetC, 'Marker', 's', 'MarkerFaceColor',onsetC, 'MarkerSize', 20)
 plot(ir.tAtResp, ir.vAtResp, 'Color', respC, 'Marker', 'o', 'MarkerFaceColor', respC,'MarkerSize', 20);
 
+% set the plot characteristics
 axis([ir.time(1) ir.time(end) (min(ir.onset) - 10) (max(ir.onset) + 10)])
 box off
 
@@ -42,6 +45,7 @@ set(gca,'LineWidth', 2,...
         'FontWeight','bold',...
         'Color', figColor)
 
+% Toggle to draw arrows
 if arrows == 1
 
     RMArrowX = [0.905 0.905];
@@ -56,6 +60,7 @@ if arrows == 1
                          'FontSize',legAnnoFSize)
 end
 
+% Toggle to draw the measure values
 if vals == 1
     stimMag = round(ir.stimMag, 2);
     respMag = round(ir.respMag, 2);
@@ -74,7 +79,8 @@ if vals == 1
                              'LineStyle', 'none',...
                              'FontWeight','bold');
 end
-                     
+  
+% save the figure
 path = 'E:\Desktop';
 % path  = 'C:\Users\djsmith\Desktop';
 fileName = 'AudDependentVariablesManuscript.png';

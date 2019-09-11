@@ -678,9 +678,11 @@ classdef dfSectionDataOrg
         ir.stimMag = abs(ir.vAtMin - ir.vAtOnset); % Distance traveled from onset to min value
 
         % RespMag
-        ir.iAtResp = obj.numSampSec;         % Last index in section
-        ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
-        ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+        ir.tAtRespRange = [0.8 1.0];              % Time Values in the period 800ms to 1000ms after perturbation onset
+        ir.iAtRespRange = find(ir.time >= ir.tAtRespRange(1) & ir.time<= ir.tAtRespRange(2));                % Last index in section
+        ir.vAtRespRange = ir.onset(ir.iAtRespRange);    % Time Value when participant 'fully responded' (1.0s)
+        ir.tAtResp      = mean(ir.tAtRespRange);
+        ir.vAtResp      = mean(ir.vAtRespRange);
         ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
         % RespPer
