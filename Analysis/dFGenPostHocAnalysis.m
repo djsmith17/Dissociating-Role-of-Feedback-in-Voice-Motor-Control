@@ -43,22 +43,22 @@ StatTableSinSomMN = StatTableSomSingle(somMN, :);
 StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
-% addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
 
 % Question 6 %%%
-% addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
 
 % Question 7 %%%
-% addressQuest7(dirs, StatTableJND, StatTableAud)
+addressQuest7(dirs, StatTableJND, StatTableAud)
 
 % Question E1 %%%
-% addressQuestE1(dirs, StatTableJND, StatTableSomMN)
+addressQuestE1(dirs, StatTableJND, StatTableSomMN)
 
 % Question E2 %%%
-% addressQuestE2(dirs, StatTableJND, StatTableSomMN)
+addressQuestE2(dirs, StatTableJND, StatTableSomMN)
 
 % Question E# %%%
-% addressQuestE3(dirs, StatTableJND)
+addressQuestE3(dirs, StatTableJND)
 end
 
 function addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
@@ -78,7 +78,7 @@ StatTableJNDLs(I,:) = [];
 
 RespPer_SomMN = StatTableSomMN.RespPer;
 RespPer_Aud   = StatTableAudLs.RespPer;
-f0            = cell2mat(StatTableJNDLs.f0);
+f0            = StatTableJNDLs.f0;
 
 % Perform the correlation
 q5AllResponse = [RespPer_Aud RespPer_SomMN];

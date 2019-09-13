@@ -23,7 +23,7 @@ plot([ir.tAtOnset ir.tAtOnset], [-300 300], 'k--', 'LineWidth', 2.5)
 hold on
 plot([-0.6 1.1], [ir.vAtOnset, ir.vAtOnset], 'r--', 'LineWidth', 2.5)
 
-area([ir.tAtRespRange(1) ir.tAtRespRange(2)], [min(ir.vAtRespRange) min(ir.vAtRespRange)], max(ir.vAtRespRange), 'FaceColor', respC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0, 'ShowBaseline', 'off')
+area([ir.tAtRespRange(1) ir.tAtRespRange(2)], [min(ir.vAtRespRange)-3 min(ir.vAtRespRange)-3], max(ir.vAtRespRange)+3, 'FaceColor', respC, 'FaceAlpha', 0.25, 'EdgeAlpha', 0, 'ShowBaseline', 'off')
 
 % Draw the pitch trace
 plot(ir.time, ir.onset, 'k', 'LineWidth', lineThick)
@@ -50,7 +50,7 @@ set(gca,'LineWidth', 2,...
 % Toggle to draw arrows
 if arrows == 1
     lowf0PixelY  = 0.24;
-    lastf0PixelY = 0.645;
+    lastf0PixelY = 0.642;
     lowf0PixelYLow = lowf0PixelY - 0.03;
     
     SMArrowX = [0.33 0.33];
@@ -64,10 +64,10 @@ if arrows == 1
                          'FontWeight','bold',...
                          'FontSize',legAnnoFSize)
 
-    RMArrowX = [0.905 0.905];
+    RMArrowX = [0.853 0.853];
     RMArrowY = [lowf0PixelY lastf0PixelY];
     annotation('arrow', RMArrowX, RMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
-    annotation('textbox', [0.762 0.3 0.1 0.1],...
+    annotation('textbox', [(RMArrowX(1)-0.140) 0.3 0.1 0.1],...
                          'string', {'Response', 'Magnitude'},...
                          'LineStyle', 'none',...
                          'HorizontalAlignment', 'center',...
