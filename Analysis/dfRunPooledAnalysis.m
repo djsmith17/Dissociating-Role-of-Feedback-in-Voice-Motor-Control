@@ -185,19 +185,26 @@ sortStr.f0b     = zeros(numCond, 1);
 
 sortStr.AudFB   = cell(numCond, 1);
 
+% Trial Information
 sortStr.allContTrials    = [];
 sortStr.numContTrialsFin = 0;
 sortStr.allPertTrials    = cell(numCond, 1);
 sortStr.numPertTrialsFin = zeros(numCond, 1);
+sortStr.AuMHDelays       = cell(numCond, 1);
+sortStr.AuMHDelayMean    = [];
 
+% Audio Dynamics
 sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
 sortStr.audioHf0SecPert = cell(numCond, 1);
 sortStr.audioHf0SecCont = [];
+
+% Pre Voicing Dynamics
 sortStr.prePertVoicingTimeCont = [];
 sortStr.prePertVoicingTimePert = cell(numCond,1);
 
+% Sensor Dynamics
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
 sortStr.sensorPOnOff    = [];
@@ -211,6 +218,7 @@ sortStr.sensorPMean      = [];
 sortStr.sensorPOnOffMean = [];
 sortStr.sensorPRiseTimeM = [];
 
+% Trial Tossing Record
 sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
 sortStr.tossedBreak      = 0;
@@ -260,28 +268,35 @@ PD = curRes.presSDsv;      % Pressure Dynamics
 whichCondAr = strcmp(pA.cond, eval(pA.condVar));
 wC          = find(whichCondAr == 1);            % Which Condition?
 
+% Run Information
 polRes.runs{wC}   = cat(1, polRes.runs{wC}, {curRes.run});
 polRes.runf0b{wC} = cat(1, polRes.runf0b{wC}, curRes.f0b);
 
 polRes.AudFB{wC}  = cat(1, polRes.AudFB{wC}, {curRes.AudFB});
 
+% Trial Information
 polRes.allContTrials     = cat(1, polRes.allContTrials, curRes.numContTrialsFin);
 polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrialsFin);
+polRes.AuMHDelays{wC}    = cat(1, polRes.AuMHDelays{wC}, curRes.AuMHDelaysinc);
 
+% Audio Dynamics
 polRes.secTime             = curRes.secTime;
 polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
 polRes.audioHf0SecPert{wC} = cat(2, polRes.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCont);
 
+% Pre Voicing Dynamics
 polRes.prePertVoicingTimeCont     = cat(1, polRes.prePertVoicingTimeCont, curRes.prePertVoicingTimeinc(curRes.contIdxFin));
 polRes.prePertVoicingTimePert{wC} = cat(1, polRes.prePertVoicingTimePert{wC}, curRes.prePertVoicingTimeinc(curRes.pertIdxFin));
 
+% Sensor Dynamics
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
 polRes.sensorPOnOff        = cat(1, polRes.sensorPOnOff, PD.OnOffVal);
 polRes.sensorPRiseTime     = cat(1, polRes.sensorPRiseTime, PD.riseTimeM);
 
+% Trial Tossing Record
 polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
 polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
 polRes.tossedBreak    = polRes.tossedBreak + tossT.B;     % Voice Break
@@ -447,6 +462,8 @@ for wC = 1:pA.numCond
     polRes.numPertTrialsFin(wC) = sum(polRes.allPertTrials{wC});
     polRes.audioMf0MeanPert{wC} = meanSecData(polRes.audioMf0SecPert{wC});
     polRes.audioHf0MeanPert{wC} = meanSecData(polRes.audioHf0SecPert{wC});
+    polRes.AuMHDelayMean(1)     = mean(polRes.AuMHDelays{wC});
+    polRes.AuMHDelayMean(2)     = std(polRes.AuMHDelays{wC});
     
     if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
         audioDynamicsAllTraces = InflationResponseSingle(polRes.secTime, polRes.audioMf0SecPert{wC});
