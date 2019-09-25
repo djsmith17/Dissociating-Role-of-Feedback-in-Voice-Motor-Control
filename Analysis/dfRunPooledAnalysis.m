@@ -154,7 +154,7 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
     drawSubjRespVarVoicingCorr(dirs, pA, pooledRunStr)
-    drawSubjRespVarDists(dirs, pooledRunStr)
+    drawSubjRespVarDists_AllTrial(dirs, pooledRunStr)
     StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
 end
 end
