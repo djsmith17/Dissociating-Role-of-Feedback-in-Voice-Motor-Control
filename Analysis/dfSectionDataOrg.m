@@ -612,7 +612,7 @@ classdef dfSectionDataOrg
         function saveSigsSecMFig(obj, plotFolder)
             
             saveFileName = fullfile(plotFolder, obj.sigsMeanFigTitle);
-            export_fig(saveFileName)
+            export_fig(saveFileName, '-r300')
         end
         
         function ir = initInflationResponseStruct(obj)

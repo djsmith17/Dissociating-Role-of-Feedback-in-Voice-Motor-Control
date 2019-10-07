@@ -173,7 +173,7 @@ for i = 1:length(plots)
     plTitle = [pltName '_Onset.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
-    export_fig(saveFileName)
+    export_fig(saveFileName, '-r300')
 end
 
 ax2.delete;
@@ -183,7 +183,7 @@ ax1.XLim = [-0.05 0.1];
 ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1];
 plTitle = [pltName '_OnsetZoom.jpg'];
 saveFileName = fullfile(plotFolder, plTitle);
-export_fig(saveFileName)
+export_fig(saveFileName, '-r300')
 end
 
 function anno = checkSig(stat, thresh, anno)

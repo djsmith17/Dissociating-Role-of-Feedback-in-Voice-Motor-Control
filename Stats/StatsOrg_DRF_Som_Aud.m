@@ -177,7 +177,7 @@ cond      = pA.pubCondName;
 numCond   = pA.numCond;
 
 measBox = figure('Color', [1 1 1]);
-plotpos = [30 0]; plotdim = [800 1000];
+plotpos = [30 50]; plotdim = [800 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 collData = [];
@@ -226,5 +226,5 @@ set(gca,'FontName', fontN,...
         'LineWidth', 2)
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, 'Question4BoxPlot.jpg');
-export_fig(dirs.BoxPlotFigureFile)
+export_fig(dirs.BoxPlotFigureFile, '-r300')
 end
