@@ -452,6 +452,7 @@ if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     polRes.sensorPRiseTimeM = mean(polRes.sensorPRiseTime, 1);
 else
     polRes.sensorPMean.ON.mean = zeros(length(polRes.audioMf0SecPert{1}), 1);
+    polRes.sensorPMean.OF.mean = zeros(length(polRes.audioMf0SecPert{1}), 1);
     polRes.sensorPOnOffMean = [0 0];
     polRes.sensorPRiseTimeM = [0 0];
 end
@@ -497,6 +498,7 @@ elseif strcmp(polRes.expType, 'Auditory Perturbation_Perceptual')
     sig(timeRampD) = rampDValues;
     sig = sig';
     polRes.sensorPMean.ON.mean = sig;
+    polRes.sensorPMean.OF.mean = -1*(sig+100);
     
     sensorPAdjust = polRes.sensorPMean;
     InflDeflT     = [0.04 0.24 1.04 1.24];
