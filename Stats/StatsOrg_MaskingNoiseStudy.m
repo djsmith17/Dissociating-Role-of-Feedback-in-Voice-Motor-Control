@@ -1,7 +1,8 @@
 function StatsOrg_MaskingNoiseStudy(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas = {'StimMag', 'RespMag', 'RespPer'};
+meas = {'StimMag', 'RespMag', 'RespPer', 'tAtMin'};
+mUnits = {'cents', 'cents', '%', 's'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -11,7 +12,7 @@ alphaLevel    = 0.05/3;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:3;
+curTestingMeas = 1:4;
 ApplyTrans = 0;
 for k = curTestingMeas
     pA.k = k;
@@ -39,7 +40,7 @@ for k = curTestingMeas
         
         measureVar.varName   = meas{k};
         measureVar.condition = curCond;
-        measureVar.units     = 'cents';
+        measureVar.units     = mUnits{k};
         
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
@@ -105,13 +106,15 @@ end
 
 function drawHistograms(measureSummaryStrs, dirs, pA)
 
-units  = {'cents', 'cents', '%'};
 colors = ['b', 'r', 'g'];
-sigma  = '\sigma'; mu = '\mu';
 lambda = '\lambda';
 
-cond    = pA.pubCond;
-numCond = pA.numCond;
+pAnalysis = pA.pAnalysis;
+cond      = pA.pubCond;
+numCond   = pA.numCond;
+
+pAnalysisFix = pAnalysis;
+pAnalysisFix(strfind(pAnalysisFix, '_')) = '';
 
 measDist = figure('Color', [1 1 1]);
 plotpos = [10 10]; plotdim = [1300 800];
@@ -152,7 +155,7 @@ for ii = 1:numCond
     plot(xValues, normcdf(xValues, 0, 1), 'r-')
     legend('Empirical CDF','Standard Normal CDF','Location','best') 
 end
-suptitle({pA.pAnalysis, [varName suffix]})
+suptitle({pAnalysisFix, [varName suffix]})
 
 annotation('textbox',[0.8 0.88 0.45 0.1],...
            'string', {[lambda ' = ' summaryStr.usedLambda]},...
@@ -167,9 +170,8 @@ end
 
 function drawBoxPlot(measureSummaryStrs, dirs, pA)
 
-units  = {'cents', 'cents', '%'};
-fontN = 'Arial';
-axisLSize = 15;
+fontN = 'Times New Roman';
+axisLSize = 25;
 
 pAnalysis = pA.pAnalysis;
 cond      = pA.pubCond;
@@ -179,12 +181,16 @@ plotpos = [30 30]; plotdim = [700 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 varName     = measureSummaryStrs.varName;
+units       = measureSummaryStrs.units;  
 measureData = [measureSummaryStrs.measure];
 
-boxplot(measureData, 'Labels', cond)
-ylabel([varName ' (' units{pA.k} ')'])
+boxplot(measureData)
+ylabel([varName ' (' units ')'])
 title(varName)
 box off
+
+set(gca, 'XTickLabel', cond)
+fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
@@ -259,7 +265,7 @@ numCond  = length(pubCond);
 genVar = cell(numCond, 1);
 genVar(:) = {''};
 
-pubTable = table(genVar, genVar, genVar);
+pubTable = table(genVar, genVar, genVar, genVar); % Three times for numMeas
 pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end
@@ -270,7 +276,7 @@ function pubTable = popPubTable(pubTable, curCol, summaryVarTableAcrossCond)
 
 for ii = 1:numCond
    curMean  = summaryVarTableAcrossCond.mean(ii); % Mean
-   curError = summaryVarTableAcrossCond.SD(ii);   % Standard Error of the Mean
+   curError = summaryVarTableAcrossCond.SD(ii);   % Standard Definition
    
    curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curError));
    pubTable(ii, curCol) = {curPubPrint};
