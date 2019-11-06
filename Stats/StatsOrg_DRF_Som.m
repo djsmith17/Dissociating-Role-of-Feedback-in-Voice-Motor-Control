@@ -173,7 +173,7 @@ end
 
 function drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
 
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 25;
 
 pAnalysis = pA.pAnalysis;
@@ -227,7 +227,7 @@ numCond = length(pubCond);
 genVar = cell(numCond, 1);
 genVar(:) = {''};
 
-pubTable = table(genVar, genVar, genVar, genVar); %Three times for numMeas
+pubTable = table(genVar, genVar, genVar, genVar); % Four times for numMeas
 pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end
@@ -238,7 +238,7 @@ function pubTable = popPubTable(pubTable, curCol, summaryVarTableAcrossCond)
 
 for ii = 1:numCond
    curMean  = summaryVarTableAcrossCond.mean(ii); % Mean
-   curError = summaryVarTableAcrossCond.SD(ii);   % Standard Error of the Mean
+   curError = summaryVarTableAcrossCond.SD(ii);   % Standard Definition
    
    curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curError));
    pubTable(ii, curCol) = {curPubPrint};

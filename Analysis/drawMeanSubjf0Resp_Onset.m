@@ -64,7 +64,7 @@ if presFlag == 1
             micLineStyle = '-';
             rightYAxisDir = 'normal';
             drawHead = 0;
-            lgdPosition = [0.72 0.15 0.1 0.1];
+            lgdPosition = [0.70 0.15 0.1 0.1];
         case 'Auditory Perturbation_Perceptual'
             measUnits = 'Artificial {\it f}_o Shift (cents)';
             measUnitTicks = [-100 0 100];
