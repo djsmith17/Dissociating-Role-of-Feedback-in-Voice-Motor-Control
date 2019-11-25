@@ -45,6 +45,7 @@ for i = 1:pA.numCond
     measure   = respPerCol(:, i);
     
     measureVar.varName   = 'RespPer';
+    measureVar.varNamePub = 'Response Percentage';
     measureVar.condition = curCond;
     measureVar.units     = 'cents';
 
@@ -79,6 +80,7 @@ for jj = 1:comp
     measDiff = measureSummaryStrs(varCmp(jj,1)).measure - measureSummaryStrs(varCmp(jj,2)).measure;
     
     measureDiffVar.varName   = 'RespPer';
+    measureDiffVar.varNamePub = 'Response Percentage';
     measureDiffVar.condition = cond;
     measureDiffVar.units     = 'cents';
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);

@@ -17,6 +17,10 @@ dirs.SomResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.SomExp);
 dirs.AudResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.AudExp);
 dirs.JNDResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.JNDExp);
 
+% Write Results to Text File
+textFileName = fullfile(dirs.SavResultsDir, 'PostHocStats.txt');
+fid = fopen(textFileName, 'w');
+
 dirs.SomResultsFile = fullfile(dirs.SomResultsDir, 'DRF_SomResultsDRF.mat');
 dirs.AudResultsFile = fullfile(dirs.AudResultsDir, 'DRF_AudResultsDRF.mat');
 dirs.JNDResultsFile = fullfile(dirs.JNDResultsDir, 'DRF_JNDResultsDRF.mat');
@@ -39,29 +43,33 @@ StatTableSomMN = StatTableSom(somMN, :);
 StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
+PostHocStatSent = 'Butts\nStunts';
+
 % Question 4 %%%
 StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
-addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+addressQuest5(dirs, fid, StatTableAud, StatTableSomMN, StatTableJND)
 
 % Question 6 %%%
-addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+addressQuest6(dirs, fid, StatTableJND, StatTableSomVF, StatTableSomMN)
 
 % Question 7 %%%
-addressQuest7(dirs, StatTableJND, StatTableAud)
+addressQuest7(dirs, fid, StatTableJND, StatTableAud)
 
 % Question E1 %%%
-addressQuestE1(dirs, StatTableJND, StatTableSomMN)
+addressQuestE1(dirs, fid, StatTableJND, StatTableSomMN)
 
 % Question E2 %%%
-addressQuestE2(dirs, StatTableJND, StatTableSomMN)
+addressQuestE2(dirs, fid, StatTableJND, StatTableSomMN)
 
 % Question E# %%%
-addressQuestE3(dirs, StatTableJND)
+addressQuestE3(dirs, fid, StatTableJND)
+
+fclose(fid);
 end
 
-function addressQuest5(dirs, StatTableAud, StatTableSomMN, StatTableJND)
+function addressQuest5(dirs, fid, StatTableAud, StatTableSomMN, StatTableJND)
 % q5: Is there a relationship between individual response magnitudes to
 % somatosensory and auditory perturbations?
 
@@ -85,6 +93,9 @@ q5AllResponse = [RespPer_Aud RespPer_SomMN];
 [corrR, corrP] = corrcoef(q5AllResponse);
 q5Sentence = sprintf('Weak positive correlation between Som RespPer and Aud RespPer (n = %d)', length(RespPer_Aud));
 
+fprintf(fid, 'Relationship between responses to Somatosensory and Auditory Perturbations\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(RespPer_Aud));
+
 % Perform the correltion controlling for f0
 [corrR2, corrP2] = partialcorr(q5AllResponse, f0);
 
@@ -97,8 +108,8 @@ T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
 % Organize the output
 scatStr.x      = RespPer_Aud;
 scatStr.y      = RespPer_SomMN;
-scatStr.xLabel = 'Aud RespPer (%)';
-scatStr.yLabel = 'SomMN RespPer (%)';
+scatStr.xLabel = 'Audio. Response Percentage (%)';
+scatStr.yLabel = 'Somato. Response Percentage (%)';
 scatStr.title  = 'Relationship between Responses to Somatosensory and Auditory Perts';
 scatStr.sent   = q5Sentence;
 scatStr.color  = 'k';
@@ -114,7 +125,7 @@ scatStr.winPos = [0.38 0.23];
 drawScatterCorr(dirs, scatStr)
 end
 
-function addressQuest6(dirs, StatTableJND, StatTableSomVF, StatTableSomMN)
+function addressQuest6(dirs, fid, StatTableJND, StatTableSomVF, StatTableSomMN)
 % q6: Is there a relationship between auditory f0 acuity and contribution
 % of auditory feedback in the laryngeal perturbation task?
 
@@ -123,10 +134,6 @@ I = ismember(StatTableJND.SubjID, StatTableSomVF.SubjID) == 0;
 StatTableJNDLs = StatTableJND;
 StatTableJNDLs(I,:) = [];
 
-% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
-% StatTableSomMN(I18,:) = [];
-% StatTableSomVF(I18,:) = [];
-% StatTableJNDLs(I18,:) = [];
 
 respPer_SomVF = StatTableSomVF.RespPer;
 respPer_SomMN = StatTableSomMN.RespPer;
@@ -138,6 +145,25 @@ RMS           = StatTableJNDLs.audioRMS;
 q6AllResponse  = [JNDScore respPer_Diff];
 [corrR, corrP] = corrcoef(q6AllResponse);
 q6Sentence = sprintf('Weak positive correlation between RespPer Diff and JND, (n = %d)', length(respPer_Diff));
+
+fprintf(fid, 'Relationship between Effect of Masking on Response to Laryngeal Perturbations and Auditory Acuity\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n', corrR(1,2), corrP(1,2), length(JNDScore));
+
+I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+StatTableSomMN(I18,:) = [];
+StatTableSomVF(I18,:) = [];
+StatTableJNDLs(I18,:) = [];
+
+respPer_SomVF = StatTableSomVF.RespPer;
+respPer_SomMN = StatTableSomMN.RespPer;
+respPer_Diff  = respPer_SomVF - respPer_SomMN; % Not Masked - Masked
+RMS           = StatTableJNDLs.audioRMS;
+JNDScore      = StatTableJNDLs.JNDScoreMean;
+q6AllResponse  = [JNDScore respPer_Diff];
+[corrR, corrP] = corrcoef(q6AllResponse);
+
+fprintf(fid, 'With the outlier removed\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
 
 % Perform the correltion controlling for f0
 [corrR2, corrP2] = partialcorr(q6AllResponse, RMS);
@@ -152,7 +178,7 @@ T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
 scatStr.x      = JNDScore;
 scatStr.y      = respPer_Diff;
 scatStr.xLabel = 'JND Score (cents)';
-scatStr.yLabel = 'Response Percentage Diff(%) (NM-M)';
+scatStr.yLabel = 'Response Percentage Diff(%) (Wo - W)';
 scatStr.title  = sprintf('Relationship between Effect of Masking on Response to\nLaryngeal Perturbation and Auditory Acuity');
 scatStr.sent   = q6Sentence;
 scatStr.color  = 'k';
@@ -168,13 +194,9 @@ scatStr.winPos = [0.42 0.26];
 drawScatterCorr(dirs, scatStr)
 end
 
-function addressQuest7(dirs, StatTableJND, StatTableAud)
+function addressQuest7(dirs, fid, StatTableJND, StatTableAud)
 % q7: Is there a relationship between the auditory f0 acuity and their
 % response to auditory feedback perturbation?
-
-% I18 = strcmp(StatTableAud.SubjID, 'DRF18');
-% StatTableAud(I18,:) = [];
-% StatTableJND(I18,:) = [];
 
 respPer_Aud = StatTableAud.RespPer;
 JNDScore    = StatTableJND.JNDScoreMean;
@@ -185,6 +207,23 @@ RMS         = StatTableJND.audioRMS;
 q7AllResponse = [JNDScore respPer_Aud];
 [corrR, corrP] = corrcoef(q7AllResponse);
 q7Sentence = sprintf('Weak negative correlation between RespPer and JND (n = %d)', length(JNDScore));
+
+fprintf(fid, 'Relationship between Response to Auditory Perturbations and Auditory Acuity\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n', corrR(1,2), corrP(1,2), length(JNDScore));
+
+%Outlier
+I18 = strcmp(StatTableAud.SubjID, 'DRF18');
+StatTableAud(I18,:) = [];
+StatTableJND(I18,:) = [];
+
+respPer_Aud = StatTableAud.RespPer;
+JNDScore    = StatTableJND.JNDScoreMean;
+RMS         = StatTableJND.audioRMS;
+
+q7AllResponse = [JNDScore respPer_Aud];
+[corrR, corrP] = corrcoef(q7AllResponse);
+fprintf(fid, 'With the outlier removed\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
 
 % Perform the correltion controlling for f0
 [corrR2, corrP2] = partialcorr(q7AllResponse, RMS);
@@ -199,7 +238,7 @@ T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
 scatStr.x      = JNDScore;
 scatStr.y      = respPer_Aud;
 scatStr.xLabel = 'JND Score (cents)';
-scatStr.yLabel = 'RespPer (%)';
+scatStr.yLabel = 'Response Percentage (%)';
 scatStr.title  = 'Relationship between Response to Auditory Feedback Perturbation and Auditory Acuity';
 scatStr.sent   = q7Sentence;
 scatStr.color  = 'k';
@@ -215,7 +254,7 @@ scatStr.winPos = [0.50 0.69];
 drawScatterCorr(dirs, scatStr)
 end
 
-function addressQuestE1(dirs, StatTableJND, StatTableSomMN)
+function addressQuestE1(dirs, fid, StatTableJND, StatTableSomMN)
 % qE1: Relationship between Response to Laryngeal Displacement and Auditory
 % Acuity
 
@@ -223,10 +262,6 @@ function addressQuestE1(dirs, StatTableJND, StatTableSomMN)
 I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
 StatTableJNDLs = StatTableJND;
 StatTableJNDLs(I,:) = [];
-
-% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
-% StatTableSomMN(I18,:) = [];
-% StatTableJNDLs(I18,:) = [];
 
 respPer_SomMN = StatTableSomMN.RespPer;
 JNDScore      = StatTableJNDLs.JNDScoreMean;
@@ -237,6 +272,22 @@ RMS           = StatTableJNDLs.audioRMS;
 qE1AllResponse = [JNDScore respPer_SomMN];
 [corrR, corrP] = corrcoef(qE1AllResponse);
 qE1Sentence = sprintf('Weak positive correlation between RespPer and JND (n = %d)', length(JNDScore));
+
+fprintf(fid, 'Relationship between Response to Laryngeal Perturbations and Auditory Acuity\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n', corrR(1,2), corrP(1,2), length(JNDScore));
+
+I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+StatTableSomMN(I18,:) = [];
+StatTableJNDLs(I18,:) = [];
+
+respPer_SomMN = StatTableSomMN.RespPer;
+JNDScore      = StatTableJNDLs.JNDScoreMean;
+f0            = StatTableJNDLs.f0;
+
+qE1AllResponse = [JNDScore respPer_SomMN];
+[corrR, corrP] = corrcoef(qE1AllResponse);
+fprintf(fid, 'With the outlier removed\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
 
 % Perform the correltion controlling for f0
 [corrR2, corrP2] = partialcorr(qE1AllResponse, f0);
@@ -251,8 +302,8 @@ T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
 scatStr.x      = JNDScore;
 scatStr.y      = respPer_SomMN;
 scatStr.xLabel = 'JND Score (cents)';
-scatStr.yLabel = 'RespPer (%)';
-scatStr.title  = 'Relationship between Response to Laryngeal Displacement and Auditory Acuity';
+scatStr.yLabel = 'Response Percentage (%)';
+scatStr.title  = 'Relationship between Response to Laryngeal Perturbations and Auditory Acuity';
 scatStr.sent   = qE1Sentence;
 scatStr.color  = 'k';
 scatStr.Table  = T;
@@ -267,16 +318,12 @@ scatStr.winPos = [0.52 0.23];
 drawScatterCorr(dirs, scatStr)
 end
 
-function addressQuestE2(dirs, StatTableJND, StatTableSomMN)
+function addressQuestE2(dirs, fid, StatTableJND, StatTableSomMN)
 
 % Currently Expecting Fewer 'Observations' from SomMN
 I = ismember(StatTableJND.SubjID, StatTableSomMN.SubjID) == 0;
 StatTableJNDLs = StatTableJND;
 StatTableJNDLs(I,:) = [];
-
-% I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
-% StatTableSomMN(I18,:) = [];
-% StatTableJNDLs(I18,:) = [];
 
 stimMag_SomMN = StatTableSomMN.StimMag;
 JNDScore      = StatTableJNDLs.JNDScoreMean;
@@ -286,6 +333,24 @@ f0            = StatTableJNDLs.f0;
 qE2AllResponse = [JNDScore stimMag_SomMN];
 [corrR, corrP] = corrcoef(qE2AllResponse);
 qE2Sentence = sprintf('Weak positive correlation between StimMag and JND (n = %d)', length(JNDScore));
+
+fprintf(fid, 'Relationship between Stimulus Magnitude by Laryngeal Perturbations and Auditory Acuity\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n', corrR(1,2), corrP(1,2), length(JNDScore));
+
+I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
+StatTableSomMN(I18,:) = [];
+StatTableJNDLs(I18,:) = [];
+
+stimMag_SomMN = StatTableSomMN.StimMag;
+JNDScore      = StatTableJNDLs.JNDScoreMean;
+f0            = StatTableJNDLs.f0;
+
+qE2AllResponse = [JNDScore stimMag_SomMN];
+[corrR, corrP] = corrcoef(qE2AllResponse);
+
+fprintf(fid, 'With the outlier removed\n');
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
+
 
 % Perform the correltion controlling for f0
 [corrR2, corrP2] = partialcorr(qE2AllResponse, f0);
@@ -300,7 +365,7 @@ T = table(allRhos, allPs, 'RowNames', rowNames, 'VariableNames', columnNames);
 scatStr.x      = JNDScore;
 scatStr.y      = stimMag_SomMN;
 scatStr.xLabel = 'JND Score (cents)';
-scatStr.yLabel = 'StimMag (cents)';
+scatStr.yLabel = 'Stimulus Magnitude (cents)';
 scatStr.title  = 'Relationship between Magnitude of Laryngeal Perturbation and Auditory Acuity';
 scatStr.sent   = qE2Sentence;
 scatStr.color  = 'k';
@@ -316,7 +381,7 @@ scatStr.winPos = [0.48 0.73];
 drawScatterCorr(dirs, scatStr)
 end
 
-function addressQuestE3(dirs, StatTableJND)
+function addressQuestE3(dirs, fid, StatTableJND)
 
 % I18 = strcmp(StatTableJND.SubjID, 'DRF18');
 % StatTableJND(I18,:) = [];
@@ -369,7 +434,7 @@ plotdim = [900 500];
 scatFig = figure('Color', [1 1 1]);
 set(scatFig, 'Position', [plotpos plotdim],'PaperPositionMode','auto')
 
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 14;
 
 plot(scatStr.x, scatStr.y, 'o', 'MarkerSize', 10, 'Color', scatStr.color, 'MarkerFaceColor', scatStr.color)
