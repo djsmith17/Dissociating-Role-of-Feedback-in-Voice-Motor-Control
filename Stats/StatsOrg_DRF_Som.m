@@ -2,6 +2,7 @@ function StatsOrg_DRF_Som(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
 meas   = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+measPub = {'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
 mUnits = {'s', 'cents', 'cents', '%'};
 
 cond    = pA.cond;
@@ -37,9 +38,10 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
-        measureVar.varName   = meas{k};
-        measureVar.condition = curCond;
-        measureVar.units     = mUnits{k};
+        measureVar.varName    = meas{k};
+        measureVar.varNamePub = measPub{k};
+        measureVar.condition  = curCond;
+        measureVar.units      = mUnits{k};
         
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
@@ -64,7 +66,8 @@ for k = curTestingMeas
     % Find the difference between the two conditions and place in Struct
     measDiff = measureSummaryStrs(1).measure - measureSummaryStrs(2).measure;
     
-    measureDiffVar.varName   = [meas{k} 'Diff'];
+    measureDiffVar.varName     = [meas{k} 'Diff'];
+    measureDiffVar.varNamePub  = [meas{k} 'Diff'];
     measureDiffVar.condition = 'Diff';
     measureDiffVar.units     = mUnits{k};
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
@@ -189,11 +192,12 @@ plotpos = [30 0]; plotdim = [700 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 varName     = measureSummaryStrs.varName;
+varNamePub  = measureSummaryStrs.varNamePub;
 measureData = [measureSummaryStrs.measure];
 
 boxplot(measureData)
-ylabel([varName ' (' summaryStrDiff.units ')'])
-title({pAnalysisFix, varName})
+ylabel([varNamePub ' (' summaryStrDiff.units ')'])
+% title({pAnalysisFix, varNamePub})
 box off
 
 yt = get(gca, 'YTick');
@@ -206,7 +210,14 @@ if isSig
     plot(mean(xt([1 2])), max(yt)*1.12, '*k', 'MarkerSize', 10)
     hold off
 end
-text(mean(xt([1 2]))-0.25, max(yt)*1.15, ['p = ' summaryStrDiff.ttestPstr], 'FontSize',18)
+
+if str2num(summaryStrDiff.ttestPstr) < 0.001
+    pValSent = 'p < .001';
+else
+    pValSent = sprintf('p = %0.3f', str2num(summaryStrDiff.ttestPstr));
+end
+
+text(mean(xt([1 2]))-0.25, max(yt)*1.15, pValSent, 'FontSize',18)
 
 set(gca, 'XTickLabel', cond)
 fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});

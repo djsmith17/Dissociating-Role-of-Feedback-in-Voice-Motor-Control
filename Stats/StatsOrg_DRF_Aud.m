@@ -2,6 +2,7 @@ function StatsOrg_DRF_Aud(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
 meas = {'StimMag', 'RespMag', 'RespPer'};
+measPub = {'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
 mUnits = {'cents', 'cents', '%'};
 
 cond    = pA.cond;
@@ -14,7 +15,7 @@ dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'Behavio
 curTestingMeas = 1:3;
 ApplyTrans = 0;
 for k = curTestingMeas
-    pA.k = k;
+    
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
@@ -38,6 +39,7 @@ for k = curTestingMeas
         measure = curStatTable.(curCond);
         
         measureVar.varName   = meas{k};
+        measureVar.varNamePub = measPub{k};
         measureVar.condition = curCond;
         measureVar.units     = mUnits{k};
         
@@ -63,7 +65,7 @@ for k = curTestingMeas
     
     % Visualizations
     drawHistograms(measureSummaryStrs, dirs, pA) % Visualize Distribution/Normality
-    drawBoxPlot(measureSummaryStrs, dirs, pA)    % Visualize Distribution/Outliers
+    drawBoxPlot(measureSummaryStrs, measureVar, dirs, pA)    % Visualize Distribution/Outliers
     
     % Save Behavioral Result Table: Values ready for inclusion in manuscript 
     writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
@@ -153,10 +155,9 @@ dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName su
 export_fig(dirs.DistributionFigureFile)
 end
 
-function drawBoxPlot(measureSummaryStrs, dirs, pA)
+function drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
 
-units  = {'cents', 'cents', '%'};
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 25;
 
 pAnalysis = pA.pAnalysis;
@@ -170,12 +171,13 @@ plotpos = [30 30]; plotdim = [700 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 varName     = measureSummaryStrs.varName;
+varNamePub  = measureSummaryStrs.varNamePub;
 measureData = [measureSummaryStrs.measure];
 
 boxplot(measureData, 'Labels', cond)
 xlabel('AudFB')
-ylabel([varName ' (' units{pA.k} ')'])
-title({pAnalysisFix, varName})
+ylabel([varNamePub ' (' summaryStrDiff.units ')'])
+% title({pAnalysisFix, varName})
 box off
 
 set(gca,'FontName', fontN,...

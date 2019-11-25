@@ -34,10 +34,11 @@ classdef MeasureSummaryStats
             % Load necessary identifiers
             obj.pAnalysis     = pA.pAnalysis;
             obj.SavResultsDir = dirs.SavResultsDir;
-            obj.alphaLevel    = 0.05/3;
+            obj.alphaLevel    = 0.05/1;
             
             % Unpack the measure into a structure
             str.varName  = measVar.varName;
+            str.varNamePub = measVar.varNamePub;
             str.cond     = measVar.condition;
             str.units    = measVar.units;
             str.measure  = measure;        % Raw Data Values

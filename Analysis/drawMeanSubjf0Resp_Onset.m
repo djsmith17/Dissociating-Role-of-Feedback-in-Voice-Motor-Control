@@ -177,10 +177,10 @@ for i = 1:length(plots)
 end
 
 ax2.delete;
-lgdButt.delete;
+lgdButt.Position = lgdPosition - [0.30 0 0 0];
 
-ax1.XLim = [-0.05 0.1];
-ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1];
+ax1.XLim = [-0.05 0.150];
+ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1, 0.12, 0.14];
 plTitle = [pltName '_OnsetZoom.jpg'];
 saveFileName = fullfile(plotFolder, plTitle);
 export_fig(saveFileName, '-r300')
