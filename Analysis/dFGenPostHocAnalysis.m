@@ -134,7 +134,6 @@ I = ismember(StatTableJND.SubjID, StatTableSomVF.SubjID) == 0;
 StatTableJNDLs = StatTableJND;
 StatTableJNDLs(I,:) = [];
 
-
 respPer_SomVF = StatTableSomVF.RespPer;
 respPer_SomMN = StatTableSomMN.RespPer;
 respPer_Diff  = respPer_SomVF - respPer_SomMN; % Not Masked - Masked
@@ -149,6 +148,7 @@ q6Sentence = sprintf('Weak positive correlation between RespPer Diff and JND, (n
 fprintf(fid, 'Relationship between Effect of Masking on Response to Laryngeal Perturbations and Auditory Acuity\n');
 fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n', corrR(1,2), corrP(1,2), length(JNDScore));
 
+%Outlier
 I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
 StatTableSomMN(I18,:) = [];
 StatTableSomVF(I18,:) = [];
@@ -156,14 +156,14 @@ StatTableJNDLs(I18,:) = [];
 
 respPer_SomVF = StatTableSomVF.RespPer;
 respPer_SomMN = StatTableSomMN.RespPer;
-respPer_Diff  = respPer_SomVF - respPer_SomMN; % Not Masked - Masked
-RMS           = StatTableJNDLs.audioRMS;
-JNDScore      = StatTableJNDLs.JNDScoreMean;
-q6AllResponse  = [JNDScore respPer_Diff];
-[corrR, corrP] = corrcoef(q6AllResponse);
+respPer_Diff_Out  = respPer_SomVF - respPer_SomMN; % Not Masked - Masked
+RMS_Out           = StatTableJNDLs.audioRMS;
+JNDScore_Out      = StatTableJNDLs.JNDScoreMean;
+q6AllResponse_Out = [JNDScore_Out respPer_Diff_Out];
+[corrR, corrP] = corrcoef(q6AllResponse_Out);
 
 fprintf(fid, 'With the outlier removed\n');
-fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore_Out));
 
 % Perform the correltion controlling for f0
 [corrR2, corrP2] = partialcorr(q6AllResponse, RMS);
@@ -216,14 +216,13 @@ I18 = strcmp(StatTableAud.SubjID, 'DRF18');
 StatTableAud(I18,:) = [];
 StatTableJND(I18,:) = [];
 
-respPer_Aud = StatTableAud.RespPer;
-JNDScore    = StatTableJND.JNDScoreMean;
-RMS         = StatTableJND.audioRMS;
+respPer_Aud_Out = StatTableAud.RespPer;
+JNDScore_Out    = StatTableJND.JNDScoreMean;
 
-q7AllResponse = [JNDScore respPer_Aud];
-[corrR, corrP] = corrcoef(q7AllResponse);
+q7AllResponse_Out = [JNDScore_Out respPer_Aud_Out];
+[corrR, corrP] = corrcoef(q7AllResponse_Out);
 fprintf(fid, 'With the outlier removed\n');
-fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
+fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore_Out));
 
 % Perform the correltion controlling for f0
 [corrR2, corrP2] = partialcorr(q7AllResponse, RMS);
@@ -276,16 +275,16 @@ qE1Sentence = sprintf('Weak positive correlation between RespPer and JND (n = %d
 fprintf(fid, 'Relationship between Response to Laryngeal Perturbations and Auditory Acuity\n');
 fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n', corrR(1,2), corrP(1,2), length(JNDScore));
 
+%Outlier
 I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
 StatTableSomMN(I18,:) = [];
 StatTableJNDLs(I18,:) = [];
 
-respPer_SomMN = StatTableSomMN.RespPer;
-JNDScore      = StatTableJNDLs.JNDScoreMean;
-f0            = StatTableJNDLs.f0;
+respPer_SomMN_Out = StatTableSomMN.RespPer;
+JNDScore_Out      = StatTableJNDLs.JNDScoreMean;
 
-qE1AllResponse = [JNDScore respPer_SomMN];
-[corrR, corrP] = corrcoef(qE1AllResponse);
+qE1AllResponse_Out = [JNDScore_Out respPer_SomMN_Out];
+[corrR, corrP] = corrcoef(qE1AllResponse_Out);
 fprintf(fid, 'With the outlier removed\n');
 fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
 
@@ -341,12 +340,11 @@ I18 = strcmp(StatTableSomMN.SubjID, 'DRF18');
 StatTableSomMN(I18,:) = [];
 StatTableJNDLs(I18,:) = [];
 
-stimMag_SomMN = StatTableSomMN.StimMag;
-JNDScore      = StatTableJNDLs.JNDScoreMean;
-f0            = StatTableJNDLs.f0;
+stimMag_SomMN_Out = StatTableSomMN.StimMag;
+JNDScore_Out      = StatTableJNDLs.JNDScoreMean;
 
-qE2AllResponse = [JNDScore stimMag_SomMN];
-[corrR, corrP] = corrcoef(qE2AllResponse);
+qE2AllResponse_Out = [JNDScore_Out stimMag_SomMN_Out];
+[corrR, corrP] = corrcoef(qE2AllResponse_Out);
 
 fprintf(fid, 'With the outlier removed\n');
 fprintf(fid, 'r = %0.5f, p = %0.5f, n = %d\n\n', corrR(1,2), corrP(1,2), length(JNDScore));
