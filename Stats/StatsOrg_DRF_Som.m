@@ -1,9 +1,9 @@
 function StatsOrg_DRF_Som(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas   = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-measPub = {'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
-mUnits = {'s', 'cents', 'cents', '%'};
+meas   = {'f0', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+measPub = {'Fundamental Frequency', 'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
+mUnits = {'Hz', 's', 'cents', 'cents', '%'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -12,7 +12,7 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:4;
+curTestingMeas = 1:5;
 ApplyTrans = 0;
 for k = curTestingMeas
     
@@ -50,7 +50,7 @@ for k = curTestingMeas
         summaryStat = summaryStat.testNormality();
         
         % Answering Research Questions 1-3
-        if k == 3 || k == 4
+        if k == 4 || k == 5
             summaryStat = summaryStat.performTTest(1); 
             rangeVal = ['A' num2str(7 +2*(i))];
             writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
@@ -72,7 +72,7 @@ for k = curTestingMeas
     measureDiffVar.units     = mUnits{k};
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
-    if k == 4
+    if k == 5
         % Apply a Box Cox transform with the default (best) lambda
         summaryStatDiff = performSimpleBoxCoxTrans(summaryStatDiff);
     end
@@ -238,7 +238,7 @@ numCond = length(pubCond);
 genVar = cell(numCond, 1);
 genVar(:) = {''};
 
-pubTable = table(genVar, genVar, genVar, genVar); % Four times for numMeas
+pubTable = table(genVar, genVar, genVar, genVar, genVar); % Four times for numMeas
 pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end
