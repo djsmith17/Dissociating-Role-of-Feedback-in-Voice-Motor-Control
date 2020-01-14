@@ -116,14 +116,17 @@ end
 allSubjRes.statTable = packStatTable(pooledRunStr);
 
 measVarJND.varName   = 'JNDScore';
+measVarJND.varNamePub = 'JNDScore';
 measVarJND.condition = 'JNDScore';
 measVarJND.units     = 'cents';
 
 measVarAccu.varName   = 'LastSetAccuracy';
+measVarAccu.varNamePub = 'LastSetAccuracy';
 measVarAccu.condition = 'LastSetAccuracy';
 measVarAccu.units     = '%';
 
 measVarLoud.varName   = 'TokenRMS';
+measVarLoud.varNamePub = 'TokenRMS';
 measVarLoud.condition = 'TokenRMS';
 measVarLoud.units     = 'dB';
 
