@@ -226,6 +226,8 @@ sortStr.tossedMisCalc    = 0;
 sortStr.tossedManual     = 0;
 sortStr.tossedAutoMiss   = 0;
 
+sortStr.pertLengths = cell(numCond, 1);
+
 sortStr.respVarSingle    = cell(numCond, 1);
 sortStr.respVarM         = cell(numCond, 1);
 
@@ -303,6 +305,10 @@ polRes.tossedBreak    = polRes.tossedBreak + tossT.B;     % Voice Break
 polRes.tossedMisCalc  = polRes.tossedMisCalc + tossT.C;   % f0 Miscalc
 polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Excluded Trials
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
+
+% Analysis of Perturbation Lengths
+pertLengths = PD.pertTime(:,2) - PD.pertTime(:,1);
+polRes.pertLengths{wC} = cat(1, polRes.pertLengths{wC}, pertLengths);
 end
 
 function [tossCounts, tossTrialTable, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTable, runItr)

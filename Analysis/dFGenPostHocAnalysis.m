@@ -26,10 +26,11 @@ dirs.AudResultsFile = fullfile(dirs.AudResultsDir, 'DRF_AudResultsDRF.mat');
 dirs.JNDResultsFile = fullfile(dirs.JNDResultsDir, 'DRF_JNDResultsDRF.mat');
 
 load(dirs.SomResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
-StatTableSom = allSubjRes.statTable;
+StatTableSom       = allSubjRes.statTable;
 StatTableSomSingle = allSubjRes.statTableSingle;
+pooledRunStrSom    = pooledRunStr;
 load(dirs.AudResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
-StatTableAud = allSubjRes.statTable;
+StatTableAud       = allSubjRes.statTable;
 StatTableAudSingle = allSubjRes.statTableSingle;
 load(dirs.JNDResultsFile) % Returns 'allSubjRes' 'pooledRunStr'
 StatTableJND = allSubjRes.statTable;
@@ -43,7 +44,34 @@ StatTableSomMN = StatTableSom(somMN, :);
 StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
-PostHocStatSent = 'Butts\nStunts';
+% Question E4% Perturbation Lengths
+boxValsVF = [];
+boxValsMN = [];
+
+for ii = 1:length(pooledRunStrSom)
+   boxValsVF = cat(2, boxValsVF, pooledRunStrSom(ii).pertLengths{1});
+   boxValsMN = cat(2, boxValsMN, pooledRunStrSom(ii).pertLengths{2}); 
+end
+
+boxValsVFMean = mean(boxValsVF);
+boxValsMNMean = mean(boxValsMN);
+
+[~, P, ~, STATS] = ttest([boxValsVFMean'-boxValsMNMean']);
+
+boxValsVFMeanMean = mean(boxValsVFMean);
+boxValsMNMeanMean = mean(boxValsMNMean);
+
+figure
+boxplot(boxValsVF)
+xlabel('Participant')
+ylabel('Perturbation Length (s)')
+title({'Without Masking Condition', 'Mean = 1.257s'})
+
+figure
+boxplot(boxValsMN)
+xlabel('Participant')
+ylabel('Perturbation Length (s)')
+title({'With Masking Condition', 'Mean = 1.260s'})
 
 % Question 4 %%%
 StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
@@ -63,7 +91,7 @@ addressQuestE1(dirs, fid, StatTableJND, StatTableSomMN)
 % Question E2 %%%
 addressQuestE2(dirs, fid, StatTableJND, StatTableSomMN)
 
-% Question E# %%%
+% Question E3 %%%
 addressQuestE3(dirs, fid, StatTableJND)
 
 fclose(fid);
