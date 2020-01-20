@@ -307,8 +307,12 @@ polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Exclude
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
 
 % Analysis of Perturbation Lengths
-pertLengths = PD.pertTime(:,2) - PD.pertTime(:,1);
-polRes.pertLengths{wC} = cat(1, polRes.pertLengths{wC}, pertLengths);
+if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+    pertLengths = PD.pertTime(:,2) - PD.pertTime(:,1);
+    polRes.pertLengths{wC} = cat(1, polRes.pertLengths{wC}, pertLengths);
+else
+    polRes.pertLengths{wC} = 0;
+end
 end
 
 function [tossCounts, tossTrialTable, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTable, runItr)
@@ -477,7 +481,7 @@ for wC = 1:pA.numCond
         audioDynamicsMeanTrace = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
     elseif strcmp(polRes.expType, 'Auditory Perturbation_Perceptual')
         audioDynamicsAllTraces = PitchShiftReflexResponseSingle(polRes.secTime, polRes.audioMf0SecPert{wC});
-        audioDynamicsMeanTrace = PitchShiftReflexResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
+        audioDynamicsMeanTrace = InflationResponse(polRes.secTime, polRes.audioHf0MeanPert{wC});
     end
     polRes.respVarSingle{wC} = audioDynamicsAllTraces;
     polRes.respVarM{wC} = audioDynamicsMeanTrace.respVarM;
@@ -661,6 +665,7 @@ ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respM
 % Add to the audioDynamics struct
 respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
 audioDynamics_Somato.respVarM = respVarM;
+% drawInflationResultMetrics(ir, 1, 0)
 end
 
 function audioDynamics_Somato = InflationResponseSingle(secTime, secAudioMean)
