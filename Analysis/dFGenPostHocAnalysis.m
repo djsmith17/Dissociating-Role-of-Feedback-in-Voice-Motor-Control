@@ -44,37 +44,8 @@ StatTableSomMN = StatTableSom(somMN, :);
 StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
-% Question E4% Perturbation Lengths
-boxValsVF = [];
-boxValsMN = [];
-
-for ii = 1:length(pooledRunStrSom)
-   boxValsVF = cat(2, boxValsVF, pooledRunStrSom(ii).pertLengths{1});
-   boxValsMN = cat(2, boxValsMN, pooledRunStrSom(ii).pertLengths{2}); 
-end
-
-boxValsVFMean = mean(boxValsVF);
-boxValsMNMean = mean(boxValsMN);
-
-[~, P, ~, STATS] = ttest([boxValsVFMean'-boxValsMNMean']);
-
-boxValsVFMeanMean = mean(boxValsVFMean);
-boxValsMNMeanMean = mean(boxValsMNMean);
-
-figure
-boxplot(boxValsVF)
-xlabel('Participant')
-ylabel('Perturbation Length (s)')
-title({'Without Masking Condition', 'Mean = 1.257s'})
-
-figure
-boxplot(boxValsMN)
-xlabel('Participant')
-ylabel('Perturbation Length (s)')
-title({'With Masking Condition', 'Mean = 1.260s'})
-
 % Question 4 %%%
-StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
+StatsOrg_DRF_Som_Aud_RMANOVA(dirs, StatTableSomVF, StatTableSomMN, StatTableAud)
 
 % Question 5 %%%
 addressQuest5(dirs, fid, StatTableAud, StatTableSomMN, StatTableJND)
@@ -93,6 +64,9 @@ addressQuestE2(dirs, fid, StatTableJND, StatTableSomMN)
 
 % Question E3 %%%
 addressQuestE3(dirs, fid, StatTableJND)
+
+% Question E4 %%%
+addressQuestE4(dirs, fid, pooledRunStrSom)
 
 fclose(fid);
 end
@@ -448,6 +422,37 @@ scatStr.winPos = [0.48 0.73];
 
 % Draw the scatter plot
 drawScatterCorr(dirs, scatStr)
+end
+
+function addressQuestE4(dirs, fid, pooledRunStrSom)
+% Question E4% Perturbation Lengths
+boxValsVF = [];
+boxValsMN = [];
+
+for ii = 1:length(pooledRunStrSom)
+   boxValsVF = cat(2, boxValsVF, pooledRunStrSom(ii).pertLengths{1});
+   boxValsMN = cat(2, boxValsMN, pooledRunStrSom(ii).pertLengths{2}); 
+end
+
+boxValsVFMean = mean(boxValsVF);
+boxValsMNMean = mean(boxValsMN);
+
+[~, P, ~, STATS] = ttest([boxValsVFMean'-boxValsMNMean']);
+
+boxValsVFMeanMean = mean(boxValsVFMean);
+boxValsMNMeanMean = mean(boxValsMNMean);
+
+figure
+boxplot(boxValsVF)
+xlabel('Participant')
+ylabel('Perturbation Length (s)')
+title({'Without Masking Condition', 'Mean = 1.257s'})
+
+figure
+boxplot(boxValsMN)
+xlabel('Participant')
+ylabel('Perturbation Length (s)')
+title({'With Masking Condition', 'Mean = 1.260s'})
 end
 
 function drawScatterCorr(dirs, scatStr)
