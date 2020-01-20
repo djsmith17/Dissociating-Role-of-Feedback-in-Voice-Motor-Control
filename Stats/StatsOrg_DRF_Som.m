@@ -1,9 +1,13 @@
 function StatsOrg_DRF_Som(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas   = {'f0', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+meas    = {'f0', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
 measPub = {'Fundamental Frequency', 'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
-mUnits = {'Hz', 's', 'cents', 'cents', '%'};
+mUnits  = {'Hz', 's', 'cents', 'cents', '%'};
+numMeas = length(meas);
+
+measFor1SampleTest  = {'RespMag', 'RespPer'};
+measToBeTransformed = {'f0', 'RespPer'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -12,9 +16,8 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:5;
 ApplyTrans = 0;
-for k = curTestingMeas
+for k = 1:numMeas
     
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
@@ -38,19 +41,22 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
+        % Setup a structure to be fed into the class.
         measureVar.varName    = meas{k};
         measureVar.varNamePub = measPub{k};
         measureVar.condition  = curCond;
         measureVar.units      = mUnits{k};
         
+        % Create an object which will make performing stats bvery easy. 
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
              
-        % Describe the normality
+        % Perform method of class which tests for normality
         summaryStat = summaryStat.testNormality();
         
-        % Answering Research Questions 1-3
-        if k == 4 || k == 5
+        % Do we need the result of a 1-sample t-test? 
+        % (Signficantly different than 0)
+        if ismember(meas{k}, measFor1SampleTest)
             summaryStat = summaryStat.performTTest(1); 
             rangeVal = ['A' num2str(7 +2*(i))];
             writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
@@ -68,13 +74,14 @@ for k = curTestingMeas
     
     measureDiffVar.varName     = [meas{k} 'Diff'];
     measureDiffVar.varNamePub  = [meas{k} 'Diff'];
-    measureDiffVar.condition = 'Diff';
-    measureDiffVar.units     = mUnits{k};
+    measureDiffVar.condition   = 'Diff';
+    measureDiffVar.units       = mUnits{k};
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
-    if k == 5
-        % Apply a Box Cox transform with the default (best) lambda
-        summaryStatDiff = performSimpleBoxCoxTrans(summaryStatDiff);
+    % Do we need to apply a transformation of the data?
+    if ismember(meas{k}, measToBeTransformed) && ApplyTrans
+        % Apply a Box Cox transform with the (best) lambda
+        summaryStatDiff = summaryStatDiff.performSimpleBoxCoxTrans();
     end
     
     summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
@@ -96,7 +103,7 @@ end
 writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
 
 % Save All Variable Table: Easy access excel file to check analysis
-fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
+fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.csv']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames', true)
 end
 
