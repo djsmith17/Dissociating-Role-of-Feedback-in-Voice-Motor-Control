@@ -4,7 +4,7 @@ function StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud
 
 pA.pAnalysis = 'DRF_Som_Aud';
 
-dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.csv']);
 
 % Question 4 %%%
 % Currently Expecting Fewer 'Observations' from SomVF/SomMN compared to Aud
@@ -73,6 +73,7 @@ varCmp = [1 2; 1 3; 2 3];
 varH   = [1.08, 1.16, 0.82];
 comp = length(varCmp);
 
+bigTable = table('size', [3 2], 'VariableNames', {'Comparisons', 'StatSentence'}, 'VariableTypes', {'string', 'string'});
 measureSummaryStrDiff = [];
 for jj = 1:comp
     cond = ['DiffBetween' num2str(varCmp(jj,:))];
@@ -97,9 +98,12 @@ for jj = 1:comp
 
     measureSummaryStrDiff = cat(1, measureSummaryStrDiff, summaryStatDiff.SummaryStruct);
     
-    % Save Behavioral Result Table: Values ready for inclusion in manuscript 
-    writetable(summaryStatDiff.statSentTable, dirs.behavioralResultTable, 'Range', 'A7', 'WriteRowNames', 1, 'Sheet', ['RespPer' cond])
+    bigTable.Comparisons(jj)  = cond;
+    bigTable.StatSentence(jj) = summaryStatDiff.statSentTable.StatSentence;
 end
+
+% Save Behavioral Result Table: Values ready for inclusion in manuscript 
+writetable(bigTable, dirs.behavioralResultTable, 'WriteRowNames', 1)
 
 drawBoxPlot(dirs, pA, measureSummaryStrs, measureSummaryStrDiff)
 end
