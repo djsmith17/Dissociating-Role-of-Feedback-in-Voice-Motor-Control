@@ -1,9 +1,9 @@
 function StatsOrg_DRF_Aud(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas = {'StimMag', 'RespMag', 'RespPer'};
-measPub = {'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
-mUnits = {'cents', 'cents', '%'};
+meas = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+measPub = {'tAtMin', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
+mUnits = {'s', 'cents', 'cents', '%'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -12,7 +12,7 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:3;
+curTestingMeas = 1:4;
 ApplyTrans = 0;
 for k = curTestingMeas
     
@@ -50,7 +50,7 @@ for k = curTestingMeas
         summaryStat = summaryStat.testNormality();
 
         % Answering Research Questions 4.1
-        if k == 2 || k == 3
+        if k == 3 || k == 4
             summaryStat = summaryStat.performTTest(1); 
             rangeVal = ['A' num2str(7 +2*(i))];
             writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
@@ -76,8 +76,8 @@ end
 
 writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
 
-% Save All Variable Table: Easy access excel file to check analysis
-fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
+% Save All Variable Table: Easy access csv file to check analysis
+fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.csv']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
 end
 
@@ -196,7 +196,7 @@ numCond = length(pubCond);
 genVar = cell(numCond, 1);
 genVar(:) = {''};
 
-pubTable = table(genVar, genVar, genVar); %Three times for numMeas
+pubTable = table(genVar, genVar, genVar, genVar); %Three times for numMeas
 pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end
