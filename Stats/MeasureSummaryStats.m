@@ -79,7 +79,7 @@ classdef MeasureSummaryStats
 
             % Z-Score and Shapiro-Wilk Test
             obj.SummaryStruct.measureZ  = zscore(obj.SummaryStruct.measureT);
-            [swH, swPValue, swTest]     = swtest(obj.SummaryStruct.measureZ);
+            [swH, swPValue, swTest]     = swtest(obj.SummaryStruct.measureT);
 
             % Add to the Summmary Data Structure
             obj.SummaryStruct.swH      = double(swH);
