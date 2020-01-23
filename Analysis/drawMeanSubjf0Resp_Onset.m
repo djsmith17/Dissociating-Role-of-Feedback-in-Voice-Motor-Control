@@ -57,7 +57,7 @@ if presFlag == 1
             measUnits = 'Pressure (psi)';
             measUnitTicks = [0 1 2 3 4];
             measLimits = [-0.5 1.0 0 4.5];
-            legendLabel = 'Pressure Trace';
+            legendLabel = 'Balloon pressure';
             limits(1) = -0.5;
 %             limits(2) = 0.6;
             micLegendSuffix = '';
@@ -68,7 +68,7 @@ if presFlag == 1
         case 'Auditory Perturbation_Perceptual'
             measUnits = 'Artificial {\it f}_o Shift (cents)';
             measUnitTicks = [-100 0 100];
-            legendLabel = 'Artificial {\it f}_o Shift';
+            legendLabel = 'Artificial {\it f}_o shift';
             limits = [-0.5 1.0 -105 105];
             measLimits = [-0.5 1.0 -105 0];
             micLegendSuffix = '-Produced';

@@ -19,9 +19,9 @@ respPer_AudLs = StatTableAudLs.RespPer;
 
 respPerCol = [respPer_SomVF, respPer_SomMN, respPer_AudLs];
 pA.condName = {'SomPert Not Masked', 'SomPert Masked', 'AudPert'};
-pA.pubCondName = {'Laryngeal Perturbation Without Masking',...
-                  'Laryngeal Perturbation With Masking',...
-                  'Auditory Perturbation'};
+pA.pubCondName = {'Laryngeal perturbation without auditory masking',...
+                  'Laryngeal perturbation with auditory masking',...
+                  'Auditory perturbation'};
 [~, pA.numCond] = size(respPerCol);
 
 ApplyTrans = 0;
@@ -204,7 +204,7 @@ for ii = 1:numComp
 end
 
 set(gca, 'XTickLabel', cond)
-fix_xticklabels(gca, 0.15, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
+fix_xticklabels(gca, 0.13, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...

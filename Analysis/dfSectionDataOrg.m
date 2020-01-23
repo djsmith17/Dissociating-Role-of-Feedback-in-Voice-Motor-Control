@@ -458,7 +458,7 @@ classdef dfSectionDataOrg
                 b = obj.sigsSecMLims(3) - m*minPres;
                 presTrace = plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.ON.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, presTrace);
-                obj.legendLabels = cat(2, obj.legendLabels, 'Pressure Trace');
+                obj.legendLabels = cat(2, obj.legendLabels, 'Balloon pressure');
                 hold on
             end
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
@@ -469,11 +469,11 @@ classdef dfSectionDataOrg
             if shadeFlag == 1
                 dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.ON.mean, obj.sigsSecM.ON.NCI, 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
-                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal movement index');
             else
                 dHOn = plot(obj.timeSec, obj.sigsSecM.ON.mean, 'color', 'k', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn);
-                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal movement index');
             end
             
             xlabel('Time (s)', 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -540,7 +540,7 @@ classdef dfSectionDataOrg
                 b = obj.sigsSecMLims(3) - m*minPres;
                 presTrace = plot(stimTraceProp.timeP, m*stimTraceProp.meanPres.OF.mean+b, 'color', pressureC, 'LineStyle', ':', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, presTrace);
-                obj.legendLabels = cat(2, obj.legendLabels, 'Pressure Trace');
+                obj.legendLabels = cat(2, obj.legendLabels, 'Balloon pressure');
                 hold on
             end
             plot(zeroLineX, zeroLineY, 'color', zeroLineC, 'LineWidth', lineThick, 'LineStyle', '--')
@@ -551,11 +551,11 @@ classdef dfSectionDataOrg
             if shadeFlag == 1
                 dHOn = shadedErrorBar(obj.timeSec, obj.sigsSecM.OF.mean, obj.sigsSecM.OF.NCI, 'lineprops', {'color', obj.dataColor1, 'LineWidth', lineThick}, 'transparent', 1);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn.mainLine);
-                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal movement index');
             else
                 dHOn = plot(obj.timeSec, obj.sigsSecM.OF.mean, 'color', 'k', 'LineWidth', lineThick);
                 obj.legendCurves = cat(2, obj.legendCurves, dHOn);
-                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal Movement Index');
+                obj.legendLabels = cat(2, obj.legendLabels, 'Laryngeal movement index');
             end
             
             xlabel('Time (s)', 'FontName', obj.figTextName, 'FontSize', axisLSize, 'FontWeight', 'bold'); 
@@ -697,7 +697,7 @@ classdef dfSectionDataOrg
             yyaxis right
             f0Trace = shadedErrorBar(time, sec.ON.mean, sec.ON.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
             obj.legendCurves = cat(2, obj.legendCurves, f0Trace.mainLine);
-            obj.legendLabels = cat(2, obj.legendLabels, '{\it f}_o Trace');
+            obj.legendLabels = cat(2, obj.legendLabels, '{\it f}_o');
             obj.LgdObj = legend(obj.legendCurves, obj.legendLabels);
             ylabel('{\it f}_o (cents)')
             axis([-0.5 1.0 -108 158])
@@ -711,7 +711,7 @@ classdef dfSectionDataOrg
             yyaxis right
             f0Trace = shadedErrorBar(time, sec.OF.mean, sec.OF.NCI, 'lineprops', {'color', obj.f0TraceColor, 'LineWidth', 4}, 'transparent', 1);
             obj.legendCurves = cat(2, obj.legendCurves, f0Trace.mainLine);
-            obj.legendLabels = cat(2, obj.legendLabels, '{\it f}_o Trace');
+            obj.legendLabels = cat(2, obj.legendLabels, '{\it f}_o');
             obj.LgdObj = legend(obj.legendCurves, obj.legendLabels);
             ylabel('{\it f}_o(cents)')
             axis([-0.5 1.0 -108 158])
