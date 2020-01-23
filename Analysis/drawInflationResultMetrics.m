@@ -1,8 +1,8 @@
-function drawInflationResultMetrics(ir, arrows, vals)
-% This has been optimized to diagram DRF18 SF3 mean trace results.
-% Hopefully in the future, the arrows will 
+function drawInflationResultMetrics(ir, arrows, vals, toggle)
+% Optimized for DRF18 SF3 mean trace results (default).
+% Can also be toggled for DRF13 mean auditory trace (toggle = 1).
 
-plotPos = [10 40];
+plotPos = [-1485 40];
 plotDim = [1485 1005];
 
 fontN        = 'Times New Roman';
@@ -15,6 +15,40 @@ minC   = [117,112,179]/255;
 respC  = [27,158,119]/255;
 figColor = [1 1 1];
 bColor = [0.8 0.8 0.8];
+
+if toggle == 1
+    % Auditory
+    lowf0PixelY  = 0.225;
+    lastf0PixelY = 0.46;
+    lowf0PixelYLow = lowf0PixelY - 0.03;
+    
+    SMArrowX = [0.33 0.33];
+    SMArrowY = [0.8 lowf0PixelY];
+    
+    RMArrowX = [0.853 0.853];
+    RMArrowY = [lowf0PixelY lastf0PixelY];
+    RMAnnoBox = [(RMArrowX(1)-0.140) 0.3 0.1 0.1];
+    
+    tMArrowX = [0.388 0.48];
+    tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
+    tMAnnoBox = [0.5 0.11 0.1 0.1];
+else
+    % Default
+    lowf0PixelY  = 0.34;
+    lastf0PixelY = 0.685;
+    lowf0PixelYLow = lowf0PixelY - 0.03;
+    
+    SMArrowX = [0.33 0.33];
+    SMArrowY = [0.81 lowf0PixelY];
+    
+    RMArrowX = [0.853 0.853];
+    RMArrowY = [lowf0PixelY lastf0PixelY];
+    RMAnnoBox = [(RMArrowX(1)-0.140) 0.35 0.1 0.1];
+    
+    tMArrowX = [0.388 0.455];
+    tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
+    tMAnnoBox = [0.465 (lowf0PixelYLow - 0.1) 0.1 0.1];
+end
 
 DVFig = figure('Color', figColor);
 set(DVFig, 'Position', [plotPos plotDim]);
@@ -37,7 +71,7 @@ plot(ir.tAtMin, ir.vAtMin, 'Color', minC, 'Marker', '^','MarkerFaceColor', minC,
 plot(ir.tAtResp, ir.vAtResp, 'Color', respC, 'Marker', 'o', 'MarkerFaceColor', respC,'MarkerSize', 20);
 
 % set the plot characteristics
-axis([ir.time(1) ir.time(end) (min(ir.onset) - 20) (max(ir.onset) + 20)])
+axis([ir.time(1) ir.time(end) -120 20])
 box off
 
 set(gca,'LineWidth', 2,...
@@ -49,12 +83,7 @@ set(gca,'LineWidth', 2,...
 
 % Toggle to draw arrows
 if arrows == 1
-    lowf0PixelY  = 0.24;
-    lastf0PixelY = 0.642;
-    lowf0PixelYLow = lowf0PixelY - 0.03;
-    
-    SMArrowX = [0.33 0.33];
-    SMArrowY = [0.78 lowf0PixelY];
+ 
     annotation('arrow', SMArrowX, SMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
     annotation('textbox', [0.19 0.30 0.1 0.1],...
                          'string', {'Stimulus', 'Magnitude'},...
@@ -64,10 +93,8 @@ if arrows == 1
                          'FontWeight','bold',...
                          'FontSize',legAnnoFSize)
 
-    RMArrowX = [0.853 0.853];
-    RMArrowY = [lowf0PixelY lastf0PixelY];
     annotation('arrow', RMArrowX, RMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
-    annotation('textbox', [(RMArrowX(1)-0.140) 0.3 0.1 0.1],...
+    annotation('textbox', RMAnnoBox,...
                          'string', {'Response', 'Magnitude'},...
                          'LineStyle', 'none',...
                          'HorizontalAlignment', 'center',...
@@ -75,10 +102,8 @@ if arrows == 1
                          'FontName', fontN,...
                          'FontSize',legAnnoFSize)
     
-    tMArrowX = [0.388 0.455];
-    tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
     annotation('arrow', tMArrowX, tMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
-    annotation('textbox', [0.465 0.11 0.1 0.1],...
+    annotation('textbox', tMAnnoBox,...
                          'string', {'Response', 'Latency'},...
                          'LineStyle', 'none',...
                          'HorizontalAlignment', 'center',...
