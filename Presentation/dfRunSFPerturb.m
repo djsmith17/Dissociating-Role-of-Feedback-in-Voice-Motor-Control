@@ -206,9 +206,9 @@ for ii = 1:expParam.numTrial
     rawData = cat(1, rawData, data);
        
     %Grab smooth RMS trace from 'data' structure
-    rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
+    dBSPLTrialMean = dfCalcMeanRMS(data, expParam.rmsB);
     %Compare against baseline and updated Visual Feedback
-    [color, newPos, loudResult] = dfUpdateVisFB(msrStr, rmsMean);
+    [color, newPos, loudResult] = dfUpdateVisFB(msrStr, dBSPLTrialMean);
     loudResults = cat(1, loudResults, loudResult);
     dispLoudnessResult(loudResult)
 

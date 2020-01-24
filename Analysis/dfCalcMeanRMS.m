@@ -1,18 +1,18 @@
-function rmsMean = dfCalcMeanRMS(rawData, varargin)
-%Calculates the mean RMS based on Audapter recorded microphone samples
+function dBSPLTrialMean = dfCalcMeanRMS(rawData, varargin)
+% Calculates the mean dB SPL from the rms of a recorded trial
 
+% Reference Sound Pressure
 if isempty(varargin)
-    refSPL  = 0.00002;  % 20 micropascals for air
+    refSPress  = 0.00002;    % Default 20 micropascals for air
 else
-    refSPL = varargin{1};
+    refSPress = varargin{1};
 end
 
-rms     = rawData.rms(:,1);
-rmsdB   = 20*log10(rms/refSPL);
+rmsVec     = rawData.rms(:,1);           % smoothed rms from Audapter
+dBSPLVec   = 20*log10(rmsVec/refSPress); % convert to dB
 
-%There were -Inf in my RMSdB. not exactly sure why, but this fixes the
-%trial 1, lack of feeedback
-rmsdB(rmsdB == -Inf) = 0;
+% Remove any -Inf in the vector
+dBSPLVec(dBSPLVec == -Inf) = 0;
 
-rmsMean = mean(rmsdB);
+dBSPLTrialMean = mean(dBSPLVec); % Average of the vector
 end
