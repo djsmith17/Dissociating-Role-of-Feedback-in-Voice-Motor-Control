@@ -65,8 +65,9 @@ addressQuestE2(dirs, fid, StatTableJND, StatTableSomMN)
 % Question E3 %%%
 addressQuestE3(dirs, fid, StatTableJND)
 
-% Question E4 %%%
+% Question E4 and E5 %%%
 addressQuestE4(dirs, fid, pooledRunStrSom)
+addressQuestE5(dirs, fid, pooledRunStrSom)
 
 fclose(fid);
 end
@@ -426,33 +427,83 @@ end
 
 function addressQuestE4(dirs, fid, pooledRunStrSom)
 % Question E4% Perturbation Lengths
-boxValsVF = [];
-boxValsMN = [];
+
+% measures to consider
+meas    = {'PertDur'};
+numMeas = length(meas);
+cond    = {'VF', 'MN'};
+numCond = length(cond);
+
+pertDurVF = [];
+pertDurMN = [];
 
 for ii = 1:length(pooledRunStrSom)
-   boxValsVF = cat(2, boxValsVF, pooledRunStrSom(ii).pertLengths{1});
-   boxValsMN = cat(2, boxValsMN, pooledRunStrSom(ii).pertLengths{2}); 
+   pertDurVF = cat(2, pertDurVF, pooledRunStrSom(ii).pertLengths{1});
+   pertDurMN = cat(2, pertDurMN, pooledRunStrSom(ii).pertLengths{2}); 
 end
 
-boxValsVFMean = mean(boxValsVF);
-boxValsMNMean = mean(boxValsMN);
+pertDurVFMean = mean(pertDurVF);
+pertDurMNMean = mean(pertDurMN);
 
-[~, P, ~, STATS] = ttest([boxValsVFMean'-boxValsMNMean']);
+[~, P, ~, STATS] = ttest([pertDurVFMean'-pertDurMNMean']);
 
-boxValsVFMeanMean = mean(boxValsVFMean);
-boxValsMNMeanMean = mean(boxValsMNMean);
+boxValsVFMeanMean = mean(pertDurVFMean);
+boxValsMNMeanMean = mean(pertDurMNMean);
+
+pertDurVFSTD = std(pertDurVFMean);
+pertDurMNSTD = std(pertDurMNMean);
 
 figure
-boxplot(boxValsVF)
+boxplot(pertDurVF)
 xlabel('Participant')
 ylabel('Perturbation Length (s)')
 title({'Without Masking Condition', 'Mean = 1.257s'})
 
 figure
-boxplot(boxValsMN)
+boxplot(pertDurMN)
 xlabel('Participant')
 ylabel('Perturbation Length (s)')
 title({'With Masking Condition', 'Mean = 1.260s'})
+end
+
+function addressQuestE5(dirs, fid, pooledRunStrSom)
+% Question E5% Perturbation Lengths
+
+% measures to consider
+meas    = {'PertOnsetTime'};
+numMeas = length(meas);
+cond    = {'VF', 'MN'};
+numCond = length(cond);
+
+pertOnsetTimesVF = [];
+pertOnsetTimesMN = [];
+
+for ii = 1:length(pooledRunStrSom)
+   pertOnsetTimesVF = cat(2, pertOnsetTimesVF, pooledRunStrSom(ii).pertOnsetTimes{1});
+   pertOnsetTimesMN = cat(2, pertOnsetTimesMN, pooledRunStrSom(ii).pertOnsetTimes{2}); 
+end
+
+pertOnsetTimesVFMean = mean(pertOnsetTimesVF);
+pertOnsetTimesMNMean = mean(pertOnsetTimesMN);
+
+[~, P, ~, STATS] = ttest([pertOnsetTimesVFMean'-pertOnsetTimesMNMean']);
+
+boxValsVFMeanMean = mean(pertOnsetTimesVFMean);
+boxValsMNMeanMean = mean(pertOnsetTimesMNMean);
+
+pertDurVFSTD = std(pertOnsetTimesVFMean);
+pertDurMNSTD = std(pertOnsetTimesMNMean);
+
+figure
+boxplot(pertOnsetTimesVF)
+xlabel('Participant')
+ylabel('Perturbation Length (s)')
+title({'Without Masking Condition', 'Mean = 2.10s'})
+figure
+boxplot(pertOnsetTimesMN)
+xlabel('Participant')
+ylabel('Perturbation Length (s)')
+title({'With Masking Condition', 'Mean = 2.13s'})
 end
 
 function drawScatterCorr(dirs, scatStr)

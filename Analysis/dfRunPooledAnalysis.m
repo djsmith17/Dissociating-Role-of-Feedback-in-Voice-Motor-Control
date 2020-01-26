@@ -42,6 +42,7 @@ pA.numCond       = length(pA.cond);
 pA.condVar       = cF.condVar;      % Variable to test the condition
 pA.testExt       = cF.testExt;
 pA.pubCond       = cF.pubCond;
+clear cF
 
 pA.pltNameMVi    = cell(pA.numPart, 1);
 pA.pltNameMVm    = [pA.pAnalysis 'MeanSubj' pA.testExt];
@@ -70,6 +71,7 @@ for ii = 1:pA.numPart
     end
     allDataStr = cat(1, allDataStr, subjRes);
 end
+clear cF participant run subjRes res
 
 numObs             = pA.numPart*pA.numCond;
 allSubjRes         = initSortedStruct(pA, numObs);
@@ -126,6 +128,7 @@ for ii = 1:pA.numPart
     allSubjRes.gender{ii} = sortStruc.gender;
     allSubjRes.age(ii)    = sortStruc.age;
 end
+clear ii jj participant runItr numObs curRes
 
 allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
@@ -226,7 +229,8 @@ sortStr.tossedMisCalc    = 0;
 sortStr.tossedManual     = 0;
 sortStr.tossedAutoMiss   = 0;
 
-sortStr.pertLengths = cell(numCond, 1);
+sortStr.pertLengths    = cell(numCond, 1);
+sortStr.pertOnsetTimes = cell(numCond, 1);
 
 sortStr.respVarSingle    = cell(numCond, 1);
 sortStr.respVarM         = cell(numCond, 1);
@@ -310,8 +314,12 @@ polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually remo
 if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     pertLengths = PD.pertTime(:,2) - PD.pertTime(:,1);
     polRes.pertLengths{wC} = cat(1, polRes.pertLengths{wC}, pertLengths);
+    
+    pertOnsetTime = curRes.allAuNiDelays(curRes.pertIdxNi) + curRes.presSD.pertTime(:,1);
+    polRes.pertOnsetTimes{wC} = cat(1, polRes.pertOnsetTimes{wC}, pertOnsetTime);
 else
-    polRes.pertLengths{wC} = 0;
+    polRes.pertLengths{wC}    = 0;
+    polRes.pertOnsetTimes{wC} = 0;
 end
 end
 
@@ -665,7 +673,7 @@ ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respM
 % Add to the audioDynamics struct
 respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
 audioDynamics_Somato.respVarM = respVarM;
-% drawInflationResultMetrics(ir, 1, 0)
+% drawInflationResultMetrics(ir, 1, 0, 1)
 end
 
 function audioDynamics_Somato = InflationResponseSingle(secTime, secAudioMean)
