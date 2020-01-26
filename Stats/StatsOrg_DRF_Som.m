@@ -7,7 +7,7 @@ mUnits  = {'Hz', 's', 'cents', 'cents', '%'};
 numMeas = length(meas);
 
 measFor1SampleTest  = {'RespMag', 'RespPer'};
-measToBeTransformed = {'f0', 'RespPer'};
+measToBeTransformed = {'f0'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -16,7 +16,7 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-ApplyTrans = 0;
+ApplyTrans = 1;
 for k = 1:numMeas
     
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
