@@ -57,9 +57,14 @@ for k = 1:numMeas
         % Do we need the result of a 1-sample t-test? 
         % (Signficantly different than 0)
         if ismember(meas{k}, measFor1SampleTest)
-            summaryStat = summaryStat.performTTest(1); 
-            rangeVal = ['A' num2str(7 +2*(i))];
-            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
+            summaryStat = summaryStat.performTTest(1);
+            summaryStat.SummaryStruct.cohensD = (summaryStat.SummaryStruct.mean - 0)/(summaryStat.SummaryStruct.SD);
+    
+            EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizePairedCohens_D'});
+    
+            rangeVal = num2str(7 +2*(i));
+            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', ['A' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
+            writetable(EffectTable, dirs.behavioralResultTable, 'Range', ['B' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
         end
         
         % Concatenate the Summary Stat Arrays across condition
@@ -86,15 +91,20 @@ for k = 1:numMeas
     
     summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
     summaryStatDiff = summaryStatDiff.performTTest();        % Perform t-test
+    summaryStatDiff.SummaryStruct.cohensD = summaryStatDiff.SummaryStruct.ttestStat*sqrt(1/summaryStatDiff.SummaryStruct.numObvs);
+    
+    EffectTable = table(summaryStatDiff.SummaryStruct.cohensD, 'VariableNames', {'EffectSizePairedCohens_D'});
+    
     summaryStatDiff.drawHistoBoxCombo()                      % Visualize Normality/Outliers
     
     % Visualizations
     drawHistograms(measureSummaryStrs, dirs, pA)             % Visualize Distribution/Normality
-    drawBoxPlot(measureSummaryStrs, summaryStatDiff.SummaryStruct, dirs, pA)% Visualize Distribution/Outliers 
+    drawBoxPlot(measureSummaryStrs, summaryStatDiff.SummaryStruct, dirs, pA)% Visualize Distribution/Outliers
         
     % Save Behavioral Result Table: Values ready for inclusion in manuscript 
     writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
     writetable(summaryStatDiff.statSentTable, dirs.behavioralResultTable, 'Range', 'A7', 'WriteRowNames', 1, 'Sheet', meas{k})
+    writetable(EffectTable, dirs.behavioralResultTable, 'Range', 'B7', 'WriteRowNames', 1, 'Sheet', meas{k})
     
     % Add to the Table for publication
     pubTable = popPubTable(pubTable, k, summaryVarTableAcrossCond);
