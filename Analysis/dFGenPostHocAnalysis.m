@@ -447,8 +447,8 @@ pertDurMNMean = mean(pertDurMN);
 
 [~, P, ~, STATS] = ttest([pertDurVFMean'-pertDurMNMean']);
 
-boxValsVFMeanMean = mean(pertDurVFMean);
-boxValsMNMeanMean = mean(pertDurMNMean);
+pertDurVFMeanMean = mean(pertDurVFMean);
+pertDurMNMeanMean = mean(pertDurMNMean);
 
 pertDurVFSTD = std(pertDurVFMean);
 pertDurMNSTD = std(pertDurMNMean);
@@ -464,6 +464,15 @@ boxplot(pertDurMN)
 xlabel('Participant')
 ylabel('Perturbation Length (s)')
 title({'With Masking Condition', 'Mean = 1.260s'})
+
+fprintf('The mean duration times (With Masking: %.2f +/- %.2f; Without Masking: %.2f +/- %.2f) did not differ significantly by condition (duration: t(%d)= %.2f, p = %.3f).\n', pertDurMNMeanMean,...
+                                                                                                                                                                                pertDurMNSTD,...
+                                                                                                                                                                                pertDurVFMeanMean,...
+                                                                                                                                                                                pertDurVFSTD,...
+                                                                                                                                                                                STATS.df,...
+                                                                                                                                                                                STATS.tstat,...
+                                                                                                                                                                                P)
+
 end
 
 function addressQuestE5(dirs, fid, pooledRunStrSom)
@@ -488,11 +497,11 @@ pertOnsetTimesMNMean = mean(pertOnsetTimesMN);
 
 [~, P, ~, STATS] = ttest([pertOnsetTimesVFMean'-pertOnsetTimesMNMean']);
 
-boxValsVFMeanMean = mean(pertOnsetTimesVFMean);
-boxValsMNMeanMean = mean(pertOnsetTimesMNMean);
+pertOnsetTimesVFMeanMean = mean(pertOnsetTimesVFMean);
+pertOnsetTimesMNMeanMean = mean(pertOnsetTimesMNMean);
 
-pertDurVFSTD = std(pertOnsetTimesVFMean);
-pertDurMNSTD = std(pertOnsetTimesMNMean);
+pertOnsetTimesVFSTD = std(pertOnsetTimesVFMean);
+pertOnsetTimesMNSTD = std(pertOnsetTimesMNMean);
 
 figure
 boxplot(pertOnsetTimesVF)
@@ -504,6 +513,14 @@ boxplot(pertOnsetTimesMN)
 xlabel('Participant')
 ylabel('Perturbation Length (s)')
 title({'With Masking Condition', 'Mean = 2.13s'})
+
+fprintf('The mean onset times (With Masking: %.2f +/- %.2f; Without Masking: %.2f +/- %.2f) did not differ significantly by condition (onset: t(%d)= %.2f, p = %.3f).\n', pertOnsetTimesMNMeanMean,...
+                                                                                                                                                                          pertOnsetTimesMNSTD,...
+                                                                                                                                                                          pertOnsetTimesVFMeanMean,...
+                                                                                                                                                                          pertOnsetTimesVFSTD,...
+                                                                                                                                                                          STATS.df,...
+                                                                                                                                                                          STATS.tstat,...
+                                                                                                                                                                          P)
 end
 
 function drawScatterCorr(dirs, scatStr)

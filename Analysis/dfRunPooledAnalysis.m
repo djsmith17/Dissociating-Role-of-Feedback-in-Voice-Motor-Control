@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -315,7 +315,7 @@ if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     pertLengths = PD.pertTime(:,2) - PD.pertTime(:,1);
     polRes.pertLengths{wC} = cat(1, polRes.pertLengths{wC}, pertLengths);
     
-    pertOnsetTime = curRes.allAuNiDelays(curRes.pertIdxNi) + curRes.presSD.pertTime(:,1);
+    pertOnsetTime = 0.8 + curRes.presSD.pertTime(:,1);
     polRes.pertOnsetTimes{wC} = cat(1, polRes.pertOnsetTimes{wC}, pertOnsetTime);
 else
     polRes.pertLengths{wC}    = 0;
