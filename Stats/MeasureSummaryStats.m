@@ -112,10 +112,10 @@ classdef MeasureSummaryStats
         function obj = performTTest(obj, varargin)
             % Perform a One-Sample T-Test on the difference between the measures
             
-            if isempty(varargin)
-                type = 'between the two conditions';
+            if ~isempty(varargin)
+                ttestType = sprintf('between the two conditions of %s and %s', varargin{1}, varargin{2});
             else
-                type = ['than 0 in the ' obj.SummaryStruct.cond ' condition'];
+                ttestType = ['than 0 in the ' obj.SummaryStruct.cond ' condition'];
             end
             
             [~, P, ~, STATS] = ttest(obj.SummaryStruct.measureT);
@@ -129,10 +129,10 @@ classdef MeasureSummaryStats
                 sigNote = ' not';
             end
             
-            statSentence = sprintf('The variable %s was%s signficantly different %s t(%d) = %0.2f, p = %0.6f\n',...
+            statSentence = sprintf('The variable %s was%s signficantly different %s (t(%d) = %0.2f, p = %0.6f)\n',...
                                    obj.SummaryStruct.varName,...
                                    sigNote,...
-                                   type,...
+                                   ttestType,...
                                    STATS.df,...
                                    STATS.tstat,...
                                    P);
