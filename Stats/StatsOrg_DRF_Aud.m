@@ -4,6 +4,9 @@ allSubjStatTable = allSubjRes.statTable;
 meas = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
 measPub = {'tAtMin', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
 mUnits = {'s', 'cents', 'cents', '%'};
+numMeas = length(meas);
+
+measFor1SampleTest  = {'RespMag', 'RespPer'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -12,14 +15,13 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:4;
 ApplyTrans = 0;
-for k = curTestingMeas
+for k = 1:numMeas
     
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
-    if k == 1 && ApplyTrans
+    if k == 6 && ApplyTrans
         for i = 1:numCond
             % Identify the Variable and Condition
             measure   = curStatTable.(cond_table{i});
@@ -38,10 +40,10 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
-        measureVar.varName   = meas{k};
+        measureVar.varName    = meas{k};
         measureVar.varNamePub = measPub{k};
-        measureVar.condition = curCond;
-        measureVar.units     = mUnits{k};
+        measureVar.condition  = curCond;
+        measureVar.units      = mUnits{k};
         
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
@@ -49,11 +51,17 @@ for k = curTestingMeas
         % Describe the normality
         summaryStat = summaryStat.testNormality();
 
-        % Answering Research Questions 4.1
-        if k == 3 || k == 4
-            summaryStat = summaryStat.performTTest(1); 
-            rangeVal = ['A' num2str(7 +2*(i))];
-            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
+        % Do we need the result of a 1-sample t-test? 
+        % (Signficantly different than 0)
+        if ismember(meas{k}, measFor1SampleTest)
+            summaryStat = summaryStat.performTTest(1);
+            summaryStat.SummaryStruct.cohensD = (summaryStat.SummaryStruct.mean - 0)/(summaryStat.SummaryStruct.SD);
+    
+            EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizeCohens_D'});
+            
+            rangeVal = num2str(7 +2*(i));
+            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', ['A' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
+            writetable(EffectTable, dirs.behavioralResultTable, 'Range', ['B' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
         end
         
         % Concatenate the Summary Stat Arrays across condition

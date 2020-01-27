@@ -22,7 +22,7 @@ for k = 1:numMeas
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
-    if k == 1 && ApplyTrans
+    if k == 6 && ApplyTrans
         for i = 1:numCond
             % Identify the Variable and Condition
             measure   = curStatTable.(cond_table{i});
@@ -60,7 +60,7 @@ for k = 1:numMeas
             summaryStat = summaryStat.performTTest(1);
             summaryStat.SummaryStruct.cohensD = (summaryStat.SummaryStruct.mean - 0)/(summaryStat.SummaryStruct.SD);
     
-            EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizePairedCohens_D'});
+            EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizeCohens_D'});
     
             rangeVal = num2str(7 +2*(i));
             writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', ['A' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
