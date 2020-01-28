@@ -146,6 +146,37 @@ classdef MeasureSummaryStats
             
         end
         
+        function obj = performWilcoxonRankTest(obj, varargin)
+            
+            if ~isempty(varargin)
+                WilcoxTestType = sprintf('between the two conditions of %s and %s', varargin{1}, varargin{2});
+            else
+                WilcoxTestType = ['than 0 in the ' obj.SummaryStruct.cond ' condition'];
+            end
+            
+            [P, ~, STATS] = signrank(obj.SummaryStruct.measure);
+            
+            if P < obj.alphaLevel
+                isSig = 1;
+                sigNote = '';
+            else
+                isSig = 0;
+                sigNote = ' not';
+            end
+            
+            statSentence = sprintf('The variable %s was%s significantly different %s (Z = %0.3f, p = %0.6f)\n',...
+                                                                                     obj.SummaryStruct.varName,...
+                                                                                     sigNote,...
+                                                                                     WilcoxTestType,...
+                                                                                     STATS.zval,...
+                                                                                     P);
+            
+            obj.SummaryStruct.zstat        = STATS.zval;
+            obj.SummaryStruct.wrtPValue    = P;
+            obj.SummaryStruct.isSig        = isSig;
+            obj.SummaryStruct.statSentence = statSentence;
+        end
+        
         function drawHistogram(obj)
             
             measure    = obj.SummaryStruct.measureT;
