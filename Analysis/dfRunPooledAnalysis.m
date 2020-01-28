@@ -95,6 +95,8 @@ for ii = 1:pA.numPart
     sortStruc.cond    = pA.cond;
     sortStruc.pubCond = pA.pubCond;
  
+    wcCount_indivi = [0 0];
+    wcCount_group  = [0 0];
     for jj = 1:pA.numRuns
         curRes = allDataStr(ii, jj);
 
@@ -110,8 +112,8 @@ for ii = 1:pA.numPart
             curRes = adjustCurRes(curRes, autoMiss);
         end
         
-        sortStruc  = combineCondTrials(pA, curRes, sortStruc, tossCounts);       
-        allSubjRes = combineCondTrials(pA, curRes, allSubjRes, tossCounts);
+        [sortStruc, wcCount_indivi] = combineCondTrials(pA, curRes, sortStruc, tossCounts, wcCount_indivi);       
+        [allSubjRes, wcCount_group] = combineCondTrials(pA, curRes, allSubjRes, tossCounts, wcCount_group);
     end
         
     sortStruc = meanCondTrials(pA, sortStruc);
@@ -236,6 +238,12 @@ sortStr.respVarSingle    = cell(numCond, 1);
 sortStr.respVarM         = cell(numCond, 1);
 
 sortStr.statTable = initStatTable(numObs);
+
+sortStr.audioMf0SecPert_all  = cell(numCond, 2);
+sortStr.audioHf0SecPert_all  = cell(numCond, 2);
+sortStr.audioMf0MeanPert_all = cell(numCond, 2);
+sortStr.audioHf0MeanPert_all = cell(numCond, 2);
+sortStr.respVarM_all         = cell(numCond, 2);
 end
 
 function [tossTrialTable] = initTossedTrialTable(totnumRuns)
@@ -251,8 +259,8 @@ end
 
 function [statTable] = initStatTable(numObs)
 
-varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double'};
+varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer', 'tAtMin1', 'tAtMin2', 'StimMag1', 'StimMag2', 'RespMag1', 'RespMag2', 'RespPer1', 'RespPer2'};
+varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double'};
 numVar = length(varNames);
 
 statTable = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
@@ -267,12 +275,13 @@ numVar = length(varNames);
 statTableSingle = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
 end
 
-function polRes = combineCondTrials(pA, curRes, polRes, tossT)
+function [polRes, wCCount] = combineCondTrials(pA, curRes, polRes, tossT, wCCount)
 AD = curRes.audioDynamics; % Audio Dynamics
 PD = curRes.presSDsv;      % Pressure Dynamics
 
 whichCondAr = strcmp(pA.cond, eval(pA.condVar));
 wC          = find(whichCondAr == 1);            % Which Condition?
+wCCount = wCCount + whichCondAr;
 
 % Run Information
 polRes.runs{wC}   = cat(1, polRes.runs{wC}, {curRes.run});
@@ -291,6 +300,10 @@ polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0S
 polRes.audioHf0SecPert{wC} = cat(2, polRes.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCont);
+
+% the all...harumph
+polRes.audioMf0SecPert_all{wC, wCCount(wC)} = cat(2, polRes.audioMf0SecPert_all{wC, wCCount(wC)}, curRes.audioMf0SecPert);
+polRes.audioHf0SecPert_all{wC, wCCount(wC)} = cat(2, polRes.audioHf0SecPert_all{wC, wCCount(wC)}, curRes.audioHf0SecPert);
 
 % Pre Voicing Dynamics
 polRes.prePertVoicingTimeCont     = cat(1, polRes.prePertVoicingTimeCont, curRes.prePertVoicingTimeinc(curRes.contIdxFin));
@@ -475,6 +488,8 @@ else
     polRes.sensorPRiseTimeM = [0 0];
 end
 
+[~, numTypes] = size(polRes.audioMf0MeanPert_all);
+
 for wC = 1:pA.numCond
     polRes.f0b(wC)              = mean(polRes.runf0b{wC});
     
@@ -484,15 +499,30 @@ for wC = 1:pA.numCond
     polRes.AuMHDelayMean(1)     = mean(polRes.AuMHDelays{wC});
     polRes.AuMHDelayMean(2)     = std(polRes.AuMHDelays{wC});
     
+    for ii = 1:numTypes
+        polRes.audioMf0MeanPert_all{wC, ii} = meanSecData(polRes.audioMf0SecPert_all{wC, ii});
+        polRes.audioHf0MeanPert_all{wC, ii} = meanSecData(polRes.audioHf0SecPert_all{wC, ii});
+    end
+    
     if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
         audioDynamicsAllTraces = InflationResponseSingle(polRes.secTime, polRes.audioMf0SecPert{wC});
         audioDynamicsMeanTrace = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
+        
+        for ii = 1:numTypes
+            audioDynamicsMeanTrace_AllRun = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert_all{wC, ii});
+            polRes.respVarM_all{wC, ii} = audioDynamicsMeanTrace_AllRun.respVarM;
+        end
     elseif strcmp(polRes.expType, 'Auditory Perturbation_Perceptual')
         audioDynamicsAllTraces = PitchShiftReflexResponseSingle(polRes.secTime, polRes.audioMf0SecPert{wC});
         audioDynamicsMeanTrace = InflationResponse(polRes.secTime, polRes.audioHf0MeanPert{wC});
+        
+        for ii = 1:numTypes
+            audioDynamicsMeanTrace_AllRun = InflationResponse(polRes.secTime, polRes.audioHf0MeanPert_all{wC, ii});
+            polRes.respVarM_all{wC, ii} = audioDynamicsMeanTrace_AllRun.respVarM;
+        end
     end
     polRes.respVarSingle{wC} = audioDynamicsAllTraces;
-    polRes.respVarM{wC} = audioDynamicsMeanTrace.respVarM;
+    polRes.respVarM{wC}      = audioDynamicsMeanTrace.respVarM;
 end
 
 % Identify Limits of the newly meaned data
@@ -550,17 +580,30 @@ for wC = 1:pA.numCond
     polRes.statTable.StimMag(curIdx) = sortStruc.respVarM{wC}(2);
     polRes.statTable.RespMag(curIdx) = sortStruc.respVarM{wC}(3);
     polRes.statTable.RespPer(curIdx) = sortStruc.respVarM{wC}(4);
+    
+    polRes.statTable.tAtMin1(curIdx) = sortStruc.respVarM_all{wC,1}(1);
+    polRes.statTable.tAtMin2(curIdx) = sortStruc.respVarM_all{wC,2}(1);
+    polRes.statTable.StimMag1(curIdx) = sortStruc.respVarM_all{wC,1}(2);
+    polRes.statTable.StimMag2(curIdx) = sortStruc.respVarM_all{wC,2}(2);
+    polRes.statTable.RespMag1(curIdx) = sortStruc.respVarM_all{wC,1}(3);
+    polRes.statTable.RespMag2(curIdx) = sortStruc.respVarM_all{wC,2}(3);
+    polRes.statTable.RespPer1(curIdx) = sortStruc.respVarM_all{wC,1}(4);
+    polRes.statTable.RespPer2(curIdx) = sortStruc.respVarM_all{wC,2}(4);
 end
 end
 
 function allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr)
 
-numPartici = length(pooledRunStr);
+numPartici    = length(pooledRunStr);
+[~, numTypes] = size(allSubjRes.audioMf0SecPert_all);
 
 audioMf0SecContAllSubj = [];
 audioMf0SecPertAllSubj = cell(pA.numCond,1);
+audioMf0SecPertAllSubj_all = cell(pA.numCond,2);
 audioHf0SecContAllSubj = [];
 audioHf0SecPertAllSubj = cell(pA.numCond,1);
+audioHf0SecPertAllSubj_all = cell(pA.numCond,2);
+count = 0;
 for nP = 1:numPartici
     curSubj = pooledRunStr(nP);
     
@@ -588,6 +631,21 @@ for nP = 1:numPartici
         secPert(:,:,1) = meanOnsetPert;
         secPert(:,:,2) = meanOffsetPert;
         audioHf0SecPertAllSubj{wC} = cat(2, audioHf0SecPertAllSubj{wC}, secPert);
+        
+        for ii = 1:numTypes
+            count = count + 1;
+            meanOnsetPert   = curSubj.audioMf0MeanPert_all{wC,ii}.ON.mean;
+            meanOffsetPert  = curSubj.audioMf0MeanPert_all{wC,ii}.OF.mean;
+            secPert(:,:,1) = meanOnsetPert;
+            secPert(:,:,2) = meanOffsetPert;
+            audioMf0SecPertAllSubj_all{wC,ii} = cat(2, audioMf0SecPertAllSubj_all{wC,ii}, secPert);
+
+            meanOnsetPert   = curSubj.audioHf0MeanPert_all{wC,ii}.ON.mean;
+            meanOffsetPert  = curSubj.audioHf0MeanPert_all{wC,ii}.OF.mean;
+            secPert(:,:,1) = meanOnsetPert;
+            secPert(:,:,2) = meanOffsetPert;
+            audioHf0SecPertAllSubj_all{wC,ii} = cat(2, audioHf0SecPertAllSubj_all{wC,ii}, secPert);
+        end
     end
 end
 
@@ -595,6 +653,9 @@ allSubjRes.audioMf0SecCont = audioMf0SecContAllSubj;
 allSubjRes.audioMf0SecPert = audioMf0SecPertAllSubj;
 allSubjRes.audioHf0SecCont = audioHf0SecContAllSubj;
 allSubjRes.audioHf0SecPert = audioHf0SecPertAllSubj;
+
+allSubjRes.audioMf0SecPert_all = audioMf0SecPertAllSubj_all;
+allSubjRes.audioMf0SecPert_all = audioHf0SecPertAllSubj_all;
 end
 
 function secDataM = meanSecData(secData)
