@@ -155,6 +155,7 @@ classdef MeasureSummaryStats
             end
             
             [P, ~, STATS] = signrank(obj.SummaryStruct.measure);
+            Pstr   = sprintf('%0.6f', P);
             
             if P < obj.alphaLevel
                 isSig = 1;
@@ -173,8 +174,10 @@ classdef MeasureSummaryStats
             
             obj.SummaryStruct.zstat        = STATS.zval;
             obj.SummaryStruct.wrtPValue    = P;
+            obj.SummaryStruct.ttestPstr    = Pstr;
             obj.SummaryStruct.isSig        = isSig;
             obj.SummaryStruct.statSentence = statSentence;
+            obj.statSentTable = table({statSentence}, 'VariableNames', {'StatSentence'});
         end
         
         function drawHistogram(obj)
