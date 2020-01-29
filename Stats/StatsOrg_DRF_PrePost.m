@@ -57,19 +57,19 @@ for k = 1:numMeas
         measureSummaryStrs = cat(1, measureSummaryStrs, summaryStat2.SummaryStruct); 
         
         % Visualizations
-        drawHistograms(measureSummaryStrs, dirs, pA)             % Visualize Distribution/Normality
+%         drawHistograms(measureSummaryStrs, dirs, pA)             % Visualize Distribution/Normality
 
-        
         % Take the difference
         measDiff = summaryStat1.SummaryStruct.measure - summaryStat2.SummaryStruct.measure;
         
-        measureDiffVar.varName     = [meas{k} 'Diff'];
+        measureDiffVar.varName     = [meas{k} 'Diff ' curCond1];
         measureDiffVar.varNamePub  = [meas{k} 'Diff'];
         measureDiffVar.condition   = [curCond1 ' between sets'];
         measureDiffVar.units       = mUnits{k};
         summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
         
         summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
+        summaryStatDiff.SummaryStruct.suffix = curCond1;
         summaryStatDiff.drawHistoBoxCombo()
         if summaryStatDiff.SummaryStruct.swH == 1
             summaryStatDiff = summaryStatDiff.performWilcoxonRankTest();
@@ -78,12 +78,7 @@ for k = 1:numMeas
         end
         disp(summaryStatDiff.SummaryStruct.statSentence)
     end
-    
-    % Do we need to apply a transformation of the data?
-    if ismember(meas{k}, measToBeTransformed) && ApplyTrans
-        % Apply a Box Cox transform with the (best) lambda
-        summaryStatDiff = summaryStatDiff.performSimpleBoxCoxTrans();
-    end
+
     
 % 
 %     summaryStatDiff.SummaryStruct.cohensD = summaryStatDiff.SummaryStruct.ttestStat*sqrt(1/summaryStatDiff.SummaryStruct.numObvs);
