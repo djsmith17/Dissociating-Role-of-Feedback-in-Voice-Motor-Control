@@ -7,7 +7,6 @@ mUnits  = {'Hz', 's', 'cents', 'cents', '%'};
 numMeas = length(meas);
 
 measFor1SampleTest  = {'RespMag', 'RespPer'};
-measToBeTransformed = {'f0'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -57,7 +56,7 @@ for k = 1:numMeas
         % Do we need the result of a 1-sample t-test? 
         % (Signficantly different than 0)
         if ismember(meas{k}, measFor1SampleTest)
-            summaryStat = summaryStat.performTTest(1);
+            summaryStat = summaryStat.performTTest();
             summaryStat.SummaryStruct.cohensD = (summaryStat.SummaryStruct.mean - 0)/(summaryStat.SummaryStruct.SD);
     
             EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizeCohens_D'});
@@ -83,19 +82,19 @@ for k = 1:numMeas
     measureDiffVar.units       = mUnits{k};
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
-    % Do we need to apply a transformation of the data?
-    if ismember(meas{k}, measToBeTransformed) && ApplyTrans
-        % Apply a Box Cox transform with the (best) lambda
-        summaryStatDiff = summaryStatDiff.performSimpleBoxCoxTrans();
-    end
-    
     summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
-    summaryStatDiff = summaryStatDiff.performTTest();        % Perform t-test
-    summaryStatDiff.SummaryStruct.cohensD = summaryStatDiff.SummaryStruct.ttestStat*sqrt(1/summaryStatDiff.SummaryStruct.numObvs);
-    
-    EffectTable = table(summaryStatDiff.SummaryStruct.cohensD, 'VariableNames', {'EffectSizePairedCohens_D'});
-    
     summaryStatDiff.drawHistoBoxCombo()                      % Visualize Normality/Outliers
+    
+    if summaryStatDiff.SummaryStruct.swH == 1
+        summaryStatDiff = summaryStatDiff.performWilcoxonRankTest();
+        summaryStatDiff.SummaryStruct.cohensD = 0;
+    else
+        summaryStatDiff = summaryStatDiff.performTTest();        % Perform t-test
+        summaryStatDiff.SummaryStruct.cohensD = summaryStatDiff.SummaryStruct.ttestStat*sqrt(1/summaryStatDiff.SummaryStruct.numObvs);
+       
+    end
+     
+    EffectTable = table(summaryStatDiff.SummaryStruct.cohensD, 'VariableNames', {'EffectSizePairedCohens_D'});
     
     % Visualizations
     drawHistograms(measureSummaryStrs, dirs, pA)             % Visualize Distribution/Normality
@@ -228,13 +227,12 @@ if isSig
     hold off
 end
 
-if str2num(summaryStrDiff.ttestPstr) < 0.001
-    pValSent = 'p < .001';
-else
-    pValSent = sprintf('p = %0.3f', str2num(summaryStrDiff.ttestPstr));
-end
-
-text(mean(xt([1 2]))-0.25, max(yt)*1.15, pValSent, 'FontSize',18)
+% if str2num(summaryStrDiff.ttestPstr) < 0.001
+%     pValSent = 'p < .001';
+% else
+%     pValSent = sprintf('p = %0.3f', str2num(summaryStrDiff.ttestPstr));
+% end
+% text(mean(xt([1 2]))-0.25, max(yt)*1.15, pValSent, 'FontSize',18)
 
 set(gca, 'XTickLabel', cond)
 fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
