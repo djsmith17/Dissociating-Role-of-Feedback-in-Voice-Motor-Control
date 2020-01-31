@@ -14,11 +14,10 @@ measPub = {'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Resp
 mUnits  = {'s', 'cents', 'cents', '%'};
 numMeas = length(meas);
 
-measToBeTransformedExp   = {'tAtMin'};
-measToBeTransformedBoxCox = {'StimMag', 'RespMag'};
-measLambdasToUse    = [0 2 1 0];
+measToBeTransformedBoxCox = {'tAtMin', 'StimMag', 'RespMag'};
+measLambdasToUse          = [2 2 1 0];
 
-meas4NonParametric = {'tAtMin', 'StimMag', 'RespMag'};
+meas4NonParametric = {' '};
 
 textFileName = fullfile(dirs.SavResultsDir, 'rmANOVAStats.txt');
 fid = fopen(textFileName, 'w');
@@ -30,6 +29,7 @@ StatTableAudLs = StatTableAud;
 StatTableAudLs(I,:) = [];
 statTableJNDLs = statTableJND;
 statTableJNDLs(I,:) = [];
+JND = statTableJNDLs.JNDScoreMean;
 
 ApplyTrans = 1;
 for k = 1:numMeas
@@ -65,10 +65,10 @@ for k = 1:numMeas
         % Perform Standard Sumamry Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
 
-%         if ismember(meas{k}, measToBeTransformedBoxCox) && ApplyTrans == 1
-%             usedLambda  = lambdas(measLambdasToUse(k));
-%             summaryStat = summaryStat.performSpecificBoxCoxTrans(usedLambda);
-%         end
+        if ismember(meas{k}, measToBeTransformedBoxCox) && ApplyTrans == 1
+            usedLambda  = lambdas(measLambdasToUse(k));
+            summaryStat = summaryStat.performSpecificBoxCoxTrans(usedLambda);
+        end
         
         % Describe the normality
         summaryStat = summaryStat.testNormality();
@@ -85,13 +85,11 @@ for k = 1:numMeas
     fprintf(fid, '### %s ###\n\n', meas{k});
     
     if ismember(meas{k}, meas4NonParametric)       
-        performNonParametricTesting(fid, measureSummaryStrs)
+        isSig = performNonParametricTesting(fid, measureSummaryStrs);
     else
-        performParametricTesting(fid, measureSummaryStrs)
+        isSig = performParametricTesting(fid, measureSummaryStrs);
     end
-    
-    %%% Acuity as a co-variate %%%
-    
+
     varCmp = [1 2; 1 3; 2 3];
     varH   = [1.08, 1.16, 1.02;...
               1.08, 1.16, 1.02;...
@@ -104,7 +102,7 @@ for k = 1:numMeas
     for jj = 1:comp
         cond = ['DiffBetween' num2str(varCmp(jj,:))];
         % Find the difference between the two conditions and place in Struct
-        measDiff = measureSummaryStrs(varCmp(jj,1)).measure - measureSummaryStrs(varCmp(jj,2)).measure;
+        measDiff = measureSummaryStrs(varCmp(jj,1)).measureT - measureSummaryStrs(varCmp(jj,2)).measureT;
 
         measureDiffVar.varName    = meas{k};
         measureDiffVar.varNamePub = measPub{k};
@@ -112,6 +110,7 @@ for k = 1:numMeas
         measureDiffVar.units      = mUnits{k};
         summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
         summaryStatDiff.SummaryStruct.suffix = sprintf('DiffBetw%s%s', pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});
+        summaryStatDiff.SummaryStruct.go4PostHoc = isSig;
 
         summaryStatDiff.SummaryStruct.vars = varCmp(jj,:);
         summaryStatDiff.SummaryStruct.h    = varH(k, jj);
@@ -123,9 +122,14 @@ for k = 1:numMeas
             summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
         end
         
-        summaryStatDiff = summaryStatDiff.performTTest(pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});        % Perform t-test
+        if ismember(meas{k}, meas4NonParametric)
+            summaryStatDiff = summaryStatDiff.performWilcoxonRankTest(pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});        % Perform t-test
+            fprintf(fid, 'The r effect size for the below Wilcoxon signed rank test is %0.3f\n', (summaryStatDiff.SummaryStruct.zstat/sqrt(summaryStatDiff.SummaryStruct.numObvs)));
+        else
+            summaryStatDiff = summaryStatDiff.performTTest(pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});        % Perform t-test
+        end
+        
         summaryStatDiff.drawHistoBoxCombo()                      % Visualize Normality/Outliers
-
         measureSummaryStrDiff = cat(1, measureSummaryStrDiff, summaryStatDiff.SummaryStruct);
 
         bigTable.Comparisons(jj)  = cond;
@@ -155,7 +159,7 @@ Acuity     = StatTableJND{:, 'JNDScoreMean'};
 curStatTable = table(subjID, VFmeasure, MNmeasure, Audmeasure, Acuity, 'VariableNames', condSubj);
 end
 
-function performParametricTesting(fid, measureSummaryStrs)
+function isSig = performParametricTesting(fid, measureSummaryStrs)
 
 measTable       = table();
 measTable.SomVF = measureSummaryStrs(1).measureT;
@@ -166,23 +170,42 @@ expTableTrans   = table({'SomVF' 'SomMN', 'Aud'}','VariableNames',{'Conditions'}
 % Create a model in order to test for sphericity
 measFit = fitrm(measTable, 'SomVF-Aud~1', 'WithinDesign', expTableTrans, 'WithinModel', 'separatemeans');
 measSph = mauchly(measFit);
+Psphericty = measSph.pValue;
 
 % From testing of normality, and applying transforms, we can say that the
 % three measures meet the assumptions to perform a 
 rAnovaRes = ranova(measFit);
-pVal = rAnovaRes.pValue(1);
+
+if Psphericty >= 0.05
+    Panova = rAnovaRes.pValue(1);
+    adjustNote = 'We will use the un-adjusted p-Value\n';
+    sphercityNote = ' not';
+else
+    Panova = rAnovaRes.pValueGG(1);
+    adjustNote = 'We will use the Greenhouse-Geisser adjusted p-Value\n';
+    sphercityNote = '';
+end
+
+if Panova < 0.05/4
+    sigNote = '';
+    isSig   = 1;
+else
+    sigNote = ' not';
+    isSig   = 0;
+end
 
 meas = measureSummaryStrs(1).varName;
 
-fprintf(fid, 'The Mauchly test indicates that the assumption of sphericity has not been violated (X2(%d) = %0.3f p = %0.3f)\n', measSph.DF, measSph.ChiStat, measSph.pValue);
-fprintf(fid, 'The results of the rmANOVA indicate that %s was significantly different between the experimental conditions (F(%d, %d) = %0.2f, p = %0.6f).\n', meas, rAnovaRes.DF(1), rAnovaRes.DF(2), rAnovaRes.F(1), rAnovaRes.pValue(1));
+fprintf(fid, 'The Mauchly test indicates that the assumption of sphericity has%s been violated (X2(%d) = %0.3f p = %0.3f)\n', sphercityNote, measSph.DF, measSph.ChiStat, measSph.pValue);
+fprintf(fid, adjustNote);
+fprintf(fid, 'The results of the rmANOVA indicate that %s was%s significantly different between the experimental conditions (F(%d, %d) = %0.2f, p = %0.6f).\n', meas, sigNote, rAnovaRes.DF(1), rAnovaRes.DF(2), rAnovaRes.F(1), Panova);
 
 %%% Effect Size %%%
 partialEta = rAnovaRes.SumSq(1)/(rAnovaRes.SumSq(1) + rAnovaRes.SumSq(2));
 fprintf(fid, 'The partial eta for this rmANOVA was calculated to be %0.3f\n\n', partialEta);
 end
 
-function performNonParametricTesting(fid, measureSummaryStrs)
+function isSig = performNonParametricTesting(fid, measureSummaryStrs)
 
 meas = measureSummaryStrs(1).varName;
 
@@ -191,12 +214,14 @@ measTable.SomVF = measureSummaryStrs(1).measureT;
 measTable.SomMN = measureSummaryStrs(2).measureT;
 measTable.Aud   = measureSummaryStrs(3).measureT;
 
-[pFried, Ftable, ~] = friedman(measTable{:,:}, 1, 'off');
+[P, Ftable, ~] = friedman(measTable{:,:}, 1, 'off');
 
-if pFried < 0.05/4
+if P < 0.05/3
     sigNote = '';
+    isSig   = 1;
 else
     sigNote = ' not';
+    isSig   = 0;
 end
 
 statSentence = fprintf(fid, 'Statistical analyses revealed that there was%s a significant effect of experimental condition on %s (chiSq(%d) = %0.2f, p = %0.6f)\n',...
@@ -204,7 +229,7 @@ statSentence = fprintf(fid, 'Statistical analyses revealed that there was%s a si
                        meas,...
                        Ftable{2,3},...
                        Ftable{2,2},...
-                       pFried);
+                       P);
 
 end
 
@@ -317,7 +342,7 @@ for ii = 1:numComp
     
     barR = xt(cS.vars);
     barM = mean(barR);
-    if cS.isSig == 1
+    if cS.isSig == 1 && cS.go4PostHoc == 1
         hold on
         plot(barR, [1 1]*max(yt)*(cS.h+.01), '-k', 'LineWidth', 2)
         plot(barM, max(yt)*(cS.h+.04), '*k', 'MarkerSize', 10)
