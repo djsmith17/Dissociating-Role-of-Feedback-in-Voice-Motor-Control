@@ -34,7 +34,7 @@ classdef MeasureSummaryStats
             % Load necessary identifiers
             obj.pAnalysis     = pA.pAnalysis;
             obj.SavResultsDir = dirs.SavResultsDir;
-            obj.alphaLevel    = 0.05/1;
+            obj.alphaLevel    = 0.05/4;
             
             % Unpack the measure into a structure
             str.varName  = measVar.varName;
@@ -173,7 +173,7 @@ classdef MeasureSummaryStats
                                                                                      P);
             
             obj.SummaryStruct.zstat        = STATS.zval;
-            obj.SummaryStruct.wrtPValue    = P;
+            obj.SummaryStruct.ttestP       = P;
             obj.SummaryStruct.ttestPstr    = Pstr;
             obj.SummaryStruct.isSig        = isSig;
             obj.SummaryStruct.statSentence = statSentence;
