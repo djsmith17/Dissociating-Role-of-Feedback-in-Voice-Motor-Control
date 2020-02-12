@@ -45,7 +45,7 @@ StatTableSinSomVF = StatTableSomSingle(somVF, :);
 StatTableSinSomMN = StatTableSomSingle(somMN, :);
 
 % Question 4 %%%
-StatsOrg_DRF_Som_Aud_RMANOVA(dirs, StatTableSomVF, StatTableSomMN, StatTableAud, StatTableJND)
+StatsOrg_DRF_Som_Aud_RMANOVA_covar(dirs, StatTableSomVF, StatTableSomMN, StatTableAud, StatTableJND)
 
 % Question 5 %%%
 addressQuest5(dirs, fid, StatTableAud, StatTableSomMN, StatTableJND)

@@ -1,9 +1,9 @@
 function StatsOrg_DRF_Som(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas    = {'f0', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-measPub = {'Fundamental Frequency', 'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
-mUnits  = {'Hz', 's', 'cents', 'cents', '%'};
+meas    = {'StimMag', 'RespMag', 'RespPer', 'tAtMin', 'f0'};
+measPub = {'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage', 'Response Latency', 'Fundamental Frequency'};
+mUnits  = {'cents', 'cents', '%', 's', 'Hz'};
 numMeas = length(meas);
 
 measFor1SampleTest  = {'RespMag', 'RespPer'};
@@ -90,7 +90,7 @@ for k = 1:numMeas
         summaryStatDiff.SummaryStruct.cohensD = 0;
     else
         summaryStatDiff = summaryStatDiff.performTTest();        % Perform t-test
-        summaryStatDiff.SummaryStruct.cohensD = summaryStatDiff.SummaryStruct.ttestStat*sqrt(1/summaryStatDiff.SummaryStruct.numObvs);
+        summaryStatDiff.SummaryStruct.cohensD = summaryStatDiff.SummaryStruct.ttestStat/sqrt(summaryStatDiff.SummaryStruct.numObvs);
        
     end
      

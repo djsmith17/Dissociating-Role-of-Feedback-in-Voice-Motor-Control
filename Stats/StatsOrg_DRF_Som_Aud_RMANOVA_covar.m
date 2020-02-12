@@ -1,4 +1,4 @@
-function StatsOrg_DRF_Som_Aud_RMANOVA(dirs, StatTableSomVF, StatTableSomMN, StatTableAud, statTableJND)
+function StatsOrg_DRF_Som_Aud_RMANOVA_covar(dirs, StatTableSomVF, StatTableSomMN, StatTableAud, statTableJND)
 % q4: Do participants show similar compensatory respones when only Auditory
 % feedback is perturbed? 
 
@@ -9,18 +9,18 @@ pA.pubCond   = {'Laryngeal perturbation without auditory masking',...
                 'Auditory perturbation'};
 pA.numCond   = length(pA.cond);
 
-meas    = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-measPub = {'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
-mUnits  = {'s', 'cents', 'cents', '%'};
+meas    = {'StimMag', 'RespMag', 'RespPer', 'tAtMin'};
+measPub = {'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage', 'Response Latency'};
+mUnits  = {'cents', 'cents', '%', 's'};
 numMeas = length(meas);
 
-measToBeTransformedBoxCox = {'StimMag', 'RespMag'};
-measLambdasToUse          = [0 2 1 0];
+measToBeTransformedBoxCox = {'tAtMin', 'StimMag', 'RespMag'};
+measLambdasToUse          = [2 1 0 2];
 
-meas4NonParametric = {'tAtMin'};
+meas4NonParametric = {' '};
 
-textFileName = fullfile(dirs.SavResultsDir, 'rmANOVAStats.txt');
-fid = fopen(textFileName, 'w');
+textFileName_covar = fullfile(dirs.SavResultsDir, 'rmANOVAStats_covar.txt');
+fid = fopen(textFileName_covar, 'w');
 
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.csv']);
 
@@ -28,6 +28,12 @@ I = ismember(StatTableAud.SubjID, StatTableSomVF.SubjID) == 0;
 StatTableAudLs = StatTableAud;
 StatTableAudLs(I,:) = [];
 statTableJNDLs = statTableJND;
+statTableJNDLs(I,:) = [];
+
+I = ismember(StatTableSomVF.SubjID, 'DRF18') == 1;
+StatTableSomVF(I,:) = [];
+StatTableSomMN(I,:) = [];
+StatTableAudLs(I,:) = [];
 statTableJNDLs(I,:) = [];
 JND = statTableJNDLs.JNDScoreMean;
 
@@ -84,11 +90,7 @@ for k = 1:numMeas
 
     fprintf(fid, '### %s ###\n\n', meas{k});
     
-    if ismember(meas{k}, meas4NonParametric)       
-        isSig = performNonParametricTesting(fid, measureSummaryStrs);
-    else
-        isSig = performParametricTesting(fid, measureSummaryStrs);
-    end
+    isSig = performParametricTesting_covariate(fid, measureSummaryStrs, JND);
 
     varCmp = [1 2; 1 3; 2 3];
     varH   = [1.08, 1.16, 1.02;...
@@ -233,6 +235,106 @@ statSentence = fprintf(fid, 'Statistical analyses revealed that there was%s a si
 
 end
 
+function isSig = performParametricTesting_covariate(fid, measureSummaryStrs, JND)
+%%% Covariate Testin %%%
+measTable       = table();
+measTable.SomVF = measureSummaryStrs(1).measureT;
+measTable.SomMN = measureSummaryStrs(2).measureT;
+measTable.Aud   = measureSummaryStrs(3).measureT;
+measTable.JND   = JND;
+expTableTrans   = table({'SomVF' 'SomMN', 'Aud'}','VariableNames',{'Conditions'});
+
+% Create a model in order to test for sphericity
+measFit_CoVar = fitrm(measTable, 'SomVF-Aud~JND', 'WithinDesign', expTableTrans, 'WithinModel', 'separatemeans');
+measSph_CoVar = mauchly(measFit_CoVar);
+Psphericty_CoVar = measSph_CoVar.pValue;
+
+% From testing of normality, and applying transforms, we can say that the
+% three measures meet the assumptions to perform a 
+rAnovaRes_CoVar = ranova(measFit_CoVar);
+
+if Psphericty_CoVar >= 0.05
+    Panova_CoVar = rAnovaRes_CoVar.pValue(1);
+    adjustNote = 'We will use the un-adjusted p-Value\n';
+    sphercityNote = ' not';
+else
+    Panova_CoVar = rAnovaRes_CoVar.pValueGG(1);
+    adjustNote = 'We will use the Greenhouse-Geisser adjusted p-Value\n';
+    sphercityNote = '';
+end
+
+if Panova_CoVar < 0.05/4
+    sigNote_CoVar = '';
+    isSig   = 1;
+else
+    sigNote_CoVar = ' not';
+    isSig   = 0;
+end
+
+meas = measureSummaryStrs(1).varName;
+
+fprintf(fid, 'The Mauchly test indicates that the assumption of sphericity has%s been violated for the covariate testing (X2(%d) = %0.3f p = %0.3f)\n', sphercityNote, measSph_CoVar.DF, measSph_CoVar.ChiStat, measSph_CoVar.pValue);
+fprintf(fid, adjustNote);
+fprintf(fid, 'The results of the rmANOVA with JND as a covariate indicate that %s was%s significantly different between the experimental conditions (F(%d, %d) = %0.2f, p = %0.6f).\n\n', meas, sigNote_CoVar, rAnovaRes_CoVar.DF(1), rAnovaRes_CoVar.DF(3), rAnovaRes_CoVar.F(1), Panova_CoVar);
+
+%%% Effect Size %%%
+partialEta = rAnovaRes_CoVar.SumSq(1)/(rAnovaRes_CoVar.SumSq(1) + rAnovaRes_CoVar.SumSq(3));
+fprintf(fid, 'The partial eta for this rmANOVA was calculated to be %0.3f\n\n', partialEta);
+end
+
+function performPostHocTTests(fid, dirs, pA, measureSummaryStrs)
+
+varCmp = [1 2; 1 3; 2 3];
+varH   = [1.08, 1.16, 1.02;...
+          1.08, 1.16, 1.02;...
+          1.08, 1.16, 0.82;...
+          1.08, 1.16, 0.82];
+comp = length(varCmp);    
+
+
+bigTable = table('size', [3 2], 'VariableNames', {'Comparisons', 'StatSentence'}, 'VariableTypes', {'string', 'string'});
+measureSummaryStrDiff = [];
+for jj = 1:comp
+    cond = ['DiffBetween' num2str(varCmp(jj,:))];
+    % Find the difference between the two conditions and place in Struct
+    measDiff = measureSummaryStrs(varCmp(jj,1)).measureT - measureSummaryStrs(varCmp(jj,2)).measureT;
+
+    measureDiffVar.varName    = meas{k};
+    measureDiffVar.varNamePub = measPub{k};
+    measureDiffVar.condition  = cond;
+    measureDiffVar.units      = mUnits{k};
+    summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
+    summaryStatDiff.SummaryStruct.suffix = sprintf('DiffBetw%s%s', pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});
+    summaryStatDiff.SummaryStruct.go4PostHoc = isSig;
+
+    summaryStatDiff.SummaryStruct.vars = varCmp(jj,:);
+    summaryStatDiff.SummaryStruct.h    = varH(k, jj);
+
+    summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
+
+    if summaryStatDiff.SummaryStruct.swH == 1
+        summaryStatDiff = summaryStatDiff.performSimpleBoxCoxTrans();
+        summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
+    end
+
+    if ismember(meas{k}, meas4NonParametric)
+        summaryStatDiff = summaryStatDiff.performWilcoxonRankTest(pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});        % Perform t-test
+        fprintf(fid, 'The r effect size for the below Wilcoxon signed rank test is %0.3f\n', (summaryStatDiff.SummaryStruct.zstat/sqrt(summaryStatDiff.SummaryStruct.numObvs)));
+    else
+        summaryStatDiff = summaryStatDiff.performTTest(pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});        % Perform t-test
+    end
+
+    summaryStatDiff.drawHistoBoxCombo()                      % Visualize Normality/Outliers
+    measureSummaryStrDiff = cat(1, measureSummaryStrDiff, summaryStatDiff.SummaryStruct);
+
+    bigTable.Comparisons(jj)  = cond;
+    bigTable.StatSentence(jj) = summaryStatDiff.statSentTable.StatSentence;
+
+    fprintf(fid, summaryStatDiff.statSentTable.StatSentence{1});                                                                                                                                                            
+end
+
+end
+
 function drawHistograms(measureSummaryStrs, dirs, pA)
 
 units  = {'cents', 'cents', '%'};
@@ -295,7 +397,7 @@ annotation('textbox',[0.8 0.88 0.45 0.1],...
             'FontSize',14,...
             'FontName','Arial');
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName suffix 'DistributionPlot.jpg']);
+dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, 'covar', [pAnalysis varName suffix 'DistributionPlot.jpg']);
 export_fig(dirs.DistributionFigureFile)
 end
 
@@ -358,6 +460,6 @@ set(gca,'FontName', fontN,...
         'FontWeight','bold',...
         'LineWidth', 2)
 
-dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, [measureSummaryStrs(1).varName 'TTestBoxPlot.jpg']);
+dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, 'covar', [measureSummaryStrs(1).varName 'TTestBoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile, '-r300')
 end
