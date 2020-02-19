@@ -3,12 +3,12 @@ function drawInflationResultMetrics(ir, arrows, vals, toggle)
 % Can also be toggled for DRF13 mean auditory trace (toggle = 1).
 
 plotPos = [-1485 40];
-plotDim = [1485 1005];
+plotDim = [1000 667];
 
 fontN        = 'Times New Roman';
 lineThick    = 3;
 axisLSize    = 30;
-legAnnoFSize = 30;
+arrowTextSize = 26;
 
 onsetC = [217,95,2]/255;
 minC   = [117,112,179]/255;
@@ -18,36 +18,41 @@ bColor = [0.8 0.8 0.8];
 
 if toggle == 1
     % Auditory
-    lowf0PixelY  = 0.225;
-    lastf0PixelY = 0.46;
-    lowf0PixelYLow = lowf0PixelY - 0.03;
+    lowf0PixelY  = 0.26;
+    lastf0PixelY = 0.48;
+    lowf0PixelYLow = lowf0PixelY - 0.04;
     
-    SMArrowX = [0.33 0.33];
-    SMArrowY = [0.8 lowf0PixelY];
+    SMArrowX = [0.37 0.37];
+    SMArrowY = [0.81 lowf0PixelY];
+    SMAnnoBox = [0.21 0.35 0.1 0.1];
     
-    RMArrowX = [0.853 0.853];
+    RMArrowX = [0.856 0.856];
     RMArrowY = [lowf0PixelY lastf0PixelY];
-    RMAnnoBox = [(RMArrowX(1)-0.140) 0.3 0.1 0.1];
+    RMAnnoBox = [(RMArrowX(1)-0.140) 0.34 0.1 0.1];
     
-    tMArrowX = [0.388 0.48];
+    tMArrowX = [0.41 0.495];
     tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
-    tMAnnoBox = [0.5 0.11 0.1 0.1];
+    tMAnnoBox = [0.59 (lowf0PixelYLow-0.07) 0.1 0.1];
+    expType = 'Auditory';
 else
     % Default
-    lowf0PixelY  = 0.34;
-    lastf0PixelY = 0.685;
-    lowf0PixelYLow = lowf0PixelY - 0.03;
+    lowf0PixelY  = 0.37;
+    lastf0PixelY = 0.695;
+    lowf0PixelYLow = lowf0PixelY - 0.06;
     
-    SMArrowX = [0.33 0.33];
-    SMArrowY = [0.81 lowf0PixelY];
+    SMArrowX = [0.37 0.37];
+    SMArrowY = [0.82 lowf0PixelY];
+    SMAnnoBox = [0.21 0.39 0.1 0.1];
     
-    RMArrowX = [0.853 0.853];
+    RMArrowX = [0.855 0.855];
     RMArrowY = [lowf0PixelY lastf0PixelY];
-    RMAnnoBox = [(RMArrowX(1)-0.140) 0.35 0.1 0.1];
+    RMAnnoBox = [(RMArrowX(1)-0.142) 0.42 0.1 0.1];
     
-    tMArrowX = [0.388 0.455];
+    arrowXEnd = 0.475;
+    tMArrowX = [0.405 arrowXEnd];
     tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
-    tMAnnoBox = [0.465 (lowf0PixelYLow - 0.1) 0.1 0.1];
+    tMAnnoBox = [(arrowXEnd + 0.03) (lowf0PixelYLow - 0.065) 0.1 0.1];
+    expType = 'Laryngeal';
 end
 
 DVFig = figure('Color', figColor);
@@ -85,13 +90,13 @@ set(gca,'LineWidth', 2,...
 if arrows == 1
  
     annotation('arrow', SMArrowX, SMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
-    annotation('textbox', [0.19 0.30 0.1 0.1],...
+    annotation('textbox', SMAnnoBox,...
                          'string', {'Stimulus', 'Magnitude'},...
                          'LineStyle', 'none',...
                          'HorizontalAlignment', 'center',...
                          'FontName', fontN,...
                          'FontWeight','bold',...
-                         'FontSize',legAnnoFSize)
+                         'FontSize',arrowTextSize)
 
     annotation('arrow', RMArrowX, RMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
     annotation('textbox', RMAnnoBox,...
@@ -100,16 +105,16 @@ if arrows == 1
                          'HorizontalAlignment', 'center',...
                          'FontWeight','bold',...
                          'FontName', fontN,...
-                         'FontSize',legAnnoFSize)
+                         'FontSize',arrowTextSize)
     
     annotation('arrow', tMArrowX, tMArrowY, 'LineWidth', 5, 'HeadWidth', 20)
     annotation('textbox', tMAnnoBox,...
-                         'string', {'Response', 'Latency'},...
+                         'string', {'Response Latency'},...
                          'LineStyle', 'none',...
                          'HorizontalAlignment', 'center',...
                          'FontWeight','bold',...
                          'FontName', fontN,...
-                         'FontSize',legAnnoFSize)
+                         'FontSize',arrowTextSize)
 end
 
 % Toggle to draw the measure values
@@ -135,7 +140,7 @@ end
 % save the figure
 path = 'E:\Desktop';
 % path  = 'C:\Users\djsmith\Desktop';
-fileName = 'DependentVariablesManuscript.png';
+fileName = [expType 'DependentVariablesManuscript.png'];
 fullpath = fullfile(path, fileName);
 export_fig(fullpath)
 end
