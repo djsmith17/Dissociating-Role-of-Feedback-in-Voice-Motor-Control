@@ -131,13 +131,11 @@ for k = 1:numMeas
             summaryStatDiff = summaryStatDiff.performTTest(pA.cond{varCmp(jj,1)}, pA.cond{varCmp(jj,2)});        % Perform t-test
         end
         
-        summaryStatDiff.drawHistoBoxCombo()                      % Visualize Normality/Outliers
+%         summaryStatDiff.drawHistoBoxCombo()                      % Visualize Normality/Outliers
         measureSummaryStrDiff = cat(1, measureSummaryStrDiff, summaryStatDiff.SummaryStruct);
 
         bigTable.Comparisons(jj)  = cond;
-        bigTable.StatSentence(jj) = summaryStatDiff.statSentTable.StatSentence;
-        
-        fprintf(fid, summaryStatDiff.statSentTable.StatSentence{1});                                                                                                                                                            
+        bigTable.StatSentence(jj) = summaryStatDiff.statSentTable.StatSentence;                                                                                                                                                      
     end
 
     drawBoxPlot(dirs, pA, measureSummaryStrs, measureSummaryStrDiff)
@@ -236,7 +234,7 @@ statSentence = fprintf(fid, 'Statistical analyses revealed that there was%s a si
 end
 
 function isSig = performParametricTesting_covariate(fid, measureSummaryStrs, JND)
-%%% Covariate Testin %%%
+%%% Set up the table for repeated measures testing %%%
 measTable       = table();
 measTable.SomVF = measureSummaryStrs(1).measureT;
 measTable.SomMN = measureSummaryStrs(2).measureT;
@@ -244,15 +242,15 @@ measTable.Aud   = measureSummaryStrs(3).measureT;
 measTable.JND   = JND;
 expTableTrans   = table({'SomVF' 'SomMN', 'Aud'}','VariableNames',{'Conditions'});
 
-% Create a model in order to test for sphericity
+% Create a model in order to test for sphericity and perform ANOVA
 measFit_CoVar = fitrm(measTable, 'SomVF-Aud~JND', 'WithinDesign', expTableTrans, 'WithinModel', 'separatemeans');
 measSph_CoVar = mauchly(measFit_CoVar);
 Psphericty_CoVar = measSph_CoVar.pValue;
 
-% From testing of normality, and applying transforms, we can say that the
-% three measures meet the assumptions to perform a 
+% Perform the rmANOVA
 rAnovaRes_CoVar = ranova(measFit_CoVar);
 
+% Check Sphericity and choose appropriate p Value
 if Psphericty_CoVar >= 0.05
     Panova_CoVar = rAnovaRes_CoVar.pValue(1);
     adjustNote = 'We will use the un-adjusted p-Value\n';
@@ -263,23 +261,32 @@ else
     sphercityNote = '';
 end
 
-if Panova_CoVar < 0.05/4
-    sigNote_CoVar = '';
+% Decide if sig or not
+if Panova_CoVar < 0.05/4 %Bonferonni corrected at 0.05/4
+    sigNote = '';
     isSig   = 1;
 else
-    sigNote_CoVar = ' not';
+    sigNote = ' not';
     isSig   = 0;
 end
 
 meas = measureSummaryStrs(1).varName;
 
+% Provide output to the text doc
 fprintf(fid, 'The Mauchly test indicates that the assumption of sphericity has%s been violated for the covariate testing (X2(%d) = %0.3f p = %0.3f)\n', sphercityNote, measSph_CoVar.DF, measSph_CoVar.ChiStat, measSph_CoVar.pValue);
 fprintf(fid, adjustNote);
-fprintf(fid, 'The results of the rmANOVA with JND as a covariate indicate that %s was%s significantly different between the experimental conditions (F(%d, %d) = %0.2f, p = %0.6f).\n\n', meas, sigNote_CoVar, rAnovaRes_CoVar.DF(1), rAnovaRes_CoVar.DF(3), rAnovaRes_CoVar.F(1), Panova_CoVar);
+fprintf(fid, 'The results of the rmANOVA with JND as a covariate indicate that %s was%s significantly different between the experimental conditions (F(%d, %d) = %0.2f, p = %0.6f).\n\n', meas, sigNote, rAnovaRes_CoVar.DF(1), rAnovaRes_CoVar.DF(3), rAnovaRes_CoVar.F(1), Panova_CoVar);
 
 %%% Effect Size %%%
 partialEta = rAnovaRes_CoVar.SumSq(1)/(rAnovaRes_CoVar.SumSq(1) + rAnovaRes_CoVar.SumSq(3));
 fprintf(fid, 'The partial eta for this rmANOVA was calculated to be %0.3f\n\n', partialEta);
+
+%%% Check the Estimated Marginal Means
+EMM = multcompare(measFit_CoVar,'Conditions');
+
+fprintf(fid, 'Between the conditions of %s and %s, the p value was %0.6f.\n', EMM.Conditions_1{1}, EMM.Conditions_2{1}, EMM.pValue(1));
+fprintf(fid, 'Between the conditions of %s and %s, the p value was %0.6f.\n', EMM.Conditions_1{2}, EMM.Conditions_2{2}, EMM.pValue(2));
+fprintf(fid, 'Between the conditions of %s and %s, the p value was %0.6f.\n', EMM.Conditions_1{4}, EMM.Conditions_2{4}, EMM.pValue(4));
 end
 
 function performPostHocTTests(fid, dirs, pA, measureSummaryStrs)
@@ -403,15 +410,24 @@ end
 
 function drawBoxPlot(dirs, pA, measureSummaryStrs, summaryStrDiff)
 
-fontN = 'Times New Roman';
+fontN = 'Arial';
 axisLSize = 20;
 
 cond      = pA.pubCond;
 numCond   = pA.numCond;
 
 measBox = figure('Color', [1 1 1]);
-plotpos = [30 50]; plotdim = [800 1000];
+plotpos = [-2530 50]; plotdim = [600 750];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+
+annotation('textbox',[0.15 0.88 0.8 0.1],...
+           'string', {'A: Laryngeal perturbation without auditory masking',...
+                'B: Laryngeal perturbation with auditory masking',...
+                'C: Auditory perturbation'},...
+            'LineStyle','none',...
+            'FontWeight','bold',...
+            'FontSize',14,...
+            'FontName','Arial');
 
 collData = [];
 for i = 1:numCond
@@ -447,18 +463,19 @@ for ii = 1:numComp
     if cS.isSig == 1 && cS.go4PostHoc == 1
         hold on
         plot(barR, [1 1]*max(yt)*(cS.h+.01), '-k', 'LineWidth', 2)
-        plot(barM, max(yt)*(cS.h+.04), '*k', 'MarkerSize', 10)
+        plot(barM, max(yt)*(cS.h+.04), '*k', 'MarkerSize', 14)
     end
 %     text(barM-0.30, max(yt)*(cS.h+.035), pSentence, 'FontSize', axisLSize, 'FontWeight','bold')
 end
 
-set(gca, 'XTickLabel', cond)
-fix_xticklabels(gca, 0.13, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
+set(gca, 'XTickLabel', {'A', 'B', 'C'})
+% fix_xticklabels(gca, 0.13, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
         'FontWeight','bold',...
-        'LineWidth', 2)
+        'LineWidth', 2,...
+        'OuterPosition', [0 -0.05 1 1])
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, 'covar', [measureSummaryStrs(1).varName 'TTestBoxPlot.jpg']);
 export_fig(dirs.BoxPlotFigureFile, '-r300')
