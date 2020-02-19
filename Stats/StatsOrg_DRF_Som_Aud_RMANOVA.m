@@ -9,15 +9,15 @@ pA.pubCond   = {'Laryngeal perturbation without auditory masking',...
                 'Auditory perturbation'};
 pA.numCond   = length(pA.cond);
 
-meas    = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-measPub = {'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
-mUnits  = {'s', 'cents', 'cents', '%'};
+meas    = {'StimMag', 'RespMag', 'RespPer', 'tAtMin', 'f0'};
+measPub = {'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage', 'Response Latency', 'Fundamental Frequency'};
+mUnits  = {'cents', 'cents', '%', 's', 'Hz'};
 numMeas = length(meas);
 
 measToBeTransformedBoxCox = {'StimMag', 'RespMag'};
-measLambdasToUse          = [0 2 1 0];
+measLambdasToUse          = [2 1 0 0 0];
 
-meas4NonParametric = {'tAtMin'};
+meas4NonParametric = {'tAtMin', 'f0'};
 
 textFileName = fullfile(dirs.SavResultsDir, 'rmANOVAStats.txt');
 fid = fopen(textFileName, 'w');
@@ -92,8 +92,9 @@ for k = 1:numMeas
 
     varCmp = [1 2; 1 3; 2 3];
     varH   = [1.08, 1.16, 1.02;...
-              1.08, 1.16, 1.02;...
               1.08, 1.16, 0.82;...
+              1.08, 1.16, 0.82;...
+              1.08, 1.16, 1.02;...
               1.08, 1.16, 0.82];
     comp = length(varCmp);
 

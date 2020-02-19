@@ -54,7 +54,7 @@ for k = 1:numMeas
         % Do we need the result of a 1-sample t-test? 
         % (Signficantly different than 0)
         if ismember(meas{k}, measFor1SampleTest)
-            summaryStat = summaryStat.performTTest(1);
+            summaryStat = summaryStat.performTTest();
             summaryStat.SummaryStruct.cohensD = (summaryStat.SummaryStruct.mean - 0)/(summaryStat.SummaryStruct.SD);
     
             EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizeCohens_D'});
