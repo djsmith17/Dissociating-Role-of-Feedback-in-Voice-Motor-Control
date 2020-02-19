@@ -10,7 +10,7 @@ function dfRunPooledPlotting()
 
 close all
 PolPlt.project  = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-PolPlt.analyses = 'DRF_Som';
+PolPlt.analyses = 'DRF_Aud';
 
 dirs                = dfDirs(PolPlt.project);
 dirs.SavResultsDir  = fullfile(dirs.Results, 'Pooled Analyses', PolPlt.analyses);       % Analyzed Results Folder
@@ -28,11 +28,12 @@ fPres    = 1;
 
 targPPI    = 300;
 scRes      = [2560 1440];
-scDim      = [6 4]; %inches
+scDim      = [6 4]; %inches\
+scDimPoster= [3.3 2.2]; %inches
 monSize    = [23.5 13.5]; %inches ~100ppi
 monitorPPI = 100;
 
-targPixDim = calcFigPixDim(targPPI, scDim, monitorPPI);
+targPixDim = calcFigPixDim(targPPI, scDimPoster, monitorPPI);
 
 if exist(dirs.SavResultsFile, 'file') == 0
     fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
@@ -61,7 +62,7 @@ end
 
 if PolPlt.AllSubjMaskvVoice == 1
     fLabel = 0;
-    drawMeanSubjf0Resp_Onset(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, fPres)
+    drawMeanSubjf0Resp_OnsetPoster(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, fPres)
 end
 
 if PolPlt.MicVHead == 1
