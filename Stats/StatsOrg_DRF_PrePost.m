@@ -1,5 +1,8 @@
 function StatsOrg_DRF_PrePost(dirs, pA, allSubjRes)
 
+warning('off', 'export_fig:transparency')
+warning('off', 'MATLAB:table:ModifiedVarnames')
+
 allSubjStatTable = allSubjRes.statTable;
 meas    = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
 measPub = {'Response Latency', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
@@ -16,6 +19,7 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
+fprintf('\n')
 ApplyTrans = 1;
 for k = 1:numMeas
     
@@ -76,6 +80,9 @@ for k = 1:numMeas
         else
             summaryStatDiff = summaryStatDiff.performTTest();        % Perform t-test
         end
+        fprintf('In the first set of trials, the mean value of %s in the %s condition was %.2f (SD = %.2f).\n', meas{k}, curCond1, summaryStat1.SummaryStruct.mean, summaryStat1.SummaryStruct.SD)
+        fprintf('In the second set of trials, the mean value of %s in the %s condition was %.2f (SD = %.2f).\n', meas{k}, curCond2, summaryStat2.SummaryStruct.mean, summaryStat2.SummaryStruct.SD)
+
         disp(summaryStatDiff.SummaryStruct.statSentence)
     end
 
