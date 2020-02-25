@@ -241,6 +241,7 @@ measTable.SomMN = measureSummaryStrs(2).measureT;
 measTable.Aud   = measureSummaryStrs(3).measureT;
 measTable.JND   = JND;
 expTableTrans   = table({'SomVF' 'SomMN', 'Aud'}','VariableNames',{'Conditions'});
+[nObserv, ~]    = size(measTable);
 
 % Create a model in order to test for sphericity and perform ANOVA
 measFit_CoVar = fitrm(measTable, 'SomVF-Aud~JND', 'WithinDesign', expTableTrans, 'WithinModel', 'separatemeans');
@@ -284,9 +285,24 @@ fprintf(fid, 'The partial eta for this rmANOVA was calculated to be %0.3f\n\n', 
 %%% Check the Estimated Marginal Means
 EMM = multcompare(measFit_CoVar,'Conditions');
 
+%%% Check the Marginal Mean Values and add SD
+MMT = margmean(measFit_CoVar, 'Conditions');
+MMT.StdDev = MMT.StdErr*sqrt(nObserv);
+
+pooledSD1 = sqrt((MMT.StdDev(1)^2 + MMT.StdDev(2)^2)/2);
+pooledSD2 = sqrt((MMT.StdDev(1)^2 + MMT.StdDev(3)^2)/2);
+pooledSD3 = sqrt((MMT.StdDev(2)^2 + MMT.StdDev(3)^2)/2);
+
+MMCohensD1 = (MMT.Mean(1) - MMT.Mean(2))/pooledSD1;
+MMCohensD2 = (MMT.Mean(1) - MMT.Mean(3))/pooledSD2;
+MMCohensD3 = (MMT.Mean(2) - MMT.Mean(3))/pooledSD3;
+
 fprintf(fid, 'Between the conditions of %s and %s, the p value was %0.6f.\n', EMM.Conditions_1{1}, EMM.Conditions_2{1}, EMM.pValue(1));
+fprintf(fid, 'The effect size comparing the differences between %s and %s was %0.3f.\n', EMM.Conditions_1{1}, EMM.Conditions_2{1}, MMCohensD1);
 fprintf(fid, 'Between the conditions of %s and %s, the p value was %0.6f.\n', EMM.Conditions_1{2}, EMM.Conditions_2{2}, EMM.pValue(2));
+fprintf(fid, 'The effect size comparing the differences between %s and %s was %0.3f.\n', EMM.Conditions_1{2}, EMM.Conditions_2{2}, MMCohensD2);
 fprintf(fid, 'Between the conditions of %s and %s, the p value was %0.6f.\n', EMM.Conditions_1{4}, EMM.Conditions_2{4}, EMM.pValue(4));
+fprintf(fid, 'The effect size comparing the differences between %s and %s was %0.3f.\n', EMM.Conditions_1{4}, EMM.Conditions_2{4}, MMCohensD3);
 end
 
 function performPostHocTTests(fid, dirs, pA, measureSummaryStrs)
