@@ -318,6 +318,7 @@ plotdim = [1200 700];
 InterTrialf0 = figure('Color', [1 1 1]);
 set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
+fontN = 'Arial';
 % Perturbation period
 pertColor = [0.8 0.8 0.8];
 pertAx = [curRes.codedPertTrig(ii, 1), curRes.codedPertTrig(ii, 2)];
@@ -349,6 +350,7 @@ title({[curRes.participant ' ' curRes.run],[ ' Trial ' num2str(curRes.codedTrial
 axis(curRes.limits); box off
 
 set(gca,'FontSize', 14,...
+        'FontName', fontN,...
         'FontWeight','bold')
 
 yyaxis right
@@ -356,6 +358,7 @@ plot(curRes.timePres, curRes.codedSensorP(:, ii), '--k', 'LineWidth', 1.5)
 ylabel('Pressure (psi)', 'Color', 'k')
 axis(curRes.pressureLim);
 set(gca,'FontSize', 14,...
+        'FontName', fontN,...
         'FontWeight','bold')
 
 % Distance Results
@@ -379,6 +382,7 @@ lgd.EdgeColor = 'none';
 lgd.Location = 'SouthWest';
 
 set(gca,'FontSize', 14,...
+        'FontName', fontN,...
         'FontWeight','bold')
 
 fileName = ['EndoDistanceMeasure' curRes.coder '.jpg'];

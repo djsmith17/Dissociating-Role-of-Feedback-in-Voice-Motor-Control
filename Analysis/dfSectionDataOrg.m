@@ -104,7 +104,7 @@ classdef dfSectionDataOrg
             obj.dataColor3 = [231,41,138]/255; % Bright Magenta
             
             obj.f0TraceColor = [0 0 1];
-            obj.figTextName = 'Times New Roman';
+            obj.figTextName = 'Arial';
             
             obj.legendCurves = [];
             obj.legendLabels = {};
@@ -490,9 +490,10 @@ classdef dfSectionDataOrg
             
             obj.LgdObj = legend(obj.legendCurves, obj.legendLabels,...
                     'FontName', obj.figTextName,...
-                    'FontSize', 12,...
+                    'FontSize', 16,...
                     'FontWeight', 'bold',...
-                    'Position', [0.635 0.165 0.1 0.1]); 
+                    'Position', [0.608 0.145 0.1 0.1],...
+                    'Box', 'Off'); 
 
             obj.sigsMeanFig      = OnsetMeanDataFig;
             obj.sigsMeanFigTitle = [obj.curSess '_InterTrialMean' obj.coder '.jpg'];

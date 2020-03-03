@@ -29,7 +29,7 @@ fPres    = 1;
 targPPI    = 300;
 scRes      = [2560 1440];
 scDim      = [6 4]; %inches\
-scDimPoster= [3.3 2.2]; %inches
+scDimPoster= [4.8 3.2]; %inches
 monSize    = [23.5 13.5]; %inches ~100ppi
 monitorPPI = 100;
 

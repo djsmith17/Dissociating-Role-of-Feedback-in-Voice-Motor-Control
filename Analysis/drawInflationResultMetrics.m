@@ -2,13 +2,13 @@ function drawInflationResultMetrics(ir, arrows, vals, toggle)
 % Optimized for DRF18 SF3 mean trace results (default).
 % Can also be toggled for DRF13 mean auditory trace (toggle = 1).
 
-plotPos = [-1485 40];
+plotPos = [0 40];
 plotDim = [1000 667];
 
-fontN        = 'Times New Roman';
+fontN        = 'Arial';
 lineThick    = 3;
-axisLSize    = 30;
-arrowTextSize = 26;
+axisLSize    = 20;
+arrowTextSize = 20;
 
 onsetC = [217,95,2]/255;
 minC   = [117,112,179]/255;
@@ -18,40 +18,41 @@ bColor = [0.8 0.8 0.8];
 
 if toggle == 1
     % Auditory
-    lowf0PixelY  = 0.26;
-    lastf0PixelY = 0.48;
-    lowf0PixelYLow = lowf0PixelY - 0.04;
+    lowf0PixelY  = 0.22;
+    lastf0PixelY = 0.455;
+    lowf0PixelYLow = lowf0PixelY - 0.06;
     
-    SMArrowX = [0.37 0.37];
-    SMArrowY = [0.81 lowf0PixelY];
-    SMAnnoBox = [0.21 0.35 0.1 0.1];
+    SMArrowX = [0.31 0.31];
+    SMArrowY = [0.80 lowf0PixelY];
+    SMAnnoBox = [0.165 0.32 0.1 0.1];
     
-    RMArrowX = [0.856 0.856];
+    RMArrowX = [0.854 0.854];
     RMArrowY = [lowf0PixelY lastf0PixelY];
-    RMAnnoBox = [(RMArrowX(1)-0.140) 0.34 0.1 0.1];
+    RMAnnoBox = [(RMArrowX(1)-0.130) 0.26 0.1 0.1];
     
-    tMArrowX = [0.41 0.495];
+    arrowXEnd = 0.47;
+    tMArrowX = [0.39 arrowXEnd];
     tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
-    tMAnnoBox = [0.59 (lowf0PixelYLow-0.07) 0.1 0.1];
+    tMAnnoBox = [(arrowXEnd + .09) (lowf0PixelYLow-0.076) 0.1 0.1];
     expType = 'Auditory';
 else
     % Default
-    lowf0PixelY  = 0.37;
-    lastf0PixelY = 0.695;
-    lowf0PixelYLow = lowf0PixelY - 0.06;
+    lowf0PixelY  = 0.34;
+    lastf0PixelY = 0.685;
+    lowf0PixelYLow = lowf0PixelY - 0.1;
     
-    SMArrowX = [0.37 0.37];
-    SMArrowY = [0.82 lowf0PixelY];
-    SMAnnoBox = [0.21 0.39 0.1 0.1];
+    SMArrowX = [0.31 0.31];
+    SMArrowY = [0.813 lowf0PixelY];
+    SMAnnoBox = [0.17 0.37 0.1 0.1];
     
-    RMArrowX = [0.855 0.855];
+    RMArrowX = [0.854 0.854];
     RMArrowY = [lowf0PixelY lastf0PixelY];
-    RMAnnoBox = [(RMArrowX(1)-0.142) 0.42 0.1 0.1];
+    RMAnnoBox = [(RMArrowX(1)-0.13) 0.41 0.1 0.1];
     
-    arrowXEnd = 0.475;
-    tMArrowX = [0.405 arrowXEnd];
+    arrowXEnd = 0.45;
+    tMArrowX = [0.39 arrowXEnd];
     tMArrowY = [lowf0PixelYLow lowf0PixelYLow];
-    tMAnnoBox = [(arrowXEnd + 0.03) (lowf0PixelYLow - 0.065) 0.1 0.1];
+    tMAnnoBox = [(arrowXEnd + 0.03) (lowf0PixelYLow-0.05) 0.1 0.1];
     expType = 'Laryngeal';
 end
 
@@ -67,7 +68,7 @@ area([ir.tAtRespRange(1) ir.tAtRespRange(2)], [min(ir.vAtRespRange)-3 min(ir.vAt
 % Draw the pitch trace
 plot(ir.time, ir.onset, 'k', 'LineWidth', lineThick)
 xlabel('Time (s)')
-ylabel('{\it f}_o (Cents)')
+ylabel('{\it f}_o (cents)')
 hold on
 
 % Draw the markers
@@ -138,9 +139,9 @@ if vals == 1
 end
    
 % save the figure
-path = 'E:\Desktop';
-% path  = 'C:\Users\djsmith\Desktop';
+% path = 'E:\Desktop';
+path  = 'C:\Users\djsmith\Desktop';
 fileName = [expType 'DependentVariablesManuscript.png'];
 fullpath = fullfile(path, fileName);
-export_fig(fullpath)
+export_fig(fullpath, '-r300')
 end

@@ -29,7 +29,7 @@ legNames = {};
 pValueThresh = 0.05;
 
 % Plotting Variables
-plotpos        = [-2550 40];
+plotpos        = [0 40];
 plotdim        = targPixDim;
 MeanSubjf0Resp = figure('Color', [1 1 1]);
 set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -37,7 +37,7 @@ set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 dottedStartx = [0 0];
 dottedy      = [-500 500];
 condColors   = {'b', 'r', 'g', 'm'};
-fontN        = 'Times New Roman';
+fontN        = 'Arial';
 legAnnoFSize = 20;
 titleFSize   = 35;
 axisLabelSize= 20;
@@ -177,15 +177,15 @@ for i = 1:length(plots)
     saveFileName = fullfile(plotFolder, plTitle);
     export_fig(saveFileName, '-r300')
 end
-% 
-% ax2.delete;
-% lgdButt.Position = lgdPosition - [0.30 0 0 0];
-% 
-% ax1.XLim = [-0.05 0.150];
-% ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1, 0.12, 0.14];
-% plTitle = [pltName '_OnsetZoom.jpg'];
-% saveFileName = fullfile(plotFolder, plTitle);
-% export_fig(saveFileName, '-r300')
+
+ax2.delete;
+lgdButt.Position = lgdPosition - [0.30 0 0 0];
+
+ax1.XLim = [-0.05 0.150];
+ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1, 0.12, 0.14];
+plTitle = [pltName '_OnsetZoom.jpg'];
+saveFileName = fullfile(plotFolder, plTitle);
+export_fig(saveFileName, '-r300')
 end
 
 function anno = checkSig(stat, thresh, anno)

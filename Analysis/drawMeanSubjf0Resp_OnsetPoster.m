@@ -29,7 +29,7 @@ legNames = {};
 pValueThresh = 0.05;
 
 % Plotting Variables
-plotpos        = [-2550 40];
+plotpos        = [0 40];
 plotdim        = targPixDim;
 MeanSubjf0Resp = figure('Color', [1 1 1]);
 set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
@@ -37,11 +37,11 @@ set(MeanSubjf0Resp, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 dottedStartx = [0 0];
 dottedy      = [-500 500];
 condColors   = {'b', 'r', 'g', 'm'};
-fontN        = 'Times New Roman';
-legAnnoFSize = 20;
+fontN        = 'Arial';
+legAnnoFSize = 28;
 titleFSize   = 35;
-axisLabelSize= 20;
-axesTextSize = 20;
+axisLabelSize= 30;
+axesTextSize = 30;
 lineThick    = 4;
 pertColor = [0.6 0.6 0.6];
 pressureC = [255 87 51]/255; %Auburn
@@ -78,7 +78,7 @@ if presFlag == 1
             drawHead = 1;
             lgdPosition = [0.21 0.18 0.1 0.1];
     end    
-    ylabel(ax2, measUnits)
+    riyaxeslabel = ylabel(ax2, measUnits);
     axis(measLimits)    
     
     box off
@@ -127,6 +127,7 @@ set(gca,'FontName', fontN,...
     
 ax2.YAxisLocation = 'right';
 ax2.YDir = rightYAxisDir;
+riyaxeslabel.Position(1) = riyaxeslabel.Position(1) - 0.1;
 set(gca, 'Color', 'None')
 if presFlag == 1
     legLines = cat(2, legLines, pL);
@@ -175,17 +176,19 @@ for i = 1:length(plots)
     plTitle = [pltName '_OnsetPoster.jpg'];
 
     saveFileName = fullfile(plotFolder, plTitle);
-    export_fig(saveFileName, '-r300')
+    export_fig(saveFileName, '-r300', '-nocrop')
 end
-% 
-% ax2.delete;
-% lgdButt.Position = lgdPosition - [0.30 0 0 0];
-% 
-% ax1.XLim = [-0.05 0.150];
-% ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1, 0.12, 0.14];
-% plTitle = [pltName '_OnsetZoom.jpg'];
-% saveFileName = fullfile(plotFolder, plTitle);
-% export_fig(saveFileName, '-r300')
+
+ax2.YColor = [1 1 1];
+ax2.XColor = [1 1 1];
+pL.Color = [1 1 1];
+lgdButt.delete
+
+ax1.XLim = [-0.05 0.1];
+ax1.XTick = [-0.04, -0.02, 0, 0.020, 0.040, 0.060, 0.080, 0.1, 0.12, 0.14];
+plTitle = [pltName '_OnsetZoom.jpg'];
+saveFileName = fullfile(plotFolder, plTitle);
+export_fig(saveFileName, '-r300', '-nocrop')
 end
 
 function anno = checkSig(stat, thresh, anno)

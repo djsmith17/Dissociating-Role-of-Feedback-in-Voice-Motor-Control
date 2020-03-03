@@ -302,14 +302,14 @@ end
 
 function drawBoxPlot(dirs, pA, measureSummaryStrs, summaryStrDiff)
 
-fontN = 'Times New Roman';
+fontN = 'Arial';
 axisLSize = 20;
 
 cond      = pA.pubCond;
 numCond   = pA.numCond;
 
 measBox = figure('Color', [1 1 1]);
-plotpos = [30 50]; plotdim = [800 1000];
+plotpos = [30 50]; plotdim = [650 750];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 collData = [];
@@ -326,7 +326,7 @@ yt = get(gca, 'YTick');
 minYLim = min(min(collData))*0.75;
 maxYLim = max(max(collData))*1.25;
 
-axis([xlim minYLim  maxYLim])
+axis([xlim minYLim  350])
 xt = get(gca, 'XTick');
 
 numComp = length(summaryStrDiff);
@@ -352,7 +352,7 @@ for ii = 1:numComp
 end
 
 set(gca, 'XTickLabel', cond)
-fix_xticklabels(gca, 0.13, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
+fix_xticklabels(gca, 0.17, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
