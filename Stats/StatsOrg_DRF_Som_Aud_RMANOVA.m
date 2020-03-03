@@ -326,7 +326,7 @@ yt = get(gca, 'YTick');
 minYLim = min(min(collData))*0.75;
 maxYLim = max(max(collData))*1.25;
 
-axis([xlim minYLim  350])
+axis([xlim minYLim maxYLim])
 xt = get(gca, 'XTick');
 
 numComp = length(summaryStrDiff);
