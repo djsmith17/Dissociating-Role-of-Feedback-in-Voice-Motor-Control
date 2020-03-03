@@ -101,8 +101,8 @@ if AudFlag == 1
     An.secTime = linspace(preEveT, posEveT, numSampSec);
     
     % Smooth the f0 data
-    An.audioMf0S   = smoothf0(An.audioMf0);
-    An.audioHf0S   = smoothf0(An.audioHf0);
+%     An.audioMf0S   = smoothf0(An.audioMf0);
+%     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
     An.audioMf0SecAll = sectionData(An.timef0, An.audioMf0, An.expTrigsf0, pVec);
