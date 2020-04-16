@@ -343,7 +343,13 @@ classdef MicHeadAlignProcess
         
         function drawPreProcessDiagnostic(obj)
 
-        plotPos = [720 40];
+        if strcmp(obj.expType, 'Auditory Perturbation_Perceptual')
+            pertStr = 'f0 Shift (cents)';
+        else
+            pertStr = 'Pressure (psi)';
+        end
+            
+        plotPos = [-1280 200];
         plotDim = [1200 900];
         lineThick = 2.5;
         voiceOnsetColor = 'm';
@@ -388,14 +394,15 @@ classdef MicHeadAlignProcess
         hold on
         plot([obj.pressureEndActions(2) obj.pressureEndActions(2)], [-600 600], 'Color', DefColor, 'LineStyle', '--', 'LineWidth', lineThick)       
         
-        ylabel('Pressure (psi')
+        ylabel(pertStr, 'Color', PresColor)
         axis([niTimeRange -0.2 5.5])
         box off  
 
         xlabel('NIDAQ Time (s)')
         set(gca,'FontName', 'Arial',...
                 'FontSize', 14,...
-                'FontWeight','bold')
+                'FontWeight','bold',...
+                'YColor', PresColor)
 
         % Raw Audapter Microphone
         axes(ha(2))
