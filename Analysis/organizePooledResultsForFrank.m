@@ -4,7 +4,7 @@ function organizePooledResultsForFrank(dirs, allSubjRes)
 time          = round(allSubjRes.secTime', 4);
 pertResponses = allSubjRes.audioMf0SecPert{1};
 
-downSamp = find(rem(time, 0.01) == 0);
+downSamp = find(rem(time, 0.005) == 0);
 
 timeDN          = time(downSamp);
 pertResponsesDN = pertResponses(downSamp, :,:);
@@ -14,7 +14,7 @@ onsets        = pertResponsesDN(:, :, 1);
 offsets       = pertResponsesDN(:, :, 2);
 
 % recreate the stimulus
-tStep = '10ms';
+tStep = '5ms';
 t0  = 0;
 tRD = 0.110; % 110ms down
 tRU = 0.150; % 150ms up

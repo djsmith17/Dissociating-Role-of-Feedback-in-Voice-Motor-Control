@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -142,7 +142,7 @@ organizeAndPrintDemographicStats(dirs, allSubjRes);
 % Organize and Save the Table of Excluded Trials
 organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, 1)
 
-% organizePooledResultsForFrank(dirs, allSubjRes)
+organizePooledResultsForFrank(dirs, allSubjRes)
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
