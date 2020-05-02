@@ -129,8 +129,9 @@ classdef MicHeadAlignProcess
 
             % Identify Voice Onset in the Audapter Microphone (rms) signal
             obj.rmsVoiceFrame = find(obj.rms > obj.rmsThresh);
+            if isempty(obj.rmsVoiceFrame); obj.rmsVoiceFrame = obj.frameDel + 1; end
             obj.voiceOnsetInd = (obj.rmsVoiceFrame(1) - obj.frameDel)*obj.frameLen;
-            if obj.voiceOnsetInd <= 0 % Can't have index <= 0
+            if obj.voiceOnsetInd <= 0 || obj.voiceOnsetInd > 16000% Can't have index <= 0
                 obj.voiceOnsetInd = 1;
             end
             obj.voiceOnsetT   = obj.time(obj.voiceOnsetInd);
