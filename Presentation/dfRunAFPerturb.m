@@ -30,7 +30,7 @@ lenDb = 0;
 boxPos = setDialBoxPos(lenDb);
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF12';
+subject    = 'Pilot0';
 run        = prompt4RunName();
 InflaVarNm = 'IV1';
 baseV      = 'BV1';
@@ -69,7 +69,7 @@ expParam.curSess      = [expParam.subject expParam.run];
 expParam.balloon      = 'N/A';
 expParam.tightness    = 'N/A';
 expParam.InflaVarNm   = InflaVarNm;
-expParam.niDev        = 'Dev2';                      % NIDAQ Device Name. For more information, see dfInitNIDAQ
+expParam.niDev        = 'Dev1';                      % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen     = 4;                           % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
@@ -210,6 +210,9 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
+    Audapter('stop');
+    Audapter('start');
+    
 %     pause(expParam.buffPause)
 
     %Play out the Analog Perturbatron Signal. This will hold script for as

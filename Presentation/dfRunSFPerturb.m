@@ -27,10 +27,10 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'test';   % Subject#, Pilot#, null
+subject    = 'Pilot0';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
-balloon    = 'GB3';     % Which perturbation balloon?
+balloon    = 'default';     % Which perturbation balloon?
 tightness  = '29';     % (cm of slack in bungie cord)
 baseV      = 'BV1';
 
@@ -188,6 +188,8 @@ for ii = 1:expParam.numTrial
     fprintf('Trial %d\n',ii)
     AudapterIO('init', p);
     Audapter('reset');
+    Audapter('start');
+    Audapter('stop');
     Audapter('start');
     pause(expParam.buffPause) %Let the participant start to speak
     
