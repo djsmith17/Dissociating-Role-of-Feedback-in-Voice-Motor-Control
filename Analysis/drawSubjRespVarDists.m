@@ -2,7 +2,7 @@ function drawSubjRespVarDists(dirs, pooledRunStr)
 
 numSubj = length(pooledRunStr);
 
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 14;
 
 plotpos = [10 10];
@@ -29,7 +29,6 @@ for ii = 1:numSubj
      
      allTrials = allTrials + numTrial;
      allTrialsLess0 = allTrialsLess0 + numTrialsLess0;
-     
      
      respPerMin = min(respPer);
      respPerMax = max(respPer);

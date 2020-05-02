@@ -44,6 +44,7 @@ distObj3AllSubj.sigsSec = eAnPool.allSubjMeanSecs3;
 
 % Mean the sectioned trials
 eAnPool.sigsSecf0M       = distObj1AllSubj.meanData(eAnPool.sigsSecf0);
+eAnPool.codedSensorPSecM = distObj1AllSubj.meanData(eAnPool.codedSensorPSec);
 distObj1AllSubj.sigsSecM = distObj1AllSubj.meanData(distObj1AllSubj.sigsSec);
 distObj2AllSubj.sigsSecM = distObj2AllSubj.meanData(distObj2AllSubj.sigsSec);
 distObj3AllSubj.sigsSecM = distObj3AllSubj.meanData(distObj3AllSubj.sigsSec);
@@ -55,24 +56,24 @@ eAnPool.riseTimeM = mean(eAnPool.riseTimes, 1);
 distObj1AllSubj = distObj1AllSubj.identifyBounds;
 distObj1AllSubj = distObj1AllSubj.drawSigsSecM;
 
-% Append the sturf
+% Append additional lines to the plot
 distObj1AllSubj = distObj1AllSubj.appendFigure(distObj2AllSubj.sigsSecM, 2);
 distObj1AllSubj = distObj1AllSubj.appendFigure(distObj3AllSubj.sigsSecM, 3);
 
 distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 
-%Mean Lines
+% Mean Lines
 distObj1AllSubj.iterationType = 'Participantsx3Lines';
 distObj1AllSubj.legendCurves = [];
 distObj1AllSubj.legendLabels = {};
 
-sigsSecLinesOn = [distObj1AllSubj.sigsSecM(:,1),...
-                  distObj2AllSubj.sigsSecM(:,1),...
-                  distObj3AllSubj.sigsSecM(:,1)];
+sigsSecLinesOn = [distObj1AllSubj.sigsSecM.ON.mean,...
+                  distObj2AllSubj.sigsSecM.ON.mean,...
+                  distObj3AllSubj.sigsSecM.ON.mean];
               
-sigsSecLinesOf = [distObj1AllSubj.sigsSecM(:,3),...
-                  distObj2AllSubj.sigsSecM(:,3),...
-                  distObj3AllSubj.sigsSecM(:,3)];
+sigsSecLinesOf = [distObj1AllSubj.sigsSecM.OF.mean,...
+                  distObj2AllSubj.sigsSecM.OF.mean,...
+                  distObj3AllSubj.sigsSecM.OF.mean];
               
 sigsSecLines = sigsSecLinesOn;
 sigsSecLines = cat(3, sigsSecLines, sigsSecLinesOf);
@@ -81,18 +82,25 @@ distObj1AllSubj.sigsSecM = distObj1AllSubj.meanData(sigsSecLines);
 distObj1AllSubj = distObj1AllSubj.identifyBounds;
 
 % All three lines collapsed: Onset Figure
-stimWindowProp.meanOnsetLag  = eAnPool.lagTimeM(1);
-stimWindowProp.meanOnsetRise = eAnPool.riseTimeM(1);
-stimWindowProp.meanOffsetLag  = eAnPool.lagTimeM(2);
-stimWindowProp.meanOffsetRise = eAnPool.riseTimeM(2);
+stimTraceProp.timeP          = eAnPool.timePresSec;
+stimTraceProp.meanPres       = eAnPool.codedSensorPSecM;
+stimTraceProp.meanOnsetLag   = eAnPool.lagTimeM(1);
+stimTraceProp.meanOnsetRise  = eAnPool.riseTimeM(1);
+stimTraceProp.meanOffsetLag  = eAnPool.lagTimeM(2);
+stimTraceProp.meanOffsetRise = eAnPool.riseTimeM(2);
 
-distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Onset(1, stimWindowProp);
+distObj1AllSubj.dataColor1 = [0 78 0]/255;
+distObj1AllSubj.sigsSecMLims = [-0.5 1.0 0 15.8];
+distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Onset(1, stimTraceProp);
 distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLineOnset' distObj1AllSubj.coder '.jpg'];
 distObj1AllSubj.appendFigureDynamics_Onset(eAnPool.timef0Sec, eAnPool.sigsSecf0M)
 
 distObj1AllSubj.saveSigsSecMFig(dirs.PooledResultsDir)
 
-distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Offset(1, stimWindowProp);
+distObj1AllSubj.legendCurves = [];
+distObj1AllSubj.legendLabels = {};
+distObj1AllSubj.sigsSecMLims = [-0.5 1.0 0 15.8];
+distObj1AllSubj = distObj1AllSubj.drawSigsSecM_Offset(1, stimTraceProp);
 distObj1AllSubj.sigsMeanFigTitle = [distObj1AllSubj.curSess '_InterTrialMeanLineOffset' distObj1AllSubj.coder '.jpg'];
 distObj1AllSubj.appendFigureDynamics_Offset(eAnPool.timef0Sec, eAnPool.sigsSecf0M)
 
@@ -105,6 +113,10 @@ function eAnPool = initPooledEndoscopyResults()
 eAnPool.timef0Sec       = [];
 eAnPool.sigsSecf0       = [];
 eAnPool.sigsSecf0M      = [];
+
+eAnPool.timePresSec = [];
+eAnPool.codedSensorPSec  = [];
+eAnPool.codedSensorPSecM = [];
 
 eAnPool.lagTimes = [];
 eAnPool.lagTimeM = [];
@@ -129,18 +141,21 @@ function eAnPool = iterPooledEndoscopyResults(eAnPool, curRes, dMeasObj, dMeasOb
 eAnPool.timef0Sec = curRes.timef0Sec;
 eAnPool.sigsSecf0 = cat(2, eAnPool.sigsSecf0, curRes.codedSigsSecM);
 
+eAnPool.timePresSec = curRes.timePresSec;
+eAnPool.codedSensorPSec = cat(2, eAnPool.codedSensorPSec, curRes.codedSensorPSecM);
+
 eAnPool.lagTimes  = cat(1, eAnPool.lagTimes, curRes.codedLagTimesM);
 eAnPool.riseTimes = cat(1, eAnPool.riseTimes, curRes.codedRiseTimesM);
 
-eAnPool.meanSecsOn = cat(2, eAnPool.meanSecsOn, dMeasObj.sigsSecM(:,1));
-eAnPool.meanSecsOf = cat(2, eAnPool.meanSecsOf, dMeasObj.sigsSecM(:,3));
+eAnPool.meanSecsOn = cat(2, eAnPool.meanSecsOn, dMeasObj.sigsSecM.ON.mean);
+eAnPool.meanSecsOf = cat(2, eAnPool.meanSecsOf, dMeasObj.sigsSecM.OF.mean);
 
 if ~isempty(dMeasObj2)
-    eAnPool.meanSecsOn2 = cat(2, eAnPool.meanSecsOn2, dMeasObj2.sigsSecM(:,1));
-    eAnPool.meanSecsOf2 = cat(2, eAnPool.meanSecsOf2, dMeasObj2.sigsSecM(:,3));
+    eAnPool.meanSecsOn2 = cat(2, eAnPool.meanSecsOn2, dMeasObj2.sigsSecM.ON.mean);
+    eAnPool.meanSecsOf2 = cat(2, eAnPool.meanSecsOf2, dMeasObj2.sigsSecM.OF.mean);
 
-    eAnPool.meanSecsOn3 = cat(2, eAnPool.meanSecsOn3, dMeasObj3.sigsSecM(:,1));
-    eAnPool.meanSecsOf3 = cat(2, eAnPool.meanSecsOf3, dMeasObj3.sigsSecM(:,3));
+    eAnPool.meanSecsOn3 = cat(2, eAnPool.meanSecsOn3, dMeasObj3.sigsSecM.ON.mean);
+    eAnPool.meanSecsOf3 = cat(2, eAnPool.meanSecsOf3, dMeasObj3.sigsSecM.OF.mean);
 end
 end
 
@@ -217,18 +232,21 @@ end
 curRes.codedTrialNum      = curRes.trialNums(ctIdx);
 curRes.codedPertTrig      = curRes.pertTrig(ctIdx,:);
 curRes.codedSigs          = curRes.sigs(:,ctIdx);
-curRes.codedSigsSec       = curRes.sigsf0Sec(:, ctIdx, :); % Onset
+curRes.codedSigsSec       = curRes.sigsf0Sec(:, ctIdx, :);
 curRes.codedSensorP       = curRes.sensorP(:, ctIdx);
+curRes.timePresSec        = curRes.presSD.timeSec;
+curRes.codedSensorPSec    = curRes.presSD.sensorSec(:, ctIdx, :);
 curRes.codedSensorTrigTSt = curRes.presSD.TrigTime(ctIdx,:);
 curRes.codedSensorTrigTSp = curRes.presSD.TrigTime(ctIdx,:) + curRes.presSD.riseTimes(ctIdx,:);
 
 curRes.codedlagTimes  = curRes.presSD.lagTimes(ctIdx,:)- curRes.presSD.lagTimes(ctIdx,:);
 curRes.codedriseTimes = curRes.presSD.riseTimes(ctIdx,:);
 
-% Mean the behaviroal stuff
-curRes.codedSigsSecM   = mean(curRes.codedSigsSec, 2);
-curRes.codedLagTimesM  = mean(curRes.codedlagTimes, 1);
-curRes.codedRiseTimesM = mean(curRes.codedriseTimes, 1);
+% Mean the behavioral stuff
+curRes.codedSigsSecM    = mean(curRes.codedSigsSec, 2);
+curRes.codedSensorPSecM = mean(curRes.codedSensorPSec, 2);
+curRes.codedLagTimesM   = mean(curRes.codedlagTimes, 1);
+curRes.codedRiseTimesM  = mean(curRes.codedriseTimes, 1);
 
 % Set up the sectioned data object
 dataInfo.curSess = curRes.curSess;
@@ -259,7 +277,7 @@ end
 dMeasObj.saveSigsSecMFig(dirs.ResultsParti)
 
 % Draw the individual trial f0 vs inflation trace
-drawEndoResponses(dirs, curRes, dMeasObj, 3)
+% drawEndoResponses(dirs, curRes, dMeasObj, 3)
 end
 
 function dMeasObj = iterateOnAnalysisSteps(timeFrames, codedDist, codedPertTrig, dataInfo)
@@ -300,6 +318,7 @@ plotdim = [1200 700];
 InterTrialf0 = figure('Color', [1 1 1]);
 set(InterTrialf0, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
+fontN = 'Arial';
 % Perturbation period
 pertColor = [0.8 0.8 0.8];
 pertAx = [curRes.codedPertTrig(ii, 1), curRes.codedPertTrig(ii, 2)];
@@ -331,6 +350,7 @@ title({[curRes.participant ' ' curRes.run],[ ' Trial ' num2str(curRes.codedTrial
 axis(curRes.limits); box off
 
 set(gca,'FontSize', 14,...
+        'FontName', fontN,...
         'FontWeight','bold')
 
 yyaxis right
@@ -338,6 +358,7 @@ plot(curRes.timePres, curRes.codedSensorP(:, ii), '--k', 'LineWidth', 1.5)
 ylabel('Pressure (psi)', 'Color', 'k')
 axis(curRes.pressureLim);
 set(gca,'FontSize', 14,...
+        'FontName', fontN,...
         'FontWeight','bold')
 
 % Distance Results
@@ -361,6 +382,7 @@ lgd.EdgeColor = 'none';
 lgd.Location = 'SouthWest';
 
 set(gca,'FontSize', 14,...
+        'FontName', fontN,...
         'FontWeight','bold')
 
 fileName = ['EndoDistanceMeasure' curRes.coder '.jpg'];

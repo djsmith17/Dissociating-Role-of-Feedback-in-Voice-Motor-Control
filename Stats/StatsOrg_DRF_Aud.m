@@ -1,8 +1,12 @@
 function StatsOrg_DRF_Aud(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas = {'StimMag', 'RespMag', 'RespPer'};
-mUnits = {'cents', 'cents', '%'};
+meas = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
+measPub = {'tAtMin', 'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage'};
+mUnits = {'s', 'cents', 'cents', '%'};
+numMeas = length(meas);
+
+measFor1SampleTest  = {'RespMag', 'RespPer'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -11,14 +15,13 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:3;
 ApplyTrans = 0;
-for k = curTestingMeas
-    pA.k = k;
+for k = 1:numMeas
+    
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
-    if k == 1 && ApplyTrans
+    if k == 6 && ApplyTrans
         for i = 1:numCond
             % Identify the Variable and Condition
             measure   = curStatTable.(cond_table{i});
@@ -37,9 +40,10 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
-        measureVar.varName   = meas{k};
-        measureVar.condition = curCond;
-        measureVar.units     = mUnits{k};
+        measureVar.varName    = meas{k};
+        measureVar.varNamePub = measPub{k};
+        measureVar.condition  = curCond;
+        measureVar.units      = mUnits{k};
         
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
@@ -47,11 +51,17 @@ for k = curTestingMeas
         % Describe the normality
         summaryStat = summaryStat.testNormality();
 
-        % Answering Research Questions 4.1
-        if k == 2 || k == 3
-            summaryStat = summaryStat.performTTest(1); 
-            rangeVal = ['A' num2str(7 +2*(i))];
-            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
+        % Do we need the result of a 1-sample t-test? 
+        % (Signficantly different than 0)
+        if ismember(meas{k}, measFor1SampleTest)
+            summaryStat = summaryStat.performTTest();
+            summaryStat.SummaryStruct.cohensD = (summaryStat.SummaryStruct.mean - 0)/(summaryStat.SummaryStruct.SD);
+    
+            EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizeCohens_D'});
+            
+            rangeVal = num2str(7 +2*(i));
+            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', ['A' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
+            writetable(EffectTable, dirs.behavioralResultTable, 'Range', ['B' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
         end
         
         % Concatenate the Summary Stat Arrays across condition
@@ -63,7 +73,7 @@ for k = curTestingMeas
     
     % Visualizations
     drawHistograms(measureSummaryStrs, dirs, pA) % Visualize Distribution/Normality
-    drawBoxPlot(measureSummaryStrs, dirs, pA)    % Visualize Distribution/Outliers
+    drawBoxPlot(measureSummaryStrs, measureVar, dirs, pA)    % Visualize Distribution/Outliers
     
     % Save Behavioral Result Table: Values ready for inclusion in manuscript 
     writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
@@ -74,8 +84,8 @@ end
 
 writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
 
-% Save All Variable Table: Easy access excel file to check analysis
-fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
+% Save All Variable Table: Easy access csv file to check analysis
+fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.csv']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames',true)
 end
 
@@ -153,10 +163,9 @@ dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pAnalysis varName su
 export_fig(dirs.DistributionFigureFile)
 end
 
-function drawBoxPlot(measureSummaryStrs, dirs, pA)
+function drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
 
-units  = {'cents', 'cents', '%'};
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 25;
 
 pAnalysis = pA.pAnalysis;
@@ -170,12 +179,13 @@ plotpos = [30 30]; plotdim = [700 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 varName     = measureSummaryStrs.varName;
+varNamePub  = measureSummaryStrs.varNamePub;
 measureData = [measureSummaryStrs.measure];
 
 boxplot(measureData, 'Labels', cond)
 xlabel('AudFB')
-ylabel([varName ' (' units{pA.k} ')'])
-title({pAnalysisFix, varName})
+ylabel([varNamePub ' (' summaryStrDiff.units ')'])
+% title({pAnalysisFix, varName})
 box off
 
 set(gca,'FontName', fontN,...
@@ -194,7 +204,7 @@ numCond = length(pubCond);
 genVar = cell(numCond, 1);
 genVar(:) = {''};
 
-pubTable = table(genVar, genVar, genVar); %Three times for numMeas
+pubTable = table(genVar, genVar, genVar, genVar); %Three times for numMeas
 pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end

@@ -101,8 +101,8 @@ if AudFlag == 1
     An.secTime = linspace(preEveT, posEveT, numSampSec);
     
     % Smooth the f0 data
-    An.audioMf0S   = smoothf0(An.audioMf0);
-    An.audioHf0S   = smoothf0(An.audioHf0);
+%     An.audioMf0S   = smoothf0(An.audioMf0);
+%     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
     An.audioMf0SecAll = sectionData(An.timef0, An.audioMf0, An.expTrigsf0, pVec);
@@ -558,9 +558,11 @@ ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
 ir.stimMag = abs(ir.vAtMin - ir.vAtOnset); % Distance traveled from onset to min value
 
 % RespMag
-ir.iAtResp = numSamp;                % Last index in section
-ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
-ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.tAtRespRange = [0.8 1.0];              % Time Values in the period 800ms to 1000ms after perturbation onset
+ir.iAtRespRange = find(ir.time >= ir.tAtRespRange(1) & ir.time<= ir.tAtRespRange(2));                % Last index in section
+ir.vAtRespRange = ir.onset(ir.iAtRespRange);    % Time Value when participant 'fully responded' (1.0s)
+ir.tAtResp      = mean(ir.tAtRespRange);
+ir.vAtResp      = mean(ir.vAtRespRange);
 ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
 % RespPer
@@ -569,7 +571,7 @@ ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respM
 % Add to the audioDynamics struct
 respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
 audioDynamics_Somato.respVarM = respVarM;
-% drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
+% drawInflationResultMetrics(ir, 1, 0, 0); % Generates useful manuscript Fig
 end
 
 function ir = initInflationResponseStruct()
@@ -637,9 +639,11 @@ ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
 ir.stimMag = abs(-100);                    % Distance traveled from onset to min value (default is 100 cents)
 
 % RespMag
-ir.iAtResp = numSamp;                % Last index in section
-ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
-ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.tAtRespRange = [0.8 1.0];              % Time Values in the period 800ms to 1000ms after perturbation onset
+ir.iAtRespRange = find(ir.time >= ir.tAtRespRange(1) & ir.time<= ir.tAtRespRange(2));                % Last index in section
+ir.vAtRespRange = ir.onset(ir.iAtRespRange);    % Time Value when participant 'fully responded' (1.0s)
+ir.tAtResp      = mean(ir.tAtRespRange);
+ir.vAtResp      = mean(ir.vAtRespRange);
 ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
 % RespPer

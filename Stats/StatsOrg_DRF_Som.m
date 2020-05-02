@@ -1,8 +1,12 @@
 function StatsOrg_DRF_Som(dirs, pA, allSubjRes)
 
 allSubjStatTable = allSubjRes.statTable;
-meas   = {'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-mUnits = {'s', 'cents', 'cents', '%'};
+meas    = {'StimMag', 'RespMag', 'RespPer', 'tAtMin', 'f0'};
+measPub = {'Stimulus Magnitude', 'Response Magnitude', 'Response Percentage', 'Response Latency', 'Fundamental Frequency'};
+mUnits  = {'cents', 'cents', '%', 's', 'Hz'};
+numMeas = length(meas);
+
+measFor1SampleTest  = {'RespMag', 'RespPer'};
 
 cond    = pA.cond;
 numCond = pA.numCond;
@@ -11,14 +15,13 @@ pubCond = pA.pubCond;
 pubTable = initPubTable(meas, pubCond);
 dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
 
-curTestingMeas = 1:4;
-ApplyTrans = 0;
-for k = curTestingMeas
+ApplyTrans = 1;
+for k = 1:numMeas
     
     [curStatTable, cond_table] = organizeVarByCond(allSubjStatTable, meas{k}, cond);
 
     lambdas = [];
-    if k == 1 && ApplyTrans
+    if k == 6 && ApplyTrans
         for i = 1:numCond
             % Identify the Variable and Condition
             measure   = curStatTable.(cond_table{i});
@@ -37,21 +40,30 @@ for k = curTestingMeas
         curCond = cond_table{i};
         measure = curStatTable.(curCond);
         
-        measureVar.varName   = meas{k};
-        measureVar.condition = curCond;
-        measureVar.units     = mUnits{k};
+        % Setup a structure to be fed into the class.
+        measureVar.varName    = meas{k};
+        measureVar.varNamePub = measPub{k};
+        measureVar.condition  = curCond;
+        measureVar.units      = mUnits{k};
         
+        % Create an object which will make performing stats bvery easy. 
         % Perform Standard Summary Stats
         summaryStat = MeasureSummaryStats(dirs, pA, measureVar, measure, lambdas(i));
              
-        % Describe the normality
+        % Perform method of class which tests for normality
         summaryStat = summaryStat.testNormality();
         
-        % Answering Research Questions 1-3
-        if k == 3 || k == 4
-            summaryStat = summaryStat.performTTest(1); 
-            rangeVal = ['A' num2str(7 +2*(i))];
-            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', rangeVal, 'WriteRowNames', 1, 'Sheet', meas{k})
+        % Do we need the result of a 1-sample t-test? 
+        % (Signficantly different than 0)
+        if ismember(meas{k}, measFor1SampleTest)
+            summaryStat = summaryStat.performTTest();
+            summaryStat.SummaryStruct.cohensD = (summaryStat.SummaryStruct.mean - 0)/(summaryStat.SummaryStruct.SD);
+    
+            EffectTable = table(summaryStat.SummaryStruct.cohensD, 'VariableNames', {'EffectSizeCohens_D'});
+    
+            rangeVal = num2str(7 +2*(i));
+            writetable(summaryStat.statSentTable, dirs.behavioralResultTable, 'Range', ['A' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
+            writetable(EffectTable, dirs.behavioralResultTable, 'Range', ['B' rangeVal], 'WriteRowNames', 1, 'Sheet', meas{k})
         end
         
         % Concatenate the Summary Stat Arrays across condition
@@ -64,27 +76,34 @@ for k = curTestingMeas
     % Find the difference between the two conditions and place in Struct
     measDiff = measureSummaryStrs(1).measure - measureSummaryStrs(2).measure;
     
-    measureDiffVar.varName   = [meas{k} 'Diff'];
-    measureDiffVar.condition = 'Diff';
-    measureDiffVar.units     = mUnits{k};
+    measureDiffVar.varName     = [meas{k} 'Diff'];
+    measureDiffVar.varNamePub  = [meas{k} 'Diff'];
+    measureDiffVar.condition   = 'Diff';
+    measureDiffVar.units       = mUnits{k};
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
     
-    if k == 4
-        % Apply a Box Cox transform with the default (best) lambda
-        summaryStatDiff = performSimpleBoxCoxTrans(summaryStatDiff);
-    end
-    
     summaryStatDiff = summaryStatDiff.testNormality();       % Test Normality
-    summaryStatDiff = summaryStatDiff.performTTest();        % Perform t-test
     summaryStatDiff.drawHistoBoxCombo()                      % Visualize Normality/Outliers
+    
+    if summaryStatDiff.SummaryStruct.swH == 1
+        summaryStatDiff = summaryStatDiff.performWilcoxonRankTest();
+        summaryStatDiff.SummaryStruct.cohensD = 0;
+    else
+        summaryStatDiff = summaryStatDiff.performTTest();        % Perform t-test
+        summaryStatDiff.SummaryStruct.cohensD = summaryStatDiff.SummaryStruct.ttestStat/sqrt(summaryStatDiff.SummaryStruct.numObvs);
+       
+    end
+     
+    EffectTable = table(summaryStatDiff.SummaryStruct.cohensD, 'VariableNames', {'EffectSizePairedCohens_D'});
     
     % Visualizations
     drawHistograms(measureSummaryStrs, dirs, pA)             % Visualize Distribution/Normality
-    drawBoxPlot(measureSummaryStrs, summaryStatDiff.SummaryStruct, dirs, pA)% Visualize Distribution/Outliers 
+    drawBoxPlot(measureSummaryStrs, summaryStatDiff.SummaryStruct, dirs, pA)% Visualize Distribution/Outliers
         
     % Save Behavioral Result Table: Values ready for inclusion in manuscript 
     writetable(summaryVarTableAcrossCond, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', meas{k})
     writetable(summaryStatDiff.statSentTable, dirs.behavioralResultTable, 'Range', 'A7', 'WriteRowNames', 1, 'Sheet', meas{k})
+    writetable(EffectTable, dirs.behavioralResultTable, 'Range', 'B7', 'WriteRowNames', 1, 'Sheet', meas{k})
     
     % Add to the Table for publication
     pubTable = popPubTable(pubTable, k, summaryVarTableAcrossCond);
@@ -93,7 +112,7 @@ end
 writetable(pubTable, dirs.behavioralResultTable, 'WriteRowNames', 1, 'Sheet', 'PubTable')
 
 % Save All Variable Table: Easy access excel file to check analysis
-fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.xlsx']);
+fullResultFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'AllVariableTable.csv']);
 writetable(allSubjStatTable, fullResultFile, 'WriteVariableNames', true)
 end
 
@@ -173,7 +192,7 @@ end
 
 function drawBoxPlot(measureSummaryStrs, summaryStrDiff, dirs, pA)
 
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 25;
 
 pAnalysis = pA.pAnalysis;
@@ -189,11 +208,12 @@ plotpos = [30 0]; plotdim = [700 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 varName     = measureSummaryStrs.varName;
+varNamePub  = measureSummaryStrs.varNamePub;
 measureData = [measureSummaryStrs.measure];
 
-boxplot(measureData, 'Labels', cond)
-ylabel([varName ' (' summaryStrDiff.units ')'])
-title({pAnalysisFix, varName})
+boxplot(measureData)
+ylabel([varNamePub ' (' summaryStrDiff.units ')'])
+% title({pAnalysisFix, varNamePub})
 box off
 
 yt = get(gca, 'YTick');
@@ -206,7 +226,16 @@ if isSig
     plot(mean(xt([1 2])), max(yt)*1.12, '*k', 'MarkerSize', 10)
     hold off
 end
-text(mean(xt([1 2]))-0.25, max(yt)*1.15, ['p = ' summaryStrDiff.ttestPstr], 'FontSize',18)
+
+% if str2num(summaryStrDiff.ttestPstr) < 0.001
+%     pValSent = 'p < .001';
+% else
+%     pValSent = sprintf('p = %0.3f', str2num(summaryStrDiff.ttestPstr));
+% end
+% text(mean(xt([1 2]))-0.25, max(yt)*1.15, pValSent, 'FontSize',18)
+
+set(gca, 'XTickLabel', cond)
+fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
@@ -224,7 +253,7 @@ numCond = length(pubCond);
 genVar = cell(numCond, 1);
 genVar(:) = {''};
 
-pubTable = table(genVar, genVar, genVar, genVar); %Three times for numMeas
+pubTable = table(genVar, genVar, genVar, genVar, genVar); % Four times for numMeas
 pubTable.Properties.VariableNames = meas;
 pubTable.Properties.RowNames = pubCond;
 end
@@ -235,7 +264,7 @@ function pubTable = popPubTable(pubTable, curCol, summaryVarTableAcrossCond)
 
 for ii = 1:numCond
    curMean  = summaryVarTableAcrossCond.mean(ii); % Mean
-   curError = summaryVarTableAcrossCond.SD(ii);   % Standard Error of the Mean
+   curError = summaryVarTableAcrossCond.SD(ii);   % Standard Definition
    
    curPubPrint = sprintf('%s (%s)', num2str(curMean), num2str(curError));
    pubTable(ii, curCol) = {curPubPrint};

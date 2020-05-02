@@ -17,7 +17,7 @@ function dfRunPooledAnalysis()
 
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -42,6 +42,7 @@ pA.numCond       = length(pA.cond);
 pA.condVar       = cF.condVar;      % Variable to test the condition
 pA.testExt       = cF.testExt;
 pA.pubCond       = cF.pubCond;
+clear cF
 
 pA.pltNameMVi    = cell(pA.numPart, 1);
 pA.pltNameMVm    = [pA.pAnalysis 'MeanSubj' pA.testExt];
@@ -70,6 +71,7 @@ for ii = 1:pA.numPart
     end
     allDataStr = cat(1, allDataStr, subjRes);
 end
+clear cF participant run subjRes res
 
 numObs             = pA.numPart*pA.numCond;
 allSubjRes         = initSortedStruct(pA, numObs);
@@ -93,6 +95,8 @@ for ii = 1:pA.numPart
     sortStruc.cond    = pA.cond;
     sortStruc.pubCond = pA.pubCond;
  
+    wcCount_indivi = [0 0];
+    wcCount_group  = [0 0];
     for jj = 1:pA.numRuns
         curRes = allDataStr(ii, jj);
 
@@ -108,8 +112,8 @@ for ii = 1:pA.numPart
             curRes = adjustCurRes(curRes, autoMiss);
         end
         
-        sortStruc  = combineCondTrials(pA, curRes, sortStruc, tossCounts);       
-        allSubjRes = combineCondTrials(pA, curRes, allSubjRes, tossCounts);
+        [sortStruc, wcCount_indivi] = combineCondTrials(pA, curRes, sortStruc, tossCounts, wcCount_indivi);       
+        [allSubjRes, wcCount_group] = combineCondTrials(pA, curRes, allSubjRes, tossCounts, wcCount_group);
     end
         
     sortStruc = meanCondTrials(pA, sortStruc);
@@ -126,6 +130,7 @@ for ii = 1:pA.numPart
     allSubjRes.gender{ii} = sortStruc.gender;
     allSubjRes.age(ii)    = sortStruc.age;
 end
+clear ii jj participant runItr numObs curRes
 
 allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr);
 allSubjRes = meanCondTrials(pA, allSubjRes);
@@ -137,7 +142,7 @@ organizeAndPrintDemographicStats(dirs, allSubjRes);
 % Organize and Save the Table of Excluded Trials
 organizeAndSaveExcludedTrialTable(dirs, pA, allSubjRes, tossTrialTable, 1)
 
-% organizePooledResultsForFrank(dirs, allSubjRes)
+organizePooledResultsForFrank(dirs, allSubjRes)
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
@@ -154,7 +159,7 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
     StatsOrg_DRF_Som(dirs, pA, allSubjRes);
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
     drawSubjRespVarVoicingCorr(dirs, pA, pooledRunStr)
-    drawSubjRespVarDists(dirs, pooledRunStr)
+    drawSubjRespVarDists_AllTrial(dirs, pooledRunStr)
     StatsOrg_DRF_Aud(dirs, pA, allSubjRes);
 end
 end
@@ -185,19 +190,26 @@ sortStr.f0b     = zeros(numCond, 1);
 
 sortStr.AudFB   = cell(numCond, 1);
 
+% Trial Information
 sortStr.allContTrials    = [];
 sortStr.numContTrialsFin = 0;
 sortStr.allPertTrials    = cell(numCond, 1);
 sortStr.numPertTrialsFin = zeros(numCond, 1);
+sortStr.AuMHDelays       = cell(numCond, 1);
+sortStr.AuMHDelayMean    = [];
 
+% Audio Dynamics
 sortStr.secTime         = [];
 sortStr.audioMf0SecPert = cell(numCond, 1);
 sortStr.audioMf0SecCont = [];
 sortStr.audioHf0SecPert = cell(numCond, 1);
 sortStr.audioHf0SecCont = [];
+
+% Pre Voicing Dynamics
 sortStr.prePertVoicingTimeCont = [];
 sortStr.prePertVoicingTimePert = cell(numCond,1);
 
+% Sensor Dynamics
 sortStr.secTimeP        = [];
 sortStr.sensorPSec      = [];
 sortStr.sensorPOnOff    = [];
@@ -211,6 +223,7 @@ sortStr.sensorPMean      = [];
 sortStr.sensorPOnOffMean = [];
 sortStr.sensorPRiseTimeM = [];
 
+% Trial Tossing Record
 sortStr.tossedAll        = 0;
 sortStr.tossedLate       = 0;
 sortStr.tossedBreak      = 0;
@@ -218,10 +231,19 @@ sortStr.tossedMisCalc    = 0;
 sortStr.tossedManual     = 0;
 sortStr.tossedAutoMiss   = 0;
 
+sortStr.pertLengths    = cell(numCond, 1);
+sortStr.pertOnsetTimes = cell(numCond, 1);
+
 sortStr.respVarSingle    = cell(numCond, 1);
 sortStr.respVarM         = cell(numCond, 1);
 
 sortStr.statTable = initStatTable(numObs);
+
+sortStr.audioMf0SecPert_all  = cell(numCond, 2);
+sortStr.audioHf0SecPert_all  = cell(numCond, 2);
+sortStr.audioMf0MeanPert_all = cell(numCond, 2);
+sortStr.audioHf0MeanPert_all = cell(numCond, 2);
+sortStr.respVarM_all         = cell(numCond, 2);
 end
 
 function [tossTrialTable] = initTossedTrialTable(totnumRuns)
@@ -237,8 +259,8 @@ end
 
 function [statTable] = initStatTable(numObs)
 
-varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer'};
-varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double'};
+varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer', 'tAtMin1', 'tAtMin2', 'StimMag1', 'StimMag2', 'RespMag1', 'RespMag2', 'RespPer1', 'RespPer2'};
+varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double'};
 numVar = length(varNames);
 
 statTable = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
@@ -253,41 +275,65 @@ numVar = length(varNames);
 statTableSingle = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
 end
 
-function polRes = combineCondTrials(pA, curRes, polRes, tossT)
+function [polRes, wCCount] = combineCondTrials(pA, curRes, polRes, tossT, wCCount)
 AD = curRes.audioDynamics; % Audio Dynamics
 PD = curRes.presSDsv;      % Pressure Dynamics
 
 whichCondAr = strcmp(pA.cond, eval(pA.condVar));
 wC          = find(whichCondAr == 1);            % Which Condition?
+wCCount = wCCount + whichCondAr;
 
+% Run Information
 polRes.runs{wC}   = cat(1, polRes.runs{wC}, {curRes.run});
 polRes.runf0b{wC} = cat(1, polRes.runf0b{wC}, curRes.f0b);
 
 polRes.AudFB{wC}  = cat(1, polRes.AudFB{wC}, {curRes.AudFB});
 
+% Trial Information
 polRes.allContTrials     = cat(1, polRes.allContTrials, curRes.numContTrialsFin);
 polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrialsFin);
+polRes.AuMHDelays{wC}    = cat(1, polRes.AuMHDelays{wC}, curRes.AuMHDelaysinc);
 
+% Audio Dynamics
 polRes.secTime             = curRes.secTime;
 polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
 polRes.audioHf0SecPert{wC} = cat(2, polRes.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
 polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
 polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCont);
 
+% the all...harumph
+polRes.audioMf0SecPert_all{wC, wCCount(wC)} = cat(2, polRes.audioMf0SecPert_all{wC, wCCount(wC)}, curRes.audioMf0SecPert);
+polRes.audioHf0SecPert_all{wC, wCCount(wC)} = cat(2, polRes.audioHf0SecPert_all{wC, wCCount(wC)}, curRes.audioHf0SecPert);
+
+% Pre Voicing Dynamics
 polRes.prePertVoicingTimeCont     = cat(1, polRes.prePertVoicingTimeCont, curRes.prePertVoicingTimeinc(curRes.contIdxFin));
 polRes.prePertVoicingTimePert{wC} = cat(1, polRes.prePertVoicingTimePert{wC}, curRes.prePertVoicingTimeinc(curRes.pertIdxFin));
 
+% Sensor Dynamics
 polRes.secTimeP            = PD.timeSec;
 polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
 polRes.sensorPOnOff        = cat(1, polRes.sensorPOnOff, PD.OnOffVal);
 polRes.sensorPRiseTime     = cat(1, polRes.sensorPRiseTime, PD.riseTimeM);
 
+% Trial Tossing Record
 polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
 polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
 polRes.tossedBreak    = polRes.tossedBreak + tossT.B;     % Voice Break
 polRes.tossedMisCalc  = polRes.tossedMisCalc + tossT.C;   % f0 Miscalc
 polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Excluded Trials
 polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
+
+% Analysis of Perturbation Lengths
+if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+    pertLengths = PD.pertTime(:,2) - PD.pertTime(:,1);
+    polRes.pertLengths{wC} = cat(1, polRes.pertLengths{wC}, pertLengths);
+    
+    pertOnsetTime = 0.8 + curRes.presSD.pertTime(:,1);
+    polRes.pertOnsetTimes{wC} = cat(1, polRes.pertOnsetTimes{wC}, pertOnsetTime);
+else
+    polRes.pertLengths{wC}    = 0;
+    polRes.pertOnsetTimes{wC} = 0;
+end
 end
 
 function [tossCounts, tossTrialTable, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTable, runItr)
@@ -436,10 +482,13 @@ if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     polRes.sensorPOnOffMean = mean(polRes.sensorPOnOff, 1);
     polRes.sensorPRiseTimeM = mean(polRes.sensorPRiseTime, 1);
 else
-    polRes.sensorPMean = zeros(size(polRes.audioMf0SecPert{1}));
+    polRes.sensorPMean.ON.mean = zeros(length(polRes.audioMf0SecPert{1}), 1);
+    polRes.sensorPMean.OF.mean = zeros(length(polRes.audioMf0SecPert{1}), 1);
     polRes.sensorPOnOffMean = [0 0];
     polRes.sensorPRiseTimeM = [0 0];
 end
+
+[~, numTypes] = size(polRes.audioMf0MeanPert_all);
 
 for wC = 1:pA.numCond
     polRes.f0b(wC)              = mean(polRes.runf0b{wC});
@@ -447,16 +496,33 @@ for wC = 1:pA.numCond
     polRes.numPertTrialsFin(wC) = sum(polRes.allPertTrials{wC});
     polRes.audioMf0MeanPert{wC} = meanSecData(polRes.audioMf0SecPert{wC});
     polRes.audioHf0MeanPert{wC} = meanSecData(polRes.audioHf0SecPert{wC});
+    polRes.AuMHDelayMean(1)     = mean(polRes.AuMHDelays{wC});
+    polRes.AuMHDelayMean(2)     = std(polRes.AuMHDelays{wC});
+    
+    for ii = 1:numTypes
+        polRes.audioMf0MeanPert_all{wC, ii} = meanSecData(polRes.audioMf0SecPert_all{wC, ii});
+        polRes.audioHf0MeanPert_all{wC, ii} = meanSecData(polRes.audioHf0SecPert_all{wC, ii});
+    end
     
     if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
         audioDynamicsAllTraces = InflationResponseSingle(polRes.secTime, polRes.audioMf0SecPert{wC});
         audioDynamicsMeanTrace = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
+        
+        for ii = 1:numTypes
+            audioDynamicsMeanTrace_AllRun = InflationResponse(polRes.secTime, polRes.audioMf0MeanPert_all{wC, ii});
+            polRes.respVarM_all{wC, ii} = audioDynamicsMeanTrace_AllRun.respVarM;
+        end
     elseif strcmp(polRes.expType, 'Auditory Perturbation_Perceptual')
         audioDynamicsAllTraces = PitchShiftReflexResponseSingle(polRes.secTime, polRes.audioMf0SecPert{wC});
-        audioDynamicsMeanTrace = PitchShiftReflexResponse(polRes.secTime, polRes.audioMf0MeanPert{wC});
+        audioDynamicsMeanTrace = InflationResponse(polRes.secTime, polRes.audioHf0MeanPert{wC});
+        
+        for ii = 1:numTypes
+            audioDynamicsMeanTrace_AllRun = InflationResponse(polRes.secTime, polRes.audioHf0MeanPert_all{wC, ii});
+            polRes.respVarM_all{wC, ii} = audioDynamicsMeanTrace_AllRun.respVarM;
+        end
     end
     polRes.respVarSingle{wC} = audioDynamicsAllTraces;
-    polRes.respVarM{wC} = audioDynamicsMeanTrace.respVarM;
+    polRes.respVarM{wC}      = audioDynamicsMeanTrace.respVarM;
 end
 
 % Identify Limits of the newly meaned data
@@ -470,16 +536,17 @@ if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
     [sensorPAdjust, InflDeflT] = scalePressureVals(polRes);
 elseif strcmp(polRes.expType, 'Auditory Perturbation_Perceptual')
     polRes.secTimeP = linspace(-0.5, 1.0, 12000);
-    
-    polRes.sensorPMean = -100*ones(size(polRes.secTimeP));
+    sig = -100*ones(size(polRes.secTimeP)); 
+
     timeLZero = polRes.secTimeP <= 0;
-    polRes.sensorPMean(timeLZero) = 0;
+    sig(timeLZero) = 0;
     
     timeRampD = find((polRes.secTimeP >= 0 ) & (polRes.secTimeP <= 0.11));
     rampDValues = linspace(0, -100, length(timeRampD));
-    polRes.sensorPMean(timeRampD) = rampDValues;
-    polRes.sensorPMean = polRes.sensorPMean';
-    polRes.sensorPMean = repmat(polRes.sensorPMean, 1, 4);
+    sig(timeRampD) = rampDValues;
+    sig = sig';
+    polRes.sensorPMean.ON.mean = sig;
+    polRes.sensorPMean.OF.mean = -1*(sig+100);
     
     sensorPAdjust = polRes.sensorPMean;
     InflDeflT     = [0.04 0.24 1.04 1.24];
@@ -513,44 +580,72 @@ for wC = 1:pA.numCond
     polRes.statTable.StimMag(curIdx) = sortStruc.respVarM{wC}(2);
     polRes.statTable.RespMag(curIdx) = sortStruc.respVarM{wC}(3);
     polRes.statTable.RespPer(curIdx) = sortStruc.respVarM{wC}(4);
+    
+    polRes.statTable.tAtMin1(curIdx) = sortStruc.respVarM_all{wC,1}(1);
+    polRes.statTable.tAtMin2(curIdx) = sortStruc.respVarM_all{wC,2}(1);
+    polRes.statTable.StimMag1(curIdx) = sortStruc.respVarM_all{wC,1}(2);
+    polRes.statTable.StimMag2(curIdx) = sortStruc.respVarM_all{wC,2}(2);
+    polRes.statTable.RespMag1(curIdx) = sortStruc.respVarM_all{wC,1}(3);
+    polRes.statTable.RespMag2(curIdx) = sortStruc.respVarM_all{wC,2}(3);
+    polRes.statTable.RespPer1(curIdx) = sortStruc.respVarM_all{wC,1}(4);
+    polRes.statTable.RespPer2(curIdx) = sortStruc.respVarM_all{wC,2}(4);
 end
 end
 
 function allSubjRes = catSubjMeans(pA, allSubjRes, pooledRunStr)
 
-numPartici = length(pooledRunStr);
+numPartici    = length(pooledRunStr);
+[~, numTypes] = size(allSubjRes.audioMf0SecPert_all);
 
 audioMf0SecContAllSubj = [];
 audioMf0SecPertAllSubj = cell(pA.numCond,1);
+audioMf0SecPertAllSubj_all = cell(pA.numCond,2);
 audioHf0SecContAllSubj = [];
 audioHf0SecPertAllSubj = cell(pA.numCond,1);
+audioHf0SecPertAllSubj_all = cell(pA.numCond,2);
+count = 0;
 for nP = 1:numPartici
     curSubj = pooledRunStr(nP);
     
-    meanOnsetCont   = curSubj.audioMf0MeanCont(:,1);
-    meanOffsetCont  = curSubj.audioMf0MeanCont(:,3);
+    meanOnsetCont   = curSubj.audioMf0MeanCont.ON.mean;
+    meanOffsetCont  = curSubj.audioMf0MeanCont.OF.mean;
     secCont(:,:,1) = meanOnsetCont;
     secCont(:,:,2) = meanOffsetCont;
     audioMf0SecContAllSubj = cat(2, audioMf0SecContAllSubj, secCont);
     
-    meanOnsetCont   = curSubj.audioHf0MeanCont(:,1);
-    meanOffsetCont  = curSubj.audioHf0MeanCont(:,3);
+    meanOnsetCont   = curSubj.audioHf0MeanCont.ON.mean;
+    meanOffsetCont  = curSubj.audioHf0MeanCont.OF.mean;
     secCont(:,:,1) = meanOnsetCont;
     secCont(:,:,2) = meanOffsetCont;
     audioHf0SecContAllSubj = cat(2, audioHf0SecContAllSubj, secCont);
     
     for wC = 1:pA.numCond
-        meanOnsetPert   = curSubj.audioMf0MeanPert{wC}(:,1);
-        meanOffsetPert  = curSubj.audioMf0MeanPert{wC}(:,3);
+        meanOnsetPert   = curSubj.audioMf0MeanPert{wC}.ON.mean;
+        meanOffsetPert  = curSubj.audioMf0MeanPert{wC}.OF.mean;
         secPert(:,:,1) = meanOnsetPert;
         secPert(:,:,2) = meanOffsetPert;
         audioMf0SecPertAllSubj{wC} = cat(2, audioMf0SecPertAllSubj{wC}, secPert);
         
-        meanOnsetPert   = curSubj.audioHf0MeanPert{wC}(:,1);
-        meanOffsetPert  = curSubj.audioHf0MeanPert{wC}(:,3);
+        meanOnsetPert   = curSubj.audioHf0MeanPert{wC}.ON.mean;
+        meanOffsetPert  = curSubj.audioHf0MeanPert{wC}.OF.mean;
         secPert(:,:,1) = meanOnsetPert;
         secPert(:,:,2) = meanOffsetPert;
         audioHf0SecPertAllSubj{wC} = cat(2, audioHf0SecPertAllSubj{wC}, secPert);
+        
+        for ii = 1:numTypes
+            count = count + 1;
+            meanOnsetPert   = curSubj.audioMf0MeanPert_all{wC,ii}.ON.mean;
+            meanOffsetPert  = curSubj.audioMf0MeanPert_all{wC,ii}.OF.mean;
+            secPert(:,:,1) = meanOnsetPert;
+            secPert(:,:,2) = meanOffsetPert;
+            audioMf0SecPertAllSubj_all{wC,ii} = cat(2, audioMf0SecPertAllSubj_all{wC,ii}, secPert);
+
+            meanOnsetPert   = curSubj.audioHf0MeanPert_all{wC,ii}.ON.mean;
+            meanOffsetPert  = curSubj.audioHf0MeanPert_all{wC,ii}.OF.mean;
+            secPert(:,:,1) = meanOnsetPert;
+            secPert(:,:,2) = meanOffsetPert;
+            audioHf0SecPertAllSubj_all{wC,ii} = cat(2, audioHf0SecPertAllSubj_all{wC,ii}, secPert);
+        end
     end
 end
 
@@ -558,30 +653,31 @@ allSubjRes.audioMf0SecCont = audioMf0SecContAllSubj;
 allSubjRes.audioMf0SecPert = audioMf0SecPertAllSubj;
 allSubjRes.audioHf0SecCont = audioHf0SecContAllSubj;
 allSubjRes.audioHf0SecPert = audioHf0SecPertAllSubj;
+
+allSubjRes.audioMf0SecPert_all = audioMf0SecPertAllSubj_all;
+allSubjRes.audioMf0SecPert_all = audioHf0SecPertAllSubj_all;
 end
 
-function meanData = meanSecData(secData)
+function secDataM = meanSecData(secData)
 
 OnsetSecs  = secData(:,:,1);
 OffsetSecs = secData(:,:,2);
 [~, numTrial] = size(OnsetSecs);
 
-meanOnset  = nanmean(OnsetSecs, 2);
-meanOffset = nanmean(OffsetSecs, 2);
+secDataM.ON.mean = nanmean(OnsetSecs, 2);
+secDataM.OF.mean = nanmean(OffsetSecs, 2);
 
-stdOnset   = nanstd(OnsetSecs, 0, 2);
-stdOffset  = nanstd(OffsetSecs, 0, 2);
+secDataM.ON.STD = nanstd(OnsetSecs, 0, 2);
+secDataM.OF.STD = nanstd(OffsetSecs, 0, 2);
 
-SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
-SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
+secDataM.ON.SEM = secDataM.ON.STD/sqrt(numTrial); % Standard Error
+secDataM.OF.SEM = secDataM.OF.STD/sqrt(numTrial); % Standard Error
 
-% NCIOnset   = 1.96*SEMOnset;  % 95% Confidence Interval
-% NCIOffset  = 1.96*SEMOffset; % 95% Confidence Interval
-
-meanData   = [meanOnset SEMOnset meanOffset SEMOffset];
+secDataM.ON.NCI = 1.96*secDataM.ON.SEM;  % 95% Confidence Interval
+secDataM.OF.NCI = 1.96*secDataM.OF.SEM;  % 95% Confidence Interval
 end
 
-function audioDynamics_Somato = InflationResponse(secTime, secAudioMean)
+function audioDynamics_Somato = InflationResponse(secTime, secDataM)
 % [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
 % Identifies the relevant pitch contour characteristics that are important
 % for deciding how a participant responded to the inflation of the balloon
@@ -604,11 +700,12 @@ function audioDynamics_Somato = InflationResponse(secTime, secAudioMean)
 % respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
 % InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
 
-[numSamp, ~] = size(secAudioMean); % Size of the data we are dealing with
+onsetM       = secDataM.ON.mean;
+[numSamp, ~] = size(onsetM); % Size of the data we are dealing with
 
 ir = initInflationResponseStruct(); % Initialize the structure that handles the variable calculations
 ir.time     = secTime;              % Time Interval for the sectioned trials (-0.5->1.0s)
-ir.onset    = secAudioMean(:, 1);   % f0 Trace sectioned around pert Onset.
+ir.onset    = onsetM;   % f0 Trace sectioned around pert Onset.
 
 ir.iAtOnset = find(ir.time == 0);
 ir.tAtOnset = 0;                     % duh
@@ -624,9 +721,11 @@ ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
 ir.stimMag = abs(ir.vAtMin - ir.vAtOnset); % Distance traveled from onset to min value
 
 % RespMag
-ir.iAtResp = numSamp;                % Last index in section
-ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
-ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.tAtRespRange = [0.8 1.0];              % Time Values in the period 800ms to 1000ms after perturbation onset
+ir.iAtRespRange = find(ir.time >= ir.tAtRespRange(1) & ir.time<= ir.tAtRespRange(2));                % Last index in section
+ir.vAtRespRange = ir.onset(ir.iAtRespRange);    % Time Value when participant 'fully responded' (1.0s)
+ir.tAtResp      = mean(ir.tAtRespRange);
+ir.vAtResp      = mean(ir.vAtRespRange);
 ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
 % RespPer
@@ -635,6 +734,7 @@ ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respM
 % Add to the audioDynamics struct
 respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
 audioDynamics_Somato.respVarM = respVarM;
+% drawInflationResultMetrics(ir, 1, 0, 1)
 end
 
 function audioDynamics_Somato = InflationResponseSingle(secTime, secAudioMean)
@@ -733,7 +833,7 @@ ir.respMag = []; % vAtResp - vAtMin   ...distance traveled
 ir.respPer = []; % Percent change from stimMag to respMag
 end
 
-function audioDynamics_Audio = PitchShiftReflexResponse(secTime, secAudioMean)
+function audioDynamics_Audio = PitchShiftReflexResponse(secTime, secDataM)
 % [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
 % Identifies the relevant pitch contour characteristics that are important
 % for deciding how a participant responded to the inflation of the balloon
@@ -756,11 +856,12 @@ function audioDynamics_Audio = PitchShiftReflexResponse(secTime, secAudioMean)
 % respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
 % InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
 
-[numSamp, ~] = size(secAudioMean); % Size of the data we are dealing with
+onsetM       = secDataM.ON.mean;
+[numSamp, ~] = size(onsetM); % Size of the data we are dealing with
 
 ir = initInflationResponseStruct(); % Initialize the structure that handles the variable calculations
 ir.time     = secTime;              % Time Interval for the sectioned trials (-0.5->1.0s)
-ir.onset    = secAudioMean(:, 1);   % f0 Trace sectioned around pert Onset.
+ir.onset    = onsetM;   % f0 Trace sectioned around pert Onset.
 
 ir.iAtOnset = find(ir.time == 0);
 ir.tAtOnset = 0;                     % duh
@@ -776,9 +877,11 @@ ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
 ir.stimMag = abs(-100);                    % Distance traveled from onset to min value (default is 100 cents)
 
 % RespMag
-ir.iAtResp = numSamp;                % Last index in section
-ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
-ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.tAtRespRange = [0.8 1.0];              % Time Values in the period 800ms to 1000ms after perturbation onset
+ir.iAtRespRange = find(ir.time >= ir.tAtRespRange(1) & ir.time<= ir.tAtRespRange(2));                % Last index in section
+ir.vAtRespRange = ir.onset(ir.iAtRespRange);    % Time Value when participant 'fully responded' (1.0s)
+ir.tAtResp      = mean(ir.tAtRespRange);
+ir.vAtResp      = mean(ir.vAtRespRange);
 ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
 % RespPer
@@ -875,15 +978,15 @@ for ii = 1:numCond
     audioMMean = mf0MeanPert{ii};    
     audioHMean = hf0MeanPert{ii};    
 
-    [~, Imax] = max(audioMMean(:,1)); %Max Pert Onset
-    upBoundOn = round(audioMMean(Imax,1) + audioMMean(Imax,2) + 10);
-    [~, Imin] = min(audioMMean(:,1)); %Min Pert Onset
-    lwBoundOn = round(audioMMean(Imin,1) - audioMMean(Imin,2) - 10);
+    [~, Imax] = max(audioMMean.ON.mean); %Max Pert Onset
+    upBoundOn = round(audioMMean.ON.mean(Imax) + audioMMean.ON.NCI(Imax) + 10);
+    [~, Imin] = min(audioMMean.ON.mean); %Min Pert Onset
+    lwBoundOn = round(audioMMean.ON.mean(Imin) - audioMMean.ON.NCI(Imin) - 10);
 
-    [~, Imax] = max(audioMMean(:,3)); %Max Pert Offset
-    upBoundOf = round(audioMMean(Imax,3) + audioMMean(Imax,4) + 10);
-    [~, Imin] = min(audioMMean(:,3)); %Min Pert Offset
-    lwBoundOf = round(audioMMean(Imin,3) - audioMMean(Imin,4) - 10);
+    [~, Imax] = max(audioMMean.OF.mean); %Max Pert Offset
+    upBoundOf = round(audioMMean.OF.mean(Imax) + audioMMean.OF.NCI(Imax) + 10);
+    [~, Imin] = min(audioMMean.OF.mean); %Min Pert Offset
+    lwBoundOf = round(audioMMean.OF.mean(Imin) - audioMMean.OF.NCI(Imin) - 10);
 
     if upBoundOn > upBoundOf
         upBoundSec = upBoundOn;
@@ -900,15 +1003,15 @@ for ii = 1:numCond
     setMupBoundSec(ii) = upBoundSec;
     setMlwBoundSec(ii) = lwBoundSec;
     
-    [~, Imax] = max(audioHMean(:,1)); %Max Pert Onset
-    upBoundOn = round(audioHMean(Imax,1) + audioHMean(Imax,2) + 10);
-    [~, Imin] = min(audioHMean(:,1)); %Min Pert Onset
-    lwBoundOn = round(audioHMean(Imin,1) - audioHMean(Imin,2) - 10);
+    [~, Imax] = max(audioHMean.ON.mean); %Max Pert Onset
+    upBoundOn = round(audioHMean.ON.mean(Imax) + audioHMean.ON.NCI(Imax) + 10);
+    [~, Imin] = min(audioHMean.ON.mean); %Min Pert Onset
+    lwBoundOn = round(audioHMean.ON.mean(Imin) - audioHMean.ON.NCI(Imin) - 10);
 
-    [~, Imax] = max(audioHMean(:,3)); %Max Pert Offset
-    upBoundOf = round(audioHMean(Imax,3) + audioHMean(Imax,4) + 10);
-    [~, Imin] = min(audioHMean(:,3)); %Min Pert Offset
-    lwBoundOf = round(audioHMean(Imin,3) - audioHMean(Imin,4) - 10);
+    [~, Imax] = max(audioHMean.OF.mean); %Max Pert Offset
+    upBoundOf = round(audioHMean.OF.mean(Imax) + audioHMean.OF.NCI(Imax) + 10);
+    [~, Imin] = min(audioHMean.OF.mean); %Min Pert Offset
+    lwBoundOf = round(audioHMean.OF.mean(Imin) - audioHMean.OF.NCI(Imin) - 10);
 
     if upBoundOn > upBoundOf
         upBoundSec = upBoundOn;
@@ -941,8 +1044,8 @@ lims.audioMHMean = [-0.5 1.0 minMHLwBound maxMHUpBound];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pressure Traces Limits
-maxPres = max(ss.sensorPMean(:,1)) + 0.5;
-minPres = min(ss.sensorPMean(:,1)) - 0.1;
+maxPres = max(ss.sensorPMean.ON.mean) + 0.5;
+minPres = min(ss.sensorPMean.ON.mean) - 0.1;
 
 lims.presMean = [-0.5 1.0 minPres maxPres];
 end
@@ -950,10 +1053,10 @@ end
 function [adjustPres, InflDeflT] = scalePressureVals(ss)
 
 time        = ss.secTimeP;
-presOnsetM  = ss.sensorPMean(:,1);
-presOnsetE  = ss.sensorPMean(:,2);
-presOffsetM = ss.sensorPMean(:,3);
-presOffsetE = ss.sensorPMean(:,4);
+presOnsetM  = ss.sensorPMean.ON.mean;
+presOnsetE  = ss.sensorPMean.ON.NCI;
+presOffsetM = ss.sensorPMean.OF.mean;
+presOffsetE = ss.sensorPMean.OF.NCI;
 
 limsA    = ss.limitsAmean;
 limsAMin = limsA(3); limsAMax = limsA(4);

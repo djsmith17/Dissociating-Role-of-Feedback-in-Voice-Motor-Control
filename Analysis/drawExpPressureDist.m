@@ -67,7 +67,8 @@ plotFileName = fullfile(dirs.SavResultsDir, pltTitle);
 export_fig(plotFileName)
 
 % Perform Standard Summary Stats
-measureVar.varName   = 'MeanPressureLevels';
+measureVar.varName    = 'MeanPressureLevels';
+measureVar.varNamePub = 'MeanPressureLevels';
 measureVar.condition = 'AllConditions';
 measureVar.units     = 'psi';
 summaryStat = MeasureSummaryStats(dirs, pA, measureVar, allMeanPress, 0);

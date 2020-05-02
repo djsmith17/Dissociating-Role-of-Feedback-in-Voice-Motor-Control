@@ -34,10 +34,11 @@ classdef MeasureSummaryStats
             % Load necessary identifiers
             obj.pAnalysis     = pA.pAnalysis;
             obj.SavResultsDir = dirs.SavResultsDir;
-            obj.alphaLevel    = 0.05/3;
+            obj.alphaLevel    = 0.05/4;
             
             % Unpack the measure into a structure
             str.varName  = measVar.varName;
+            str.varNamePub = measVar.varNamePub;
             str.cond     = measVar.condition;
             str.units    = measVar.units;
             str.measure  = measure;        % Raw Data Values
@@ -78,7 +79,7 @@ classdef MeasureSummaryStats
 
             % Z-Score and Shapiro-Wilk Test
             obj.SummaryStruct.measureZ  = zscore(obj.SummaryStruct.measureT);
-            [swH, swPValue, swTest]     = swtest(obj.SummaryStruct.measureZ);
+            [swH, swPValue, swTest]     = swtest(obj.SummaryStruct.measureT);
 
             % Add to the Summmary Data Structure
             obj.SummaryStruct.swH      = double(swH);
@@ -111,10 +112,10 @@ classdef MeasureSummaryStats
         function obj = performTTest(obj, varargin)
             % Perform a One-Sample T-Test on the difference between the measures
             
-            if isempty(varargin)
-                type = 'between the two conditions';
+            if ~isempty(varargin)
+                ttestType = sprintf('between the two conditions of %s and %s', varargin{1}, varargin{2});
             else
-                type = ['than 0 in the ' obj.SummaryStruct.cond ' condition'];
+                ttestType = ['than 0 in the ' obj.SummaryStruct.cond ' condition'];
             end
             
             [~, P, ~, STATS] = ttest(obj.SummaryStruct.measureT);
@@ -128,10 +129,10 @@ classdef MeasureSummaryStats
                 sigNote = ' not';
             end
             
-            statSentence = sprintf('The variable %s was%s signficantly different %s t(%d) = %0.2f, p = %0.6f\n',...
+            statSentence = sprintf('The variable %s was%s signficantly different %s (t(%d) = %0.2f, p = %0.6f)\n',...
                                    obj.SummaryStruct.varName,...
                                    sigNote,...
-                                   type,...
+                                   ttestType,...
                                    STATS.df,...
                                    STATS.tstat,...
                                    P);
@@ -143,6 +144,40 @@ classdef MeasureSummaryStats
             obj.SummaryStruct.statSentence = statSentence;
             obj.statSentTable = table({statSentence}, 'VariableNames', {'StatSentence'});
             
+        end
+        
+        function obj = performWilcoxonRankTest(obj, varargin)
+            
+            if ~isempty(varargin)
+                WilcoxTestType = sprintf('between the two conditions of %s and %s', varargin{1}, varargin{2});
+            else
+                WilcoxTestType = ['than 0 in the ' obj.SummaryStruct.cond ' condition'];
+            end
+            
+            [P, ~, STATS] = signrank(obj.SummaryStruct.measure);
+            Pstr   = sprintf('%0.6f', P);
+            
+            if P < obj.alphaLevel
+                isSig = 1;
+                sigNote = '';
+            else
+                isSig = 0;
+                sigNote = ' not';
+            end
+            
+            statSentence = sprintf('The variable %s was%s significantly different %s (Z = %0.3f, p = %0.6f)\n',...
+                                                                                     obj.SummaryStruct.varName,...
+                                                                                     sigNote,...
+                                                                                     WilcoxTestType,...
+                                                                                     STATS.zval,...
+                                                                                     P);
+            
+            obj.SummaryStruct.zstat        = STATS.zval;
+            obj.SummaryStruct.ttestP       = P;
+            obj.SummaryStruct.ttestPstr    = Pstr;
+            obj.SummaryStruct.isSig        = isSig;
+            obj.SummaryStruct.statSentence = statSentence;
+            obj.statSentTable = table({statSentence}, 'VariableNames', {'StatSentence'});
         end
         
         function drawHistogram(obj)

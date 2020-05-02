@@ -4,7 +4,7 @@ function StatsOrg_DRF_Som_Aud(dirs, StatTableSomVF, StatTableSomMN, StatTableAud
 
 pA.pAnalysis = 'DRF_Som_Aud';
 
-dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.xlsx']);
+dirs.behavioralResultTable = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'BehavioralResultTable.csv']);
 
 % Question 4 %%%
 % Currently Expecting Fewer 'Observations' from SomVF/SomMN compared to Aud
@@ -18,9 +18,9 @@ respPer_AudLs = StatTableAudLs.RespPer;
 
 respPerCol = [respPer_SomVF, respPer_SomMN, respPer_AudLs];
 pA.condName = {'SomPert Not Masked', 'SomPert Masked', 'AudPert'};
-pA.pubCondName = {'Laryngeal Perturbation Without Masking',...
-                  'Laryngeal Perturbation With Masking',...
-                  'Auditory Perturbation'};
+pA.pubCondName = {'Laryngeal perturbation without auditory masking',...
+                  'Laryngeal perturbation with auditory masking',...
+                  'Auditory perturbation'};
 [~, pA.numCond] = size(respPerCol);
 
 ApplyTrans = 1;
@@ -45,6 +45,7 @@ for i = 1:pA.numCond
     measure   = respPerCol(:, i);
     
     measureVar.varName   = 'RespPer';
+    measureVar.varNamePub = 'Response Percentage';
     measureVar.condition = curCond;
     measureVar.units     = 'cents';
 
@@ -72,6 +73,7 @@ varCmp = [1 2; 1 3; 2 3];
 varH   = [1.08, 1.16, 0.82];
 comp = length(varCmp);
 
+bigTable = table('size', [3 2], 'VariableNames', {'Comparisons', 'StatSentence'}, 'VariableTypes', {'string', 'string'});
 measureSummaryStrDiff = [];
 for jj = 1:comp
     cond = ['DiffBetween' num2str(varCmp(jj,:))];
@@ -79,6 +81,7 @@ for jj = 1:comp
     measDiff = measureSummaryStrs(varCmp(jj,1)).measure - measureSummaryStrs(varCmp(jj,2)).measure;
     
     measureDiffVar.varName   = 'RespPer';
+    measureDiffVar.varNamePub = 'Response Percentage';
     measureDiffVar.condition = cond;
     measureDiffVar.units     = 'cents';
     summaryStatDiff = MeasureSummaryStats(dirs, pA, measureDiffVar, measDiff, 0);
@@ -95,9 +98,12 @@ for jj = 1:comp
 
     measureSummaryStrDiff = cat(1, measureSummaryStrDiff, summaryStatDiff.SummaryStruct);
     
-    % Save Behavioral Result Table: Values ready for inclusion in manuscript 
-    writetable(summaryStatDiff.statSentTable, dirs.behavioralResultTable, 'Range', 'A7', 'WriteRowNames', 1, 'Sheet', ['RespPer' cond])
+    bigTable.Comparisons(jj)  = cond;
+    bigTable.StatSentence(jj) = summaryStatDiff.statSentTable.StatSentence;
 end
+
+% Save Behavioral Result Table: Values ready for inclusion in manuscript 
+writetable(bigTable, dirs.behavioralResultTable, 'WriteRowNames', 1)
 
 drawBoxPlot(dirs, pA, measureSummaryStrs, measureSummaryStrDiff)
 end
@@ -170,14 +176,14 @@ end
 
 function drawBoxPlot(dirs, pA, measureSummaryStrs, summaryStrDiff)
 
-fontN = 'Arial';
+fontN = 'Times New Roman';
 axisLSize = 20;
 
 cond      = pA.pubCondName;
 numCond   = pA.numCond;
 
 measBox = figure('Color', [1 1 1]);
-plotpos = [30 0]; plotdim = [800 1000];
+plotpos = [30 50]; plotdim = [800 1000];
 set(measBox, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
 
 collData = [];
@@ -187,7 +193,7 @@ end
 minCol = min(min(collData)) - 5;
 
 boxplot(collData)
-ylabel('Response Magnitude (%)')
+ylabel('Response Percentage (%)')
 % title({'Comparison of Response Percentages'; 'Between Experimental Conditions'})
 box off
 
@@ -218,7 +224,7 @@ for ii = 1:numComp
 end
 
 set(gca, 'XTickLabel', cond)
-fix_xticklabels(gca, 0.1, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
+fix_xticklabels(gca, 0.13, {'FontSize', 17, 'FontName', fontN, 'FontWeight','bold'});
 
 set(gca,'FontName', fontN,...
         'FontSize', axisLSize,...
@@ -226,5 +232,5 @@ set(gca,'FontName', fontN,...
         'LineWidth', 2)
 
 dirs.BoxPlotFigureFile = fullfile(dirs.SavResultsDir, 'Question4BoxPlot.jpg');
-export_fig(dirs.BoxPlotFigureFile)
+export_fig(dirs.BoxPlotFigureFile, '-r300')
 end
