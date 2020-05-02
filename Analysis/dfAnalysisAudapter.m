@@ -196,7 +196,7 @@ if isfield(niAn, 'audioM')
         trialVar.presLagTimes  = niAn.presSD.lagTimes(thisIdx, :);
         trialVar.presRiseTimes = niAn.presSD.riseTimes(thisIdx, :);
     else
-        trialVar.pressureTrigs = [0 0];
+        trialVar.pressureTrigs = [-2 -2];
         trialVar.presLagTimes  = [0 0];
         trialVar.presRiseTimes = [0 0];
     end
@@ -208,7 +208,7 @@ else
     trialVar.rawMicNI    = resample(trialVar.rawMic, trialVar.fsNI, auAn.sRate);
     trialVar.pressureNI  = zeros(size(trialVar.timeNI));
     trialVar.expTrigsNI    = [0 0];
-    trialVar.pressureTrigs = [0 0];
+    trialVar.pressureTrigs = [-2 -2];
     trialVar.presLagTimes  = [0 0];
     trialVar.presRiseTimes = [0 0];
 end

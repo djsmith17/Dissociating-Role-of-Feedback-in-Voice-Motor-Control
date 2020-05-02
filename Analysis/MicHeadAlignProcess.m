@@ -355,7 +355,7 @@ classdef MicHeadAlignProcess
         voiceOnsetColor = 'm';
 
         % Time Bounds
-        auTimeRange = [0 6];
+        auTimeRange = [0 5];
         niTimeRange = auTimeRange - obj.AuNIDelay;
 
         % Inflation//Deflation Properties
