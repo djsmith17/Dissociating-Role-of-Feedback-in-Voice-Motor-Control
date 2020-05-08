@@ -4,31 +4,24 @@ function organizePooledResultsForFrank(dirs, allSubjRes)
 time          = round(allSubjRes.secTime', 4);
 pertResponses = allSubjRes.audioMf0SecPert{1};
 
-downSamp = find(rem(time, 0.005) == 0);
-
-timeDN          = time(downSamp);
-pertResponsesDN = pertResponses(downSamp, :,:);
-
 % separate the onset and offset responses
-onsets        = pertResponsesDN(:, :, 1);
-offsets       = pertResponsesDN(:, :, 2);
+onsets        = pertResponses(:, :, 1);
+offsets       = pertResponses(:, :, 2);
 
-% recreate the stimulus
-tStep = '5ms';
+% Create a pert
 t0  = 0;
 tRD = 0.110; % 110ms down
 tRU = 0.150; % 150ms up
+finalpert = 2^(-100/1200); % 100 cents converted to Hz 
 
-zeroPt   = find(timeDN == t0);
-rampDnPt = find(timeDN == tRD);
-rampUpPt = find(timeDN == tRU);
+zeroPt   = find(time == t0);
+rampDnPt = find(time == tRD);
+rampUpPt = find(time == tRU);
 
 rampDnLen = length(zeroPt:rampDnPt);
 rampUpLen = length(zeroPt:rampUpPt);
 
-finalpert = 2^(-100/1200);
-
-stim = ones(length(timeDN), 1);
+stim = ones(length(time), 1);
 
 stimOnset = stim;
 stimOnset(rampDnPt:end) = finalpert;
@@ -40,11 +33,18 @@ stimOffset(1:zeroPt) = finalpert;
 stimOffset(zeroPt:rampUpPt) = linspace(finalpert, 1, rampUpLen);
 stimOffset = stimOffset -1;
 
+%Align signals
 onsetSet  = [stimOnset, onsets];
 offsetSet = [stimOffset, offsets];
 
-dirs.alignedMicResponsesFile_Onset  = fullfile(dirs.SavResultsDir, ['Pitch-Shift Reflex Aligned Mic Recordings_Onset' tStep '.csv']);
-dirs.alignedMicResponsesFile_Offset = fullfile(dirs.SavResultsDir, ['Pitch-Shift Reflex Aligned Mic Recordings_Offset' tStep '.csv']);
-csvwrite(dirs.alignedMicResponsesFile_Onset, onsetSet);
-csvwrite(dirs.alignedMicResponsesFile_Offset, offsetSet);
+% Perform the downsample
+tStep = '10ms';
+downSamp = find(rem(time, 0.01) == 0);
+onsetSetDN  = onsetSet(downSamp, :);
+offsetSetDN = offsetSet(downSamp, :);
+
+dirs.alignedMicResponsesFile_Onset  = fullfile(dirs.SavResultsDir, ['Pitch-Shift Reflex Aligned Mic Recordings_Onset' tStep 'Hz.csv']);
+dirs.alignedMicResponsesFile_Offset = fullfile(dirs.SavResultsDir, ['Pitch-Shift Reflex Aligned Mic Recordings_Offset' tStep 'Hz.csv']);
+csvwrite(dirs.alignedMicResponsesFile_Onset, onsetSetDN);
+csvwrite(dirs.alignedMicResponsesFile_Offset, offsetSetDN);
 end
