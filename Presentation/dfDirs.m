@@ -19,7 +19,7 @@ host     = deblank(host);
 
 %% Set appropriate directories for code, data input and output, based on system hostname.
 switch host
-    case '677-GUE-WD-0013'
+    case '677-GUE-WD-0013' % Primary Experimental Computer
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('E:\DATA', project);        % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
@@ -29,7 +29,7 @@ switch host
         dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
         dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
         
-        dirs.Results        = 'E:\GitHub\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.Results        = 'E:\GitHub\dfResults'; % Dir to output analyzed datafiles and figures to
         dirs.helpers        = 'E:\GitHub\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
@@ -40,7 +40,7 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
         
-    case 'dhcp-wifi-8021x-155-41-27-125.bu.edu'
+    case 'dhcp-wifi-8021x-155-41-27-125.bu.edu' % Elaine Laptop
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');  % Dir to save raw Data to
         dirs.SavData        = fullfile('/Users/elainekearney/Dropbox/1--PostDoc_2018-2020/PD_Study/Pilot_Data');  % Dir to open raw Data from
@@ -60,28 +60,8 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
-    case '677-GUE-WD-0006'
-        % RecData must be moved to SavData for backup and local disk space consolidation
-        dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project);   % Dir to save raw Data to
-        dirs.SavData        = fullfile('W:\Experiments\', project);                   % Dir to open raw Data from
-        dirs.SavDataEndo    = fullfile('S:\SteppLab2\SPEECHDATA\Voice', project);
-        
-        dirs.Code           = fullfile('C:\Users\djsmith\Documents\MATLAB', project); % The full code base
-        dirs.Presentation   = fullfile(dirs.Code, 'Presentation');        % The scripts required for presentation
-        dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
-        dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
-        
-        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results';  % Dir to output analyzed datafiles and figures to
-        dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';   % Dir to multiple function used for general analysis
-        
-        dirs.RecFileDir     = '';
-        dirs.RecWaveDir     = '';
-        dirs.SavFileDir     = '';
-        dirs.SavResultsDir  = '';
-       
-        dirs.InflaRespFile  = '';
-        dirs.saveFileSuffix = '';
-    case 'DanteRig'
+
+    case 'DanteRig' % Dante PC
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('E:\Documents\DATA', project); % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments\', project);   % Dir to open raw Data from
@@ -92,7 +72,7 @@ switch host
         dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
         dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
         
-        dirs.Results        = 'E:\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.Results        = 'E:\Documents\MATLAB\dfResults'; % Dir to output analyzed datafiles and figures to
         dirs.helpers        = 'E:\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
@@ -101,8 +81,9 @@ switch host
         dirs.SavResultsDir  = '';
        
         dirs.InflaRespFile  = '';
-        dirs.saveFileSuffix = '';  
-    case '677-GUE-WL-0001'
+        dirs.saveFileSuffix = ''; 
+        
+    case '677-GUE-WL-0001' % Dante Lab Laptop
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('C:\Users\djsmith\Documents\DATA', project); % Dir to save raw Data to
         dirs.SavData        = fullfile('W:\Experiments', project);                  % Dir to open raw Data from
@@ -112,7 +93,7 @@ switch host
         dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
         dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
         
-        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults'; % Dir to output analyzed datafiles and figures to
         dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
@@ -122,7 +103,8 @@ switch host
        
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = '';
-    case '677-gue-wl-0003'
+    
+    case '677-gue-wl-0003' % Mona Laptop
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to  
         dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
@@ -143,7 +125,7 @@ switch host
         dirs.InflaRespFile  = '';
         dirs.saveFileSuffix = ''; 
         
-    case '677-GUE-WD-0002'
+    case '677-GUE-WD-0002' % Lab bench Desktop
         % RecData must be moved to SavData for backup and local disk space consolidation
         dirs.RecData        = fullfile('C:\DATA', project);        % Dir to save raw Data to  
         dirs.SavData        = fullfile('W:\Experiments', project); % Dir to open raw Data from
