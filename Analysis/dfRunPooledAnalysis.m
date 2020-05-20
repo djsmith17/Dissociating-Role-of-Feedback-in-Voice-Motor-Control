@@ -32,6 +32,7 @@ else
     load(dirs.PooledConfigF)
 end 
 
+% Extract variables from the configuration file
 pA.participants  = cF.participants; % List of multiple participants.
 pA.numPart       = length(pA.participants);
 pA.runs          = cF.runs;         % All runs to consider 
@@ -83,27 +84,28 @@ allSubjRes.statTableSingle = initStatTableSingle(numObs);
 
 tossTrialTable = initTossedTrialTable(pA.totnumRuns);
 
+%Sort all of the loaded analyzed data
 runItr = 0;
 for ii = 1:pA.numPart
     participant = pA.participants{ii};
     fprintf('Sorting task conditions for %s\n', participant)
     
-    sortStruc         = initSortedStruct(pA, 2);
-    sortStruc.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
+    sortStr         = initSortedStruct(pA, 2);
+    sortStr.subject = ['Participant ' num2str(ii)]; % Pooled Analysis Name
     
-    sortStruc.curSess = sortStruc.subject;
-    sortStruc.cond    = pA.cond;
-    sortStruc.pubCond = pA.pubCond;
+    sortStr.curSess = sortStr.subject;
+    sortStr.cond    = pA.cond;
+    sortStr.pubCond = pA.pubCond;
  
     wcCount_indivi = [0 0];
     wcCount_group  = [0 0];
     for jj = 1:pA.numRuns
         curRes = allDataStr(ii, jj);
 
-        sortStruc.studyID = curRes.subject; % Study ID
-        sortStruc.expType = curRes.expType;
-        sortStruc.gender  = curRes.gender;
-        sortStruc.age     = round(curRes.age, 1);
+        sortStr.studyID = curRes.subject; % Study ID
+        sortStr.expType = curRes.expType;
+        sortStr.gender  = curRes.gender;
+        sortStr.age     = round(curRes.age, 1);
         
         runItr = runItr + 1;
         [tossCounts, tossTrialTable, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTable, runItr);
@@ -112,23 +114,23 @@ for ii = 1:pA.numPart
             curRes = adjustCurRes(curRes, autoMiss);
         end
         
-        [sortStruc, wcCount_indivi] = combineCondTrials(pA, curRes, sortStruc, tossCounts, wcCount_indivi);       
+        [sortStr, wcCount_indivi] = combineCondTrials(pA, curRes, sortStr, tossCounts, wcCount_indivi);       
         [allSubjRes, wcCount_group] = combineCondTrials(pA, curRes, allSubjRes, tossCounts, wcCount_group);
     end
         
-    sortStruc = meanCondTrials(pA, sortStruc);
-    sortStruc.pltName = pA.pltNameMVi{ii};
+    sortStr = meanCondTrials(pA, sortStr);
+    sortStr.pltName = pA.pltNameMVi{ii};
     
     % Organize Stat Tables
-    sortStruc  = popStatTableObs(pA, sortStruc, sortStruc, 1);
-    allSubjRes = popStatTableObs(pA, allSubjRes, sortStruc, ii);
-    allSubjRes = packStatTableSingle(pA, allSubjRes, sortStruc, ii);
+    sortStr  = popStatTableObs(pA, sortStr, sortStr, 1);
+    allSubjRes = popStatTableObs(pA, allSubjRes, sortStr, ii);
+    allSubjRes = packStatTableSingle(pA, allSubjRes, sortStr, ii);
     
-    pooledRunStr(ii)   = sortStruc;
+    pooledRunStr(ii)   = sortStr;
     
-    allSubjRes.expType    = sortStruc.expType;
-    allSubjRes.gender{ii} = sortStruc.gender;
-    allSubjRes.age(ii)    = sortStruc.age;
+    allSubjRes.expType    = sortStr.expType;
+    allSubjRes.gender{ii} = sortStr.gender;
+    allSubjRes.age(ii)    = sortStr.age;
 end
 clear ii jj participant runItr numObs curRes
 
@@ -165,8 +167,8 @@ end
 end
 
 function sortStr = initSortedStruct(pA, numObs)
-% sortStr = initSortedStruct(numCond) initializes the structure that will
-% store the pooled results for each subject, or group of subjects. It is
+% sortStr = initSortedStruct(pA, numObs) initializes the structure that will
+% store the sorted, pooled results for each subject, or group of subjects. It is
 % created to have different sizes, based on the number of conditions that
 % are being tested against. I think this should generalize to subconditions
 % of conditions, or two condition crossing, but I have not tested that, and
@@ -176,15 +178,17 @@ pAnalysis = pA.pAnalysis;
 numCond = pA.numCond;
 
 % Basic info about the session, the recordings, the subjects
-sortStr.pAnalysis = pAnalysis;
-sortStr.expType = [];
-sortStr.subject = [];
-sortStr.gender  = [];
-sortStr.f0      = [];
-sortStr.age     = [];
-sortStr.curSess = [];
-sortStr.studyID = [];
-sortStr.runs    = cell(numCond, 1);
+sortStr.pAnalysis = pAnalysis; % Pooled Analysis Name.
+sortStr.expType = [];          % Type of experiment for these data
+sortStr.studyID = [];          % Study ID of the participant
+sortStr.subject = [];          % Numbered participant name. Separate from StudyID
+sortStr.gender  = [];          % participant gender
+sortStr.age     = [];          % participant age
+sortStr.curSess = [];          % current session being analyzed. Currently replicates subject field and nothing more.
+
+sortStr.runs    = cell(numCond, 1);  % 
+sortStr.cond    = cell(numCond, 1);
+sortStr.pubCond = cell(numCond, 1);
 sortStr.runf0b  = cell(numCond, 1);
 sortStr.f0b     = zeros(numCond, 1);
 
@@ -247,6 +251,8 @@ sortStr.respVarM_all         = cell(numCond, 2);
 end
 
 function [tossTrialTable] = initTossedTrialTable(totnumRuns)
+% Initalizes the table which organizes which trials were tossed, how they
+% were tossed, and why they were tossed.
 
 genVar = cell(totnumRuns, 1);
 
@@ -258,6 +264,10 @@ tossTrialTable.Properties.VariableNames = tVN;
 end
 
 function [statTable] = initStatTable(numObs)
+%Initalize the stat table which details the basic outcomes of the sorting
+%and pooling of analyzed results. Specifically this organizes the outcome
+%variables of tAtMin, StimMag, RespMag, RespPer and f0 measured from the 
+%mean  run f0-traces from each participant. 
 
 varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'tAtMin', 'StimMag', 'RespMag', 'RespPer', 'tAtMin1', 'tAtMin2', 'StimMag1', 'StimMag2', 'RespMag1', 'RespMag2', 'RespPer1', 'RespPer2'};
 varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double', 'double'};
@@ -267,6 +277,10 @@ statTable = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableN
 end
 
 function [statTableSingle] = initStatTableSingle(numObs)
+%Initalize the stat table which details the basic outcomes of the sorting
+%and pooling of analyzed results. Specifically this organizes the outcome
+%variables of tAtMin, StimMag, RespMag, RespPer and f0 measured from the 
+%mean  run f0-traces from each participant. 
 
 varNames = {'SubjID', 'Age', 'Gender', 'f0', 'AudFB', 'StimMag', 'StimMagSD', 'RespMag', 'RespMagSD', 'RespPer', 'RespPerSD'};
 varTypes = {'string' 'double', 'string', 'double', 'string', 'double', 'double', 'double', 'double', 'double', 'double'};
@@ -275,68 +289,72 @@ numVar = length(varNames);
 statTableSingle = table('Size', [numObs numVar], 'VariableTypes', varTypes, 'VariableNames', varNames);
 end
 
-function [polRes, wCCount] = combineCondTrials(pA, curRes, polRes, tossT, wCCount)
+function [sortStr, wCCount] = combineCondTrials(pA, curRes, sortStr, tossT, wCCount)
+%combineCondTrials organizes the information that were sorted from each run
+%and combines them into  
+
 AD = curRes.audioDynamics; % Audio Dynamics
 PD = curRes.presSDsv;      % Pressure Dynamics
 
 whichCondAr = strcmp(pA.cond, eval(pA.condVar));
 wC          = find(whichCondAr == 1);            % Which Condition?
-wCCount = wCCount + whichCondAr;
+wCCount     = wCCount + whichCondAr; % How many times have we had this condition? 
 
 % Run Information
-polRes.runs{wC}   = cat(1, polRes.runs{wC}, {curRes.run});
-polRes.runf0b{wC} = cat(1, polRes.runf0b{wC}, curRes.f0b);
+sortStr.runs{wC}   = cat(1, sortStr.runs{wC}, {curRes.run});
+sortStr.runf0b{wC} = cat(1, sortStr.runf0b{wC}, curRes.f0b);
 
-polRes.AudFB{wC}  = cat(1, polRes.AudFB{wC}, {curRes.AudFB});
+sortStr.AudFB{wC}  = cat(1, sortStr.AudFB{wC}, {curRes.AudFB});
 
 % Trial Information
-polRes.allContTrials     = cat(1, polRes.allContTrials, curRes.numContTrialsFin);
-polRes.allPertTrials{wC} = cat(1, polRes.allPertTrials{wC}, curRes.numPertTrialsFin);
-polRes.AuMHDelays{wC}    = cat(1, polRes.AuMHDelays{wC}, curRes.AuMHDelaysinc);
+sortStr.allContTrials     = cat(1, sortStr.allContTrials, curRes.numContTrialsFin);
+sortStr.allPertTrials{wC} = cat(1, sortStr.allPertTrials{wC}, curRes.numPertTrialsFin);
+sortStr.AuMHDelays{wC}    = cat(1, sortStr.AuMHDelays{wC}, curRes.AuMHDelaysinc);
 
 % Audio Dynamics
-polRes.secTime             = curRes.secTime;
-polRes.audioMf0SecPert{wC} = cat(2, polRes.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
-polRes.audioHf0SecPert{wC} = cat(2, polRes.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
-polRes.audioMf0SecCont     = cat(2, polRes.audioMf0SecCont, curRes.audioMf0SecCont);
-polRes.audioHf0SecCont     = cat(2, polRes.audioHf0SecCont, curRes.audioHf0SecCont);
+sortStr.secTime             = curRes.secTime;
+sortStr.audioMf0SecPert{wC} = cat(2, sortStr.audioMf0SecPert{wC}, curRes.audioMf0SecPert);
+sortStr.audioHf0SecPert{wC} = cat(2, sortStr.audioHf0SecPert{wC}, curRes.audioHf0SecPert);
+sortStr.audioMf0SecCont     = cat(2, sortStr.audioMf0SecCont, curRes.audioMf0SecCont);
+sortStr.audioHf0SecCont     = cat(2, sortStr.audioHf0SecCont, curRes.audioHf0SecCont);
 
 % the all...harumph
-polRes.audioMf0SecPert_all{wC, wCCount(wC)} = cat(2, polRes.audioMf0SecPert_all{wC, wCCount(wC)}, curRes.audioMf0SecPert);
-polRes.audioHf0SecPert_all{wC, wCCount(wC)} = cat(2, polRes.audioHf0SecPert_all{wC, wCCount(wC)}, curRes.audioHf0SecPert);
+sortStr.audioMf0SecPert_all{wC, wCCount(wC)} = cat(2, sortStr.audioMf0SecPert_all{wC, wCCount(wC)}, curRes.audioMf0SecPert);
+sortStr.audioHf0SecPert_all{wC, wCCount(wC)} = cat(2, sortStr.audioHf0SecPert_all{wC, wCCount(wC)}, curRes.audioHf0SecPert);
 
 % Pre Voicing Dynamics
-polRes.prePertVoicingTimeCont     = cat(1, polRes.prePertVoicingTimeCont, curRes.prePertVoicingTimeinc(curRes.contIdxFin));
-polRes.prePertVoicingTimePert{wC} = cat(1, polRes.prePertVoicingTimePert{wC}, curRes.prePertVoicingTimeinc(curRes.pertIdxFin));
+sortStr.prePertVoicingTimeCont     = cat(1, sortStr.prePertVoicingTimeCont, curRes.prePertVoicingTimeinc(curRes.contIdxFin));
+sortStr.prePertVoicingTimePert{wC} = cat(1, sortStr.prePertVoicingTimePert{wC}, curRes.prePertVoicingTimeinc(curRes.pertIdxFin));
 
 % Sensor Dynamics
-polRes.secTimeP            = PD.timeSec;
-polRes.sensorPSec          = cat(2, polRes.sensorPSec, PD.sensorSec);
-polRes.sensorPOnOff        = cat(1, polRes.sensorPOnOff, PD.OnOffVal);
-polRes.sensorPRiseTime     = cat(1, polRes.sensorPRiseTime, PD.riseTimeM);
+sortStr.secTimeP            = PD.timeSec;
+sortStr.sensorPSec          = cat(2, sortStr.sensorPSec, PD.sensorSec);
+sortStr.sensorPOnOff        = cat(1, sortStr.sensorPOnOff, PD.OnOffVal);
+sortStr.sensorPRiseTime     = cat(1, sortStr.sensorPRiseTime, PD.riseTimeM);
 
 % Trial Tossing Record
-polRes.tossedAll      = polRes.tossedAll + tossT.A;       % Total Automatic Excluded Trials
-polRes.tossedLate     = polRes.tossedLate + tossT.L;      % Late Start
-polRes.tossedBreak    = polRes.tossedBreak + tossT.B;     % Voice Break
-polRes.tossedMisCalc  = polRes.tossedMisCalc + tossT.C;   % f0 Miscalc
-polRes.tossedManual   = polRes.tossedManual + tossT.M;    % Total Manual Excluded Trials
-polRes.tossedAutoMiss = polRes.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
+sortStr.tossedAll      = sortStr.tossedAll + tossT.A;       % Total Automatic Excluded Trials
+sortStr.tossedLate     = sortStr.tossedLate + tossT.L;      % Late Start
+sortStr.tossedBreak    = sortStr.tossedBreak + tossT.B;     % Voice Break
+sortStr.tossedMisCalc  = sortStr.tossedMisCalc + tossT.C;   % f0 Miscalc
+sortStr.tossedManual   = sortStr.tossedManual + tossT.M;    % Total Manual Excluded Trials
+sortStr.tossedAutoMiss = sortStr.tossedAutoMiss + tossT.aM; % Trials Manually removed, but missed by auto methods.
 
 % Analysis of Perturbation Lengths
-if strcmp(polRes.expType, 'Somatosensory Perturbation_Perceptual')
+if strcmp(sortStr.expType, 'Somatosensory Perturbation_Perceptual')
     pertLengths = PD.pertTime(:,2) - PD.pertTime(:,1);
-    polRes.pertLengths{wC} = cat(1, polRes.pertLengths{wC}, pertLengths);
+    sortStr.pertLengths{wC} = cat(1, sortStr.pertLengths{wC}, pertLengths);
     
     pertOnsetTime = 0.8 + curRes.presSD.pertTime(:,1);
-    polRes.pertOnsetTimes{wC} = cat(1, polRes.pertOnsetTimes{wC}, pertOnsetTime);
+    sortStr.pertOnsetTimes{wC} = cat(1, sortStr.pertOnsetTimes{wC}, pertOnsetTime);
 else
-    polRes.pertLengths{wC}    = 0;
-    polRes.pertOnsetTimes{wC} = 0;
+    sortStr.pertLengths{wC}    = 0;
+    sortStr.pertOnsetTimes{wC} = 0;
 end
 end
 
 function [tossCounts, tossTrialTable, autoMiss] = combineTossedTrialTracker(curRes, tossTrialTable, runItr)
+% Combine information about which trials were tossed
 
 % AUTO: Identify trials that were excluded by automated methods 
 [tossCounts, aTossTrials, aTossDetails] = identifyTossedTrials(curRes);
@@ -472,6 +490,8 @@ curRes.presSDsv.sensorSec(:, pertIdx2Remove,:)      = [];
 end
 
 function polRes = meanCondTrials(pA, polRes)
+%Mean the pooled results and create new cross run results, and cross
+%participant results
 
 polRes.numContTrialsFin = sum(polRes.allContTrials);
 polRes.audioMf0MeanCont = meanSecData(polRes.audioMf0SecCont);
