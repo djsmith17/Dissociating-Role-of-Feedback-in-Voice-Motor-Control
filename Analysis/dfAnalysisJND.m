@@ -20,32 +20,48 @@ close all
 % Initalize the analysis structure
 JNDa.project      = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
 JNDa.participants = {'DRF1',...
-                      'DRF2',...
-                      'DRF4',...
-                      'DRF5',...
-                      'DRF6',...
-                      'DRF7',...
-                      'DRF8',...
-                      'DRF9',...
-                      'DRF10',...
-                      'DRF12',...
-                      'DRF13',...
-                      'DRF14',...
-                      'DRF15',...
-                      'DRF16',...
-                      'DRF17',...
-                      'DRF18',...
-                      'DRF19'}; % List of multiple participants.
+                     'DRF2',...
+                     'DRF4',...
+                     'DRF5',...
+                     'DRF6',...
+                     'DRF7',...
+                     'DRF8',...
+                     'DRF9',...
+                     'DRF10',...
+                     'DRF12',...
+                     'DRF13',...
+                     'DRF14',...
+                     'DRF15',...
+                     'DRF16',...
+                     'DRF17',...
+                     'DRF18',...
+                     'DRF19',...
+                     'DRF20'}; % List of multiple participants.
 JNDa.numPart      = length(JNDa.participants);
-JNDa.runs         = {'fAX1', 'fAX2','fAX3','fAX4'}; %List of multiple runs.
+JNDa.runs         = {'fAX1','fAX2','fAX3','fAX4'}; %List of multiple runs.
 JNDa.numRuns      = length(JNDa.runs);
 
 dirs = dfDirs(JNDa.project);
 
 for jj = 1:JNDa.numPart
     curPart = JNDa.participants{jj}; % Current Participant
+    dirs.baselineData  = fullfile(dirs.SavData, curPart, 'BV1', [curPart 'BV1' 'DRF.mat']); % Where to find data  
+    dirs.GTRecordings  = fullfile(dirs.SavData, curPart, 'GT1', [curPart 'GT1' 'DRF.mat']); % Where to find data  
     dirs.SavResultsDir = fullfile(dirs.Results, curPart, 'JND'); %Where to save results
 
+    % Look for the baseline voice info for this participant, then load it
+    if exist(dirs.baselineData, 'file') == 0
+        fprintf('ERROR: Could not find baseline data set at %s\n', dirs.baselineData)
+        return
+    else
+        fprintf('Loading baseline data set for %s %s\n', curPart, 'BV1')
+        load(dirs.baselineData) % Returns DRF
+        bV = DRF;
+        load(dirs.GTRecordings)
+    end
+    
+    bVaudioRMS = assessTokenQuality(GT, bV);
+    
     if exist(dirs.SavResultsDir, 'dir') == 0
         mkdir(dirs.SavResultsDir) %If the folder we are saving does not exist, let's make it
     end
@@ -60,6 +76,7 @@ for jj = 1:JNDa.numPart
         
         % Organize the raw data into a result structure named 'resJND'
         resJND = AnalyzeRawJNDData(UD);
+        resJND.baseAudioRMS = bVaudioRMS; % dB
         dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [curPart curRun 'ResultsDRF.mat']); %What to name the organized results
         fprintf('Saving Individual JND Results\n\n')
         save(dirs.SavResultsFile, 'resJND')    
@@ -68,11 +85,78 @@ end
 fprintf('Elapsed time was %f min\n', toc/60)
 end
 
+function bVLoudDB = assessTokenQuality(GT, bV)
+
+GTTime = linspace(0, GT.tokenLen, GT.tokenLenP);
+GTBase = GT.BaseToken;
+
+frameLen = bV.expParam.frameLenDown;
+rmsB     = bV.expParam.rmsB;
+bVfs   = bV.expParam.sRateAnal;
+bVBase = bV.rawData(GT.baseTrial).signalIn;
+bVBase_seg = bVBase(2*bVfs:2.5*bVfs);
+bvTime = linspace(2, 2.5, length(bVBase_seg));
+
+bVaudioRMS = bV.qRes.audioRMS(GT.baseTrial);
+
+bVStruct.rms   = reCalcRMS(bVBase_seg(800:7200), frameLen);
+bVStruct.rmsM  = mean(bVStruct.rms);
+GTStruct.rms   = reCalcRMS(GTBase(2205:19845), frameLen);
+GTStruct.rmsM  = mean(GTStruct.rms);
+
+bVLoudDB = dfCalcMeanRMS(bVStruct, rmsB);
+GTLoudDB = dfCalcMeanRMS(GTStruct, rmsB);
+
+fprintf('Baseline Voice Loudness recorded as %0.2f dB\n', bVaudioRMS)
+fprintf('Baseline Voice Loudness reanalyzed as %0.2f dB\n', bVLoudDB)
+fprintf('Baseline Token Loudness reanalyzed as %0.2f dB\n', GTLoudDB)
+
+% fprintf('Difference between recorded and reanalyzed baseline voice = %f\n', bVLoudDB - bVaudioRMS)
+% fprintf('Difference between baseline Token and baseline voice = %f\n', bVLoudDB - GTLoudDB)
+
+% figure('Color', [1 1 1])
+% subplot(1,2,1)
+% plot(bvTime, bVBase_seg)
+% xlabel('Time (s)')
+% box off
+% title({'Baseline Voice', ['RMS = ' num2str(round(bVStruct.rmsM, 4))]});
+% 
+% subplot(1,2,2)
+% plot(GTTime, GTBase)
+% xlabel('Time (s)')
+% box off
+% title({'Baseline Token', ['RMS = ' num2str(round(GTStruct.rmsM, 4))]});
+% suptitle(bV.expParam.subject)
+
+allTokenRMSdB = [];
+for ii = 1:GT.numPertToken
+    tokenStruct.rms = reCalcRMS(GT.PertTokens(ii,2205:19845), frameLen);
+    allTokenRMSdB = cat(1, allTokenRMSdB, dfCalcMeanRMS(tokenStruct, rmsB));
+end
+allTokenRMSdB_Mean = round(mean(allTokenRMSdB), 2);
+allTokenRMSdB_SD   = round(std(allTokenRMSdB), 3);
+
+fprintf('Mean Token Loudness = %0.2f db (SD = %0.3f dB)\n\n', allTokenRMSdB_Mean, allTokenRMSdB_SD)
+end
+
+function sigRMS = reCalcRMS(sig, frameLen)
+
+lenSig = length(sig);
+numFrame = floor(lenSig/frameLen);
+
+sigRMS = zeros(numFrame, 1);
+for ii = 1:numFrame
+    sigRMS(ii) = rms(sig([1:frameLen]*ii));
+end
+
+end
+
 function resJND = initJNDAnalysis()
 
 resJND.participant = [];
 resJND.gender      = [];
 resJND.f0          = [];
+resJND.baseAudioRMS = [];
 resJND.run         = [];
 
 resJND.instructions     = {};

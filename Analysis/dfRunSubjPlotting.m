@@ -1,31 +1,45 @@
 function dfRunSubjPlotting()
 %The function that draws the plots from analyzed results
 
-%This uses the following plot functions
-%drawDAQAll
-%drawDAQPresMic
-%drawDAQAlignedPressure
-%drawDAQMeanTrialMicf0
-%drawAudRespIndivTrial
-%drawAudRespMeanTrial
+% This calls the following drawing functions:
+% -drawDAQAlignedPressure
+% -drawMeanTrialMicf0
+% -drawAllPertTrialMicf0
+% -drawAudRespIndivTrial
+% -drawAudRespMeanTrial
 
 close all;
 sPlt.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-sPlt.participants  = {'DRF1'}; %List of multiple participants.
+sPlt.participants  = {'DRF1',...
+                      'DRF2',...
+                      'DRF4',...
+                      'DRF5',...
+                      'DRF6',...
+                      'DRF7',...
+                      'DRF8',...
+                      'DRF9',...
+                      'DRF10',...
+                      'DRF12',...
+                      'DRF13',...
+                      'DRF14',...
+                      'DRF15',...
+                      'DRF16',...
+                      'DRF17',...
+                      'DRF18',...
+                      'DRF19',...
+                      'DRF20'}; %List of multiple participants.
 sPlt.numPart       = length(sPlt.participants);
-sPlt.runs          = {'SF1', 'SF2', 'SF3', 'SF4'}; %All runs to consider 
+sPlt.runs          = {'AF1','AF2'}; %All runs to consider 
 sPlt.numRuns       = length(sPlt.runs);
 dirs               = dfDirs(sPlt.project);
 ext                = '';
 
 %Plot Toggles. This could eventually become an input variable
 sv2File                      = 1;
-sPlt.drawDAQAll              = 0; % All signals recorded by the NIDAQ
-sPlt.drawDAQPresMic          = 0; % Pressure vs Microphone Data
 
 sPlt.drawDAQAlignedPressure  = 0; % Superimposed Pressure recordings from perturbed trials
 sPlt.drawPertMicResponse     = 0; % All Perturbed Trials Microphone input
-sPlt.drawMicHeadResponse     = 0; % Mean Perturbed Trials. Microphone vs Headphones
+sPlt.drawMicHeadResponse     = 1; % Mean Perturbed Trials. Microphone vs Headphones
 
 presFlag = 1;
  
@@ -33,28 +47,17 @@ for ii = 1:sPlt.numPart
     participant = sPlt.participants{ii};
     for jj = 1:sPlt.numRuns 
         run = sPlt.runs{jj};
-        dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [participant run ext 'ResultsDRF.mat']); %The Analyzed Results File
-        
         dirs.PlotResultsDir = fullfile(dirs.Results, participant, run); % Analyzed Results Folder...Where Plots will go
         
-
+        dirs.SavResultsFile = fullfile(dirs.Results, participant, run, [participant run ext 'ResultsDRF.mat']); % Analyzed Results File.. The analyzed data to open
         if exist(dirs.SavResultsFile, 'file') == 0
-            fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
-            return
+            error('File %s does not exist!\n', dirs.SavResultsFile)
         else
             load(dirs.SavResultsFile)
-        end        
-        
-        if sPlt.drawDAQAll == 1
-            drawDAQAll(res, dirs.PlotResultsDir, sv2File)
-        end
-        
-        if sPlt.drawDAQPresMic == 1
-            drawDAQPresMic(res, dirs.PlotResultsDir)
         end
         
         if sPlt.drawDAQAlignedPressure == 1
-            drawDAQAlignedPressure(res, dirs.PlotResultsDir, sv2File)
+            drawDAQAlignedPressure(res, dirs.PlotResultsDir, sv2File, 0)
         end
         
         if sPlt.drawPertMicResponse == 1
@@ -70,5 +73,4 @@ for ii = 1:sPlt.numPart
         close all
     end
 end
-close all
 end

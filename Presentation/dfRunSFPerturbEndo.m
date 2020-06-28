@@ -26,7 +26,7 @@ close all;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF12';   % Subject#, Pilot#, null
+subject    = 'Test';   % Subject#, Pilot#, null
 run        = 'SFL1';
 jitt       = 1;        % 0 Starts with Masking Noise, 1 Starts with Voice
 

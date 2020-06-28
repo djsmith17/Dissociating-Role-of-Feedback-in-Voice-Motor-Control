@@ -3,21 +3,23 @@ matlab.video.read.UseHardwareAcceleration('off')
 
 close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-enA.participant = 'DRF_ENP4';    % List of multiple participants.
+enA.participant = 'DRF12';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
 
 dirs           = dfDirs(enA.project);
 
-dirs.rawVideoFile = fullfile(dirs.SavData, enA.participant, 'rawVideo', [enA.participant ' rawVideo.avi']);  % Where to find data
-dirs.rawAudioFile = fullfile(dirs.SavData, enA.participant, 'rawVideo', [enA.participant ' rawAudio.wav']);  % Where to find data
-dirs.parsedVideoDir = fullfile(dirs.SavData, enA.participant, 'parsedVideo');
+dirs.savDirEndo = fullfile(dirs.SavDataEndo, enA.participant);
+
+dirs.rawVideoFile = fullfile(dirs.savDirEndo, 'rawVideo', [enA.participant ' rawVideo.avi']);  % Where to find data
+dirs.rawAudioFile = fullfile(dirs.savDirEndo, 'rawVideo', [enA.participant ' rawAudio.wav']);  % Where to find data
+dirs.parsedVideoDir = fullfile(dirs.savDirEndo, 'parsedVideo');
 
 if ~exist(dirs.parsedVideoDir, 'dir')
     mkdir(dirs.parsedVideoDir)
 end
 
-dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run enA.ext 'ResultsDRF.mat']);
+dirs.expResultsFile = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run 'ResultsDRF.mat']);
 
 if isfile(dirs.rawVideoFile)
     disp('Loading...')
@@ -79,7 +81,7 @@ for ii = 1:enA.numTrials
 end
 parseTrialT = table(enA.trialRecStTimes, enA.videoFrameSeg(:, 1), 'VariableNames',{'Time', 'Frame'});
 
-dirs.rawVideoParseNoteFile = fullfile(dirs.SavData, enA.participant, 'rawVideo', [enA.participant ' parseNotes.txt']);
+dirs.rawVideoParseNoteFile = fullfile(dirs.savDirEndo, 'rawVideo', [enA.participant ' parseNotes.txt']);
 writetable(parseTrialT, dirs.rawVideoParseNoteFile)
 % fullVid = rawVStr;
 % playRawVideo(enA, fullVid)

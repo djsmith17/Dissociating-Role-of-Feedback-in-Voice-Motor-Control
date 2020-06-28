@@ -1,16 +1,20 @@
 function dfRunSubjAnalysis()
 % dfRunSubjAnalysis() is my main script for analyzing recorded audio files 
-% and sensor information from experiments studying Voice Motor Control. 
+% and sensor information from experiments studying voice motor control. 
 % This function is set up to analyze multiple subject and runs in an 
-% identical fashion, so that once you have a new data set, you can run it 
-% all very quickly. 
-% Most importantly, these analyses calculate change in f0 of a speaker's 
-% voice as they complete somatosensory and auditory feedback perturbation 
-% tasks. 
+% identical fashion
+%
+% One of the primary outcome measures of this analysis is the time-series
+% analysis of a speaker's f0 as they complete either a somatosensory or
+% auditory feedback perturbation task.
 %
 % This makes use of the following functions:
-% dfAnalysisNIDAQ.m
-% dfAnalysisAudapter.m
+% -dfAnalysisNIDAQ.m
+% -dfAnalysisAudapter.m
+%
+% See below for the following sub-functions:
+% -preAnalysisCheck
+% -combineRes
 %
 % Requires the Signal Processing Toolbox
 
@@ -35,7 +39,7 @@ AVar.participants  = {'DRF1',...
                       'DRF19',...
                       'DRF20'}; % List of multiple participants.
 AVar.numPart       = length(AVar.participants);
-AVar.runs          = {'AF1', 'AF2'}; %    List of multiple runs.
+AVar.runs          = {'SF1', 'SF2', 'SF3', 'SF4'}; %    List of multiple runs.
 AVar.numRuns       = length(AVar.runs);
 AVar.baselineFile  = 'BV1';            % Baseline Voice information
 AVar.debug         = 0;
@@ -77,20 +81,23 @@ for i = 1:AVar.numPart
             fprintf('ERROR: Could not find saved data set at %s\n', dirs.SavFileDir)
             return
         else
+            tic
             fprintf('Loading saved data set for %s %s\n', participant, run)
             load(dirs.SavFileDir) % Returns DRF
         end
         
         % Identify the type of experiment and decide what types of analyzes
-        % we need. pF: Pressure Flag; iRF: Inflation Response Flag
-        
+        % we need. pF: Pressure Flag; iRF: Inflation Response Flag        
         [DRF, pF, aDF] = preAnalysisCheck(DRF, f0b);
-        aFn = 0; aFa = 1; %Audio Analysis Flag
+        audioFlagN = 0; % Audio Analysis Flag
+        audioFlagA = 1; % Audio Analysis Flag
+        f0CalcF    = 0;
         
+        close all
         % Analysis on the NIDAQ raw data
-        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, f0b, aFn, aDF, pF);
+        [niAn, niRes] = dfAnalysisNIDAQ(dirs, DRF.expParam, DRF.DAQin, audioFlagN, aDF, pF);
         % Analysis on the Audapter raw data
-        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, f0b, aFa, aDF, niAn);
+        [auAn, auRes] = dfAnalysisAudapter(dirs, DRF.expParam, DRF.rawData, niAn, audioFlagA, aDF, f0CalcF);
 
         % Combine Audapter and NIDAQ results into one neat MATLAB structure
         res = combineRes(niRes, auRes);
@@ -100,6 +107,7 @@ for i = 1:AVar.numPart
             % Save the results of this recording session
             fprintf('\nSaving Results for %s %s\n', participant, run)
             save(dirs.SavResultsFile, 'res')
+            fprintf('Time Elapsed: %0.2f s\n', toc)
         end
     end
 end
@@ -130,6 +138,7 @@ res.removedTrialTracker = auRes.removedTrialTracker;
 res.incTrialInfo        = auRes.incTrialInfo;
 res.allAuMHDelays       = auRes.allAuMHDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
 res.allAuNiDelays       = auRes.allAuNiDelays; % Vector of the delays between the NIDAQ and Audapter microphone recordings
+res.prePertVoicingTimes = auRes.prePertVoicingTimes;
 
 %NIDAQ RESULTS Collection
 res.balloon         = niRes.balloon;
@@ -165,7 +174,6 @@ res.audioMf0TrialCont = auRes.audioMf0TrialCont;
 res.audioHf0TrialPert = auRes.audioHf0TrialPert;
 res.audioHf0TrialCont = auRes.audioHf0TrialCont;
 res.limitsA           = auRes.limitsA;
-res.limitsAudRes      = auRes.limitsAudRes;
 
 %Sections Trials: Mic/Head f0
 res.secTime          = auRes.secTime;
@@ -180,7 +188,6 @@ res.audioMf0MeanCont = auRes.audioMf0MeanCont;
 res.audioHf0MeanPert = auRes.audioHf0MeanPert;
 res.audioHf0MeanCont = auRes.audioHf0MeanCont;
 res.limitsAmean      = auRes.limitsAmean;
-res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicXHead
 
 % Dynamics of the Participant's Vocal Response
 % This can be the response to the laryngeal pert
@@ -188,7 +195,12 @@ res.limitsAMH        = auRes.limitsAMH;        % Limits Audio Corrected for MicX
 res.audioDynamics = auRes.audioDynamics;
 
 %NIAu Delay
+res.audioMinc     = auRes.audioMinc;
+res.audioHinc     = auRes.audioHinc;
+res.AuMHDelaysinc = auRes.AuMHDelaysinc;
 res.AuNiDelaysinc = auRes.AuNiDelaysinc;
+res.prePertVoicingTimeinc = auRes.prePertVoicingTimeinc;
+
 
 %Result variables to be plotted after accounting for tossed trials
 res.sensorPsv    = res.sensorP;
@@ -209,7 +221,7 @@ if res.numPertTrialsFin < res.numPertTrialsNi && strcmp(res.expType, 'Somatosens
     res.sensorPsv          = res.sensorPsv(:, presInd);
     res.presSDsv.sensorSec = res.presSDsv.sensorSec(:, presInd, :);
     res.presSDsv.lagTimes  = res.presSDsv.lagTimes(presInd, :);
-    res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd);
+    res.presSDsv.riseTimes = res.presSDsv.riseTimes(presInd, :);
     res.presSDsv.OnOffVal  = res.presSDsv.OnOffVal(presInd, :);
 end
 end

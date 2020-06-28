@@ -1,5 +1,5 @@
-function [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean)
-% [color, newPos] = dfUpdateVisFB(anMsr, rmsMean) updates the height and 
+function [color, newPos, loudResult] = dfUpdateVisFB(anMsr, dBSPL)
+% [color, newPos] = dfUpdateVisFB(anMsr, dBSPL) updates the height and 
 % color of the loudness feedback bar that follows each trial in both the 
 % SFPerturb and AFPerturb scripts.
 %
@@ -8,7 +8,7 @@ function [color, newPos, loudResult] = dfUpdateVisFB(anMsr, rmsMean)
 % changes based on if the trial recording was within the bounds.
 
 % New Height based on RMS measurement
-ratio = (rmsMean - anMsr.vBotAmp)/anMsr.hRMSrange;
+ratio = (dBSPL - anMsr.vBotAmp)/anMsr.hRMSrange;
 
 newRecHeight = 0.45*ratio;
 newDrawHeight = newRecHeight + anMsr.bMar;

@@ -19,19 +19,21 @@ dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [PolPlt.analyses 'ResultsDRF.
 % Plot Toggles. Which plots do you want?
 PolPlt.MeanTrialMicf0    = 0;
 PolPlt.MaskVVoice        = 0;
-PolPlt.AllSubjMaskvVoice = 0;
+PolPlt.AllSubjMaskvVoice = 1;
 PolPlt.MicVHead          = 0;
-PolPlt.AllSubjMicVHead   = 1;
+PolPlt.AllSubjMicVHead   = 0;
 
 fStat    = 0;
-fPres    = 0;
+fPres    = 1;
 
-ppi        = 300;
+targPPI    = 300;
 scRes      = [2560 1440];
-scDim      = [18.625 11.75];
-targFigDim = [15 4];
+scDim      = [6 4]; %inches\
+scDimPoster= [4.8 3.2]; %inches
+monSize    = [23.5 13.5]; %inches ~100ppi
+monitorPPI = 100;
 
-targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim);
+targPixDim = calcFigPixDim(targPPI, scDimPoster, monitorPPI);
 
 if exist(dirs.SavResultsFile, 'file') == 0
     fprintf('\nERROR: File %s does not exist!\n', dirs.SavResultsFile)
@@ -60,7 +62,7 @@ end
 
 if PolPlt.AllSubjMaskvVoice == 1
     fLabel = 0;
-    drawMeanSubjf0Resp(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, fPres)
+    drawMeanSubjf0Resp_OnsetPoster(allSubjRes, targPixDim, dirs.SavResultsDir, fLabel, fStat, fPres)
 end
 
 if PolPlt.MicVHead == 1
@@ -79,15 +81,12 @@ end
 close all
 end
 
-function targPixDim = calcFigPixDim(ppi, scRes, scDim, targFigDim)
+function targPixDim = calcFigPixDim(targPPI, scDim, monitorPPI)
 
-mHppi = round(scRes(1)/scDim(1));
-mVppi = ceil(scRes(2)/scDim(2));
+scalePPI = targPPI/monitorPPI;
 
-scaleDif = ppi/mHppi;
-
-tHPixDim = ppi*targFigDim(1);
-tVPixDim = ppi*targFigDim(2);
+tHPixDim = scalePPI*(monitorPPI*scDim(1));
+tVPixDim = scalePPI*(monitorPPI*scDim(2));
 
 targPixDim = [tHPixDim tVPixDim];
 end

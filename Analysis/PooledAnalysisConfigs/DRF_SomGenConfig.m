@@ -1,6 +1,6 @@
 function DRF_SomGenConfig()
 % Run this script to generate Pooled Analysis configuration files for 
-% Masking Noise piloting
+% Dissertation Project Experiment 1: Somatosensory Feedback Perturbation
 
 project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
 pAnalysis     = 'DRF_Som';
@@ -16,13 +16,11 @@ end
 % Edit the parts between the lines to modify the pooled analysis variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Participants involved in analysis
-pooledParticipants = {'DRF1',...
-                      'DRF2',...
+pooledParticipants = {'DRF2',...
                       'DRF4',...
                       'DRF5',...
                       'DRF6',...
                       'DRF7',...
-                      'DRF8',...
                       'DRF9',...
                       'DRF10',...
                       'DRF12',...
@@ -41,6 +39,7 @@ pooledRuns  = {'SF1', 'SF2', 'SF3', 'SF4'};
            
 % Conditions to test against
 testingConditions = {'Voice Feedback', 'Masking Noise'};
+pubConditions     = {'Without auditory masking', 'With auditory masking'};
 
 % The Recording Variable to check for the condition
 condVar = 'curRes.AudFB'; 
@@ -55,6 +54,7 @@ cF.runs         = pooledRuns;
 cF.cond         = testingConditions;
 cF.condVar      = condVar;
 cF.testExt      = testExt;
+cF.pubCond      = pubConditions;
 
 save(dirs.SavConfigFile, 'cF');
 fprintf('%s Pooled Analysis Config File Generated!\n', pAnalysis)

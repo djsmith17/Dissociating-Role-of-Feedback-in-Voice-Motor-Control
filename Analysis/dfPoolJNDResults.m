@@ -73,8 +73,8 @@ for ii = 1:pA.numPart
 
         sortStruc.studyID = curRes.participant; % Study ID
         sortStruc.gender  = curRes.gender;
-%         sortStruc.age     = curRes.age;
         sortStruc.f0      = curRes.f0;
+        sortStruc.audioRMS = curRes.baseAudioRMS;
         
         sortStruc  = combineCondTrials(pA, curRes, sortStruc);       
         allSubjRes = combineCondTrials(pA, curRes, allSubjRes);
@@ -100,9 +100,8 @@ for ii = 1:pA.numPart
     
     allSubjRes.expType    = sortStruc.expType;
     allSubjRes.gender{ii} = sortStruc.gender;
-%     allSubjRes.age(ii)    = sortStruc.age;
     
-%     Save the structure for future grouped analysis
+    % Save the structure for future grouped analysis
     dirs.SavResultsDirParti = fullfile(dirs.Results, participant, 'JND');
     dirs.SavResultsFile = fullfile(dirs.SavResultsDirParti, [participant 'f0AcuityPooledResults.mat']);
     fprintf('\nSaving Pooled JND Results for %s\n', participant)
@@ -113,32 +112,38 @@ for ii = 1:pA.numPart
     close all
 end
 
-statStr.participants = {pooledRunStr.subject}';
-statStr.genders      = {pooledRunStr.gender}';
-statStr.f0           = {pooledRunStr.f0}';
-statStr.JNDScoreMean = [pooledRunStr.JNDScoreMean]';
-statStr.JNDScoreSE   = [pooledRunStr.JNDScoreSE]';
-statStr.lastSetAccuracyMean = [pooledRunStr.lastSetAccuracyMean]';
-statStr.lastSetAccuracySE   = [pooledRunStr.lastSetAccuracySE]';
+% Set up the stats table to be used in further Post Hoc Analysis
+allSubjRes.statTable = packStatTable(pooledRunStr);
 
-JNDStatTable = table(statStr.participants,...
-                     statStr.genders,...
-                     statStr.f0,...
-                     statStr.JNDScoreMean,...
-                     statStr.JNDScoreSE,...
-                     statStr.lastSetAccuracyMean,...
-                     statStr.lastSetAccuracySE,...
-                     'VariableNames',...
-                     {'Participant', 'gender', 'f0', 'JNDScoreMean', 'JNDScoreSE', 'lastSetAccuracyMean', 'lastSetAccuracySE'});
+measVarJND.varName   = 'JNDScore';
+measVarJND.varNamePub = 'JNDScore';
+measVarJND.condition = 'JNDScore';
+measVarJND.units     = 'cents';
 
-allSubjRes.statTable = JNDStatTable;
+measVarAccu.varName   = 'LastSetAccuracy';
+measVarAccu.varNamePub = 'LastSetAccuracy';
+measVarAccu.condition = 'LastSetAccuracy';
+measVarAccu.units     = '%';
 
+measVarLoud.varName   = 'TokenRMS';
+measVarLoud.varNamePub = 'TokenRMS';
+measVarLoud.condition = 'TokenRMS';
+measVarLoud.units     = 'dB';
 
-% drawHistogram(dirs, pA, cell2mat(JNDStatTable.JNDScoreMean), 'JNDScore')
-% drawHistogram(dirs, pA, cell2mat(JNDStatTable.lastSetAccuracyMean), 'Last 4 Reversals Accuracy')
+JNDTable  = MeasureSummaryStats(dirs, pA, measVarJND, allSubjRes.statTable.JNDScoreMean, 0);
+accuTable = MeasureSummaryStats(dirs, pA, measVarAccu, allSubjRes.statTable.lastSetAccuracyMean, 0);
+LoudTable = MeasureSummaryStats(dirs, pA, measVarLoud, allSubjRes.statTable.audioRMS, 0);
+
+JNDTable  = JNDTable.testNormality;
+accuTable = accuTable.testNormality;
+LoudTable = LoudTable.testNormality;
+
+JNDTable.drawHistoBoxCombo; JNDTable.drawHistogram;
+accuTable.drawHistoBoxCombo;
+LoudTable.drawHistoBoxCombo;
 
 dirs.JNDTableCSV = fullfile(dirs.SavResultsDir, 'JNDStatTable.csv');
-writetable(JNDStatTable, dirs.JNDTableCSV);
+writetable(allSubjRes.statTable, dirs.JNDTableCSV);
 
 % Save the Pooled Results
 dirs.SavResultsFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis 'ResultsDRF.mat']);
@@ -160,6 +165,7 @@ sortStr.subject = [];
 sortStr.gender  = [];
 sortStr.age     = [];
 sortStr.f0      = [];
+sortStr.audioRMS = [];
 sortStr.curSess = [];
 sortStr.studyID = [];
 sortStr.runs    = [];
@@ -213,7 +219,6 @@ polRes.LastSetAccuracies = cat(1, polRes.LastSetAccuracies, curRes.LastSetAccura
 polRes.catchAccuracies   = cat(1, polRes.catchAccuracies, curRes.catchAccuracy);
 
 polRes.obvSubj         = cat(1, polRes.obvSubj, curRes.participant);
-% polRes.obvAge          = cat(1, polRes.obvAge, curRes.age);
 polRes.obvGender       = cat(1, polRes.obvGender, curRes.gender);
 end
 
@@ -229,18 +234,36 @@ sortStruc.lastSetAccuracyMean = round(mean(Accuracies), 1);
 sortStruc.lastSetAccuracySE   = std(Accuracies)/sqrt(numJNDScores);
 end
 
-function drawHistogram(dirs, pA, vars, VarName)
+function StatTable = packStatTable(pooledRunStr)
 
-JNDHist = figure('Color', [1 1 1]);
-plotpos = [10 10]; plotdim = [1300 800];
-set(JNDHist, 'Position',[plotpos plotdim],'PaperPositionMode','auto')
+statStr.subjID              = {pooledRunStr.studyID}';
+statStr.genders             = {pooledRunStr.gender}';
+statStr.f0                  = [pooledRunStr.f0]';
+statStr.audioRMS            = [pooledRunStr.audioRMS]';
+statStr.JNDScoreMean        = [pooledRunStr.JNDScoreMean]';
+statStr.JNDScoreSE          = [pooledRunStr.JNDScoreSE]';
+statStr.lastSetAccuracyMean = [pooledRunStr.lastSetAccuracyMean]';
+statStr.lastSetAccuracySE   = [pooledRunStr.lastSetAccuracySE]';
 
-hist(vars)
-title(['Mean ' VarName])
-box off
+VarNames = {'SubjID',...
+            'gender',...
+            'f0',...
+            'audioRMS',...
+            'JNDScoreMean',...
+            'JNDScoreSE',...
+            'lastSetAccuracyMean',...
+            'lastSetAccuracySE'};
 
-dirs.DistributionFigureFile = fullfile(dirs.SavResultsDir, [pA.pAnalysis VarName 'Distribution.jpg']);
-export_fig(dirs.DistributionFigureFile)
+StatTable = table(statStr.subjID,...
+                  statStr.genders,...
+                  statStr.f0,...
+                  statStr.audioRMS,....
+                  statStr.JNDScoreMean,...
+                  statStr.JNDScoreSE,...
+                  statStr.lastSetAccuracyMean,...
+                  statStr.lastSetAccuracySE,...
+                  'VariableNames', VarNames);
+
 end
 
 function pA = identifyPooledJNDResultsSet()

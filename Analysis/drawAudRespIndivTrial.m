@@ -5,14 +5,14 @@ f0b              = round(res.f0b, 1); % Baseline f0 rounded to 0.1 Hz
 AudFB            = res.AudFB;
 numPT            = res.numPertTrialsFin;
 trialNums        = res.allIdxFin(res.pertIdxFin);
-pertTrig         = res.pertTrigsFin;
+pertTrig         = round(res.pertTrigsFin, 3);
 MHDelays         = res.allAuMHDelays;
 AuNiDelays       = round(res.allAuNiDelays, 3);
 
 time             = res.timef0;
 micf0Trials      = res.audioMf0TrialPert;
 heaf0Trials      = res.audioHf0TrialPert;
-limits           = res.limitsAudRes;
+limits           = res.limitsA;
 
 plotpos = [10 10];
 plotdim = [1600 800];
@@ -37,7 +37,7 @@ for ii = 1:numPT
     axes(ha(ii))
         
     pertAx  = [pertTrig(ii,1), pertTrig(ii,2)];
-    pertAy  = [200 200];
+    pertAy  = [500 500];
     
     area(pertAx, pertAy, -600, 'FaceColor', pertBoxC, 'EdgeColor', pertBoxC)
     hold on

@@ -57,7 +57,7 @@ classdef LiveSensorResult
                
                figPosition = [halfWD 80 plotDim];
            else
-               plotDim = [500 400];
+               plotDim = [800 600];
                monW = monitorSize(1, 3);
                halfWD = monW - plotDim(1) - 10;
                

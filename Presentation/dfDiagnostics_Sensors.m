@@ -20,10 +20,11 @@ prompt = {'Subject ID:',...
           'Collect New Data?:'};
 name = 'Subject Information';
 numlines = 1;
-defaultanswer = {'SpringNewBoxCalib', 'DS6', '10', '1', 'BP(PS3+IS)_ThickDef+25"TubePlugged','yes'};
+defaultanswer = {'Test', 'DS1', '3', '1', 'DefaultBalloon','yes'};
 ExpPrompt = inputdlg(prompt, name, numlines, defaultanswer);
 
 sensorPType = 'Seven';
+doubleSens  = 0;
 
 if isempty(ExpPrompt)
     returns
@@ -36,7 +37,7 @@ expParam.subject       = ExpPrompt{1}; %Subject#, Pilot#, null
 expParam.run           = ExpPrompt{2};
 expParam.curSess       = [expParam.subject ' ' expParam.run];
 expParam.gender        = 'N/A';
-expParam.niDev         = 'Dev2';                  % NIDAQ Device Name. For more information, see dfInitNIDAQ
+expParam.niDev         = 'Dev1';                  % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen      = 4;                       % Seconds
 expParam.numTrial      = str2double(ExpPrompt{3});
 expParam.curTrial      = [];
@@ -119,21 +120,20 @@ else
     load(dirs.RecFileDir)
 end
 
-f0b = 100;
 pF  = 1;
 aD = 0;
-[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, f0b, 0, aD, pF);
+[niAn, niRes] = dfAnalysisNIDAQ(dirs, NSD.expParam, NSD.DAQin, 0, aD, pF);
 
 niRes.numPertTrialsNi = niRes.numPertTrials;
 
 % drawDAQsignal(niAn, 1, dirs.SavResultsDir, sv2F)
 drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 0)
-drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 1)
 drawRawVoltagePressure(niAn, dirs.SavResultsDir, 0)
-drawRawVoltagePressure(niAn, dirs.SavResultsDir, 1)
-CompareVoltagesInternalExternal()
-% drawDAQAll(niAn, dirs.SavResultsDir, sv2F)
-% drawDAQPresMic(niAn, dirs.SavResultsDir, sv2F)
+if doubleSens == 1
+    drawDAQAlignedPressure(niRes, dirs.SavResultsDir, sv2F, 1)
+    drawRawVoltagePressure(niAn, dirs.SavResultsDir, 1)
+    CompareVoltagesInternalExternal()
+end
 end
 
 function drawRawVoltagePressure(niAn, saveResultsDir, intFlag)

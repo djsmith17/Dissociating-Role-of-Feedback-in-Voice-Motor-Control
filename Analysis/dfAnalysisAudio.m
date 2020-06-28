@@ -1,26 +1,27 @@
 function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % An = dfAnalysisAudio(dirs, An, AudFlag, varargin) performs frequency 
 % analyses on recorded audio data to measure the pitch contour on a number
-% of recorded trials. The actual f0 analysises are done within the
-% signalfrequencyanalyses function below, and rest of the script is spent
-% converting the f0 traces to cents, and sectioning them around the trigger
-% points. Mutli-trial statistics can be perfomed on the set of analyzed
-% trials, and inflation response results can be indetified
+% of recorded trials. The actual f0 measurement is done in the sub-function
+% signalFrequencyAnalysis. The remainder of this script processes the
+% f0-trace (for both Mic/Head) with the following steps:
+% 1: Identifying the baseline f0 value for each trial
+% 2: Normalizing each f0-trace by its baseline f0 value
+% 3: Parsing trials between perturbed and control trial types
+% 4: Sectioning each trial around the trigger values
+% 5: Taking the mean section of trials of a type
+% 6: Performing (if applicable) audio dynamics of the mean f0-trace
 %
-% This function adds to an existing analysis variables structure, which
-% means it can use any data set (NIDAQ/Audapter) as long as it has some
-% starting variables. 
-%
+% Inputs: 
 % dirs:    The set of directories we are working in
-% An:      Analysis variables used to analyze data set
-% AudFlag: Do we want to do analysis on the audio data? Useful for when
-%          analyzing just perturbatron data
-% iRF:     Inflation response flag. Do we want to analyze the response to
-%          inflation?
-% f0F:     f0 Flag. Do we want to reanalyze data and receive new pitch
-%          traces?
+% An:      Analysis variables structure organized in the function that
+%          calls this one. dfAnalysisAudio is currently called from 
+%          dfAnalysisAudapter and dfAnalysisNIDAQ. This value of An is 
+%          pre-set in those functions.
+% AudFlag: Perform function or not. Useful for when analyzing just NIDAQ data
+% aDF:     Audio Dynamics Flag. Analyze changes in f0 following triggers
+% f0Flag:  Perform f0-trace calculation, or load previous version?
 %
-% This function expects that the structure An contains the following fields
+% This function expects that An contains the following fields
 % -An.curSess
 % -An.f0Type
 % -An.f0AnaFile
@@ -56,27 +57,26 @@ if AudFlag == 1
     An.expTrigsSvt  = An.expTrigs(An.allIdxPreProc, :);
     An.trialTypeSvt = An.trialType(An.allIdxPreProc);
     An.numTrialSvt  = length(An.allIdxPreProc);
-   
-    % Set some frequency analysis variables
-    An.numSamp = length(An.audioMSvt);
-    fV = setFreqAnalVar(An.sRate, An.numSamp, An.f0b, An.gender);
+ 
+    freqVar.numSamp = length(An.audioMSvt);
+    freqVar.sRate   = An.sRate;
+    freqVar.f0b     = An.f0b;
+    freqVar.gender  = An.gender;
     
     % File where to save/find pitch contour analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
     
     % How do you want to calculate the pitch contour?
     if strcmp(An.f0Type, 'Praat') == 1
-        anaFlag = 1;
+        freqVar.f0AnalysisType = 1;
     else
-        anaFlag = 2;
+        freqVar.f0AnalysisType = 2;
     end
         
-    % Pitch contour analysis can be time consuming. 
-    % Flag allows the loading of a previously saved copy for faster reanalysis.
+    % f0-trace measurement from time-series data 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
-
-        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioMSvt, An.expTrigsSvt, anaFlag);
-        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, fV, An.audioHSvt, An.expTrigsSvt, anaFlag);        
+        [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioMSvt, An.expTrigsSvt);
+        [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioHSvt, An.expTrigsSvt);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
         load(dirs.audiof0AnalysisFile)
@@ -88,23 +88,34 @@ if AudFlag == 1
     An.audioHf0   = f0A.audioHf0;
     An.etMH       = f0A.etM + f0A.etH; % Minutes
     An.fV         = f0A.fV;
+    
+    %Set up time information to section data around
+    preEveT = -0.5;
+    posEveT = 1.0;
+    eveTLen = posEveT - preEveT;
+    numSampSec = eveTLen/An.fV.win + 1;
+    
+    pVec = linspace(0, numSampSec-1, numSampSec);
 
+    % Time vector corresponding to the sectioned signals
+    An.secTime = linspace(preEveT, posEveT, numSampSec);
+    
     % Smooth the f0 data
-    An.audioMf0S   = smoothf0(An.audioMf0);
-    An.audioHf0S   = smoothf0(An.audioHf0);
+%     An.audioMf0S   = smoothf0(An.audioMf0);
+%     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    [An.secTime, An.audioMf0SecAll] = sectionData(An.timef0, An.audioMf0S, An.expTrigsf0);
-    [An.secTime, An.audioHf0SecAll] = sectionData(An.timef0, An.audioHf0S, An.expTrigsf0);
+    An.audioMf0SecAll = sectionData(An.timef0, An.audioMf0, An.expTrigsf0, pVec);
+    An.audioHf0SecAll = sectionData(An.timef0, An.audioHf0, An.expTrigsf0, pVec);
    
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
-    An.trialf0   = mean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
-    An.trialf0M  = mean(An.trialf0);                       % Mean trial baseline f0
+    An.trialf0   = nanmean(An.audioMf0SecAll(prePert,:,1),1); % Per-trial baseline f0   
+    An.trialf0M  = nanmean(An.trialf0);                       % Mean trial baseline f0
     
-    % Normalize f0 traces by individual f0b and convert to cents
-    An.audioMf0_norm = normf0(An.audioMf0S, An.trialf0);
-    An.audioHf0_norm = normf0(An.audioHf0S, An.trialf0);
+    % Normalize f0 traces by trial f0b and convert to cents
+    An.audioMf0_norm = normf0(An.audioMf0, An.trialf0);
+    An.audioHf0_norm = normf0(An.audioHf0, An.trialf0);
     
     % Identify trials (mic) where participant had vocal fry
     % aka: f0 pitch miscalculation
@@ -138,7 +149,49 @@ if AudFlag == 1
             An.subSvIdx = cat(1, An.subSvIdx, ii); % Keep the index of the trials that are not removed
         end
     end
+%%%%%%%%    
+%     fs = 1/An.fV.win;
+%     trialVar.coder = 'Pipe';
+%     trialVar.curSess = 'Pipe';
+%     trialVar.sigType = 'f0';
+%     trialVar.units   = 'cents';
+%     trialVar.itrType = '';
+%     secf0 = dfSectionDataOrg(An.timef0, An.audioMf0, An.expTrigsf0, fs, trialVar);
+%     
+%     % Section raw f0 around onset and offset
+%     secf0.sigsSec  = secf0.sectionData(secf0.sigs);
+%     
+%     % Identify baseline values
+%     secf0 = secf0.identifyBaselineValues(secf0.sigsSec);
+%     
+%     % Convert to cents
+%     secf0 = secf0.convertCentsData();
+%     
+%     % Section converted f0 around onset and offset
+%     secf0.sigsNormSec = secf0.sectionData(secf0.sigsNorm);
+%     
+%     % Quality check trial
+%     secf0 = secf0.qualityCheckData(secf0.sigsNormSec, An.allIdxPreProc);
+%     
+%     % Separate saved trials
+%     secf0.sigsNormSecSv = secf0.sigsNormSec(:,secf0.svIdx,:);
+%     pertTrialsIdx = An.trialTypeSvt(secf0.svIdx) == 1;
+%     secf0P = secf0;
+%     secf0P.sigsNormSecSv = secf0.sigsNormSecSv(:, pertTrialsIdx, :);
+%     
+%     % Mean the trials
+%     secf0P.sigsSecM = secf0P.meanData(secf0P.sigsNormSecSv);
+%     
+%     % Identify Inflation Response
+%     secf0P.sigsDynamics = secf0P.InflationResponse;
+%     
+%     % Identify limits of the mean trials
+%     secf0P = secf0P.identifyBounds;
+%     
+%     % Draw the Onset Figure
+%     secf0P.drawSigsSecM_Onset(2);
     
+%%%%%%%%    
     % Parse out the trials we are saving (not removed)
     An.svf0Idx       = An.allIdxPreProc(An.subSvIdx);
     An.expTrigsf0Sv  = An.expTrigsf0(An.subSvIdx, :);
@@ -152,7 +205,7 @@ if AudFlag == 1
     An.numPertTrialsPP = sum(An.pertf0Idx);
     An.numContTrialsPP = sum(An.contf0Idx);
 
-    %Find the Perturbed Trials
+    %Parse between Perturbed and Control trials
     An.pertTrigsR  = An.expTrigsf0Sv(An.pertf0Idx,:);
     An.audioMf0p   = parseTrialTypes(An.audioMf0sv, An.pertf0Idx);
     An.audioHf0p   = parseTrialTypes(An.audioHf0sv, An.pertf0Idx);
@@ -161,10 +214,10 @@ if AudFlag == 1
     An.audioHf0c   = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
     
     %Section the data around onset and offset
-    [An.secTime, An.audioMf0_Secp] = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR);
-    [An.secTime, An.audioHf0_Secp] = sectionData(An.timef0, An.audioHf0p, An.pertTrigsR);
-    [An.secTime, An.audioMf0_Secc] = sectionData(An.timef0, An.audioMf0c, An.contTrigsR);
-    [An.secTime, An.audioHf0_Secc] = sectionData(An.timef0, An.audioHf0c, An.contTrigsR);
+    An.audioMf0_Secp = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR, pVec);
+    An.audioHf0_Secp = sectionData(An.timef0, An.audioHf0p, An.pertTrigsR, pVec);
+    An.audioMf0_Secc = sectionData(An.timef0, An.audioMf0c, An.contTrigsR, pVec);
+    An.audioHf0_Secc = sectionData(An.timef0, An.audioHf0c, An.contTrigsR, pVec);
 
     %Mean around the onset and offset
     An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
@@ -236,22 +289,24 @@ An.audioHf0_meanc = [];
 An.audioDynamics  = [];
 end
 
-function fV = setFreqAnalVar(sRate, numSamp, f0b, gender)
+function fV = setFreqAnalVar(freqVar)
+
+fV.anaFlag    = freqVar.f0AnalysisType;
+fV.sRate      = freqVar.sRate;
+fV.numSamp    = freqVar.numSamp;
 
 %Identify a few analysis varaibles
-fV.f0b        = f0b;
-fV.gender     = gender;
-fV.f0Bounds   = identifyf0Bounds(f0b, gender);
+fV.f0b        = freqVar.f0b;
+fV.gender     = freqVar.gender;
+fV.f0Bounds   = identifyf0Bounds(fV.f0b, fV.gender);
 
-fV.sRate      = sRate;
-fV.numSamp    = numSamp;
-fV.time       = (0:1/fV.sRate:(numSamp-1)/fV.sRate)'; % Time vector for full mic
+fV.time       = (0:1/fV.sRate:(fV.numSamp-1)/fV.sRate)'; % Time vector for full mic
 
 fV.freqCutOff = 400;
-fV.win        = 0.010;      % seconds
+fV.win        = 0.001;      % Sampling window
 fV.fsA        = 1/fV.win;
-fV.winP       = fV.win*sRate;
-fV.pOV        = 0.60;       % 80% overlap
+fV.winP       = fV.win*fV.sRate;
+fV.pOV        = 0.00;       % 80% overlap
 fV.tStepP     = round(fV.winP*(1-fV.pOV));
 
 fV.trialWin = round(1:fV.tStepP:(fV.numSamp-fV.winP)); % Window start frames based on length of voice onset mic
@@ -261,21 +316,14 @@ fV.roundFact = fV.sRate/fV.tStepP;
 fV.winHalf   = fV.win/2;
 end
 
-function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, fV, audio, expTrig, flag)
+function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, freqVar, audio, expTrig)
 ET = tic;
 [~, numTrial] = size(audio);
 
-fs = fV.sRate;
+fV = setFreqAnalVar(freqVar);
 
-if flag == 1
-    fV.win       = 0.005;
-    fV.winP      = fV.win*fs;
-    fV.pOV       = 0.00;
-    fV.tStepP    = round(fV.winP*(1-fV.pOV));
-    fV.roundFact = fV.sRate/fV.tStepP;
-    fV.winHalf   = 1.0*fV.win;
-    
-    [timef0, audiof0, ~] = dfCalcf0Praat(dirs, audio, fs, fV.f0Bounds);
+if fV.anaFlag == 1    
+    [timef0, audiof0] = dfCalcf0Praat(dirs, audio, fV.sRate, fV.win, fV.f0Bounds);
 else
     audiof0 = [];
     for j = 1:numTrial %Trial by Trial             
@@ -354,7 +402,7 @@ function audioS = smoothf0(audio)
 
 audioS = [];
 for ii = 1:numTrial
-    audioSmooth = smooth(audio(:,ii), 10);   % 10 sample length smoothing
+    audioSmooth = smooth(audio(:,ii), 50);   % 10 sample length smoothing
     audioS      = cat(2, audioS, audioSmooth);
 end
 end
@@ -382,7 +430,7 @@ function signalParse = parseTrialTypes(signal, idx)
 signalParse = signal(:, idx);
 end
 
-function [secTime, secSigs] = sectionData(time, sigs, trigs)
+function secSigs = sectionData(time, sigs, trigs, pVec)
 % [secTime, secSigs] = sectionData(time, sigs, trigs) sections
 % time series data around important points in time.
 % 
@@ -396,36 +444,34 @@ function [secTime, secSigs] = sectionData(time, sigs, trigs)
 %          The 2nd 3D later are Offset Sections
 
 [~, numTrial] = size(sigs);
-preEve  = 0.5; posEve = 1.0;
+preEveT  = -0.5;
 
-secSigs    = [];
 OnsetSecs  = [];
 OffsetSecs = [];
 if numTrial > 0
     for ii = 1:numTrial
+        thisSig = sigs(:, ii);
+        thisSig = padarray(thisSig,16000,0,'post');
+        
         OnsetT   = trigs(ii, 1); % Onset time
         OffsetT  = trigs(ii, 2); % Offset time
 
-        OnsetTSt = round(OnsetT - preEve, 3);   % PreOnset time, rounded to nearest ms
-        OnsetTSp = round(OnsetT + posEve, 3);   % PostOnset time, rounded to nearest ms
-        OnsetSpan = time >= OnsetTSt & time <= OnsetTSp; % Indices corresponding to Onset period
+        OnsetTSt = round(OnsetT + preEveT, 3);   % PreOnset time, rounded to nearest ms
+        OnsetTStLeast = find(time <= OnsetTSt);
+        OnsetSpan = OnsetTStLeast(end) + pVec; % Indices corresponding to Onset period
 
-        OffsetTSt = round(OffsetT - preEve, 3); % PreOffset time, rounded to nearest ms
-        OffsetTSp = round(OffsetT + posEve, 3); % PostOffset time, rounded to nearest ms
-        OffsetSpan = time >= OffsetTSt & time <= OffsetTSp; % Indices corresponding to Offset period
+        OffsetTSt = round(OffsetT + preEveT, 3); % PreOffset time, rounded to nearest ms
+        OffsetTStLeast = find(time <= OffsetTSt);
+        OffsetSpan = OffsetTStLeast(end) + pVec; % Indices corresponding to Offset period
 
-        OnsetSec  = sigs(OnsetSpan, ii);  % Data sectioned around Onset
-        OffsetSec = sigs(OffsetSpan, ii); % Data sectioned around Offset
+        OnsetSec  = thisSig(OnsetSpan);  % Data sectioned around Onset
+        OffsetSec = thisSig(OffsetSpan); % Data sectioned around Offset
 
         OnsetSecs  = cat(2, OnsetSecs, OnsetSec);   % Sectioned signal onsets concatenated
         OffsetSecs = cat(2, OffsetSecs, OffsetSec); % Sectioned signal offsets concatenated
     end
-    [numSampSec, ~] = size(OnsetSecs); % number of samples in sectioned signals
-else
-    numSampSec = 301;
 end
 
-secTime = linspace(-preEve, posEve, numSampSec); % time vector correspnding to the sectioned signals
 secSigs(:,:,1) = OnsetSecs;  % 1st 3D layer
 secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
 end
@@ -454,11 +500,11 @@ OnsetSecs  = secAudio(:,:,1);
 OffsetSecs = secAudio(:,:,2);
 [~, numTrial] = size(OnsetSecs);
 
-meanOnset  = mean(OnsetSecs, 2);  % across columns
-meanOffset = mean(OffsetSecs, 2); % across columns
+meanOnset  = nanmean(OnsetSecs, 2);  % across columns
+meanOffset = nanmean(OffsetSecs, 2); % across columns
 
-stdOnset   = std(OnsetSecs, 0, 2);  % across columns
-stdOffset  = std(OffsetSecs, 0, 2); % across columns
+stdOnset   = nanstd(OnsetSecs, 0, 2);  % across columns
+stdOffset  = nanstd(OffsetSecs, 0, 2); % across columns
 
 SEMOnset   = stdOnset/sqrt(numTrial);  % Standard Error
 SEMOffset  = stdOffset/sqrt(numTrial); % Standard Error
@@ -512,9 +558,11 @@ ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
 ir.stimMag = abs(ir.vAtMin - ir.vAtOnset); % Distance traveled from onset to min value
 
 % RespMag
-ir.iAtResp = numSamp;                % Last index in section
-ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
-ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.tAtRespRange = [0.8 1.0];              % Time Values in the period 800ms to 1000ms after perturbation onset
+ir.iAtRespRange = find(ir.time >= ir.tAtRespRange(1) & ir.time<= ir.tAtRespRange(2));                % Last index in section
+ir.vAtRespRange = ir.onset(ir.iAtRespRange);    % Time Value when participant 'fully responded' (1.0s)
+ir.tAtResp      = mean(ir.tAtRespRange);
+ir.vAtResp      = mean(ir.vAtRespRange);
 ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
 % RespPer
@@ -523,7 +571,7 @@ ir.respPer = 100*(ir.respMag/ir.stimMag); % Percent change from stimMag to respM
 % Add to the audioDynamics struct
 respVarM = [ir.tAtMin ir.stimMag ir.respMag ir.respPer];
 audioDynamics_Somato.respVarM = respVarM;
-% drawInflationResultMetrics(ir, 1, 0); % Generates useful manuscript Fig
+% drawInflationResultMetrics(ir, 1, 0, 0); % Generates useful manuscript Fig
 end
 
 function ir = initInflationResponseStruct()
@@ -591,9 +639,11 @@ ir.vAtMin  = minOn;                        % Min f0 value in PostOnsetR
 ir.stimMag = abs(-100);                    % Distance traveled from onset to min value (default is 100 cents)
 
 % RespMag
-ir.iAtResp = numSamp;                % Last index in section
-ir.tAtResp = ir.time(ir.iAtResp);    % Time Value when participant 'fully responded' (1.0s)
-ir.vAtResp = ir.onset(ir.iAtResp);   % f0 value when participant 'fully responded'
+ir.tAtRespRange = [0.8 1.0];              % Time Values in the period 800ms to 1000ms after perturbation onset
+ir.iAtRespRange = find(ir.time >= ir.tAtRespRange(1) & ir.time<= ir.tAtRespRange(2));                % Last index in section
+ir.vAtRespRange = ir.onset(ir.iAtRespRange);    % Time Value when participant 'fully responded' (1.0s)
+ir.tAtResp      = mean(ir.tAtRespRange);
+ir.vAtResp      = mean(ir.vAtRespRange);
 ir.respMag = ir.vAtResp - ir.vAtMin; % Distance traveled from min f0 value to response f0 value
 
 % RespPer

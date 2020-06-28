@@ -27,10 +27,10 @@ ET = tic;
 rng('shuffle');
 
 % Main Experimental prompt: Subject/Run Information
-subject    = 'DRF12';   % Subject#, Pilot#, null
+subject    = 'Pilot0';   % Subject#, Pilot#, null
 run        = prompt4RunName();
 
-balloon    = 'GB3';     % Which perturbation balloon?
+balloon    = 'default';     % Which perturbation balloon?
 tightness  = '29';     % (cm of slack in bungie cord)
 baseV      = 'BV1';
 
@@ -68,7 +68,7 @@ expParam.curSess      = [expParam.subject expParam.run];
 expParam.balloon      = balloon;
 expParam.tightness    = tightness;
 expParam.InflaVarNm   = 'N/A';
-expParam.niDev        = 'Dev2';              % NIDAQ Device Name. For more information, see dfInitNIDAQ
+expParam.niDev        = 'Dev1';              % NIDAQ Device Name. For more information, see dfInitNIDAQ
 expParam.trialLen     = 4;                   % Seconds
 expParam.numTrial     = numTrials;
 expParam.curTrial     = [];
@@ -189,6 +189,8 @@ for ii = 1:expParam.numTrial
     AudapterIO('init', p);
     Audapter('reset');
     Audapter('start');
+    Audapter('stop');
+    Audapter('start');
     pause(expParam.buffPause) %Let the participant start to speak
     
     %Play out the Analog Perturbatron Signal. This will hold script for as
@@ -206,9 +208,9 @@ for ii = 1:expParam.numTrial
     rawData = cat(1, rawData, data);
        
     %Grab smooth RMS trace from 'data' structure
-    rmsMean = dfCalcMeanRMS(data, expParam.rmsB);
+    dBSPLTrialMean = dfCalcMeanRMS(data, expParam.rmsB);
     %Compare against baseline and updated Visual Feedback
-    [color, newPos, loudResult] = dfUpdateVisFB(msrStr, rmsMean);
+    [color, newPos, loudResult] = dfUpdateVisFB(msrStr, dBSPLTrialMean);
     loudResults = cat(1, loudResults, loudResult);
     dispLoudnessResult(loudResult)
 

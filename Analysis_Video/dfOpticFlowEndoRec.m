@@ -3,7 +3,7 @@ matlab.video.read.UseHardwareAcceleration('off')
 
 % close all
 enA.project     = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';
-enA.participant = 'DRF_ENP3';    % List of multiple participants.
+enA.participant = 'DRF12';    % List of multiple participants.
 enA.run         = 'SFL1';
 enA.ext         = 'All';
 enA.trial       = 2;
@@ -13,7 +13,7 @@ enA.monSize     = monitorSize(3:4);
 
 dirs           = dfDirs(enA.project);
 
-dirs.parsedVideoDir  = fullfile(dirs.SavData, enA.participant, 'parsedVideo');
+dirs.parsedVideoDir  = fullfile(dirs.SavDataEndo, enA.participant, 'parsedVideo');
 dirs.parsedVideoFile = fullfile(dirs.parsedVideoDir, [enA.curSess '.avi']);
 dirs.expResultsFile  = fullfile(dirs.Results, enA.participant, enA.run, [enA.participant enA.run enA.ext 'ResultsDRF.mat']);
 

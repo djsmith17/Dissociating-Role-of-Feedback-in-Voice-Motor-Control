@@ -1,4 +1,4 @@
-function [time, trialsetf0, fsA] = dfCalcf0Praat(dirs, trialset, fs, f0Bounds)
+function [time, trialsetf0] = dfCalcf0Praat(dirs, trialset, fs, tStep, f0Bounds)
 %This asks praat to calculate f0 for a given saved wav file. 
 
 helperFolder   = dirs.helpers;
@@ -8,9 +8,6 @@ txtFileLoc    = [resultFolder, '\pitchCalc.txt'];
 [~, numTrial] = size(trialset);
 
 pbDir         = fullfile(helperFolder, 'praatBatching'); % Praat batching
-
-tStep = 0.005; % seconds; hard set
-fsA   = 1/tStep;
 
 lwPitchBnd = f0Bounds(1);
 upPitchBnd = f0Bounds(2);
@@ -36,17 +33,17 @@ for ii = 1:numTrial
     audiowrite(wavFileLoc, trialset(:,ii), fs)
     
     curTrial = ii;
-    call2 = sprintf('%s praat "execute %s %s %s %f %f %f %f', ...
+    call2 = sprintf('%s praat "execute %s %s %s %f %f %f %f %f', ...
                         sp_fn, ... %sendpraat.exe
                         gt_fn, ... %saved praat script ('generatef0JNDTokens)
                         wavFileLoc, ... %file location of generated wav file
                         txtFileLoc, ...
                         lwPitchBnd, ...
                         upPitchBnd, ...
+                        tStep, ...
                         curTrial, ...
                         numTrial ...
                         );
-
     [s, r] = dos(call2);
     if s ~= 0
         dos([p_fn ' &']);
@@ -58,7 +55,7 @@ for ii = 1:numTrial
     end
 
     praatResult = fopen(txtFileLoc);
-    praatScan   = textscan(praatResult, '%f %s');
+    praatScan   = textscan(praatResult, '%s %s');
     fclose(praatResult);
     delete(wavFileLoc);
     delete(txtFileLoc);
@@ -70,7 +67,7 @@ end
 
 function [time, f0, meanf0] = PraatPostProcessing(praatScan)
 %Expects the table is 2 columns, and the f0 values are in column 2
-time   = praatScan{1,1};
+time_str   = praatScan{1,1};
 f0_str = praatScan{1,2};
 recLen = length(f0_str);
 
@@ -80,7 +77,8 @@ for ii = 1:recLen
         f0_str{ii} = 'NaN';
     end
 end
-f0   = str2double(f0_str);
+time = round(str2double(time_str), 3);
+f0   = round(str2double(f0_str), 3);
 
 meanf0 = mean(f0);
 end

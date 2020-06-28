@@ -14,7 +14,7 @@ targRMS   = 50; %dB just to test
 boundsRMS = 3; %+/- dB
 
 close all
-[msrStr, annoStr] = dfSetVisFB(curSess, targRMS, boundsRMS);
+[msrStr, annoStr] = dfSetVisFB(2, curSess, targRMS, boundsRMS);
 
 % pertParadigm(msrStr, annoStr, meanRMS)
 % triggerTest(annoStr, numTrial)

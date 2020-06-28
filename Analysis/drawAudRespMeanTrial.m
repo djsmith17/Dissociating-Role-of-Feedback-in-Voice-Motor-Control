@@ -17,7 +17,7 @@ meanf0HeadOnset  = res.audioHf0MeanPert(:,1);
 CIf0HeadOnset    = res.audioHf0MeanPert(:,2);
 meanf0HeadOffset = res.audioHf0MeanPert(:,3);
 CIf0HeadOffset   = res.audioHf0MeanPert(:,4);
-limits           = res.limitsAMH;
+limits           = res.limitsAmean;
 
 plotpos = [10 100];
 plotdim = [1600 600];
@@ -39,7 +39,7 @@ ha = tight_subplot(1,2,[0.1 0.03],[0.12 0.15],[0.05 0.05]);
 
 %Onset of Perturbation
 axes(ha(1))
-plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', 4)
+plot(dottedStartx, dottedy, 'color', pertLineC, 'LineWidth', lineThick)
 hold on
 mH = shadedErrorBar(time, meanf0MicOnset, CIf0MicOnset, 'lineprops', micColor, 'transparent', 1); %Pertrubed Microphone
 hold on
@@ -88,7 +88,6 @@ legend([mH2.mainLine hH2.mainLine],{'Microphone', 'Headphones'},...
             'FontName', fontN,...
             'FontSize', legAnnoFSize,...
             'FontWeight', 'bold');
-
 
 plots = {'AudResp_MeanTrial'};
 for i = 1:length(plots)
