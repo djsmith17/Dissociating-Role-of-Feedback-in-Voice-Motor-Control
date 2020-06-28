@@ -90,7 +90,7 @@ switch host
         dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
         dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
         
-        dirs.Results        = 'E:\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.Results        = 'E:\Documents\MATLAB\dfResults'; % Dir to output analyzed datafiles and figures to
         dirs.helpers        = 'E:\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';
@@ -110,7 +110,7 @@ switch host
         dirs.Prelim         = fullfile(dirs.Presentation, 'PrelimFiles'); % Dir for presentation setup files
         dirs.Analysis       = fullfile(dirs.Code, 'Analysis');            % Dir w/ Code for data analysis
         
-        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults\Results'; % Dir to output analyzed datafiles and figures to
+        dirs.Results        = 'C:\Users\djsmith\Documents\MATLAB\dfResults'; % Dir to output analyzed datafiles and figures to
         dirs.helpers        = 'C:\Users\djsmith\Documents\MATLAB\MATLAB-Toolboxes';  % Dir to multiple function used for general analysis
         
         dirs.RecFileDir     = '';

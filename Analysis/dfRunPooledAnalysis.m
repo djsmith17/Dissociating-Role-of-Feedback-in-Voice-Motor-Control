@@ -15,9 +15,11 @@ function dfRunPooledAnalysis()
 %
 % Requires the Signal Processing Toolbox
 
+profile on
+
 close all
 pA.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control'; 
-pA.pAnalysis     = 'DRF_Som'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
+pA.pAnalysis     = 'DRF_Aud'; % Change this name to load different pooled data sets Ex: SfN2017, LarynxPos
 
 dirs               = dfDirs(pA.project);
 dirs.SavResultsDir = fullfile(dirs.Results, 'Pooled Analyses', pA.pAnalysis);
@@ -144,6 +146,9 @@ elseif strcmp(pA.pAnalysis, 'DRF_Som')
 elseif strcmp(pA.pAnalysis, 'DRF_Aud')
     StatsOrg_DRF_Aud(dirs, pA, allSubjRes); 
 end
+
+profile viewer
+profsave(profile('info'), fullfile(dirs.SavResultsDir, 'Improved Remove Trial'))
 end
 
 function sortStr = initSortedStruct(pA)
