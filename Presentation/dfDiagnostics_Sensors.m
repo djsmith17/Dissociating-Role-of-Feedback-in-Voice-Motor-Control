@@ -94,7 +94,7 @@ if strcmp(collectNewData, 'yes')
         
         %Setup which perturb file we want
         NIDAQsig = [expParam.sigs(:,ii) nVS];
-        queueOutputData(s, NIDAQsig);        
+        queueOutputData(s, NIDAQsig);
         
         fprintf('Running Trial %d\n', ii)
         % Play out the Analog Perturbatron Signal. 

@@ -31,8 +31,14 @@ minLen = 1.0; maxLen = 1.5; %Hardset (1.0-1.5 seconds)
 
 trialLenP = trialLen*sRateQ; %Convert from seconds -> points for stimulus
 
-sigs    = zeros(trialLenP, numTrial);
-trigs   = zeros(numTrial,2,3);
+valveBuffOnT = 0.1; % seconds
+valveBuffOnP = valveBuffOnT*sRateQ;
+valveBuffOfT = 0.5; % seconds
+valveBuffOfP = valveBuffOfT*sRateQ;
+
+sigs     = zeros(trialLenP, numTrial);
+trigs    = zeros(numTrial,2,3);
+vSigs    = zeros(trialLenP, numTrial);
 % Make a pert period for every trial, although only applied as a
 % perturbatron signal, if actually a perturbed trial. See line 54
 for i = 1:numTrial
@@ -48,8 +54,8 @@ for i = 1:numTrial
     pLen_p = round(sRateQ*pLen_t);                % Pert Len Points  
     Sp_p   = St_p + pLen_p;                       % Stop TIme Points
     span   = St_p:Sp_p;                           % Start to Stop Span
-
-    vSpan  =  1;
+    
+    vSpan  = (St_p-valveBuffOnP):(Sp_p+valveBuffOfP); % Perturbation time with buffer for valve ON/OFF
     
     sig  = zeros(trialLenP,1);
     if trialType(i) ~= 0 % Only do this for perturbed trials
@@ -62,6 +68,7 @@ for i = 1:numTrial
     end
     
     sigs(:,i)    = sig;
+    vSigs(:,i)   = vSig;
     trigs(i,:,1) = [St_t Sp_t];                  % Trigger in Seconds
     trigs(i,:,2) = [St_p Sp_p];                  % Trigger in Points (NIDAQ)
     trigs(i,:,3) = [St_p Sp_p]*(sRateA/sRateQ);  % Trigger in Points (Audapter)
