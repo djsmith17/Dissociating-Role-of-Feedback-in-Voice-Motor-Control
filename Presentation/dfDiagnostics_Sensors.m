@@ -83,7 +83,7 @@ if strcmp(collectNewData, 'yes')
     
     % Select the trigger points for perturbation onset and offset and creating
     % the digital signal to be sent to the NIDAQ
-    [expParam.sigs, expParam.trigs, expParam.vSigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);  
+    [expParam.sigs, expParam.trigs] = dfMakePertSignal(expParam.trialLen, expParam.numTrial, expParam.sRateQ, expParam.sRateAnal, expParam.trialType, 1);  
     
     DAQin = []; DAQtime = [];
     LR = LiveSensorResult(expParam, 2);
@@ -93,9 +93,8 @@ if strcmp(collectNewData, 'yes')
         expParam.curSessTrial = [expParam.subject expParam.run expParam.curTrial];
         
         %Setup which perturb file we want
-        NIDAQsig = [expParam.sigs(:,ii) expParam.vSigs(:,ii)];
+        NIDAQsig = [expParam.sigs(:,ii) nVS];
         queueOutputData(s, NIDAQsig);
-        figure; plot(NIDAQsig)
         
         fprintf('Running Trial %d\n', ii)
         % Play out the Analog Perturbatron Signal. 

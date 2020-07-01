@@ -1,4 +1,4 @@
-function [sigs, trigs, vSigs] = dfMakePertSignal(trialLen, numTrial, sRateQ, sRateA, trialType, varargin)
+function [sigs, trigs] = dfMakePertSignal(trialLen, numTrial, sRateQ, sRateA, trialType, varargin)
 %This function creates the digital signal for the NIDAQ needed to activate 
 %the pertrubatron at each trial. It also keeps track of the time points 
 %when the perturbation should activate and deactivate. This function 
