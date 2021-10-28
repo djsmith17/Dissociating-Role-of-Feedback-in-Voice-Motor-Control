@@ -1,5 +1,5 @@
 function VisFeedback_testbed
-% VisFeedback_testbed() is a script which creates an enviroment to test 
+% VisFeedback_testbed() is a script which creates an environment to test 
 % the elements created by 'presentation\dfSetVisFB()' and updated
 % using 'presentation\dfUpdateVisFB()'.
 %
@@ -7,7 +7,7 @@ function VisFeedback_testbed
 % instructions will be presented to the participant, without any additional
 % data recording, or behavioral testing requirements. 
 % This script includes sub-functions which outline the trial progression
-% and organize the presenation/removal of visualization elements.
+% and organize the presentation/removal of visualization elements.
 %
 % One feature that is especially highlighted in this testbed is 
 % the ability to provide feedback to the participant about their 
@@ -18,13 +18,13 @@ function VisFeedback_testbed
 % -presentation\dfUpdateVisFB()
 %
 % Author: Dante J Smith
-% Last Update: 10/28/2021
+% Updated: 10/28/2021
 
 % Current Recording Session
 curSess     = 'VisFBTest';
 
 % Which monitor to use (1 or 2)
-defMon = 2
+defMon = 2;
 
 % Random vocalization vector
 recordedRMS = (5+rand(1991,1))/1000;
@@ -40,10 +40,10 @@ boundsRMS = 3;  % Acceptable upper and lower bounds for target itensity (+/- dB)
 close all
 [msrStr, annoStr] = dfSetVisFB(defMon, curSess, targRMS, boundsRMS);
 
-# Paradigm examples to test with 
-pertParadigm(msrStr, annoStr, meanRMS)  % Tests the 
-% triggerTest(annoStr, numTrial)
-% endoParadigm(annoStr, numTrial)
+% Paradigm examples to test 
+pertParadigm(msrStr, annoStr, meanRMS)  % Testing perturbation paradigm
+% triggerTest(annoStr, numTrial)         % Testing Optical Trigger
+% endoParadigm(annoStr, numTrial)        % Testing Endoscopy paradigm
 
 close all
 end
@@ -66,7 +66,7 @@ set([annoStr.EEE annoStr.visTrig], 'Visible','on');
 pause(4.0)
 set([annoStr.EEE annoStr.visTrig], 'Visible','off');
 
-[color, newPos] = dfUpdateVisFB(msrStr, meanRMS);
+[color, newPos, loudResult] = dfUpdateVisFB(msrStr, meanRMS);
 
 set(annoStr.LoudRec, 'position', newPos);
 set(annoStr.LoudRec, 'Color', color, 'FaceColor', color);

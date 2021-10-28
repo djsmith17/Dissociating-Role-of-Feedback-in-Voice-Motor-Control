@@ -24,7 +24,7 @@ function [msrStr, annoStr] = dfSetVisFB(defMon, curSess, targRMS, bounds)
 %          be made visible or invisible by toggling the property: 'visible'
 %
 % Author: Dante J Smith
-% Update: 10/28/2021
+% Updated: 10/28/2021
 curSess(strfind(curSess, '_')) = ' ';
 
 monitorSize = get(0, 'Monitor');
