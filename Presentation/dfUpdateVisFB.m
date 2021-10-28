@@ -24,7 +24,7 @@ function [color, newRecMeas, loudResult] = dfUpdateVisFB(msrStr, sampRMS)
 %             Right, -1 = Too Low, 1 = Too High)
 %
 % Author: Dante J Smith
-% Last Update: 10/28/2021
+% Updated: 10/28/2021
 
 % New Height based on RMS measurement
 ratio = (sampRMS - msrStr.vBotAmp)/msrStr.hRMSrange;
@@ -38,12 +38,12 @@ newRecMeas = [msrStr.recXSt msrStr.recYSt msrStr.recWidth newRecHeight];
 % Compare against the min/max allowable RMS values
 if newDrawHeight > msrStr.drawMaxH
     color = 'red';
-    loudResult = 1;  # Too loud
+    loudResult = 1;  % Too loud
 elseif newDrawHeight < msrStr.drawMinH
     color = 'red';
-    loudResult = -1; # Too soft
+    loudResult = -1; % Too soft
 else
     color = 'green';
-    loudResult = 0;  # Just right
+    loudResult = 0;  % Just right
 end
 end
