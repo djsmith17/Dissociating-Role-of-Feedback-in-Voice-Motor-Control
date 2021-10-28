@@ -1,23 +1,30 @@
 function [msrStr, annoStr] = dfSetVisFB(defMon, curSess, targRMS, bounds)
-% [anMsr, H1, H2, H3, fbLines, LoudRec, visTrig] = dfSetVisFb(targRMS,  bounds) 
-% creates a figure, which becomes the means for trial progression
-% for the SFPeturb or AFPerturb experiment.
+% [msrStr, annoStr] = dfSetVisFb(defMon, curSess, targRMS, bounds) 
+% creates a figure, which becomes the visualization involved for trial progression
+% in the behavioral experiments.
 %
+% INPUTS 
+% defMon:  Monitor selection. A value of 1 uses the defualt monitor, A value of
+%          2 selects the secondary monitor. There is currently not support for 
+%          a number of monitors greater than 2.
+% curSess: A string input that displays simple information about the current 
+%          session being run. This is displayed as an annotation, so this can 
+%          display any trial information that you want
 % targRMS: Baseline RMS (dB) of the subject and the target for trials
-%          where visual feedback about their loudness is presented. 
+%          where visual feedback about their intensity is presented. 
 % bounds:  The acceptable RMS bounds (dB) where the participant is considered
-%          phonating at a reasonable level.
+%          vocalizing at the target level.
 %
-% anMsr:   Struc of annotation measurements. The collection of the 
+% OUTPUTS
+% msrStr:  Struc of annotation measurements. The collection of the 
 %          positions for all the annotations on the figure. Annotations are
 %          just objects on the figure that can be moved around.
-% H1:      '+' annotation
-% H2:      'EEE' annotation
-% H3:      'Ready' annotation
-% fBLines: The lines representing the bounds of the acceptable RMS range
-% LoudRec: Bar annotation representing the amount of loudness the
-%          participant had on the last trial
-% visTrig: The trigger annotation that is used to trigger the triggerbox
+% annoStr: Struc of annotation elememts. The actual words, shapes and colors of 
+%          items that are displauyed on the screen. Each of these elements can 
+%          be made visible or invisible by toggling the property: 'visible'
+%
+% Author: Dante J Smith
+% Update: 10/28/2021
 curSess(strfind(curSess, '_')) = ' ';
 
 monitorSize = get(0, 'Monitor');
