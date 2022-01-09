@@ -37,11 +37,11 @@ function [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p)
 % is not selected it is an empty value.
 %
 % This function has the following subfunctions 
-% (1) setLoudRatio
+% (1) convertDB2LinearScale
 % (2) identifyf0Bounds
 % (3) calcMaskLen
 % (4) createSessionNoise
-% (5) audapterGeneratedNoise
+% (5) audapterGeneratedNoise **Deprecated**
 %
 % Author: Dante J Smith
 % Updated: 01/09/2022
@@ -52,7 +52,7 @@ gender       = expParam.gender;   % Pull out participant gender (birth sex)
 f0           = expParam.f0b;      % Pull out participant baseline f0
 
 % Set scale of output over input (How much louder should headphones be compared to microphone)
-p.dScale     = setLoudRatio(dB);
+p.dScale     = convertDB2LinearScale(dB);
 % Set the processing delay (between input and output)
 p.nDelay     = 7; % frames
 
@@ -87,8 +87,6 @@ elseif expParam.AudFBSw == 2
     
     % Generate full length Masking Noise (length = experimental session)
     [w, fs] = createSessionNoise(dirs, noiseTime);
-    
-%     [w, fs] = audapterGeneratedNoise(dirs, p);
 
     SSNw   = w;
     SSNfs  = fs;
@@ -97,16 +95,16 @@ else
 end 
 end
 
-function dScale = setLoudRatio(dB)
-% dScale = setLoudRatio(dB) converts a value of dB into a ratio by which a
-% sound waveform should be scaled in order to have its loudness increased
-% by the inputted value in dB. For example for an input value of 5 (dB),
-% dScale is computted to be 1.778. This means in order to increase the
-% loudness of a waveform by +5dB, the waveform's amplitude should be
+function dScale = convertDB2LinearScale(dB)
+% dScale = convertDB2LinearScale(dB) converts a value of dB into a ratio 
+% by which a sound waveform should be scaled in order to have its loudness 
+% increased by the inputted value in dB. For example for an input value of 
+% 5 (dB), dScale is computted to be 1.778. This means in order to increase 
+% the loudness of a waveform by +5 dB, the waveform's amplitude should be
 % multiplied by 1.778.
 %
 % INPUTS
-% dB: Target increase in loudness in dB (eg. +5dB louder)
+% dB: Target increase in loudness in dB (eg. 5 dB louder)
 %
 % OUPUTS
 % dScale: Resulting ratio to scale the waveform by in order to acheieve a
@@ -247,7 +245,8 @@ end
 function [w, fs] = audapterGeneratedNoise(dirs, p)
 % [w, fs] = audapterGeneratedNoise(dirs, p) applys a masking noise waveform
 % to the Audapter `p.datapb` parameter to be played back during each 
-% activation of Audapter. 
+% activation of Audapter. **This function is deprecated and has been
+% replaced by CreateSessionNoise**. Likely to be removed in future releases
 %
 % INPUT
 % dirs: Structure of the file directories set for the computer in use. 
