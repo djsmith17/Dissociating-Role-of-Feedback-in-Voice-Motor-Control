@@ -38,49 +38,54 @@ function [p, SSNw, SSNfs] = dfSetAudFB(expParam, dirs, p)
 %
 % This function has the following subfunctions 
 % (1) setLoudRatio
-% (2) audapterGeneratedNoise
+% (2) identifyf0Bounds
 % (3) calcMaskLen
 % (4) createSessionNoise
+% (5) audapterGeneratedNoise
 %
 % Author: Dante J Smith
-% Updated: 01/07/2022
-  
-dB           = expParam.headGain;  
-gender       = expParam.gender; % Pull out
-f0           = expParam.f0b;
-p.dScale     = setLoudRatio(dB); % Scale of output from input
-p.nDelay     = 7;
+% Updated: 01/09/2022
+
+% Load values from expParam 
+dB           = expParam.headGain; % Pull out headphone increase over mic
+gender       = expParam.gender;   % Pull out participant gender (birth sex)
+f0           = expParam.f0b;      % Pull out participant baseline f0
+
+% Set scale of output over input (How much louder should headphones be compared to microphone)
+p.dScale     = setLoudRatio(dB);
+% Set the processing delay (between input and output)
+p.nDelay     = 7; % frames
 
 % Set target range of f0 for perturbations
-bounds = identifyf0Bounds(f0, gender);
+bounds = identifyf0Bounds(gender, f0);
 p.pitchLowerBoundHz = bounds(1); % Lower f0 bound
 p.pitchUpperBoundHz = bounds(2); % Upper f0 bound
 
 SSNw   = []; % Initalize the SSN waveform
-SSNfs  = []; % Initalize the SSN samplig frequency
+SSNfs  = []; % Initalize the SSN sampling frequency
 
 % NORMAL AUDITORY FEEDBACK OF SPOKEN VOICE
 if  expParam.AudFBSw == 0
     p.fb                = 1; % Microphone FB
     p.bTimeDomainShift  = 0; % No pitch-shifting
-    p.bCepsLift         = 0;
+    p.bCepsLift         = 0; % Low-pass cepstral filtering
     
 % PITCH-SHIFTED AUDITORY FEEDBACK OF SPOKEN VOICE
 elseif expParam.AudFBSw == 1
     p.fb                = 1; % Microphone FB
     p.bTimeDomainShift  = 1; % Pitch-shifting
-    p.bCepsLift         = 1;
+    p.bCepsLift         = 1; % Low-pass cepstral filtering
 
 % SPEECH-SHAPED MASKING NOISE (NO SPOKEN VOICE)
 elseif expParam.AudFBSw == 2
-    p.fb                = 0; % Audio File (Masking)
+    p.fb                = 0; % No AF from Audapter (Masking Noise played by Matlab/Windows)
     p.bTimeDomainShift  = 0; % No pitch-shifting
-    p.bCepsLift         = 0;
+    p.bCepsLift         = 0; % Low-pass cepstral filtering
     
-    % For this trial (or set of trials), how long do we need noise?
+    % Length of noise required for the experimental run (set of trials)
     noiseTime = calcMaskLen(expParam);
     
-    % Generate a full length masking noise signal for the length we need
+    % Generate full length Masking Noise (length = experimental session)
     [w, fs] = createSessionNoise(dirs, noiseTime);
     
 %     [w, fs] = audapterGeneratedNoise(dirs, p);
@@ -93,16 +98,26 @@ end
 end
 
 function dScale = setLoudRatio(dB)
-% dB should be a positive or negative decimal value of change in dB
-% representing how much to scale the headphones against the input 
-% microphone level.
+% dScale = setLoudRatio(dB) converts a value of dB into a ratio by which a
+% sound waveform should be scaled in order to have its loudness increased
+% by the inputted value in dB. For example for an input value of 5 (dB),
+% dScale is computted to be 1.778. This means in order to increase the
+% loudness of a waveform by +5dB, the waveform's amplitude should be
+% multiplied by 1.778.
+%
+% INPUTS
+% dB: Target increase in loudness in dB (eg. +5dB louder)
+%
+% OUPUTS
+% dScale: Resulting ratio to scale the waveform by in order to acheieve a
+% sound with greater or lesser amplitude.
 
 dScale = 10^(dB/20);
 end
 
-function bounds = identifyf0Bounds(f0b, gender)
-% bounds = identifyf0Bounds(f0b, gender) is a simple script to set the
-% upper and lower bounds of fundamental frequency (f0) given a
+function bounds = identifyf0Bounds(gender, f0b)
+% bounds = identifyf0Bounds(gender, f0b) is a simple script to set the
+% upper and lower bounds of fundamental frequency (f0) for a given
 % pariticipant based on their birth sex (gender in short form). This is the
 % possible range that a given participant's f0 may fluctuate during a given
 % experimental task. These bounds will be used to selectively tune the
@@ -112,10 +127,10 @@ function bounds = identifyf0Bounds(f0b, gender)
 % participant,
 %
 % INPUTS:
-% f0b: Integer value of fundamental frequency of the participant recorded 
-% during baseline assessments
 % gender: String value of birth sex ('Male' or 'Female') recorded from 
 % baseline assessments
+% f0b: Integer value of fundamental frequency of the participant recorded 
+% during baseline assessments
 %
 % OUTPUTS:
 % bounds: Vector of lower(1) and upper(2) limits of fundamental frequency
@@ -144,8 +159,21 @@ end
 end
 
 function noiseTime = calcMaskLen(expParam)
+% noiseTime = calcMaskLen(expParam) calculates the length of time needed
+% for a set of trials in one experimental run. This number is used to
+% replicate the SSN noise sample into a waveform that is the same length as
+% the experimental run (set of trials).
+%
+% INPUTS
+% expParam: Structure of experimental parameters. This structure is passed
+% around to nearly all of the functions involved with the experimental
+% setup and has full detail of the necessary parameters set for the
+% experiments that are performed.
+% 
+% OUTPUTS
+% noiseTime: Float value of time 
 
-numMaskRep = expParam.numMaskRep;
+numTrial = expParam.numMaskRep; % Number of trials. I don't know why I called this numMaskRep. To be edited later
 
 rdyTime  = expParam.rdyPause;  % Ready Message
 cueTime  = expParam.cuePause;  % Cue period
@@ -153,61 +181,106 @@ buffTime = expParam.buffPause; % Buffer to begin phonating
 trlTime  = expParam.trialLen;  % Phonation period
 endTime  = expParam.endPause;  % Buffer to end phonating
 resTime  = expParam.resPause;  % Rest/Feedback period
+buffer   = 0.3;                % Small buffer (300ms) to make sure the recording is not too short
 
-noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime + 0.3)*numMaskRep;
+noiseTime = rdyTime + (cueTime + buffTime + trlTime + endTime + resTime + buffer)*numTrial;
 end
 
 function [sessionNoise, fs] = createSessionNoise(dirs, noiseTime)
+% [sessionNoise, fs] = createSessionNoise(dirs, noiseTime) creates the
+% masking noise present in AF during selected experimental runs. This takes
+% a pre-generated, short sample of masking noise, replicates it to the
+% length required, and applies a filter to ramp the edges of the waveform.
+% This ramping was applied since the masking noise is played at a loud
+% volume, and ramps up and down from this level in order to prevent the
+% participant being shocked by the sudden onset.
+%
+% INPUTS
+% dirs: Structure of the file directories set for the computer in use. 
+% noiseTime: Length of time to replicate the noise file
+%
+% OUTPUTS
+% sessionNoise: waveform to be played as masking noise during the
+% experimental session (series of trials).
+% fs: sampling frequency of the sessionNoise waveform to be played at
 
+% Find the sample masking noise file stored in the Prelim folder
 maskFile = fullfile(dirs.Prelim, 'SSN_ampChunk.wav');
 
+% Load the masking noise waveform from the folder
 [wavFile, fs] = audioread(maskFile);
-wavLen   = length(wavFile);
-noiseLen = round(noiseTime*fs);
+wavLen   = length(wavFile);          % length of sample waveform (samples)
+noiseLen = round(noiseTime*fs);      % length of final waveform (samples)
 
-rampUpSp = round(2*fs) + 1;
-rampDnSt = round((noiseTime-2)*fs);
+% Measure out the repitions needed it
+numRep   = noiseLen/wavLen; % Num of sample repetitions needed (decimal)
+minInt   = floor(numRep);   % Min whole number of repeitions (integer)
+noiseInt = repmat(wavFile', [1, minInt]); % Repeat waveform 
 
-rampUpIdx = 1:rampUpSp;
-rampUpL   = length(rampUpIdx);
-rampDnIdx = rampDnSt:noiseLen;
-rampDnL   = length(rampDnIdx);
+remRep   = numRep - minInt;      % How much time remaining after min whole number?
+remIdx   = round(wavLen*remRep); % Number of indicies corresponding to remaining time
+noiseRem = wavFile(1:remIdx)';   % Grab partial amount from waveform sample
 
-rampUp = linspace(0, 1, rampUpL);
-rampDn = linspace(1, 0, rampDnL);
-
-numRep   = noiseLen/wavLen; % How many repetitions of the .wav file (decimal)
-minInt   = floor(numRep);   % Min number of whole repeitions (integer)
-noiseInt = repmat(wavFile', [1, minInt]);
-
-remRep   = numRep - minInt; % How many decimal amounts left?
-remIdx   = round(wavLen*remRep);
-noiseRem = wavFile(1:remIdx)';
-
+% Combine full integer reps with remaining reps. This is the correct length
 fullNoise = [noiseInt noiseRem];
 
-rampFilt = ones(size(fullNoise));
-rampFilt(rampUpIdx) = rampUp;
-rampFilt(rampDnIdx) = rampDn;
+% Create Ramp Up/Down Filter
+rampUpSp = round(2*fs) + 1;         % Ramp Up Stop -First 2 seconds
+rampDnSt = round((noiseTime-2)*fs); % Ramp Down Start -Last 2 seconds
 
+rampUpIdx = 1:rampUpSp;             % Indicies for Ramp Up period
+rampUpL   = length(rampUpIdx);      % Num indicies for Ramp Up period
+rampDnIdx = rampDnSt:noiseLen;      % Indicies for Ramp Down period
+rampDnL   = length(rampDnIdx);      % Num indicies for Ramp Down period
+
+rampUp = linspace(0, 1, rampUpL);   % Ramp Up wave form (0->1)
+rampDn = linspace(1, 0, rampDnL);   % Ramp Down wave form (1->0)
+
+rampFilt = ones(size(fullNoise));   % Create a filter of all ones
+rampFilt(rampUpIdx) = rampUp;       % Replace ones with Ramp Up
+rampFilt(rampDnIdx) = rampDn;       % Replace ones with Ramp Down
+
+% Apply Filter
 sessionNoise = fullNoise.*rampFilt;
 end
 
 function [w, fs] = audapterGeneratedNoise(dirs, p)
+% [w, fs] = audapterGeneratedNoise(dirs, p) applys a masking noise waveform
+% to the Audapter `p.datapb` parameter to be played back during each 
+% activation of Audapter. 
+%
+% INPUT
+% dirs: Structure of the file directories set for the computer in use. 
+% p: Structure of Audapter parameters generated by getAudapterDefaultParams
+% and set when AudapterIO is initialized
+%
+% OUTPUT
+% w: waveform to be played as masking noise during the experimental 
+% session (series of trials).
+% fs: sampling frequency of waveform to be played at
 
-% Uses Speech-Shaped Noise stored in util
+% Find the sample masking noise file stored in the Prelim folder
 noiseWavFN = fullfile(dirs.Prelim, 'SSN.wav'); 
 
+% Identify max size for files to be played back and set to p.datapb
 maxPBSize  = Audapter('getMaxPBLen');
 
+% Check the file is there and then load it
 check_file(noiseWavFN);
 [w, fs] = read_audio(noiseWavFN);
 
+% If the sampling frequency of the masking noise file does not match
+% Audapter sampling frequency, resample at the Audapter frequency
 if fs ~= p.sr * p.downFact
     w = resample(w, p.sr * p.downFact, fs);              
 end
+
+% If the length of the masking noise waveform is longer than the allowed
+% Audapter playback selection, resize it accordingly
 if length(w) > maxPBSize
     w = w(1:maxPBSize);
 end
+
+% Set the waveform to be p.datapb
 Audapter('setParam', 'datapb', w, 1);
 end
