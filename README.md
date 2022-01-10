@@ -1,7 +1,8 @@
 # Dissociating-Role-of-Feedback-in-Voice-Motor-Control
 ## Author: Dante Smith (djsmith@bu.edu)
 
-This repo is a collection of scripts used to run experiments studying speech motor control compensations in response to perturbations of somatosensory and auditory feedback.
+This repo is a collection of scripts used to run experiments studying vocal-motor control compensations in response to perturbations of somatosensory and auditory feedback. This repo has been used to run the experiments for and generate the results of the following publications:
+* [Smith, Stepp, Guenther, Kearney (2020)](https://pubs.asha.org/doi/10.1044/2020_JSLHR-19-00296)
 
 This repo includes scripts for:
 * Presentation of stimuli
