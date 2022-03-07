@@ -4,40 +4,66 @@ classdef MicHeadAlignProcess
     % trials of sensorimotor experiments. 
     % 
     % This calculates delays between the Audapter and NIDAQ microphone
-    % recordings, as well as the delay between the Microphone and
-    % Headphones in the Audapter recording
+    % recordings, as well as the delay between the microphone and
+    % headphones in the Audapter recording. This function is currently
+    % called by the following analysis functions:
+    % -dfAnalysisAudapter
+    % -dfInspectRawData
     %
-    % analysisVar is a structure of variables from the overall experiment
-    % and expects the following (3) fields.
+    % INPUTS
+    % analysisVar: Structure of variables from overall experiment and
+    % expects the following fields:
     % -expType   : The Experiment Name (e.g. 'Auditory Perturbation_Perceptual')
     % -sRate     : Sampling rate of recordings
     % -frameLen  : Frame length of recordings
     %
     % trialVar is a structure of variables from the specific trial being
-    % processed and expects the following (14) fields.
-    % -AudFB
-    % -rawMic
-    % -rawHead
-    % -rms
-    % -auTrigs
-    % -fsNi
-    % -trialTimeNI
-    % -expTrigsNI
-    % -timeNI
-    % -rawMicNI
-    % -pressureNI
-    % -pressureTrigs
-    % -presLagTimes
-    % -presRiseTimes
+    % processed and expects the following fields:
+    % -AudFB     : String describing the Auditory Feedback being used on 
+    %              this trial (e.g. 'Masking Noise')
+    % -rawMic    : Vector of unprocessed Microphone signal (post-gain) for 
+    %              a single trial
+    % -rawHead   : Vector of unprocessed Headphone signal (post-gain) for a
+    %              single trial
+    % -rms       : Float value of the root-mean squared of unprocessed 
+    %              Microphone signal
+    % -auTrigs   : Vector of trigger points defining the onset and offset 
+    %              of the perturbation (points)
+    % -fsNi          : Sampling rate of the NIDAQ recording device
+    % -trialTimeNI   : Length of recording at NIDAQ sampling rate
+    % -expTrigsNI    : Vector of trigger points at NIDAQ sampling rate
+    % -timeNI        : Vector of time points sampled with NIDAQ sampling rate
+    % -rawMicNI      : Vector of Microphone signal recorded from the NIDAQ
+    % -pressureNI    : Vector of Pressure sensor signal from the NIDAQ
+    % -pressureTrigs : Vector of trigger values of indices where pressure
+    %                  onset/offset occurs in the pressure signal.
+    % -presLagTimes  : Vector of time values describing the amount of lag
+    %                  between when the perturbation signal is received 
+    %                  and when the balloon begins inflating.
+    % -presRiseTimes : Vector of time values describing the rise time of 
+    %                  the pressure sensor from its lowest value to its
+    %                  greatest value (time to inflate)
+    %
+    % This class has the following methods:
+    % -MicHeadAlignProcess
+    % -CalcEnvelope
+    % -evalPreVoiceRMS
+    % -xCorrTimeLag
+    % -MHdelayChunked
+    % -identifyVoiceBreak
+    % -drawPreProcessDiagnostic
+    %
+    % Author: Dante J Smith
+    % Updated: 03/05/2022
     
     properties
         expType     % Experiment Type
-        AudFB       % Auditory Feedback provided
-        rawMic      % Raw microphone signal
-        rawHead     % Raw headphone signal
-        rms         % rms from microphone signal
-        fs          % sampling rate of audio recordings
-        frameLen    % Frame rate of recording (After downsampling)
+        AudFB       % Auditory Feedback being used in this set of trials
+        rawMic      % Raw microphone signal (post-gain)
+        rawHead     % Raw headphone signal (post-gain)
+        rms         % Root-mean squared of raw microphone signal
+        fs          % sampling rate of audio recordings (Audapter)
+        frameLen    % Frame rate of recording (Audapter, After downsampling)
         trialLen    % length (points) of raw microphone/headphone recording
         trialTime   % length (time) of raw microphone/headphone recording
         time        % time vector of the recording
@@ -93,7 +119,6 @@ classdef MicHeadAlignProcess
     
     methods
         function obj = MicHeadAlignProcess(analysisVar, trialVar)
-            % obj = MicHeadAlignProcess(analysisVar, trialVar) aligns 
             
             % Experimental Variables
             obj.expType   = analysisVar.expType;
@@ -246,8 +271,15 @@ classdef MicHeadAlignProcess
         end
         
         function threshIdx = calcEnvelope(obj, audio, fs)
-            % Method for identifying voice onset without the knowing what
-            % the pre-voice rms in the signal is thresholded at
+            % threshIdx = calcEnvelope(obj, audio, fs) is a method for 
+            % identifying voice onset of an audio signal.
+            %
+            % INPUTS
+            % audio : Vector of audio signal
+            % fs : Sampling rate of audio signal
+            %
+            % OUTPUTS
+            % threshIdx: Index of voice onset
             
             envThresh = 0.30; 
             cutoffF   = 40;
@@ -264,8 +296,16 @@ classdef MicHeadAlignProcess
         end
         
         function preVOnsetRMS = evalPreVoiceRMS(obj)
+            % preVOnsetRMS = evalPreVoiceRMS(obj) calculated the rms of the
+            % audio signal in the period before voice onset has occured
+            % (theoretically silent)
+            %
+            % OUTPUTS
+            % preVOnsetRMS : Float value of the RMS in the 50 ms period
+            % before voice onset
+            
 
-            preVOnsetTime   = 0.05;            % 50ms before voice onset
+            preVOnsetTime   = 0.05; % 50ms before voice onset
             VOnsetFrame     = floor(obj.voiceOnsetInd/obj.frameLen);
             preVOnsetFrames = floor(preVOnsetTime*obj.fs/obj.frameLen);
 
@@ -273,14 +313,23 @@ classdef MicHeadAlignProcess
             if sum(preVoiceRange <= 0) > 0
                 preVOnsetRMS = obj.rmsThresh;
             else
-                preVOnsetRMS = obj.rmsThresh; %mean(rms(preVoiceRange));
+                preVOnsetRMS = obj.rmsThresh; % mean(rms(preVoiceRange));
             end
         end
         
         function timeLag = xCorrTimeLag(obj, sig1, sig2, fs)
-            % xCorrTimeLag(sig1, sig2, fs) calculates the lag between two (seemingly) 
-            % identical time based signals. 
+            % xCorrTimeLag(sig1, sig2, fs) calculates the lag between two 
+            % identical time-based signals recorded by different methods.
+            % The lag between the two signals is calculated using a
+            % cross-correlation.
             %
+            % INPUTS
+            % sig1 : Vector of first signal
+            % sig2 : Vector of second signal
+            % fs   : Sampling rate of BOTH signals
+            % 
+            % OUTPUTS
+            % timeLag: Float values of the lag between the two signals
             % if timeLag is negative, then sig1 leads sig2. 
             % if timeLag is positive, then sig1 lags sig2.
 
@@ -294,7 +343,19 @@ classdef MicHeadAlignProcess
         end
         
         function [timeSet, delaySet] = MHdelayChunked(obj, sig1, sig2, fs)
-
+            % [timeSet, delaySet] = MHdelayChunked(obj, sig1, sig2, fs)
+            % calculates the lag between the microphone and headphone
+            % signals in chunks of 50 ms to detect changes in the delay
+            % over time.
+            %
+            % INPUTS
+            % sig1 : Vector of first signal
+            % sig2 : Vector of second signal
+            % fs   : Sampling rate of BOTH signals
+            %
+            % OUTPUTS
+            % timeSet : Vector of time periods of chunks calculated
+            % delaySet : Vector of delays calculated in each chunk
             numS = length(sig1);
             chunkL = 0.05;
             chunkP = fs*chunkL;
@@ -316,14 +377,24 @@ classdef MicHeadAlignProcess
         end
         
         function [breakOccured, breakMsg] = identifyVoiceBreak(obj)
+            % [breakOccured, breakMsg] = identifyVoiceBreak(obj) identfies
+            % different types of voice breaks and other voicing errors that
+            % disqualify a trial from being used in final analysis. The
+            % function returns a true value if a break occured, as well as
+            % a message for the type of break that occured.
+            %
+            % OUTPUTS
+            % breakOccured : Boolean if a break occured
+            % breakMsg     : String describing the type of voice break
+            
 
-            postVOnsetT     = 0.5; %500ms post VO
+            postVOnsetT     = 0.5; % 500ms post VO
             postVOnsetFrame = postVOnsetT*obj.fs/obj.frameLen;
             voiceOnsetFrame = ceil(obj.voiceOnsetInd/obj.frameLen);
             postVOnsetFrames = (0:postVOnsetFrame) + voiceOnsetFrame;
 
-            analysisPerFO  = obj.rms(obj.analysisFrames) < obj.preVOnsetRMS; %Analysis Frame
-            postVOnsetFO   = obj.rms(postVOnsetFrames) < obj.preVOnsetRMS;   %Post Voice Onset
+            analysisPerFO  = obj.rms(obj.analysisFrames) < obj.preVOnsetRMS; % Analysis Frame
+            postVOnsetFO   = obj.rms(postVOnsetFrames) < obj.preVOnsetRMS;   % Post Voice Onset
 
             breakTol             = 0.1; % Voice Break Tolerance; 100ms
             breakTolFrame        = breakTol*obj.fs/obj.frameLen;
@@ -343,111 +414,111 @@ classdef MicHeadAlignProcess
         end
         
         function drawPreProcessDiagnostic(obj)
+            % drawPreProcessDiagnostic creates a figure showing the effect
+            % the pre-processing steps had on the raw audio signals
 
-        if strcmp(obj.expType, 'Auditory Perturbation_Perceptual')
-            pertStr = 'f0 Shift (cents)';
-        else
-            pertStr = 'Pressure (psi)';
-        end
-            
-        plotPos = [-1280 200];
-        plotDim = [1200 900];
-        lineThick = 2.5;
-        voiceOnsetColor = 'm';
+            if strcmp(obj.expType, 'Auditory Perturbation_Perceptual')
+                pertStr = 'f0 Shift (cents)';
+            else
+                pertStr = 'Pressure (psi)';
+            end
 
-        % Time Bounds
-        auTimeRange = [0 5];
-        niTimeRange = auTimeRange - obj.AuNIDelay;
+            plotPos = [-1280 200];
+            plotDim = [1200 900];
+            lineThick = 2.5;
+            voiceOnsetColor = 'm';
 
-        % Inflation//Deflation Properties
-        PertColor = [0 0 0];
-        PresColor = [255, 66, 0]/255; %Sunburnt Orange;
-        InfColor = 'g';
-        DefColor = 'r';
-        
-        % Setup the Figure parameters
-        MHFig = figure('Color', [1 1 1]);
-        set(MHFig, 'Position', [plotPos plotDim],'PaperPositionMode','auto')
+            % Time Bounds
+            auTimeRange = [0 5];
+            niTimeRange = auTimeRange - obj.AuNIDelay;
 
-        ha = tight_subplot(3,1,[0.11 0.05],[0.08 0.08],[0.05 0.05]);
+            % Inflation//Deflation Properties
+            PertColor = [0 0 0];
+            PresColor = [255, 66, 0]/255; %Sunburnt Orange;
+            InfColor = 'g';
+            DefColor = 'r';
 
-        % Raw NIDAQ Microphone
-        axes(ha(1))
-        plot(obj.timeNI, obj.rawMicNI)
-        hold on
-        plot([obj.expTrigsNI(1) obj.expTrigsNI(1)], [-2 2], 'Color', PertColor, 'LineStyle', '-', 'LineWidth', lineThick)
-        hold on
-        plot([obj.expTrigsNI(2) obj.expTrigsNI(2)], [-2 2], 'Color', PertColor, 'LineStyle', '-', 'LineWidth', lineThick)
-        axis([niTimeRange min(obj.rawMicNI) max(obj.rawMicNI)])
-        title('Raw NIDAQ Microphone')
-        
-        % Converted Pressure Recording
-        yyaxis right
-        plot(obj.timeNI, obj.pressureNI, 'Color', PresColor, 'LineWidth', lineThick)
-        
-        hold on
-        plot([obj.pressureTrigs(1) obj.pressureTrigs(1)], [-600 600], 'Color', InfColor, 'LineStyle', '-', 'LineWidth', lineThick)
-        hold on
-        plot([obj.pressureEndActions(1) obj.pressureEndActions(1)], [-600 600], 'Color', InfColor, 'LineStyle', '--', 'LineWidth', lineThick)
-        
-        hold on
-        plot([obj.pressureTrigs(2) obj.pressureTrigs(2)], [-600 600], 'Color', DefColor, 'LineStyle', '-', 'LineWidth', lineThick)
-        hold on
-        plot([obj.pressureEndActions(2) obj.pressureEndActions(2)], [-600 600], 'Color', DefColor, 'LineStyle', '--', 'LineWidth', lineThick)       
-        
-        ylabel(pertStr, 'Color', PresColor)
-        axis([niTimeRange -0.2 5.5])
-        box off  
+            % Setup the Figure parameters
+            MHFig = figure('Color', [1 1 1]);
+            set(MHFig, 'Position', [plotPos plotDim],'PaperPositionMode','auto')
 
-        xlabel('NIDAQ Time (s)')
-        set(gca,'FontName', 'Arial',...
-                'FontSize', 14,...
-                'FontWeight','bold',...
-                'YColor', PresColor)
+            ha = tight_subplot(3,1,[0.11 0.05],[0.08 0.08],[0.05 0.05]);
 
-        % Raw Audapter Microphone
-        axes(ha(2))
-        plot(obj.time, obj.rawMic)
-        hold on
-        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'Color', voiceOnsetColor, 'LineStyle', '--', 'LineWidth', lineThick)
-        hold on
-        plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
-        hold on
-        plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-2 2], 'k--', 'LineWidth', lineThick)
-        box off
-        axis([auTimeRange min(obj.rawMic) max(obj.rawMic)])
-        title('Raw Audapter Microphone')
+            % Raw NIDAQ Microphone
+            axes(ha(1))
+            plot(obj.timeNI, obj.rawMicNI)
+            hold on
+            plot([obj.expTrigsNI(1) obj.expTrigsNI(1)], [-2 2], 'Color', PertColor, 'LineStyle', '-', 'LineWidth', lineThick)
+            hold on
+            plot([obj.expTrigsNI(2) obj.expTrigsNI(2)], [-2 2], 'Color', PertColor, 'LineStyle', '-', 'LineWidth', lineThick)
+            axis([niTimeRange min(obj.rawMicNI) max(obj.rawMicNI)])
+            title('Raw NIDAQ Microphone')
 
-        xlabel('Audapter Time (s)')
-        set(gca,'FontName', 'Arial',...
-                'FontSize', 14,...
-                'FontWeight','bold')
+            % Converted Pressure Recording
+            yyaxis right
+            plot(obj.timeNI, obj.pressureNI, 'Color', PresColor, 'LineWidth', lineThick)
 
-        % Raw Audapter Headphones
-        axes(ha(3))
-        plot(obj.time, obj.rawHead)
-        hold on
-        plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'Color', voiceOnsetColor, 'LineStyle', '--', 'LineWidth', lineThick)
-        hold on
-        plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
-        hold on
-        plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-2 2], 'k--', 'LineWidth', lineThick)
-        box off
-        axis([auTimeRange min(obj.rawMic) max(obj.rawMic)])
-        title('Raw Audapter Headphones')
+            hold on
+            plot([obj.pressureTrigs(1) obj.pressureTrigs(1)], [-600 600], 'Color', InfColor, 'LineStyle', '-', 'LineWidth', lineThick)
+            hold on
+            plot([obj.pressureEndActions(1) obj.pressureEndActions(1)], [-600 600], 'Color', InfColor, 'LineStyle', '--', 'LineWidth', lineThick)
 
-        xlabel('Audapter Time (s)')
-        set(gca,'FontName', 'Arial',...
-                'FontSize', 14,...
-                'FontWeight','bold')
+            hold on
+            plot([obj.pressureTrigs(2) obj.pressureTrigs(2)], [-600 600], 'Color', DefColor, 'LineStyle', '-', 'LineWidth', lineThick)
+            hold on
+            plot([obj.pressureEndActions(2) obj.pressureEndActions(2)], [-600 600], 'Color', DefColor, 'LineStyle', '--', 'LineWidth', lineThick)       
 
-        annotation('textbox', [0.8 0.9 0.1 0.1], 'String', {['MiHe Delay: ' num2str(obj.AuMHDelay) 's'];...
-                                                            ['AuNI Delay: ' num2str(obj.AuNIDelay) 's']},...
-                                                 'EdgeColor', 'none',...
-                                                 'FontSize', 14,...
-                                                 'FontWeight', 'Bold');
+            ylabel(pertStr, 'Color', PresColor)
+            axis([niTimeRange -0.2 5.5])
+            box off  
 
+            xlabel('NIDAQ Time (s)')
+            set(gca,'FontName', 'Arial',...
+                    'FontSize', 14,...
+                    'FontWeight','bold',...
+                    'YColor', PresColor)
+
+            % Raw Audapter Microphone
+            axes(ha(2))
+            plot(obj.time, obj.rawMic)
+            hold on
+            plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'Color', voiceOnsetColor, 'LineStyle', '--', 'LineWidth', lineThick)
+            hold on
+            plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
+            hold on
+            plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-2 2], 'k--', 'LineWidth', lineThick)
+            box off
+            axis([auTimeRange min(obj.rawMic) max(obj.rawMic)])
+            title('Raw Audapter Microphone')
+
+            xlabel('Audapter Time (s)')
+            set(gca,'FontName', 'Arial',...
+                    'FontSize', 14,...
+                    'FontWeight','bold')
+
+            % Raw Audapter Headphones
+            axes(ha(3))
+            plot(obj.time, obj.rawHead)
+            hold on
+            plot([obj.voiceOnsetT obj.voiceOnsetT], [-2 2], 'Color', voiceOnsetColor, 'LineStyle', '--', 'LineWidth', lineThick)
+            hold on
+            plot([obj.time(obj.auTrigs(1)) obj.time(obj.auTrigs(1))], [-2 2], 'k--', 'LineWidth', lineThick)
+            hold on
+            plot([obj.time(obj.auTrigs(2)) obj.time(obj.auTrigs(2))], [-2 2], 'k--', 'LineWidth', lineThick)
+            box off
+            axis([auTimeRange min(obj.rawMic) max(obj.rawMic)])
+            title('Raw Audapter Headphones')
+
+            xlabel('Audapter Time (s)')
+            set(gca,'FontName', 'Arial',...
+                    'FontSize', 14,...
+                    'FontWeight','bold')
+
+            annotation('textbox', [0.8 0.9 0.1 0.1], 'String', {['MiHe Delay: ' num2str(obj.AuMHDelay) 's'];...
+                                                                ['AuNI Delay: ' num2str(obj.AuNIDelay) 's']},...
+                                                     'EdgeColor', 'none',...
+                                                     'FontSize', 14,...
+                                                     'FontWeight', 'Bold');
         end
     end
 end
-
