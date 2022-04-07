@@ -11,46 +11,66 @@ function An = dfAnalysisAudio(dirs, An, AudFlag, varargin)
 % 5: Taking the mean section of trials of a type
 % 6: Performing (if applicable) audio dynamics of the mean f0-trace
 %
-% Inputs: 
-% dirs:    The set of directories we are working in
-% An:      Analysis variables structure organized in the function that
-%          calls this one. dfAnalysisAudio is currently called from 
-%          dfAnalysisAudapter and dfAnalysisNIDAQ. This value of An is 
-%          pre-set in those functions.
-% AudFlag: Perform function or not. Useful for when analyzing just NIDAQ data
-% aDF:     Audio Dynamics Flag. Analyze changes in f0 following triggers
+% INPUTS
+% dirs:    Structure of the file directories set for the computer in use.
+% An:      Structure of analysis variables to be shared between analysis
+%          steps.
+% AudFlag: Boolean flag for running frequency analysis
+% adFlag:  Audio Dynamics Flag. Analyze changes in f0 following triggers
 % f0Flag:  Perform f0-trace calculation, or load previous version?
 %
-% This function expects that An contains the following fields
+% OUTPUTS
+% An:      Structure of analysis variables to be shared between analysis
+%          steps.
+% 
+% This function has the following subfunctions
+% -initAudVar
+% -setFreqAnalVar
+% -signalFrequencyAnalysis
+% -identifyf0Bounds
+% -SimpleAutoCorr
+% -smoothf0
+% -normf0
+% -parseTrialTypes
+% -sectionData
+% -round2match
+% -meanAudioData
+% -InflationResponse
+% -InflationResponseStruct
+% -PitchShiftReflexResponse
+%
+% This function expects that the input An contains the following fields
 % -An.curSess
 % -An.f0Type
 % -An.f0AnaFile
 % -An.f0b
 % -An.gender
 % -An.sRate
-
 % -An.allIdxPreProc
 % -An.audioM
 % -An.audioH
 % -An.expTrigs
 % -An.trialType
+%
+% Author: Dante J Smith
+% Updated: 04/06/2022
 
 if isempty(varargin)
-    aDF    = 0; 
+    adFlag = 0; 
     f0Flag = 0;
 elseif length(varargin) == 1
-    aDF    = varargin{1};
+    adFlag = varargin{1};
     f0Flag = 0;
 else
-    aDF    = varargin{1};
+    adFlag = varargin{1};
     f0Flag = varargin{2};
 end
 
-% Instatiate the variables we intend to create 
+% Initalize analysis variables
 An = initAudVar(An);
 
 if AudFlag == 1
-%     fprintf('\nStarting Pitch Analysis\n')
+    fprintf('\nStarting Pitch Analysis\n')
 
     An.audioMSvt    = An.audioM(:, An.allIdxPreProc);
     An.audioHSvt    = An.audioH(:, An.allIdxPreProc);
@@ -63,10 +83,10 @@ if AudFlag == 1
     freqVar.f0b     = An.f0b;
     freqVar.gender  = An.gender;
     
-    % File where to save/find pitch contour analysis
+    % File where to save/find f0 trace analysis
     dirs.audiof0AnalysisFile = fullfile(dirs.SavResultsDir, An.f0AnaFile);
     
-    % How do you want to calculate the pitch contour?
+    % Select method of f0 trace calculation
     if strcmp(An.f0Type, 'Praat') == 1
         freqVar.f0AnalysisType = 1;
     else
@@ -75,10 +95,12 @@ if AudFlag == 1
         
     % f0-trace measurement from time-series data 
     if exist(dirs.audiof0AnalysisFile, 'file') == 0 || f0Flag == 1
+        % Perform signal frequency analysis on audio signals = f0 traces
         [f0A.timef0, f0A.audioMf0, f0A.expTrigsf0, f0A.etM, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioMSvt, An.expTrigsSvt);
         [f0A.timef0, f0A.audioHf0, f0A.expTrigsf0, f0A.etH, f0A.fV] = signalFrequencyAnalysis(dirs, freqVar, An.audioHSvt, An.expTrigsSvt);        
         save(dirs.audiof0AnalysisFile, 'f0A')
     else
+        % Load previously analyzed f0 traces
         load(dirs.audiof0AnalysisFile)
     end
 
@@ -89,14 +111,12 @@ if AudFlag == 1
     An.etMH       = f0A.etM + f0A.etH; % Minutes
     An.fV         = f0A.fV;
     
-    %Set up time information to section data around
+    % Set up time information for sectioned-data
     preEveT = -0.5;
     posEveT = 1.0;
     eveTLen = posEveT - preEveT;
-    numSampSec = eveTLen/An.fV.win + 1;
+    numSampSec = eveTLen/An.fV.win + 1; % Number of samples in sectioned trial
     
-    pVec = linspace(0, numSampSec-1, numSampSec);
-
     % Time vector corresponding to the sectioned signals
     An.secTime = linspace(preEveT, posEveT, numSampSec);
     
@@ -105,8 +125,8 @@ if AudFlag == 1
 %     An.audioHf0S   = smoothf0(An.audioHf0);
 
     % Section Audio with all trials...before parsing, and post-processing
-    An.audioMf0SecAll = sectionData(An.timef0, An.audioMf0, An.expTrigsf0, pVec);
-    An.audioHf0SecAll = sectionData(An.timef0, An.audioHf0, An.expTrigsf0, pVec);
+    An.audioMf0SecAll = sectionData(An.timef0, An.audioMf0, An.expTrigsf0, numSampSec);
+    An.audioHf0SecAll = sectionData(An.timef0, An.audioHf0, An.expTrigsf0, numSampSec);
    
     % Find the value of f0 during the perPert period for each trial
     prePert      = (An.secTime <= 0); % SecTime is aligned for SecTime = 0 to be Onset of pert
@@ -214,10 +234,10 @@ if AudFlag == 1
     An.audioHf0c   = parseTrialTypes(An.audioHf0sv, An.contf0Idx);
     
     %Section the data around onset and offset
-    An.audioMf0_Secp = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR, pVec);
-    An.audioHf0_Secp = sectionData(An.timef0, An.audioHf0p, An.pertTrigsR, pVec);
-    An.audioMf0_Secc = sectionData(An.timef0, An.audioMf0c, An.contTrigsR, pVec);
-    An.audioHf0_Secc = sectionData(An.timef0, An.audioHf0c, An.contTrigsR, pVec);
+    An.audioMf0_Secp = sectionData(An.timef0, An.audioMf0p, An.pertTrigsR, numSampSec);
+    An.audioHf0_Secp = sectionData(An.timef0, An.audioHf0p, An.pertTrigsR, numSampSec);
+    An.audioMf0_Secc = sectionData(An.timef0, An.audioMf0c, An.contTrigsR, numSampSec);
+    An.audioHf0_Secc = sectionData(An.timef0, An.audioHf0c, An.contTrigsR, numSampSec);
 
     %Mean around the onset and offset
     An.audioMf0_meanp = meanAudioData(An.audioMf0_Secp);
@@ -225,24 +245,32 @@ if AudFlag == 1
     An.audioMf0_meanc = meanAudioData(An.audioMf0_Secc);
     An.audioHf0_meanc = meanAudioData(An.audioHf0_Secc); 
     
-    if aDF == 1 % Set in RunSubjAnalysis
+    if adFlag == 1     % Set in RunSubjAnalysis
         An.audioDynamics = InflationResponse(An.secTime, An.audioMf0_meanp); % Audio Response to Somatosensory Pert
-    elseif aDF == 2 % Set in RunSubjAnalysis
+    elseif adFlag == 2 % Set in RunSubjAnalysis
         An.audioDynamics = PitchShiftReflexResponse(An.secTime, An.audioMf0_meanp); % Audio Response to Auditory Pert
     end
 end
 end
 
 function An = initAudVar(An)
-% Initialize variables used in analysis of recorded audio (Mic and Head)
-% This is a good place to view comments for variable names/uses
+% An = initAudVar(An) initialize variables used in the analysis of 
+% recorded audio (Mic and Head).
+%
+% INPUTS
+% An: Structure of analysis variables to be shared between analysis
+%     steps.
+%
+% OUTPUTS
+% An: Structure of analysis variables to be shared between analysis
+%     steps. Updated with initalized values.
 
-An.timef0         = []; %time vector of audio samples recorded
-An.audioMf0       = []; %Raw Microphone Audio Data
-An.audioHf0       = []; %Raw Headphone Audio Data
-An.expTrigsf0     = []; %ExpTrigs that have been slightly time shifted to match sampling rate of f0 analysis
-An.etMH           = [];
-An.fV             = []; %frequency analysis variables
+An.timef0         = []; % Time vector of audio samples recorded
+An.audioMf0       = []; % Vector of raw Microphone audio
+An.audioHf0       = []; % Vector of raw Headphone audio
+An.expTrigsf0     = []; % ExpTrigs that have been slightly time shifted to match sampling rate of f0 analysis
+An.etMH           = []; % Float value of the amount of elapsed time to perform analysis of Microphone and headphone data
+An.fV             = []; % Structure of frequency analysis variables
 
 An.audioMf0S      = [];
 An.audioHf0S      = [];
@@ -286,38 +314,73 @@ An.audioHf0_meanp = [];
 An.audioMf0_meanc = []; 
 An.audioHf0_meanc = [];
 
-An.audioDynamics  = [];
+An.audioDynamics  = []; % Structure of Audio Dynamics results
 end
 
 function fV = setFreqAnalVar(freqVar)
+% fV = setFreqAnalVar(freqVar) sets frequency analysis variables for
+% analysis of audio signals.
+%
+% INPUTS
+% freqVar: Structure of analysis variables to be used when calculating fV
+%
+% OUTPUTS
+% fV: Structure of frequency analysis variables to be used in frequency
+%     analysis of audio signals
 
+% Pull out basic recording 
 fV.anaFlag    = freqVar.f0AnalysisType;
 fV.sRate      = freqVar.sRate;
 fV.numSamp    = freqVar.numSamp;
 
-%Identify a few analysis varaibles
+% Set analysis variables
 fV.f0b        = freqVar.f0b;
 fV.gender     = freqVar.gender;
-fV.f0Bounds   = identifyf0Bounds(fV.f0b, fV.gender);
+fV.f0Bounds   = identifyf0Bounds(fV.gender, fV.f0b);
 
 fV.time       = (0:1/fV.sRate:(fV.numSamp-1)/fV.sRate)'; % Time vector for full mic
 
-fV.freqCutOff = 400;
-fV.win        = 0.001;      % Sampling window
-fV.fsA        = 1/fV.win;
-fV.winP       = fV.win*fV.sRate;
-fV.pOV        = 0.00;       % 80% overlap
-fV.tStepP     = round(fV.winP*(1-fV.pOV));
+fV.freqCutOff = 400;        % Cut Off Frequency.
+fV.win        = 0.001;      % Sampling window length (time; s)
+fV.fsA        = 1/fV.win;   % 
+fV.winP       = fV.win*fV.sRate; % Sampling window length (points; n)
+fV.pOV        = 0.00;       % 0% overlap
+fV.tStepP     = round(fV.winP*(1-fV.pOV)); %Number of windows steps over the sampling period
 
 fV.trialWin = round(1:fV.tStepP:(fV.numSamp-fV.winP)); % Window start frames based on length of voice onset mic
 fV.numWin   = length(fV.trialWin);                     % Number of windows based on WinSt
 
-fV.roundFact = fV.sRate/fV.tStepP;
-fV.winHalf   = fV.win/2;
+fV.roundFact = fV.sRate/fV.tStepP; % Rounding factor for frequency rounding
+fV.winHalf   = fV.win/2;           % Half a sampling window length (s)
 end
 
-function [timef0, audiof0, expTrigsR, elapsed_time, fV] = signalFrequencyAnalysis(dirs, freqVar, audio, expTrig)
-ET = tic;
+function [timef0, audiof0, expTrigsR, elapsed_Time, fV] = signalFrequencyAnalysis(dirs, freqVar, audio, expTrig)
+%[timef0, audiof0, expTrigsR, elapsed_Time, fV] = signalFrequencyAnalysis
+% (dirs, freqVar, audio, expTrig) performs the frequency analysis required
+% for these expertiments. Specifically this function offers two methods two
+% pull out the fundamental frequency (f0) from the recorded voice
+% recordings. The first method is to use Praat methods to pull out the f0
+% from the voice recordings and saving them in separate file. The second
+% method is to perform an autocorrelation on the audio signal to pull out
+% the f0 trace. 
+% 
+% INPUTS
+% dirs:         Structure of the file directories set for the computer in use
+% freqVar:      Structure of variables used to set the frequency variables
+% audio:        Matrix of audio signals to perform analysis on
+% expTrig:      Matrix of experimental triggers
+%
+% OUTPUTS
+% timef0:       Vector of time points corresponding to the f0-traces
+% audiof0:      Matrix of fundamental frequency measures taken from the
+%               time-series audio data.
+% expTrigsR:    Vector of experimental triggers rounded
+% elapsed_Time: Amount of time that has elapsed during this analysis step
+% fV:           Structure of frequency analysis variables to be used in 
+%               frequency analysis of audio signals
+
+
+elapsed_Time_Start = tic;
 [~, numTrial] = size(audio);
 
 fV = setFreqAnalVar(freqVar);
@@ -326,7 +389,7 @@ if fV.anaFlag == 1
     [timef0, audiof0] = dfCalcf0Praat(dirs, audio, fV.sRate, fV.win, fV.f0Bounds);
 else
     audiof0 = [];
-    for j = 1:numTrial %Trial by Trial             
+    for j = 1:numTrial % Trial by Trial             
         time  = fV.time;
         voice = audio(:,j);
          
@@ -353,27 +416,47 @@ end
 
 expTrigsR = round2matchfs(expTrig, fV.roundFact, fV.winHalf);
 
-elapsed_time = toc(ET)/60;
-% fprintf('f0 Analysis Elapsed Time: %f (min)\n', elapsed_time)
+elapsed_Time = toc(elapsed_Time_Start)/60;
+% fprintf('f0 Analysis Elapsed Time: %f (min)\n', elapsed_Time)
 end
 
-function bounds = identifyf0Bounds(f0b, gender)
-% Based on Literature search
+function bounds = identifyf0Bounds(gender, f0b)
+% bounds = identifyf0Bounds(gender, f0b) is a simple script to set the
+% upper and lower bounds of fundamental frequency (f0) for a given
+% pariticipant based on their birth sex (gender in short form). This is the
+% possible range that a given participant's f0 may fluctuate during a given
+% experimental task. These bounds will be used to selectively tune the
+% Audapter algorithms which perturb auditory feedback. The default bounds
+% are set based on literature review and adjusted in cases of extreme
+% variation in the recorded baseline fundamental frequency of the
+% participant,
+%
+% INPUTS
+% gender: String value of birth sex ('Male' or 'Female') recorded from 
+% baseline assessments
+% f0b: Integer value of fundamental frequency of the participant recorded 
+% during baseline assessments
+%
+% OUTPUTS
+% bounds: Vector of lower(1) and upper(2) limits of fundamental frequency
+% (Hz) to be used for auditory feedback perturbations for the selected
+% participant.
 
-defaultMale   = [75 300];
-defaultFemale = [100 500];
+% Default fundamental frequency bounds identified from literature review
+defaultMale   = [75 300];  % (Hz)
+defaultFemale = [100 500]; % (Hz)
 
 switch gender
     case 'male'
         if (f0b/2) < defaultMale(1) % Especially low-pitch Male
-            bounds = [25 250];
+            bounds = [25 250]; % (Hz)
         else
             bounds = defaultMale;
         end
         
     case 'female'
         if (f0b*2) > defaultFemale(2) % Especially high-pitch Female
-            bounds = [200 600];
+            bounds = [200 600]; % (Hz)
         else
             bounds = defaultFemale;
         end
@@ -381,12 +464,21 @@ end
 end
 
 function f0Win = simpleAutoCorr(voice, fV)
-%Simple version of an autocorrelation for finding pitch
+% f0Win = simpleAutoCorr(voice, fV) is a very simple autocorrelation method
+% for finding the fundamental frequency during the frequency analysis.
+%
+% INPUTS
+% voice: vector of audio/voice signal
+% fV: Structure of frequency variables
+%
+% OUTPUTS
+% f0Win: Frequency of the highest peak in the recording
 
-fs            = fV.sRate;
-win           = fV.winP;
-[autoC, lags] = autocorr(voice, win-1);
-[pks, pkInd]  = findpeaks(autoC);
+fs            = fV.sRate;               % Sampling Rate
+win           = fV.winP;                % Sampling Window
+[autoC, lags] = autocorr(voice, win-1); % Perform autocorrelation
+[pks, pkInd]  = findpeaks(autoC);       % findoeaks from autocorrelation
+
 if isempty(pks)
     FLag      = lags(end);
 else
@@ -398,6 +490,7 @@ f0Win         = 1/per;
 end
 
 function audioS = smoothf0(audio)
+% To be deleted
 [~, numTrial] = size(audio);
 
 audioS = [];
@@ -408,9 +501,16 @@ end
 end
 
 function audio_norm = normf0(audio, trialf0)
-% audio_norm = normf0(audio, trialf0) takes a matrix of audio signals (audio) 
-% of size numSamp x numTrial and normalizes each trial by the f0 caluclated 
-% for that trial which are stored in the vector trialf0 (numTrial x 1)
+% audio_norm = normf0(audio, trialf0) takes a matrix of audio signals 
+% (audio) of size numSamp x numTrial and normalizes each trial by the 
+% baseline f0 caluclated for that trial, stored in the vector trialf0. 
+%
+% INPUTS
+% audio: matrix of audio signals (numSamp x numTrial)
+% trialf0: vector of baseline f0 values (numTrial x 1)
+%
+% OUTPUTS
+% audio_norm: matrix of normalized audio signals (numSamp x numTrial)
 
 [~, numTrial] = size(audio);
 
@@ -426,19 +526,28 @@ function signalParse = parseTrialTypes(signal, idx)
 % of a large matrix of recordings of size numSamp x numTrial. 
 % (idx) is a vector of the indices to parse out.
 % Why did you make this a function? Get over it.
+%
+% INPUTS
+% signal: matrix of audio signals (numSamp x numTrial)
+% idx: Index to sort out
+%
+% OUTPUTS
+% signalParse: Matrix of parsed signals (numSamp x trials of a type)
 
 signalParse = signal(:, idx);
 end
 
-function secSigs = sectionData(time, sigs, trigs, pVec)
-% [secTime, secSigs] = sectionData(time, sigs, trigs) sections
-% time series data around important points in time.
+function secSigs = sectionData(time, sigs, trigs, numSampSec)
+% secSigs = sectionData(time, sigs, trigs, numSampSec) sections time-series
+% data around important points in time.
 % 
+% INPUTS
 % time:  Vector of time points (numSamp)
 % sigs:  Matrix of signals to be sectioned (numSamp x numTrial)
 % trigs: Onset and Offset time tiggers (numTrial x 2)
+% numSampSec: Number of Samples in sectioned-data
 %
-% secTime: Vector of time points corresponding to the sectioned window (numSampSec)
+% OUTPUTS
 % secSigs: 3D mat of sectioned sigs (numSampSec x numTrial x event)
 %          The 1st 3D layer are Onset Sections
 %          The 2nd 3D later are Offset Sections
@@ -446,12 +555,15 @@ function secSigs = sectionData(time, sigs, trigs, pVec)
 [~, numTrial] = size(sigs);
 preEveT  = -0.5;
 
+% Sectioned-data vector of points
+pVec = linspace(0, numSampSec-1, numSampSec);
+
 OnsetSecs  = [];
 OffsetSecs = [];
 if numTrial > 0
     for ii = 1:numTrial
         thisSig = sigs(:, ii);
-        thisSig = padarray(thisSig,16000,0,'post');
+        thisSig = padarray(thisSig, 16000, 0, 'post');
         
         OnsetT   = trigs(ii, 1); % Onset time
         OffsetT  = trigs(ii, 2); % Offset time
@@ -479,22 +591,35 @@ end
 function y = round2matchfs(x, rFact, winHalf)
 % y = round2matchfs(x, rFact, winHalf) rounds the value of x to a value y,
 % which is the closet number to x that matches the time step for a given
-% analysis windowing methods. winHalf is the length of the window that
-% represents the amount of window, the time point corresponds to. rFact is
-% the sampling rate divided by the step size.
+% analysis windowing methods.
 %
-% x can be a single number, a vector of numbers or a matrix of numbers.
+% INPUTS
+% x: Decimal value of frequency. X can be a single number, a vector of 
+%          numbers or a matrix of numbers.
+% rfact: sampling rate divided by the sample size
+% winHalf: Half a sampling window (s)
+%
+% OUTPUTS
+% y: Integer value of frequency rounded from input x
 
 y = round((x-winHalf).*rFact)./rFact + winHalf;
 end
 
 function meanAudio = meanAudioData(secAudio)
-% Some simple statistics on the sectioned audio data. 
-% meanAudio is a vector containing the following information
-% meanAudio(1) = mean Onset pitch contour
-% meanAudio(2) = 95% CI of the mean Onset Pitch Contour
-% meanAudio(3) = mean Offset pitch contour
-% meanAudio(4) = 95% CI of the mean Offset Pitch Contour
+% meanAudio = meanAudioData(secAudio) performs the averaging and 
+% Standard Error measurements for the sectioned audio trials.
+%
+% INPUTS
+% secAudio: 3D matrix of sectioned sigs (numSampSec x numTrial x event)
+%           The 1st 3D layer are Onset Sections
+%           The 2nd 3D later are Offset Sections
+% OUTPUTS
+% meanAudio: 2D Matrix of mean section sigs (numSampSec x numColumns)
+%            The columns included in this output matrix are the following:
+%            meanAudio(:,1) = mean Onset pitch contour
+%            meanAudio(:,2) = Standard Error of the mean Onset Pitch Contour
+%            meanAudio(:,3) = mean Offset pitch contour
+%            meanAudio(:,4) = Standard Error of the mean Offset Pitch Contour
 
 OnsetSecs  = secAudio(:,:,1);
 OffsetSecs = secAudio(:,:,2);
@@ -516,27 +641,24 @@ meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
 function audioDynamics_Somato = InflationResponse(secTime, secAudioMean)
-% [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
-% Identifies the relevant pitch contour characteristics that are important
-% for deciding how a participant responded to the inflation of the balloon
-% during production. iR is a structure representing the result variables
-% from studying the inflation response (iR). The prefix letter denotes
-% whether the variable is a index (i), a time (t), or a value (v). 
+% audioDynamics_Somato = InflationResponse(secTime, secAudioMean) 
+% identifies the relevant pitch contour characteristics that represent how 
+% a participant responded to the balloon inflation during vocal production.  
+% iR is a structure representing the result variables from studying the 
+% inflation response (iR). The prefix letter denotes whether the variable 
+% is an index (i), a time (t), or a value (v). 
 %
-% secTime:  Vector of time points corresponding to the sectioned data (numSamp)
+% INPUTS
+% secTime:  Vector of time points corresponding to the sectioned data 
+%           (numSamp)
 % secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
 %           The 1st 3D layer are Onset Sections
 %           The 2nd 3D later are Offset Sections
 %
-% respVar: Matrix of per trial iR results (numTrial x 4)
-%          respVar(:,1) = Time of the minimum f0 value in the sec
-%          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
-%          respVar(:,3) = Value of f0 at end of sec (response magnitude)
-%          respVar(:,4) = ABS percent change of stim and response
-%          magnitude (response percentage)
-% respVarM:    Vector of mean trial values from respVarm (1x4)
-% respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
-% InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
+% OUTPUTS
+% audioDynamics_Somato: Structure of audio dynamics results with the 
+%                       following fields:
+% -respVarM: Matrix of mean trial values from respVarm (numSamp x 4)
 
 [numSamp, ~] = size(secAudioMean); % Size of the data we are dealing with
 
@@ -575,6 +697,14 @@ audioDynamics_Somato.respVarM = respVarM;
 end
 
 function ir = initInflationResponseStruct()
+% ir = initInflationResponseStruct() initalizes the structure ir which
+% organizes the variables tracked for the outcomes measures of an inflation
+% response. 
+%
+% OUTPUTS
+% ir: Structure of initalized inflation response variables. The prefix 
+% letter denotes whether the variable is an index (i), a time (t), or a 
+% value (v)
 
 ir.time     = [];
 ir.onset    = [];
@@ -597,27 +727,25 @@ ir.respPer = []; % Percent change from stimMag to respMag
 end
 
 function audioDynamics_Audio = PitchShiftReflexResponse(secTime, secAudioMean)
-% [respVar, respVarm, respVarSD, InflaStimVar] = InflationResponse(secTime, secAudio)
-% Identifies the relevant pitch contour characteristics that are important
-% for deciding how a participant responded to the inflation of the balloon
-% during production. iR is a structure representing the result variables
+% audioDynamics_Audio = PitchShiftReflexResponse(secTime, secAudioMean) 
+% identifies the relevant pitch contour characteristics that represent
+% how a participant responded to auditory feedback changes during vocal 
+% production.
+% iR is a structure representing the result variables
 % from studying the inflation response (iR). The prefix letter denotes
-% whether the variable is a index (i), a time (t), or a value (v). 
+% whether the variable is an index (i), a time (t), or a value (v). 
 %
-% secTime:  Vector of time points corresponding to the sectioned data (numSamp)
-% secAudio: 3D mat of sectioned audio (numSamp x numTrial x event)
-%           The 1st 3D layer are Onset Sections
-%           The 2nd 3D later are Offset Sections
+% INPUTS
+% secTime:      Vector of time points corresponding to the sectioned data 
+%               (numSamp)
+% secAudioMean: 3D mat of sectioned audio (numSamp x numTrial x event)
+%               The 1st 3D layer are Onset Sections
+%               The 2nd 3D later are Offset Sections
 %
-% respVar: Matrix of per trial iR results (numTrial x 4)
-%          respVar(:,1) = Time of the minimum f0 value in the sec
-%          respVar(:,2) = Minimum f0 value in sec (stim magnitude)
-%          respVar(:,3) = Value of f0 at end of sec (response magnitude)
-%          respVar(:,4) = ABS percent change of stim and response
-%          magnitude (response percentage)
-% respVarM:    Vector of mean trial values from respVarm (1x4)
-% respVarSD:   Vector of standard deviation of the trial values from respVar (1x4)
-% InflaSimVar: Values of the mean time at stim magnitude and the mean stim magnitude
+% OUTPUTS
+% audioDynamics_Audio: Structure of audio dynamics results with the 
+%                      following fields:
+% -respVarM: Matrix of mean trial values from respVarm (numSamp x 4)
 
 [numSamp, ~] = size(secAudioMean); % Size of the data we are dealing with
 
