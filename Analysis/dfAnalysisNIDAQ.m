@@ -1,44 +1,60 @@
-function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, PresFlag)
-% [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, aDF, PresFlag)
-% This function organizes and analyzes the raw NIDAQ recordings taken from
+function [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, ADyFlag, PrsFlag)
+% [niAn, niRes] = dfAnalysisNIDAQ(dirs, expParam, DAQin, AudFlag, ADyFlag, PresFlag)
+% organizes and analyzes the raw NIDAQ recordings taken from
 % sensors and audio devices during experiments measuring changes in f0. 
 % Specifically this function is responsible for cataloging the
 % timing dynamics of the perturbation trigger signals, as well as measuring
 % the sensor dynamics of the sensors that verify appropriate stimulus
 % levels
 % 
-% dirs:     The set of directories we are currently working in 
-% expParam: The experimental parameters of the recorded experiment
-% DAQin:    Raw NIDAQ data structure
-% AudFlag:  Flag to check if analyses of audio data should be performed
-% aDF:      Audio Dynamics Flag. Analyze changes in f0 following triggers
-% PresFlag: Flag to check if analyses of pressure data should be performed
+% INPUTS
+% dirs:     Structure of the file directories set for the computer in use. 
+% expParam: Structure of the experimental parameters for the current experiment.
+% DAQin:    3D matrix of raw NIDAQ data
+% AudFlag:  Boolean flag to perform acoustic analysis on recorded data
+% ADyFlag:  Boolean flag to analyze time-series changes in audio recordings.
+% PrsFlag:  Boolean flag to analyze time-series changes in pressure sensor recording.
 %
-% niAn:  Structure of all variables used to analyze NIDAQ data
-% niRes: Structure of necessary vars for pooled-analyses, stats, & figures
+% OUTPUTS
+% niAn:  Structure of variables used to analyze NIDAQ data
+% niRes: Structure of pertitent result variables necessary for
+% pooled-analyses, stats, & figures.
 %
-% This function calls the following functions
+% This function calls the following repository functions
 % -dfAnalysisAudio.m
 %
-% See below for the following sub-functions:
+% This function includes the following sub-functions:
 % -initNIDAQAnalysisStruct
 % -initSensorDynamicsStruct
 % -convertPressureSensor
+% -parseTrialType
+% -findPertTrigs
 % -analyzeSensorDynamics
+% -alignSensorData
+% -sectionData
+% -meanSensorData
+% -identifyLimits
+% -packResults
 %
-% Requires the Signal Processing Toolbox, Image Processing Toolbox
+% This function requires the following MATLAB toolboxes
+% -Signal Processing Toolbox
+% -Image Processing Toolbox
+%
+% Author: Dante J Smith
+% Updated: 02/09/2022
 
-%Identify some starting variables
+% Initalize analysis variables
 niAn = initNIDAQAnalysisStruct();
 
-niAn.expType   = expParam.expType;
-niAn.subject   = expParam.subject;
-niAn.run       = expParam.run;
-niAn.curSess   = expParam.curSess;
+% Pull out some experimental variables for the current set of analyses
+niAn.expType   = expParam.expType; % Experiment Type
+niAn.subject   = expParam.subject; % Current participant
+niAn.run       = expParam.run;     % Current run
+niAn.curSess   = expParam.curSess; % Current session
 
 niAn.f0AnaFile = [niAn.subject niAn.run 'f0Analysis.mat'];
-niAn.gender    = expParam.gender;
-niAn.AudFB     = expParam.AudFB;
+niAn.gender    = expParam.gender; % Participant birth sex
+niAn.AudFB     = expParam.AudFB;  % Type of Auditory feedback provided to participant
 niAn.AudFBSw   = expParam.AudFBSw;
 
 if isfield(expParam, 'f0b')
@@ -61,7 +77,7 @@ end
 
 fprintf('Starting NIDAQ Analysis for %s, %s with f0 of %0.2f Hz\n', niAn.subject, niAn.run, niAn.bTf0b)
 
-[r, c, n]      = size(DAQin);
+[r, c, n]      = size(DAQin);           % Size of 3D Matrix
 niAn.sRate     = expParam.sRateQ;       % Sampling Rate of the NIDAQ
 niAn.numCh     = c;                     % Number of Channels recorded
 niAn.numSamp   = r;                     % Number of Samples recorded
@@ -71,12 +87,12 @@ niAn.trialType = expParam.trialType;    % Control (0), Perturbed (1)
 niAn.expTrigs  = expParam.trigs(:,:,1); % Trigger Onset and Offset (Time) (all recorded trials)
 
 % Find all the perturbed trials
-[niAn.ContTrials, niAn.contIdx] = find(niAn.trialType == 0);
-[niAn.PertTrials, niAn.pertIdx] = find(niAn.trialType == 1);
-niAn.numContTrials = sum(niAn.ContTrials);
-niAn.numPertTrials = sum(niAn.PertTrials);
+[niAn.ContTrials, niAn.contIdx] = find(niAn.trialType == 0); % Control Trials
+[niAn.PertTrials, niAn.pertIdx] = find(niAn.trialType == 1); % Perturbed Trials
+niAn.numContTrials = sum(niAn.ContTrials); % Number of Control trials
+niAn.numPertTrials = sum(niAn.PertTrials); % Number of Perturbed trials
 
-%Unpack the NIDAQ raw data set, a 3D matrix (numSamp, numCh, numTrial)
+% Unpack NIDAQ raw data set (3D matrix; numSamp, numCh, numTrial)
 niAn.time     = linspace(0, niAn.trialLen, niAn.numSamp)';
 niAn.pertSig  = squeeze(DAQin(:,1,:)); % Perturbatron Signal (Pert)
 niAn.sensorFC = squeeze(DAQin(:,2,:)); % Force Sensor Collar (FC)
@@ -118,11 +134,11 @@ niAn.fSNSD.time   = niAn.time;
 niAn.fSNSD.sensor = niAn.sensorFN_p;
 niAn.fSNSD.fs     = niAn.sRate;
 
-if PresFlag == 1 && niAn.numPertTrials > 0
-    % Set PresFlag = 1 if pressure dynamics are worth looking investigating
+if PrsFlag == 1 && niAn.numPertTrials > 0
+    % Set PresFlag = 1 if pressure dynamics are worth investigating
     % Observe dynamics of the pressure sensor and save pert-onset aligned
-    % recordings. Also saving a set of data set that is sectioned around 
-    % the onset and offset of the perturbation period.
+    % recordings. Also saves a data set sectioned around the onset and 
+    % offset of the perturbation period.
     
     % Pressure Sensor Dynamics
     [niAn.presSD] = analyzeSensorDynamics(niAn.presSD, niAn.pertSD);
@@ -133,32 +149,37 @@ if PresFlag == 1 && niAn.numPertTrials > 0
     [niAn.fSNSD] = analyzeSensorDynamics(niAn.fSNSD, niAn.pertSD);
 end
 
-%The Audio Analysis
-niAn = dfAnalysisAudio(dirs, niAn, AudFlag, aDF);
+% Audio Analysis
+niAn = dfAnalysisAudio(dirs, niAn, AudFlag, ADyFlag);
     
 lims  = identifyLimits(niAn);
 niRes = packResults(niAn, lims);
 end
 
 function niAn = initNIDAQAnalysisStruct()
+% niAn = initNIDAQAnalysisStruct() generates a structure of the variables
+% used and saved for analytics of data recorded from NIDAQ device.
+%
+% OUTPUTS
+% niAn: Structure of analysis variables used on recorded NIDAQ data
 
-niAn.AnaType   = 'NIDAQ';
-niAn.expType   = [];
-niAn.subject   = [];
-niAn.run       = [];
-niAn.curSess   = [];
-niAn.f0Type    = 'Praat';
+niAn.AnaType   = 'NIDAQ'; % Analysis type
+niAn.expType   = [];      % Experiment type
+niAn.subject   = [];      % Current participant
+niAn.run       = [];      % Current run
+niAn.curSess   = [];      % Current session
+niAn.f0Type    = 'Praat'; % Frequency analysis methods to be used
 niAn.f0AnaFile = [];
 niAn.gender    = [];
 niAn.AudFB     = [];
 niAn.AudFBSw   = [];
 niAn.bTf0b     = [];
 
-niAn.balloon     = [];
-niAn.sensorPType = [];
+niAn.balloon     = []; % String name of balloon used in this experiment
+niAn.sensorPType = []; % String name of pressure sensor used in this experiment
 
-niAn.sRate     = [];
-niAn.numCh     = [];
+niAn.sRate     = []; % Sampling rate of the recordings
+niAn.numCh     = []; % Number of channels used in this experiment
 niAn.numSamp   = [];
 niAn.numTrial  = [];
 niAn.trialLen  = [];
@@ -202,21 +223,29 @@ niAn.fSNSD  = initSensorDynamicsStruct();
 end
 
 function SD = initSensorDynamicsStruct()
+% SD = initSensorDynamicsStruct() initalizes the structure of variables and
+% features measured from analytics investigating the dynamics of the
+% time-series waveform recorded using the NIDAQ.
+%
+% OUTPUTS
+% SD: Structure of sensor dynamics variables
 
-SD.time   = [];
-SD.sensor = [];
-SD.fs     = [];
+SD.time   = []; % Vector of time
+SD.sensor = []; % Matrix of sensor recordings (samp x numTrial)
+SD.fs     = []; % Integer of sampling rate
 
-SD.pertIdx  = [];
-SD.pertTime = [];
+% Per Trial target index and time points when perturbation is planned to be
+% presented
+SD.pertIdx  = []; % Values of indices in the recording where perturbation is planned to occur
+SD.pertTime = []; % Values of time in the recording where perturbation is planned to occur
 
 % Per Trial sensor index and time value of rising edge start and falling
 % edge end (expecting ~step function)
-SD.TrigIdx  = [];
+SD.TrigIdx  = []; %
 SD.TrigTime = [];
 
 % Per Trial lag time of trigger to start of rising edge
-SD.lagTimes  = [];
+SD.lagTimes  = []; % 
 SD.lagTimeM  = [];
 SD.lagTimeSE = [];
 
@@ -250,24 +279,33 @@ function sensorPres = convertPressureSensor(sensorV, sensorType)
 % the recorded voltage from the pressure sensor to the actual pressure
 % of the system. The conversion is doing using the transfer function of the
 % sensor circuit itself. The sensor being used will have a different Max
-% Voltage and therefore a slightly different function. See the attached 
-% links for information about the sensors used and their transfer functions
+% Voltage and therefore a slightly different transfer function. See the 
+% below links for information about the sensors used and their transfer 
+% functions.
+% 
+% INPUTS
+% sensorV: Vector of voltage values (V) recorded by the 'pressure sensor'
+% sensorType: Which version of the sensor being used in the experiment
+%
+% OUTPUTS
+% sensorPres: Vector of pressure values (psi) converted from voltage.
 
 switch sensorType
     case 'Five'
-        PMax      = 5;
-        PMin      = 0;
-        VMax      = 4.5;
-        VMin      = 0.5;
-        Vsupply   = 5.2;
+        PMax      = 5;    % Max Pressure
+        PMin      = 0;    % Min Pressure
+        VMax      = 4.5;  % Max Voltage
+        VMin      = 0.5;  % Min Voltage
+        Vsupply   = 5.2;  % Power supply Voltage
     case 'Seven'
-        PMax      = 7.25;
-        PMin      = 0;
-        VMax      = 4.5;
-        VMin      = 0.5;
-        Vsupply   = 5.2;
+        PMax      = 7.25; % Max Pressure
+        PMin      = 0;    % Min Pressure
+        VMax      = 4.5;  % Max Voltage
+        VMin      = 0.5;  % Min Voltage
+        Vsupply   = 5.2;  % Power supply Voltage
 end
 
+% Conversion of voltage to pressure
 % sensorPres = (sensorV - 0.5)*PMax/4;
 sensorPres = PMin + (sensorV - 0.1*Vsupply)*(PMax - PMin)/(0.8*Vsupply);
 % 
@@ -280,15 +318,31 @@ end
 function signalParse = parseTrialTypes(signal, idx)
 % signalParse = parseTrialTypes(signal, idx) parses individual trials out 
 % of a large matrix of recordings of size numSamp x numTrial. 
-% (idx) is a vector of the indices to parse out.
-% Why did you make this a function? Get over it. 
+%
+% INPUTS
+% signal: Vector of recorded data (full recording) 
+% idx: Indices from where to parse data
+%
+% OUTPUTS
+% signalParse: Vector of parsed data
 
 signalParse = signal(:, idx);
 end
 
 function [trigs, idx] = findPertTrigs(time, sensor)
-%findPertTrigs(time, sensor) finds rising and falling edges in sensor
-%data. It is expected that these signals will be mostly step functions
+% [trigs, idx] = findPertTrigs(time, sensor) finds rising and falling edges 
+% in sensor data. It is expected that these signals will generally be step 
+% functions.
+% 
+% INPUTS
+% time:   Vector of time points for the duration of the recording
+% sensor: Matrix(samp, numTrial) of sensor data for set of recordings
+%
+% OUTPUTS
+% trigs: Trigger time points detected from the edges measurements
+% idx: Trigger index points detected from the edges measurements
+
+% Identify the number of trials
 [~, numTrial] = size(sensor);
 
 trigs = [];
@@ -314,8 +368,15 @@ end
 end
 
 function [SD] = analyzeSensorDynamics(SD, pertSD)
-% Analyzing the dynamics of the sensor during onset and offset of the
-% stimulus signal.
+% SD = analyzeSensorDynamics(SD, pertSD) analyzes the dynamics taken from a
+% given sensor recorded by the NIDAQ.
+% 
+% INPUTS
+% SD: Structure of signal dynamics variables
+% pertSD: Structure of perturbation properties
+%
+% OUTPUTS
+% SD : Structure of signal dynamics variables
 
 time     = SD.time;
 sensor   = SD.sensor;
@@ -324,7 +385,7 @@ fs       = SD.fs;
 SD.pertIdx  = pertSD.TrigIdx;
 SD.pertTime = pertSD.TrigTime;
 
-fiveMs = round(0.005*fs); %5ms in points
+fiveMs = round(0.005*fs); % 5ms in points
 
 [numSamp, numTrial] = size(sensor);
 
@@ -447,10 +508,12 @@ function [timeAl, sensorAl] = alignSensorData(sensor, fs, idx)
 % The sectioned trials are then concatenated into a matrix, which are
 % aligned the trigger point of each trial. 
 %
+% INPUT
 % sensor: recorded sensor data (numSamp x numTrial)
 % fs:     sampling rate of sensor data
 % idx:    Onset and Offset trigger POINTS (numTrial, 2)
 %
+% OUTPUT
 % timeAl:   vector of time points corresponding to the sectioned data
 % sensorAl: sectioned and aligned sensor data 
 
@@ -478,13 +541,15 @@ timeAl = (-preEve:per:posEve)';
 end
 
 function [secTime, secSigs] = sectionData(sigs, fs, trigs)
-% [secTime, secSigs] = sectionData(time, sigs, trigs) sections
+% [secTime, secSigs] = sectionData(sigs, fs, trigs) sections
 % time series data around important points in time.
 % 
-% time:  Vector of time points (numSamp)
+% INPUTS
 % sigs:  Matrix of signals to be sectioned (numSamp x numTrial)
+% fs:    Integer of sampling rate
 % trigs: Onset and Offset time tiggers (numTrial x 2)
 %
+% OUTPUTS
 % secTime: Vector of time points corresponding to the sectioned window (numSampSec)
 % secSigs: 3D mat of sectioned sigs (numSampSec x numTrial x event)
 %          The 1st 3D layer are Onset Sections
@@ -505,12 +570,12 @@ if numTrial > 0
         Onset   = trigs(ii, 1); % Onset point
         Offset  = trigs(ii, 2); % Offset point
 
-        OnsetPre  = Onset - preEve;   % PreOnset point
-        OnsetPos  = Onset + posEve;   % PostOnset point
+        OnsetPre  = Onset - preEve;    % PreOnset point
+        OnsetPos  = Onset + posEve;    % PostOnset point
         OnsetSpan = OnsetPre:OnsetPos; % Indices corresponding to Onset period
 
-        OffsetPre  = Offset - preEve;   % PreOnset point
-        OffsetPos  = Offset + posEve;   % PostOnset point
+        OffsetPre  = Offset - preEve;     % PreOnset point
+        OffsetPos  = Offset + posEve;     % PostOnset point
         OffsetSpan = OffsetPre:OffsetPos; % Indices corresponding to Onset period
 
         OnsetSec  = thisSig(OnsetSpan);  % Data sectioned around Onset
@@ -530,12 +595,18 @@ secSigs(:,:,2) = OffsetSecs; % 2nd 3D layer
 end
 
 function meanAudio = meanSensorData(secAudio)
-% Some simple statistics on the sectioned audio data. 
-% meanAudio is a vector containing the following information
-% meanAudio(1) = mean Onset pitch contour
-% meanAudio(2) = 95% CI of the mean Onset Pitch Contour
-% meanAudio(3) = mean Offset pitch contour
-% meanAudio(4) = 95% CI of the mean Offset Pitch Contour
+% meanAudio = meanSensorData(secAudio) finds the mean and other simple
+% statistical measures from sectioned parts of recorded signal data. 
+%
+% INPUTS
+% secAudio: 3D Matrix of sectioned trials at Onset and Offset of each trial
+%
+% OUTPUTS
+% meanAudio: Vector containing the following information:
+% - meanAudio(1) = mean Onset pitch contour
+% - meanAudio(2) = 95% CI of the mean Onset Pitch Contour
+% - meanAudio(3) = mean Offset pitch contour
+% - meanAudio(4) = 95% CI of the mean Offset Pitch Contour
 
 OnsetSecs  = secAudio(:,:,1);
 OffsetSecs = secAudio(:,:,2);
@@ -557,14 +628,19 @@ meanAudio = [meanOnset SEMOnset meanOffset SEMOffset];
 end
 
 function lims = identifyLimits(An)
-% identifyLimits(An) calculates limits of analyzed data so that the limits
-% are dynamic and fit the data being shown. 
+% lims = identifyLimits(An) calculates limits of analyzed data do that 
+% figures and results are dynamically centered on the region of interest. 
 %
-% lims is a structure of the resultant limits to be used in plotting. 
+% INPUTS
+% An: Structure of analysis variables (niAn)
+% 
+% OUTPUTS
+% lims: Structure of the resultant limits to be used in plotting.
+%
 % This function is redundant between a few different functions, and might
 % eventually become its own function
 
-%Full Inidividual Trials: Pressure Sensor
+% Full Inidividual Trials: Pressure Sensor
 maxPres = max(max(An.sensorP_p));
 minPres = min(min(An.sensorP_p));
 uLP = maxPres + 0.2;
@@ -572,17 +648,17 @@ lLP = minPres - 0.2;
 
 lims.pressure   = [0 4 lLP uLP];
 
-%Aligned Pressure Data
+% Aligned Pressure Data
 lims.pressureAl = [-1 2.5 lLP uLP];
 
-%Mean Pressure Data
+% Mean Pressure Data
 lims.pressureMean = [-0.5 1.0 lLP uLP];
 
-%Full Individual Trials: Force Sensors
+% Full Individual Trials: Force Sensors
 lims.force      = [0 4 1 5];
 
 %%%%%%%%%%%lims.audio%%%%%%%%%%%
-%Individual Full Trials (Perturbed): f0 Audio
+% Individual Full Trials (Perturbed): f0 Audio
 if ~isempty(An.audioMf0p)
     pertTrialsM = An.audioMf0p;
     pertTrialsH = An.audioHf0p;
@@ -624,7 +700,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMean%%%%%%%%%%%
-%Mean Sectioned Trials (Perturbed): f0 Audio
+% Mean Sectioned Trials (Perturbed): f0 Audio
 if ~isempty(An.audioMf0_meanp)
     [~, Imax] = max(An.audioMf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioMf0_meanp(Imax,1) + An.audioMf0_meanp(Imax,2) + 10);
@@ -654,7 +730,7 @@ else
 end
 
 %%%%%%%%%%%lims.audioMH%%%%%%%%%%%%
-%Mean Sectioned Trials (Perturbed): f0 Audio
+% Mean Sectioned Trials (Perturbed): f0 Audio
 if ~isempty(An.audioHf0_meanp)
     [~, Imax] = max(An.audioHf0_meanp(:,1)); %Max Pert Onset
     upBoundOn = round(An.audioHf0_meanp(Imax,1) + An.audioHf0_meanp(Imax,2) + 10);
@@ -697,10 +773,16 @@ end
 end
 
 function res = packResults(niAn, lims)
-% packResults(niAn, lims) takes the results of the analysis and packages
-% the important variables into a new structure that have common names
-% between other analysis methods. This makes it easy to switch back and
-% forth between different result structures for plotting. 
+% res = packResults(niAn, lims) takes the results of the signal processing 
+% and packages the important variables into a new structure with detailed
+% and consistent names for use between analysis steps. 
+%
+% INPUTS
+% niAn: Structure of NIDAQ analysis variables
+% lims: Limits calculated from niAn
+%
+% OUTPUTS
+% res: Structure of results of analyses
 
 % Identifying Subject Information
 res.subject = niAn.subject;
@@ -722,8 +804,8 @@ res.pertTrig      = niAn.pertTrig;
 % How would you like the audio to be aligned? Against the Trigger Onset?
 % Against the pressure onset?
 res.alignResponseTriggers = niAn.alignResponseTriggers;
-
 res.timeS         = niAn.time;
+
 % Pressure Results
 res.sensorP       = niAn.sensorP_p; % Individual Processed Perturbed trials. 
 res.presSD        = niAn.presSD;    % Sensor Dynamics Structure
@@ -744,7 +826,7 @@ res.numContTrialsPP = niAn.numContTrialsPP;
 res.numPertTrialsPP = niAn.numPertTrialsPP;
 res.pertTrigPP      = niAn.pertTrigsR;
 
-%Full Individual Trials: Mic/Head f0 Trace 
+% Full Individual Trials: Mic/Head f0 Trace 
 res.audioMf0TrialPert = niAn.audioMf0p;
 res.audioMf0TrialCont = niAn.audioMf0c;
 res.audioHf0TrialPert = niAn.audioHf0p;
@@ -752,14 +834,14 @@ res.audioHf0TrialCont = niAn.audioHf0c;
 res.limitsA           = lims.audioM;
 res.limitsAudRes      = lims.audioAudRespMH;
 
-%Sections Trials: Mic/Head f0
+% Sections Trials: Mic/Head f0
 res.secTime          = niAn.secTime;
 res.audioMf0SecPert  = niAn.audioMf0_Secp;
 res.audioMf0SecCont  = niAn.audioMf0_Secc;
 res.audioHf0SecPert  = niAn.audioHf0_Secp;
 res.audioHf0SecCont  = niAn.audioHf0_Secc;
 
-%Mean Sectioned Trials: Mic/Head f0 Trace 
+% Mean Sectioned Trials: Mic/Head f0 Trace 
 res.audioMf0MeanPert = niAn.audioMf0_meanp; % [MeanSigOn 90%CI MeanSigOff 90%CI]
 res.audioMf0MeanCont = niAn.audioMf0_meanc;
 res.audioHf0MeanPert = niAn.audioHf0_meanp;
@@ -767,6 +849,6 @@ res.audioHf0MeanCont = niAn.audioHf0_meanc;
 res.limitsAmean      = lims.audioMean;
 res.limitsAMH        = lims.audioMH;
 
-% Dynamics of the Participant's Vocal Response
+% Dynamics of the auditory vocal response
 res.audioDynamics = niAn.audioDynamics;
 end
