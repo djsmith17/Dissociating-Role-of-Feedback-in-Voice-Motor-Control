@@ -4,7 +4,7 @@ function [msrStr, annoStr] = dfSetVisFB(defMon, curSess, targRMS, bounds)
 % in the behavioral experiments.
 %
 % INPUTS 
-% defMon:  Monitor selection. A value of 1 uses the defualt monitor, A value of
+% defMon:  Monitor selection. A value of 1 uses the default monitor, A value of
 %          2 selects the secondary monitor. There is currently not support for 
 %          a number of monitors greater than 2.
 % curSess: A string input that displays simple information about the current 
@@ -19,8 +19,8 @@ function [msrStr, annoStr] = dfSetVisFB(defMon, curSess, targRMS, bounds)
 % msrStr:  Struc of annotation measurements. The collection of the 
 %          positions for all the annotations on the figure. Annotations are
 %          just objects on the figure that can be moved around.
-% annoStr: Struc of annotation elememts. The actual words, shapes and colors of 
-%          items that are displauyed on the screen. Each of these elements can 
+% annoStr: Struc of annotation elements. The actual words, shapes and colors of 
+%          items that are displayed on the screen. Each of these elements can 
 %          be made visible or invisible by toggling the property: 'visible'
 %
 % Author: Dante J Smith
