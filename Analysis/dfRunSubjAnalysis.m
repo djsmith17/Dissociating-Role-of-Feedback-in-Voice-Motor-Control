@@ -1,14 +1,15 @@
 function dfRunSubjAnalysis()
-% dfRunSubjAnalysis() is my main script for analyzing recorded audio files 
-% and sensor information from experiments studying voice motor control. 
-% This function is set up to analyze multiple subject and runs in an 
-% identical fashion
+% dfRunSubjAnalysis() is the top-level script for analyzing recorded 
+% audio files and sensor information from experiments studying 
+% vocal motor control. This function can analyze multiple subjects and runs 
+% in an identical manner
 %
 % One of the primary outcome measures of this analysis is the time-series
 % analysis of a speaker's f0 as they complete either a somatosensory or
 % auditory feedback perturbation task.
 %
 % This makes use of the following functions:
+% -dfDirs.m
 % -dfAnalysisNIDAQ.m
 % -dfAnalysisAudapter.m
 %
@@ -16,7 +17,11 @@ function dfRunSubjAnalysis()
 % -preAnalysisCheck
 % -combineRes
 %
-% Requires the Signal Processing Toolbox
+% Requires the following MATLAB Toolboxes
+% -Signal Processing Toolbox
+% 
+% Author: Dante J Smith
+% Updated: 04/06/2022
 
 close all
 AVar.project       = 'Dissociating-Role-of-Feedback-in-Voice-Motor-Control';

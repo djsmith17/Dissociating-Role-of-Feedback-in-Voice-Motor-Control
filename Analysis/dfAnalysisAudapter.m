@@ -30,12 +30,16 @@ function [auAn, auRes] = dfAnalysisAudapter(dirs, expParam, rawData, niAn, AudFl
 % -dfAnalysisAudio.m
 % -dfIdentifyAudioLims.m
 %
-% See below for the following sub-functions:
+% This function has the following subfunctions
 % -initAudapterAnalysisStruct
 % -setNIDAQTrialVars
 % -packResults
-%
-% Requires the Signal Processing Toolbox
+% 
+% Requires the following MATLAB Toolboxes
+% -Signal Processing Toolbox
+% 
+% Author: Dante J Smith
+% Updated: 04/06/2022
 
 % Identify some Experimental variables
 auAn = initAudapterAnalysisStruct();
